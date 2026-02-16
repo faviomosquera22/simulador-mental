@@ -1,8 +1,8 @@
 // src/lib/supabaseClient.ts
 import { createClient } from "@supabase/supabase-js";
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const url = process.env.https//qttwhladyplifvsbwluh.supabase.co;
+const anon = process.env.sb_publishable_9qKfrqWMJkPW2lCFBvxqog_zxSlfn8K;
 
 if (!url || !anon) {
   throw new Error(
