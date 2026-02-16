@@ -7,7 +7,6 @@ import { geminiChatJSON } from "../../../../src/lib/gemini";
 const MODEL =
   process.env.GEMINI_MODEL ||
   process.env.NEXT_PUBLIC_GEMINI_MODEL ||
-  process.env.OLLAMA_MODEL ||
   "gemini-1.5-flash";
 
 type TranscriptTurn = { role: "user" | "patient"; content: string };

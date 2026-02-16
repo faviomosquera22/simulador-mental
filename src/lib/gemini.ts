@@ -1,9 +1,8 @@
 // src/lib/gemini.ts
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 type Role = "system" | "user" | "assistant";
 export type LLMMessage = { role: Role; content: string };
-export const ollamaChatJSON = geminiChatJSON;
 
 function extractFirstJSONObject(text: string) {
   const s = String(text ?? "").trim();
@@ -30,7 +29,10 @@ function extractFirstJSONObject(text: string) {
       continue;
     }
 
-    if (ch === '"') { inString = true; continue; }
+    if (ch === '"') {
+      inString = true;
+      continue;
+    }
 
     if (ch === "{") {
       if (depth === 0) start = i;
@@ -42,7 +44,11 @@ function extractFirstJSONObject(text: string) {
       if (depth > 0) depth--;
       if (depth === 0 && start !== -1) {
         const candidate = s.slice(start, i + 1);
-        try { return JSON.parse(candidate); } catch { start = -1; }
+        try {
+          return JSON.parse(candidate);
+        } catch {
+          start = -1;
+        }
       }
     }
   }
@@ -55,13 +61,14 @@ export async function geminiChatJSON(args: {
   messages: LLMMessage[];
   temperature?: number;
 }) {
-  const model = args.model || process.env.GEMINI_MODEL || "gemini-2.5-flash";
+  const modelName = args.model || process.env.GEMINI_MODEL || "gemini-1.5-flash";
   const temperature = args.temperature ?? 0.4;
 
-  // La lib toma GEMINI_API_KEY desde env var (recomendado por docs)
-  const ai = new GoogleGenAI({});
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("missing_GEMINI_API_KEY");
 
-  // Convertimos a “contents” como pide el SDK
+  const genAI = new GoogleGenerativeAI(apiKey);
+
   // system va separado (systemInstruction)
   const systemMsg = args.messages.find((m) => m.role === "system")?.content ?? "";
   const nonSystem = args.messages.filter((m) => m.role !== "system");
@@ -71,17 +78,22 @@ export async function geminiChatJSON(args: {
     parts: [{ text: m.content }],
   }));
 
-  const resp = await ai.models.generateContent({
-    model,
+  const model = genAI.getGenerativeModel({
+    model: modelName,
+    ...(systemMsg ? { systemInstruction: systemMsg } : {}),
+  });
+
+  const result = await model.generateContent({
     contents,
-    // fuerza salida tipo JSON (si el modelo igual mete texto extra, lo “rescatamos” con extractFirstJSONObject)
-    config: {
+    generationConfig: {
       temperature,
       responseMimeType: "application/json",
-      systemInstruction: systemMsg ? { parts: [{ text: systemMsg }] } : undefined,
     },
   });
 
-  const text = (resp as any)?.text ?? "";
+  const text = result.response.text();
   return extractFirstJSONObject(text);
 }
+
+// Backward-compat: algunas rutas todavía importan `ollamaChatJSON`
+export const ollamaChatJSON = geminiChatJSON;
