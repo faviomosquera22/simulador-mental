@@ -3,9 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (value && typeof value === "object" && !Array.isArray(value)) return value as Record<string, unknown>;
+  return null;
+}
+
 export default function SetupPage() {
   const router = useRouter();
-  const [caseObj, setCaseObj] = useState<any | null>(null);
+  const [caseObj, setCaseObj] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,6 +30,19 @@ export default function SetupPage() {
   const [chiefComplaint, setChiefComplaint] = useState<string>("");
   const [learningObjective, setLearningObjective] = useState<string>("");
   const [difficulty, setDifficulty] = useState<number>(2);
+
+  const meta = asRecord(caseObj?.meta) ?? {};
+  const metaTitle = (meta.title as string | undefined) ?? "Caso generado";
+  const metaDescription = (meta.description as string | undefined) ?? "Descripción del caso.";
+
+  const outFirst = (...vals: unknown[]) => {
+    for (const v of vals) {
+      if (v === null || v === undefined) continue;
+      const s = String(v).trim();
+      if (s) return v;
+    }
+    return "";
+  };
 
   useEffect(() => {
     try {
@@ -60,15 +78,6 @@ export default function SetupPage() {
     } catch {}
   }, []);
 
-  function outFirst(...vals: any[]) {
-    for (const v of vals) {
-      if (v === null || v === undefined) continue;
-      const s = String(v).trim();
-      if (s) return v;
-    }
-    return "";
-  }
-
   function handleGenerate() {
     setLoading(true);
     setError(null);
@@ -84,7 +93,7 @@ export default function SetupPage() {
     } catch {}
   }
 
-  function applyCaseOverrides(base: any) {
+  function applyCaseOverrides(base: Record<string, unknown> | null) {
     if (!base) return base;
     // Clonado simple para evitar mutaciones accidentales
     const out = JSON.parse(JSON.stringify(base));
@@ -193,10 +202,8 @@ export default function SetupPage() {
         {caseObj && (
           <>
             <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6">
-              <h2 className="text-xl font-semibold">{caseObj.meta?.title ?? "Caso generado"}</h2>
-              <p className="mt-2 text-white/70">
-                {caseObj.meta?.description ?? "Descripción del caso."}
-              </p>
+              <h2 className="text-xl font-semibold">{metaTitle}</h2>
+              <p className="mt-2 text-white/70">{metaDescription}</p>
 
               <div className="mt-6 flex gap-3">
                 <button
@@ -253,7 +260,11 @@ export default function SetupPage() {
                           <label className="block text-sm text-white/70">Sexo</label>
                           <select
                             value={patientSex}
-                            onChange={(e) => setPatientSex(e.target.value as any)}
+                            onChange={(e) =>
+                              setPatientSex(
+                                e.target.value as "female" | "male" | "nonbinary" | "unspecified"
+                              )
+                            }
                             className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white outline-none focus:border-white/30"
                           >
                             <option value="unspecified">No especificar</option>

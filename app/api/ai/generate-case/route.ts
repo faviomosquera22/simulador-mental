@@ -7,7 +7,13 @@ const MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    type GenerateCaseBody = {
+      category?: string;
+      difficulty?: number | string;
+      target_minutes?: number | string;
+    };
+
+    const body = (await req.json()) as GenerateCaseBody;
     const { category = "ansiedad", difficulty = 2, target_minutes = 20 } = body ?? {};
 
     const system = `
@@ -50,9 +56,10 @@ Además:
     });
 
     return NextResponse.json(json);
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "unknown";
     return NextResponse.json(
-      { error: "generate_case_failed", detail: e?.message ?? "unknown" },
+      { error: "generate_case_failed", detail: message },
       { status: 500 }
     );
   }

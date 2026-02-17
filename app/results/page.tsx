@@ -17,6 +17,11 @@ type Evaluation = {
 
 type TranscriptTurn = { role: "user" | "patient"; content: string };
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (value && typeof value === "object" && !Array.isArray(value)) return value as Record<string, unknown>;
+  return null;
+}
+
 function clamp01(n: number) {
   if (!Number.isFinite(n)) return 0;
   return Math.max(0, Math.min(1, n));
@@ -30,16 +35,16 @@ function scoreLabel(score: number) {
 }
 
 export default function ResultsPage() {
-  const [caseObject, setCaseObject] = useState<any>(null);
+  const [caseObject, setCaseObject] = useState<Record<string, unknown> | null>(null);
   const [transcript, setTranscript] = useState<TranscriptTurn[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [evaluation, setEvaluation] = useState<Evaluation | null>(null);
 
-  const caseId = useMemo(
-    () => String(caseObject?.id ?? caseObject?.meta?.case_id ?? "default"),
-    [caseObject]
-  );
+  const caseId = useMemo(() => {
+    const meta = asRecord(caseObject?.meta);
+    return String(caseObject?.id ?? meta?.case_id ?? "default");
+  }, [caseObject]);
 
   useEffect(() => {
     // Cargar caso + transcript
@@ -115,8 +120,9 @@ export default function ResultsPage() {
         } catch {
           // ignore
         }
-      } catch (e: any) {
-        setError(e?.message ?? "Error al generar resultados.");
+      } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : "Error al generar resultados.";
+        setError(message);
       } finally {
         setLoading(false);
       }
@@ -127,8 +133,9 @@ export default function ResultsPage() {
   }, [caseId, caseObject]);
 
   const modeLabel = useMemo(() => {
-    const m = String(caseObject?.meta?.mode ?? caseObject?.mode ?? "training");
-    return m;
+    const meta = asRecord(caseObject?.meta);
+    const m = meta?.mode ?? (caseObject as Record<string, unknown> | null)?.["mode"] ?? "training";
+    return String(m);
   }, [caseObject]);
 
   const coverageEntries = useMemo(() => {

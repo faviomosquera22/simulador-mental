@@ -32,8 +32,9 @@ export default function LoginPage() {
       }
 
       window.location.href = "/cases";
-    } catch (e: any) {
-      setErr(e?.message ?? "No se pudo iniciar sesión.");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "No se pudo iniciar sesión.";
+      setErr(message);
     } finally {
       setLoading(false);
     }
@@ -53,8 +54,9 @@ export default function LoginPage() {
       const { error } = await supabase.auth.resetPasswordForEmail(e);
       if (error) throw error;
       setErr("Listo: revisa tu correo para recuperar la contraseña.");
-    } catch (e: any) {
-      setErr(e?.message ?? "No se pudo enviar el correo de recuperación.");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "No se pudo enviar el correo de recuperación.";
+      setErr(message);
     } finally {
       setLoading(false);
     }

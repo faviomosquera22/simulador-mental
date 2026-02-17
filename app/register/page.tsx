@@ -36,8 +36,9 @@ export default function RegisterPage() {
         setMsg("Cuenta creada y sesión iniciada. Entrando...");
         window.location.href = "/cases";
       }
-    } catch (e: any) {
-      setErr(e?.message ?? "No se pudo crear la cuenta.");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "No se pudo crear la cuenta.";
+      setErr(message);
     } finally {
       setLoading(false);
     }

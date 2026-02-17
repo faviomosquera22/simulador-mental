@@ -8,12 +8,80 @@ type CatalogItem = { id: string; title: string; desc: string; tag: string };
 type SexValue = "female" | "male" | "nonbinary" | "unspecified";
 type DifficultyValue = "beginner" | "intermediate" | "advanced";
 
+const CATALOG: CatalogItem[] = [
+  {
+    id: "anxiety",
+    title: "Ansiedad",
+    desc: "Preocupación persistente, tensión, síntomas físicos. Practica contención y preguntas abiertas.",
+    tag: "Entrevista",
+  },
+  {
+    id: "depression",
+    title: "Depresión",
+    desc: "Ánimo bajo, anhedonia, fatiga. Practica exploración de riesgo y apoyo.",
+    tag: "Seguimiento",
+  },
+  {
+    id: "panic",
+    title: "Crisis de pánico",
+    desc: "Inicio súbito, miedo intenso, palpitaciones. Practica grounding y psicoeducación.",
+    tag: "Crisis",
+  },
+  {
+    id: "ptsd",
+    title: "TEPT",
+    desc: "Recuerdos intrusivos, hipervigilancia. Practica seguridad y enfoque gradual.",
+    tag: "Entrevista",
+  },
+  {
+    id: "ocd",
+    title: "TOC",
+    desc: "Obsesiones y compulsiones. Practica clarificación sin reforzar rituales.",
+    tag: "Entrevista",
+  },
+  {
+    id: "bipolar",
+    title: "Trastorno bipolar",
+    desc: "Cambios de ánimo, posible hipomanía/manía. Practica evaluación de curso.",
+    tag: "Seguimiento",
+  },
+  {
+    id: "delirium",
+    title: "Delirio / confusión",
+    desc: "Desorientación, ideas falsas. Practica reorientación y seguridad.",
+    tag: "Crisis",
+  },
+  {
+    id: "substances",
+    title: "Consumo de sustancias",
+    desc: "Uso problemático y ambivalencia. Practica entrevista motivacional.",
+    tag: "Seguimiento",
+  },
+  {
+    id: "eating",
+    title: "TCA",
+    desc: "Relación con comida/imagen corporal. Practica enfoque no estigmatizante.",
+    tag: "Entrevista",
+  },
+  {
+    id: "selfharm",
+    title: "Ideación autolesiva (educativo)",
+    desc: "Señales de alarma y plan de seguridad. Practica derivación y contención.",
+    tag: "Crisis",
+  },
+];
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (value && typeof value === "object" && !Array.isArray(value)) return value as Record<string, unknown>;
+  return null;
+}
+
 function clampInt(n: number, min: number, max: number) {
   if (Number.isNaN(n)) return min;
   return Math.max(min, Math.min(max, Math.trunc(n)));
 }
 
-function safeStr(v: any, fallback = ""): string {
+function safeStr(v: unknown, fallback = ""): string {
   if (typeof v === "string") return v;
   if (v === null || v === undefined) return fallback;
   return String(v);
@@ -46,26 +114,27 @@ function prettyDifficulty(d: DifficultyValue) {
 }
 
 // Busca el primer string no vacío para cualquiera de estas llaves, recorriendo el objeto en profundidad.
-function deepFindString(obj: any, keys: string[], maxDepth = 6): string {
+function deepFindString(obj: unknown, keys: string[], maxDepth = 6): string {
   const wanted = new Set(keys.map((k) => k.toLowerCase()));
-  const seen = new Set<any>();
+  const seen = new Set<object>();
 
-  function walk(node: any, depth: number): string {
+  function walk(node: unknown, depth: number): string {
     if (node === null || node === undefined) return "";
     if (depth > maxDepth) return "";
     if (typeof node !== "object") return "";
-    if (seen.has(node)) return "";
-    seen.add(node);
+    const objNode = node as object;
+    if (seen.has(objNode)) return "";
+    seen.add(objNode);
 
     // 1) revisar propiedades directas primero
-    for (const [k, v] of Object.entries(node)) {
+    for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
       if (!wanted.has(String(k).toLowerCase())) continue;
       const s = safeStr(v, "").trim();
       if (s) return s;
     }
 
     // 2) luego recorrer hijos
-    for (const v of Object.values(node)) {
+    for (const v of Object.values(node as Record<string, unknown>)) {
       if (typeof v === "string") continue;
       const found = walk(v, depth + 1);
       if (found) return found;
@@ -77,24 +146,25 @@ function deepFindString(obj: any, keys: string[], maxDepth = 6): string {
   return walk(obj, 0);
 }
 
-function deepFindNumber(obj: any, keys: string[], maxDepth = 6): number | null {
+function deepFindNumber(obj: unknown, keys: string[], maxDepth = 6): number | null {
   const wanted = new Set(keys.map((k) => k.toLowerCase()));
-  const seen = new Set<any>();
+  const seen = new Set<object>();
 
-  function walk(node: any, depth: number): number | null {
+  function walk(node: unknown, depth: number): number | null {
     if (node === null || node === undefined) return null;
     if (depth > maxDepth) return null;
     if (typeof node !== "object") return null;
-    if (seen.has(node)) return null;
-    seen.add(node);
+    const objNode = node as object;
+    if (seen.has(objNode)) return null;
+    seen.add(objNode);
 
-    for (const [k, v] of Object.entries(node)) {
+    for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
       if (!wanted.has(String(k).toLowerCase())) continue;
       const n = Number(v);
       if (!Number.isNaN(n) && Number.isFinite(n)) return n;
     }
 
-    for (const v of Object.values(node)) {
+    for (const v of Object.values(node as Record<string, unknown>)) {
       if (typeof v === "number") continue;
       const found = walk(v, depth + 1);
       if (found !== null) return found;
@@ -107,7 +177,9 @@ function deepFindNumber(obj: any, keys: string[], maxDepth = 6): number | null {
 }
 
 // Intenta leer “datos esenciales” aunque la IA cambie nombres de campos.
-function extractEssentials(caseObj: any) {
+function extractEssentials(caseObj: unknown) {
+  const base = asRecord(caseObj) ?? {};
+  const meta = asRecord(base["meta"]) ?? {};
   // Título / resumen
   const title =
     safeStr(
@@ -119,7 +191,7 @@ function extractEssentials(caseObj: any) {
         "caseName",
       ])
     ) ||
-    safeStr(caseObj?.meta?.title) ||
+    safeStr(meta?.title) ||
     "Caso (sin título)";
 
   const summary =
@@ -132,15 +204,15 @@ function extractEssentials(caseObj: any) {
         "case_description",
         "description",
       ])
-    ) || safeStr(caseObj?.meta?.summary) || "";
+    ) || safeStr(meta?.summary) || "";
 
   // Perfil del paciente (distintas variantes)
   const p =
-    caseObj?.patient_profile ||
-    caseObj?.patientProfile ||
-    caseObj?.patient ||
-    caseObj?.profile ||
-    caseObj?.persona ||
+    asRecord(base["patient_profile"]) ||
+    asRecord(base["patientProfile"]) ||
+    asRecord(base["patient"]) ||
+    asRecord(base["profile"]) ||
+    asRecord(base["persona"]) ||
     {};
 
   const name =
@@ -148,15 +220,15 @@ function extractEssentials(caseObj: any) {
       p?.display_name ||
         p?.name ||
         p?.nombre ||
-        caseObj?.patient_name ||
+        base?.patient_name ||
         deepFindString(caseObj, ["patient_name", "display_name", "nombre_paciente"]) ||
         "Paciente"
     ) || "Paciente";
 
   const age =
     (typeof p?.age === "number" ? p.age : null) ??
-    (typeof caseObj?.patient_age === "number" ? caseObj.patient_age : null) ??
-    (typeof caseObj?.meta?.patient_age === "number" ? caseObj.meta.patient_age : null) ??
+    (typeof base?.patient_age === "number" ? base.patient_age : null) ??
+    (typeof meta?.patient_age === "number" ? meta.patient_age : null) ??
     deepFindNumber(caseObj, ["age", "edad", "patient_age", "edad_paciente"]) ??
     null;
 
@@ -164,13 +236,13 @@ function extractEssentials(caseObj: any) {
     p?.sex ??
     p?.gender ??
     p?.sexo ??
-    caseObj?.patient_sex ??
-    caseObj?.patient_gender ??
+    base?.patient_sex ??
+    base?.patient_gender ??
     deepFindString(caseObj, ["sex", "gender", "sexo", "genero", "patient_sex", "patient_gender"]) ??
     "unspecified";
 
   const sex =
-    (function normalizeSex(v: any): SexValue {
+    (function normalizeSex(v: unknown): SexValue {
       const s = String(v ?? "unspecified").toLowerCase();
       if (["female", "f", "mujer", "femenino"].includes(s)) return "female";
       if (["male", "m", "hombre", "masculino"].includes(s)) return "male";
@@ -191,7 +263,7 @@ function extractEssentials(caseObj: any) {
         "contexto_breve",
         "background",
       ])
-    ) || safeStr(caseObj?.meta?.context) || "";
+    ) || safeStr(meta?.context) || "";
 
   const chiefComplaint =
     safeStr(
@@ -206,7 +278,7 @@ function extractEssentials(caseObj: any) {
         "reason",
         "complaint",
       ])
-    ) || safeStr(caseObj?.meta?.chief_complaint) || safeStr(caseObj?.meta?.chiefComplaint) || "";
+    ) || safeStr(meta?.chief_complaint) || safeStr(meta?.chiefComplaint) || "";
 
   const learningObjective =
     safeStr(
@@ -218,16 +290,16 @@ function extractEssentials(caseObj: any) {
         "objective",
         "training_objective",
       ])
-    ) || safeStr(caseObj?.meta?.learning_objective) || safeStr(caseObj?.meta?.learningObjective) || "";
+    ) || safeStr(meta?.learning_objective) || safeStr(meta?.learningObjective) || "";
 
   const difficultyRaw =
-    caseObj?.meta?.difficulty ??
-    caseObj?.difficulty ??
+    meta?.difficulty ??
+    base?.difficulty ??
     deepFindString(caseObj, ["difficulty", "dificultad", "nivel"]) ??
     "beginner";
 
   const difficulty =
-    (function normalizeDifficulty(v: any): DifficultyValue {
+    (function normalizeDifficulty(v: unknown): DifficultyValue {
       const s = String(v ?? "beginner").toLowerCase();
       if (["advanced", "avanzado", "alto"].includes(s)) return "advanced";
       if (["intermediate", "intermedio", "medio"].includes(s)) return "intermediate";
@@ -235,8 +307,8 @@ function extractEssentials(caseObj: any) {
     })(difficultyRaw);
 
   const targetMinutes =
-    (typeof caseObj?.meta?.target_minutes === "number" ? caseObj.meta.target_minutes : null) ??
-    (typeof caseObj?.target_minutes === "number" ? caseObj.target_minutes : null) ??
+    (typeof meta?.target_minutes === "number" ? meta.target_minutes : null) ??
+    (typeof base?.target_minutes === "number" ? base.target_minutes : null) ??
     deepFindNumber(caseObj, ["target_minutes", "duracion_min", "minutes", "minutos"]) ??
     null;
 
@@ -257,7 +329,7 @@ function extractEssentials(caseObj: any) {
 export default function CasesPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [caseObj, setCaseObj] = useState<any>(null);
+  const [caseObj, setCaseObj] = useState<Record<string, unknown> | null>(null);
 
   // ✅ Biblioteca
   const [selectedCategory, setSelectedCategory] = useState<string>("general");
@@ -280,81 +352,18 @@ export default function CasesPage() {
   const [cfgChiefComplaint, setCfgChiefComplaint] = useState<string>("");
   const [cfgLearningObjective, setCfgLearningObjective] = useState<string>("");
 
-  const catalog: CatalogItem[] = [
-    {
-      id: "anxiety",
-      title: "Ansiedad",
-      desc: "Preocupación persistente, tensión, síntomas físicos. Practica contención y preguntas abiertas.",
-      tag: "Entrevista",
-    },
-    {
-      id: "depression",
-      title: "Depresión",
-      desc: "Ánimo bajo, anhedonia, fatiga. Practica exploración de riesgo y apoyo.",
-      tag: "Seguimiento",
-    },
-    {
-      id: "panic",
-      title: "Crisis de pánico",
-      desc: "Inicio súbito, miedo intenso, palpitaciones. Practica grounding y psicoeducación.",
-      tag: "Crisis",
-    },
-    {
-      id: "ptsd",
-      title: "TEPT",
-      desc: "Recuerdos intrusivos, hipervigilancia. Practica seguridad y enfoque gradual.",
-      tag: "Entrevista",
-    },
-    {
-      id: "ocd",
-      title: "TOC",
-      desc: "Obsesiones y compulsiones. Practica clarificación sin reforzar rituales.",
-      tag: "Entrevista",
-    },
-    {
-      id: "bipolar",
-      title: "Trastorno bipolar",
-      desc: "Cambios de ánimo, posible hipomanía/manía. Practica evaluación de curso.",
-      tag: "Seguimiento",
-    },
-    {
-      id: "delirium",
-      title: "Delirio / confusión",
-      desc: "Desorientación, ideas falsas. Practica reorientación y seguridad.",
-      tag: "Crisis",
-    },
-    {
-      id: "substances",
-      title: "Consumo de sustancias",
-      desc: "Uso problemático y ambivalencia. Practica entrevista motivacional.",
-      tag: "Seguimiento",
-    },
-    {
-      id: "eating",
-      title: "TCA",
-      desc: "Relación con comida/imagen corporal. Practica enfoque no estigmatizante.",
-      tag: "Entrevista",
-    },
-    {
-      id: "selfharm",
-      title: "Ideación autolesiva (educativo)",
-      desc: "Señales de alarma y plan de seguridad. Practica derivación y contención.",
-      tag: "Crisis",
-    },
-  ];
-
   const filteredCatalog = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return catalog;
-    return catalog.filter(
+    if (!q) return CATALOG;
+    return CATALOG.filter(
       (c) =>
         c.title.toLowerCase().includes(q) ||
         c.desc.toLowerCase().includes(q) ||
         c.tag.toLowerCase().includes(q)
     );
-  }, [query, catalog]);
+  }, [query]);
 
-  function prefillConfigFromCase(nextCase: any) {
+  function prefillConfigFromCase(nextCase: unknown) {
     const e = extractEssentials(nextCase);
 
     // Si por algún motivo el caso viene sin estos campos, damos un borrador mínimo
@@ -426,8 +435,9 @@ export default function CasesPage() {
       } catch {
         // ignore
       }
-    } catch (e: any) {
-      setError(e?.message ?? "Error desconocido.");
+  } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Error desconocido.";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -440,13 +450,16 @@ export default function CasesPage() {
     setShowConfig(true);
   }
 
-  function applyConfigToCaseObj(current: any) {
-    const next = { ...(current ?? {}) };
+  function applyConfigToCaseObj(current: Record<string, unknown> | null) {
+    const next: Record<string, unknown> = { ...(current ?? {}) };
+
+    const patientProfile = asRecord(next.patient_profile) ?? asRecord(next.patient) ?? {};
+    const metaObj = asRecord(next.meta) ?? {};
 
     // Normaliza estructura principal (no sabemos el schema exacto, pero dejamos todo coherente)
     const patient_profile = {
-      ...(next.patient_profile ?? next.patient ?? {}),
-      display_name: cfgName || (next?.patient_profile?.display_name ?? "Paciente"),
+      ...(patientProfile ?? {}),
+      display_name: cfgName || (patientProfile?.display_name as string | undefined) || "Paciente",
       sex: cfgSex,
       age: clampInt(Number(cfgAge), 5, 95),
     };
@@ -455,11 +468,12 @@ export default function CasesPage() {
 
     // Campos "educativos" / metadata
     next.meta = {
-      ...(next.meta ?? {}),
+      ...metaObj,
       difficulty: cfgDifficulty,
       target_minutes: clampInt(Number(cfgTargetMinutes), 5, 30),
-      learning_objective: cfgLearningObjective || (next?.meta?.learning_objective ?? ""),
-      chief_complaint: cfgChiefComplaint || (next?.meta?.chief_complaint ?? ""),
+      learning_objective:
+        cfgLearningObjective || (metaObj.learning_objective as string | undefined) || "",
+      chief_complaint: cfgChiefComplaint || (metaObj.chief_complaint as string | undefined) || "",
       category: selectedCategory,
     };
 

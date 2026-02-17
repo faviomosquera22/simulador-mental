@@ -21,21 +21,26 @@ type EvalOut = {
   red_flags: string[];
 };
 
-function safeArray(v: any) {
-  return Array.isArray(v) ? v : [];
+function safeArray<T = unknown>(v: unknown): T[] {
+  return Array.isArray(v) ? (v as T[]) : [];
 }
 
-function toNumber(n: any, fallback = 0) {
+function toNumber(n: unknown, fallback = 0) {
   const x = Number(n);
   if (!Number.isFinite(x)) return fallback;
   return x;
 }
 
+type EvalRequestBody = {
+  caseObject?: CaseObject;
+  transcript?: TranscriptTurn[];
+};
+
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = (await req.json()) as EvalRequestBody;
 
-    const caseObject: CaseObject | any = body?.caseObject;
+    const caseObject: CaseObject | undefined = body?.caseObject;
     const transcript: TranscriptTurn[] = Array.isArray(body?.transcript) ? body.transcript : [];
 
     if (!caseObject || transcript.length === 0) {
@@ -53,12 +58,18 @@ export async function POST(req: Request) {
 
     const patient = {
       name: caseObject?.patient_profile?.display_name ?? "Paciente",
-      sex: caseObject?.patient_profile?.sex ?? caseObject?.patient_profile?.gender ?? "(no especificado)",
+      sex: caseObject?.patient_profile?.gender ?? "(no especificado)",
       age: caseObject?.patient_profile?.age ?? "(no especificado)",
     };
 
-    const topic = String(caseObject?.meta?.topic ?? caseObject?.topic ?? "(no especificado)");
-    const mode = String(caseObject?.meta?.mode ?? caseObject?.mode ?? "training");
+    const topic = String(
+      caseObject?.meta?.category ??
+        (caseObject as Record<string, unknown> | null)?.["topic"] ??
+        "(no especificado)"
+    );
+    const mode = String(
+      (caseObject as Record<string, unknown> | null)?.["mode"] ?? "training"
+    );
 
     const system = `Eres un evaluador educativo de entrevistas clínicas en salud mental (NO diagnóstico).
 Evalúas habilidades comunicacionales y estructura de entrevista.
@@ -103,7 +114,8 @@ Reglas:
     };
 
     return NextResponse.json(normalized);
-  } catch (e: any) {
-    return NextResponse.json({ detail: e?.message ?? "Error en /api/ai/evaluate" }, { status: 500 });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "Error en /api/ai/evaluate";
+    return NextResponse.json({ detail: message }, { status: 500 });
   }
 }
