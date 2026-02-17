@@ -1,166 +1,134 @@
 "use client";
 
-import "./globals.css";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { getSupabaseClient } from "../src/lib/supabaseClient";
 
-type SessionView = {
-  email: string;
-  isAuthed: boolean;
-};
-
-function makeSupabaseClient(): SupabaseClient | null {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anon) return null;
-  return createClient(url, anon);
-}
-
-function TopBar() {
-  const hasSb = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
-
-  const sb = useMemo(() => makeSupabaseClient(), []);
-  const [session, setSession] = useState<SessionView>({ email: "", isAuthed: false });
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const [user, setUser] = useState<{ email?: string } | null>(null);
 
   useEffect(() => {
+    const sb = getSupabaseClient();
+    if (!sb) return;
+
     let alive = true;
-    if (!sb) {
-      setSession({ email: "", isAuthed: false });
-      return;
-    }
 
-    // Estado inicial
-    sb.auth
-      .getSession()
-      .then(({ data }) => {
-        if (!alive) return;
-        const email = data.session?.user?.email ?? "";
-        setSession({ email, isAuthed: Boolean(data.session) });
-      })
-      .catch(() => {
-        if (!alive) return;
-        setSession({ email: "", isAuthed: false });
-      });
-
-    // Cambios en vivo
-    const { data: sub } = sb.auth.onAuthStateChange((_event, s) => {
+    (async () => {
+      const { data } = await sb.auth.getSession();
       if (!alive) return;
-      const email = s?.user?.email ?? "";
-      setSession({ email, isAuthed: Boolean(s) });
+      setUser(data.session?.user ?? null);
+    })();
+
+    const { data: authListener } = sb.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
     });
 
     return () => {
       alive = false;
-      sub.subscription?.unsubscribe();
+      authListener?.subscription.unsubscribe();
     };
-  }, [sb]);
+  }, []);
 
-  return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-black/40 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-3">
-        <div className="flex items-center gap-3">
-          <Link href="/" className="text-sm font-semibold text-white/90 hover:text-white">
-            Simulador
-          </Link>
-          <div className="hidden sm:flex items-center gap-2 text-xs text-white/60">
-            <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1">
-              educativo
-            </span>
-            <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1">
-              no diagnostica
-            </span>
-          </div>
-        </div>
+  async function handleSignOut() {
+    const sb = getSupabaseClient();
+    if (!sb) return;
+    await sb.auth.signOut();
+  }
 
-        <div className="flex items-center gap-2">
-          {session.isAuthed ? (
-            <>
-              <Link
-                href="/cases"
-                className="hidden sm:inline-flex rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white/80 hover:bg-white/10"
-              >
-                Casos
-              </Link>
+  const isCases = pathname.startsWith("/cases");
+  const isHistory = pathname === "/history";
 
-              <Link
-                href="/history"
-                className="hidden sm:inline-flex rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white/80 hover:bg-white/10"
-              >
-                Historial
-              </Link>
-
-              <div
-                className="hidden sm:inline-flex rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white/80"
-                title={session.email || "Cuenta"}
-              >
-                {session.email || "Cuenta"}
-              </div>
-
-              <button
-                type="button"
-                onClick={async () => {
-                  try {
-                    await sb?.auth.signOut();
-                  } finally {
-                    setSession({ email: "", isAuthed: false });
-                  }
-                }}
-                className="inline-flex rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white/80 hover:bg-white/10"
-              >
-                Salir
-              </button>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/login"
-                className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white/80 hover:bg-white/10"
-              >
-                Iniciar sesión
-              </Link>
-              <Link
-                href="/register"
-                className="hidden sm:inline-flex rounded-xl bg-white px-3 py-2 text-sm text-black"
-              >
-                Crear cuenta
-              </Link>
-            </>
-          )}
-        </div>
-      </div>
-
-      {!hasSb && (
-        <div className="mx-auto w-full max-w-6xl px-4 pb-3">
-          <div className="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs text-red-200">
-            Configuración incompleta: faltan NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY en el entorno.
-          </div>
-        </div>
-      )}
-    </header>
-  );
-}
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
   return (
     <html lang="es">
-      <head>
-        <title>Simulador de entrevista clínica</title>
-        <meta
-          name="description"
-          content="Simulador educativo para practicar entrevistas clínicas en salud mental. No diagnostica."
-        />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </head>
-      <body className="antialiased">
-        <TopBar />
-        <main className="min-h-[calc(100vh-56px)]">{children}</main>
+      <body className="bg-black text-white">
+        <header className="border-b border-white/10 bg-black/90 px-6 py-3 backdrop-blur-md">
+          <nav className="mx-auto flex max-w-5xl items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Link href="/" className="font-bold text-white">
+                Simulador
+              </Link>
+              <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-xs text-white/60">
+                educativo
+              </span>
+              <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-xs text-white/60">
+                no diagnóstica
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {user ? (
+                <>
+                  <Link
+                    href="/cases"
+                    className={`rounded-md px-3 py-1 text-sm ${
+                      isCases ? "bg-white/10" : "hover:bg-white/5"
+                    }`}
+                  >
+                    Casos
+                  </Link>
+                  <Link
+                    href="/history"
+                    className={`rounded-md px-3 py-1 text-sm ${
+                      isHistory ? "bg-white/10" : "hover:bg-white/5"
+                    }`}
+                  >
+                    Historial
+                  </Link>
+
+                  {/* Icono de perfil (abre setup/perfil) */}
+                  <Link
+                    href="/cases/setup"
+                    aria-label="Perfil"
+                    title="Perfil"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      className="h-5 w-5"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M20 21a8 8 0 10-16 0" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 11a4 4 0 100-8 4 4 0 000 8z"
+                      />
+                    </svg>
+                  </Link>
+
+                  <button
+                    onClick={handleSignOut}
+                    className="rounded-md border border-white/20 px-3 py-1 text-sm font-medium text-white/90 hover:bg-white/10"
+                  >
+                    Salir
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="rounded-md bg-white px-3 py-1 text-sm font-medium text-black"
+                  >
+                    Iniciar sesión
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="rounded-md border border-white/20 px-3 py-1 text-sm font-medium text-white/90 hover:bg-white/10"
+                  >
+                    Crear cuenta
+                  </Link>
+                </>
+              )}
+            </div>
+          </nav>
+        </header>
+
+        {children}
       </body>
     </html>
   );
