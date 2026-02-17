@@ -47,21 +47,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="mt-7 flex flex-col sm:flex-row gap-2">
-            <Link
-              href="/login"
-              className="inline-flex items-center justify-center rounded-xl bg-white text-black px-5 py-3 text-sm"
-            >
-              Inicia sesión para comenzar
-            </Link>
-            <Link
-              href="/register"
-              className="inline-flex items-center justify-center rounded-xl border border-white/15 px-5 py-3 text-sm hover:bg-white/5"
-            >
-              Crear cuenta
-            </Link>
-          </div>
-
           <p className="mt-5 text-xs text-white/55">
             Nota: los casos son ficticios. Si aparece contenido sensible, el sistema responde en modo educativo.
           </p>
