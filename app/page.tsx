@@ -1,4 +1,4 @@
-// REPLACED: Home page is now a welcome/landing page with login/register, redirects to /cases if authed
+// Home page is a welcome/landing page with login/register. If already logged in, show an "Ir a casos" CTA but DO NOT auto-redirect.
 "use client";
 
 import { useEffect, useState } from "react";
@@ -21,14 +21,12 @@ export default function HomePage() {
       if (!alive) return;
       const ok = Boolean(data.session);
       setIsAuthed(ok);
-      if (ok) router.replace("/cases");
     })();
 
     const { data: sub } = sb.auth.onAuthStateChange(
       (_event: AuthChangeEvent, session: Session | null) => {
         const ok = Boolean(session);
         setIsAuthed(ok);
-        if (ok) router.replace("/cases");
       }
     );
 
