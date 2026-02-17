@@ -6,35 +6,6 @@ export default function HomePage() {
   return (
     <main className="min-h-screen p-6">
       <div className="mx-auto w-full max-w-5xl">
-        {/* Top bar */}
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
-              Simulador
-            </span>
-            <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
-              educativo
-            </span>
-            <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
-              no diagnostica
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Link
-              href="/login"
-              className="rounded-xl border border-white/15 px-4 py-2 text-sm hover:bg-white/5"
-            >
-              Iniciar sesión
-            </Link>
-            <Link
-              href="/register"
-              className="rounded-xl bg-white text-black px-4 py-2 text-sm"
-            >
-              Crear cuenta
-            </Link>
-          </div>
-        </div>
 
         {/* Hero */}
         <div className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-8 md:p-10">
@@ -44,7 +15,7 @@ export default function HomePage() {
           <p className="mt-3 max-w-3xl text-sm md:text-base text-white/75">
             Entrena tu entrevista y razonamiento clínico con casos simulados: preguntas abiertas,
             escucha activa, exploración de riesgo (modo educativo) y cierre con plan.
-            Aquí se practica; no se reemplaza a un profesional.
+            Aquí se practica; no se reemplaza a un profesional. Para acceder a los casos y al simulador, primero inicia sesión.
           </p>
 
           <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -78,16 +49,16 @@ export default function HomePage() {
 
           <div className="mt-7 flex flex-col sm:flex-row gap-2">
             <Link
-              href="/cases"
+              href="/login"
               className="inline-flex items-center justify-center rounded-xl bg-white text-black px-5 py-3 text-sm"
             >
-              Ir a Biblioteca de casos
+              Inicia sesión para comenzar
             </Link>
             <Link
-              href="/simulator"
+              href="/register"
               className="inline-flex items-center justify-center rounded-xl border border-white/15 px-5 py-3 text-sm hover:bg-white/5"
             >
-              Continuar al simulador
+              Crear cuenta
             </Link>
           </div>
 
