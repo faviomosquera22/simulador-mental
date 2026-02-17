@@ -3,7 +3,7 @@ import type { CaseObject, PatientTurnOutput, EmotionState } from "../../../../sr
 import { geminiChatJSON } from "../../../../src/lib/gemini";
 import { detectSelfHarm } from "../../../../src/lib/guardrails";
 
-const MODEL = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+const MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash";
 
 export async function POST(req: Request) {
   try {

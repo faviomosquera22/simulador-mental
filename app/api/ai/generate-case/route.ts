@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { geminiChatJSON } from "../../../../src/lib/gemini";
 
-// Gemini model (override with env). Examples: gemini-1.5-flash, gemini-1.5-pro, gemini-2.0-flash
-const MODEL = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+// Gemini model (override with env). Examples: gemini-2.0-flash, gemini-2.0-pro
+// (If GEMINI_MODEL is not set, we default to a currently supported model.)
+const MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash";
 
 export async function POST(req: Request) {
   try {

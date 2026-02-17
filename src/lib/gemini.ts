@@ -61,11 +61,11 @@ export async function geminiChatJSON(args: {
   messages: LLMMessage[];
   temperature?: number;
 }) {
-  const modelName = args.model || process.env.GEMINI_MODEL || "gemini-1.5-flash";
+  const modelName = args.model || process.env.GEMINI_MODEL || "gemini-3-flash-preview";
   const temperature = args.temperature ?? 0.4;
 
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error("missing_GEMINI_API_KEY");
+  if (!apiKey) throw new Error("missing_GEMINI_API_KEY"); // set GEMINI_API_KEY in Vercel/env.local
 
   const genAI = new GoogleGenerativeAI(apiKey);
 
