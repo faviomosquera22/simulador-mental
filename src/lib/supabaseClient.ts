@@ -8,3 +8,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export function getSupabaseClient() {
+  return supabase;
+}
