@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Sidebar from "../../components/Sidebar";
 
-export type DxCategory =
+type DxCategory =
   | "Ánimo"
   | "Ansiedad"
   | "Trauma"
@@ -16,7 +16,7 @@ export type DxCategory =
   | "Neurodesarrollo"
   | "Sueño";
 
-export type Dx = {
+type Dx = {
   id: string; // slug corto (para ?dx=)
   name: string;
   category: DxCategory;
@@ -37,7 +37,7 @@ export type Dx = {
 };
 
 // Datos iniciales (mínimos, editables). No es el DSM-5 textual: es una guía resumida para estudio/uso en simulador.
-export const DX: Dx[] = [
+const DX: Dx[] = [
   {
     id: "mdd",
     name: "Trastorno depresivo mayor (TDM)",
@@ -320,7 +320,7 @@ export const DX: Dx[] = [
   },
 ];
 
-export const CATEGORIES: DxCategory[] = [
+const CATEGORIES: DxCategory[] = [
   "Ánimo",
   "Ansiedad",
   "Trauma",
