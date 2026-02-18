@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Sidebar from "../../components/Sidebar";
-
+import { addSession } from "../../lib/history";
 type TranscriptTurn = { role: "user" | "patient"; content: string };
 
 
@@ -249,6 +249,7 @@ function AvatarCard({
 
 
 export default function SimulatorPage() {
+  const [sessionStartedAt, setSessionStartedAt] = useState<string | null>(null);
   const [caseObject, setCaseObject] = useState<any>(null);
   const [transcript, setTranscript] = useState<TranscriptTurn[]>([]);
   const [userMessage, setUserMessage] = useState("");
@@ -372,7 +373,12 @@ export default function SimulatorPage() {
 
       // init timer (depende del caso)
       initTimer(parsed);
-
+// guardar inicio de sesión (persistente por caso)
+const startKey = `sessionStartedAt:${String(parsed?.id ?? parsed?.meta?.case_id ?? "default")}`;
+const existingStart = localStorage.getItem(startKey);
+const startedAt = existingStart ?? new Date().toISOString();
+localStorage.setItem(startKey, startedAt);
+setSessionStartedAt(startedAt);
       // si hay transcript guardado
       const t =
         localStorage.getItem("activeTranscript") ??
@@ -601,7 +607,7 @@ export default function SimulatorPage() {
               Volver
             </Link>
             <button onClick={() => finishSession("manual")} className="rounded-xl bg-white text-black px-4 py-2 text-sm">
-              Finalizar sesión
+              Finalizar sesión  
             </button>
           </div>
         </div>
