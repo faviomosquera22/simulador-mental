@@ -3,17 +3,11 @@ import { geminiChatJSON } from "../../../../src/lib/gemini";
 
 // Gemini model (override with env). Examples: gemini-2.0-flash, gemini-2.0-pro
 // (If GEMINI_MODEL is not set, we default to a currently supported model.)
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
 export async function POST(req: Request) {
   try {
-    type GenerateCaseBody = {
-      category?: string;
-      difficulty?: number | string;
-      target_minutes?: number | string;
-    };
-
-    const body = (await req.json()) as GenerateCaseBody;
+    const body = await req.json();
     const { category = "ansiedad", difficulty = 2, target_minutes = 20 } = body ?? {};
 
     const system = `
@@ -56,10 +50,9 @@ Además:
     });
 
     return NextResponse.json(json);
-  } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : "unknown";
+  } catch (e: any) {
     return NextResponse.json(
-      { error: "generate_case_failed", detail: message },
+      { error: "generate_case_failed", detail: e?.message ?? "unknown" },
       { status: 500 }
     );
   }

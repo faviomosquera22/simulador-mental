@@ -2,15 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import Sidebar from "../../components/Sidebar";
 
 type TranscriptTurn = { role: "user" | "patient"; content: string };
 
-type CaseLike = Record<string, unknown>;
 
-function asRecord(value: unknown): Record<string, unknown> | null {
-  if (value && typeof value === "object" && !Array.isArray(value)) return value as Record<string, unknown>;
-  return null;
-}
+
 
 type EndReason = "manual" | "timeout";
 
@@ -250,8 +247,9 @@ function AvatarCard({
   );
 }
 
+
 export default function SimulatorPage() {
-  const [caseObject, setCaseObject] = useState<CaseLike | null>(null);
+  const [caseObject, setCaseObject] = useState<any>(null);
   const [transcript, setTranscript] = useState<TranscriptTurn[]>([]);
   const [userMessage, setUserMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -265,15 +263,6 @@ export default function SimulatorPage() {
   const finishingRef = useRef(false);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
-    // Gate suave: si no hay alias, vuelve a bienvenida
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("sim_user");
-      if (!raw) window.location.href = "/";
-    } catch {
-      window.location.href = "/";
-    }
-  }, []);
 
   const readActiveCaseRaw = useCallback(() => {
     // cargar caso guardado desde /cases (soporta varias claves por compatibilidad)
@@ -292,20 +281,17 @@ export default function SimulatorPage() {
     return null;
   }, []);
 
-  const getTargetMinutes = useCallback((obj: unknown) => {
-    const base = asRecord(obj);
-    const meta = base ? asRecord(base["meta"]) : null;
-
+  const getTargetMinutes = useCallback((obj: any) => {
     // Intenta varias rutas comunes para duración
     const raw =
-      meta?.target_minutes ??
-      meta?.targetMinutes ??
-      base?.target_minutes ??
-      base?.targetMinutes ??
-      base?.duration_minutes ??
-      base?.durationMinutes ??
-      meta?.duration_minutes ??
-      meta?.durationMinutes;
+      obj?.meta?.target_minutes ??
+      obj?.meta?.targetMinutes ??
+      obj?.target_minutes ??
+      obj?.targetMinutes ??
+      obj?.duration_minutes ??
+      obj?.durationMinutes ??
+      obj?.meta?.duration_minutes ??
+      obj?.meta?.durationMinutes;
 
     const n = Number(raw);
     if (Number.isFinite(n) && n > 0) return n;
@@ -313,20 +299,19 @@ export default function SimulatorPage() {
   }, []);
 
   const initTimer = useCallback(
-    (obj: unknown) => {
-      const base = asRecord(obj);
-      const meta = base ? asRecord(base["meta"]) : null;
-
+    (obj: any) => {
       const minutes = getTargetMinutes(obj);
 
       // Persistimos un endAt para que si refrescas no se reinicie.
       // Se guarda por caso (si tiene id) o global.
-      const key = `sessionEndAt:${String(base?.id ?? meta?.case_id ?? "default")}`;
+      const key = `sessionEndAt:${String(obj?.id ?? obj?.meta?.case_id ?? "default")}`;
 
       const existing = Number(localStorage.getItem(key));
       const now = Date.now();
 
-      const endAt = Number.isFinite(existing) && existing > now - 24 * 60 * 60 * 1000
+      // Solo reutiliza un endAt si todavía está en el futuro.
+      // Si quedó un endAt viejo (ya vencido), reinicia el timer para no mandar a /results al instante.
+      const endAt = Number.isFinite(existing) && existing > now
         ? existing
         : now + minutes * 60 * 1000;
 
@@ -370,6 +355,8 @@ export default function SimulatorPage() {
   useEffect(() => {
     const raw = readActiveCaseRaw();
     if (!raw) {
+      finishingRef.current = false;
+      setTimerReason(null);
       setCaseObject(null);
       setTranscript([]);
       return;
@@ -378,6 +365,10 @@ export default function SimulatorPage() {
     try {
       const parsed = JSON.parse(raw);
       setCaseObject(parsed);
+
+      // Reset de estado de cierre cuando entra un caso nuevo
+      finishingRef.current = false;
+      setTimerReason(null);
 
       // init timer (depende del caso)
       initTimer(parsed);
@@ -447,8 +438,7 @@ export default function SimulatorPage() {
   }, [timerEndAt, finishSession]);
 
   const patientName = useMemo(() => {
-    const profile = asRecord(caseObject?.patient_profile) ?? asRecord(caseObject?.patient);
-    return (profile?.display_name as string | undefined) ?? "Paciente";
+    return caseObject?.patient_profile?.display_name ?? "Paciente";
   }, [caseObject]);
 
   const lastMeta = useMemo(() => {
@@ -550,9 +540,8 @@ export default function SimulatorPage() {
       });
       localStorage.setItem("lastEmotion", last);
       setLastEmotionRaw(last);
-    } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : "No se pudo enviar el mensaje.";
-      setError(message);
+    } catch (e: any) {
+      setError(e?.message ?? "No se pudo enviar el mensaje.");
     } finally {
       setLoading(false);
     }
@@ -560,23 +549,31 @@ export default function SimulatorPage() {
 
   if (!caseObject) {
     return (
-      <main className="min-h-screen flex items-center justify-center p-6">
-        <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-white/5 p-6">
-          <h1 className="text-xl font-semibold">No hay un caso activo</h1>
-          <p className="mt-2 text-sm text-white/70">Vuelve a la biblioteca, genera un caso y presiona “Iniciar simulación”.</p>
-          <div className="mt-4">
-            <Link className="inline-flex items-center justify-center rounded-xl bg-white text-black px-4 py-2" href="/cases">
-              Ir a Biblioteca de casos
-            </Link>
-          </div>
+      <div className="min-h-screen bg-[#070A0F]">
+        <div className="mx-auto flex max-w-7xl gap-6 px-4 py-6">
+          <Sidebar />
+          <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl p-5 flex items-center justify-center">
+            <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-white/5 p-6">
+              <h1 className="text-xl font-semibold">No hay un caso activo</h1>
+              <p className="mt-2 text-sm text-white/70">Vuelve a la biblioteca, genera un caso y presiona “Iniciar simulación”.</p>
+              <div className="mt-4">
+                <Link className="inline-flex items-center justify-center rounded-xl bg-white text-black px-4 py-2" href="/cases">
+                  Ir a Biblioteca de casos
+                </Link>
+              </div>
+            </div>
+          </main>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen p-6">
-      <div className="mx-auto w-full max-w-5xl">
+    <div className="min-h-screen bg-[#070A0F]">
+      <div className="mx-auto flex max-w-7xl gap-6 px-4 py-6">
+        <Sidebar />
+        <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl p-5">
+          <div className="mx-auto w-full max-w-5xl">
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -753,7 +750,7 @@ export default function SimulatorPage() {
                       ["Riesgo", "Ansiedad", "Sueño", "Ánimo", "Funcionamiento", "Otros"] as const
                     ).map((cat) => {
                       const items = lastMeta.flags
-                        .map((x: unknown) => String(x))
+                        .map((x: any) => String(x))
                         .filter(Boolean)
                         .filter((f: string) => flagCategory(f) === cat);
 
@@ -829,7 +826,9 @@ export default function SimulatorPage() {
             </details>
           </div>
         </div>
+          </div>
+        </main>
       </div>
-    </main>
+    </div>
   );
 }

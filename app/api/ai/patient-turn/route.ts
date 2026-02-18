@@ -3,26 +3,16 @@ import type { CaseObject, PatientTurnOutput, EmotionState } from "../../../../sr
 import { geminiChatJSON } from "../../../../src/lib/gemini";
 import { detectSelfHarm } from "../../../../src/lib/guardrails";
 
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
 export async function POST(req: Request) {
   try {
-    type PatientTranscript = { role: "user" | "patient"; content: string };
-    type PatientTurnBody = {
-      caseObject?: CaseObject;
-      transcript?: PatientTranscript[];
-      userMessage?: string;
+    const body = await req.json();
+    const { caseObject, transcript, userMessage } = body as {
+      caseObject: CaseObject;
+      transcript: Array<{ role: "user" | "patient"; content: string }>;
+      userMessage: string;
     };
-
-    const body = (await req.json()) as PatientTurnBody;
-    const { caseObject, transcript, userMessage } = body;
-
-    if (!caseObject || !transcript || !Array.isArray(transcript) || !userMessage) {
-      return NextResponse.json(
-        { error: "patient_turn_invalid_body", detail: "Faltan caseObject, transcript o userMessage" },
-        { status: 400 }
-      );
-    }
 
     const selfHarm = detectSelfHarm(userMessage);
 
@@ -73,10 +63,9 @@ emotion_intensity 0-100
     );
 
     return NextResponse.json(out);
-  } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : "unknown";
+  } catch (e: any) {
     return NextResponse.json(
-      { error: "patient_turn_failed", detail: message },
+      { error: "patient_turn_failed", detail: e?.message ?? "unknown" },
       { status: 500 }
     );
   }
