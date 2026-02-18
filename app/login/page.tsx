@@ -1,28 +1,12 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/src/lib/supabaseClient";
 
 export default function LoginPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-[#070A0F] flex items-center justify-center px-4">
-          <div className="text-sm text-white/60">Cargando…</div>
-        </div>
-      }
-    >
-      <LoginInner />
-    </Suspense>
-  );
-}
-
-function LoginInner() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const forceLogin = searchParams.get("force") === "1";
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -30,9 +14,26 @@ function LoginInner() {
   const [checking, setChecking] = useState<boolean>(true);
   const [errorMsg, setErrorMsg] = useState<string>("");
 
+  // Read ?force=1 ONLY on the client to avoid prerender issues.
+  const [forceLogin, setForceLogin] = useState<boolean>(false);
+  const [forceReady, setForceReady] = useState<boolean>(false);
+
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      setForceLogin(params.get("force") === "1");
+    } catch {
+      setForceLogin(false);
+    } finally {
+      setForceReady(true);
+    }
+  }, []);
+
   // If a session/user exists, /login normally redirects to /cases.
   // But when force=1 (coming from welcome), we clear any existing session and show the login form.
   useEffect(() => {
+    if (!forceReady) return;
+
     let alive = true;
 
     (async () => {
@@ -61,7 +62,7 @@ function LoginInner() {
     return () => {
       alive = false;
     };
-  }, [router, forceLogin]);
+  }, [router, forceLogin, forceReady]);
 
   const onLogin = async (e: React.FormEvent) => {
     e.preventDefault();
