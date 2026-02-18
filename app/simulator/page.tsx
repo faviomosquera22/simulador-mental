@@ -550,9 +550,9 @@ export default function SimulatorPage() {
   if (!caseObject) {
     return (
       <div className="min-h-screen bg-[#070A0F]">
-        <div className="mx-auto flex max-w-7xl gap-6 px-4 py-6">
+        <div className="mx-auto flex max-w-[1480px] gap-6 px-4 py-6">
           <Sidebar />
-          <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl p-5 flex items-center justify-center">
+          <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl p-6 flex items-center justify-center">
             <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-white/5 p-6">
               <h1 className="text-xl font-semibold">No hay un caso activo</h1>
               <p className="mt-2 text-sm text-white/70">Vuelve a la biblioteca, genera un caso y presiona “Iniciar simulación”.</p>
@@ -570,10 +570,10 @@ export default function SimulatorPage() {
 
   return (
     <div className="min-h-screen bg-[#070A0F]">
-      <div className="mx-auto flex max-w-7xl gap-6 px-4 py-6">
+      <div className="mx-auto flex max-w-[1480px] gap-6 px-4 py-6">
         <Sidebar />
-        <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl p-5">
-          <div className="mx-auto w-full max-w-5xl">
+        <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl p-6">
+          <div className="mx-auto w-full max-w-none">
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -607,9 +607,9 @@ export default function SimulatorPage() {
         </div>
 
         {/* Chat */}
-        <div className="mt-6 grid grid-cols-1 lg:grid-cols-[280px_1fr_320px] gap-4">
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)_360px] gap-5">
           {/* Panel izquierdo (avatar) */}
-          <div className="lg:sticky lg:top-6 h-fit">
+          <div className="lg:sticky lg:top-6 h-fit min-w-0">
             <AvatarCard
               name={patientName}
               stateKey={lastMeta.state}
@@ -617,7 +617,7 @@ export default function SimulatorPage() {
               intensity={lastMeta.intensity}
             />
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 h-[calc(100vh-170px)] min-h-[520px] max-h-[760px] flex flex-col min-w-0 overflow-hidden">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-5 h-[calc(100vh-210px)] min-h-[560px] max-h-[820px] flex flex-col min-w-0 overflow-hidden">
             {/* Aviso si el tiempo está bajo */}
             {timeIsLow && remainingSec != null && remainingSec > 0 && (
               <div className="mb-3 rounded-xl border border-amber-400/20 bg-amber-400/10 p-3 text-sm text-amber-100">
