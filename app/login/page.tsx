@@ -1,56 +1,140 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/src/lib/supabaseClient";
 
-export default function CasesPage() {
-  const [userEmail, setUserEmail] = useState<string>("");
+export default function LoginPage() {
+  const router = useRouter();
 
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [checking, setChecking] = useState<boolean>(true);
+  const [errorMsg, setErrorMsg] = useState<string>("");
+
+  // If a session/user exists, /login should never render the login UI.
   useEffect(() => {
     let alive = true;
+
     (async () => {
       try {
         const { data } = await supabase.auth.getUser();
         if (!alive) return;
-        setUserEmail(data.user?.email ?? "");
+
+        if (data?.user) {
+          router.replace("/cases");
+          return;
+        }
       } catch {
         // ignore
+      } finally {
+        if (alive) setChecking(false);
       }
     })();
+
     return () => {
       alive = false;
     };
-  }, []);
+  }, [router]);
 
-  const onLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch {
-      // ignore
+  const onLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+
+    if (!email.trim() || !password) {
+      setErrorMsg("Ingresa tu correo y contraseña.");
+      return;
     }
-    window.location.href = "/";
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (error) {
+        setErrorMsg(error.message || "No se pudo iniciar sesión.");
+        return;
+      }
+
+      router.replace("/cases");
+    } catch {
+      setErrorMsg("Ocurrió un error al iniciar sesión.");
+    } finally {
+      setLoading(false);
+    }
   };
 
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-[#070A0F] flex items-center justify-center px-4">
+        <div className="text-sm text-white/60">Cargando…</div>
+      </div>
+    );
+  }
+
   return (
-    <main className="p-6">
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Biblioteca de casos</h1>
-          <p className="mt-1 text-sm text-white/70">
-            {userEmail ? `Sesión activa: ${userEmail}` : "Sesión activa"}
+    <div className="min-h-screen bg-[#070A0F] flex items-center justify-center px-4">
+      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl p-6 shadow-[0_20px_60px_rgba(0,0,0,0.55)]">
+        <div className="mb-5">
+          <h1 className="text-2xl font-semibold text-white">Iniciar sesión</h1>
+          <p className="mt-1 text-sm text-white/60">
+            Entra para acceder a la biblioteca de casos y el simulador.
           </p>
         </div>
 
-        <button
-          onClick={onLogout}
-          className="rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm text-white/80 hover:bg-white/10"
-          title="Cerrar sesión"
-        >
-          Cerrar sesión
-        </button>
-      </div>
+        <form onSubmit={onLogin} className="space-y-4">
+          <div>
+            <label className="block text-sm text-white/70 mb-1">Correo</label>
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              autoComplete="email"
+              placeholder="tu@correo.com"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-white outline-none focus:border-orange-400/60"
+            />
+          </div>
 
-      {/* The rest of the cases grid/list goes here */}
-    </main>
+          <div>
+            <label className="block text-sm text-white/70 mb-1">Contraseña</label>
+            <input
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              type="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-white outline-none focus:border-orange-400/60"
+            />
+          </div>
+
+          {errorMsg ? (
+            <div className="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+              {errorMsg}
+            </div>
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-xl bg-white text-black px-4 py-2.5 text-sm font-semibold hover:bg-white/90 disabled:opacity-60"
+          >
+            {loading ? "Entrando…" : "Entrar"}
+          </button>
+        </form>
+
+        <div className="mt-5 flex items-center justify-between text-sm">
+          <Link className="text-white/60 hover:text-white" href="/">
+            Volver
+          </Link>
+          <Link className="text-white/60 hover:text-white" href="/register">
+            Crear cuenta
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 }
