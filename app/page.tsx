@@ -51,7 +51,7 @@ export default function HomePage() {
 
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
-            href="/login"
+            href="/login?force=1"
             className="rounded-md bg-white px-4 py-2 text-sm font-medium text-black"
           >
             Iniciar sesión
