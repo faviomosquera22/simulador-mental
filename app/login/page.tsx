@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/src/lib/supabaseClient";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const forceLogin = searchParams.get("force") === "1";
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -14,12 +16,20 @@ export default function LoginPage() {
   const [checking, setChecking] = useState<boolean>(true);
   const [errorMsg, setErrorMsg] = useState<string>("");
 
-  // If a session/user exists, /login should never render the login UI.
+  // If a session/user exists, /login normally redirects to /cases.
+  // But when force=1 (coming from welcome), we clear any existing session and show the login form.
   useEffect(() => {
     let alive = true;
 
     (async () => {
       try {
+        if (forceLogin) {
+          await supabase.auth.signOut();
+          if (!alive) return;
+          setChecking(false);
+          return;
+        }
+
         const { data } = await supabase.auth.getUser();
         if (!alive) return;
 
@@ -37,7 +47,7 @@ export default function LoginPage() {
     return () => {
       alive = false;
     };
-  }, [router]);
+  }, [router, forceLogin]);
 
   const onLogin = async (e: React.FormEvent) => {
     e.preventDefault();
