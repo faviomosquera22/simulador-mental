@@ -9,6 +9,27 @@ type CatalogItem = { id: string; title: string; desc: string; tag: string };
 type SexValue = "female" | "male" | "nonbinary" | "unspecified";
 type DifficultyValue = "beginner" | "intermediate" | "advanced";
 
+// Conexión con Biblioteca clínica (/topics?dx=). Mantén estos tags cortos.
+const DSM_TAG_BY_CATALOG_ID: Record<string, string> = {
+  anxiety: "gad",
+  depression: "mdd",
+  panic: "panic",
+  ptsd: "ptsd",
+  bipolar: "bipolar1",
+  substances: "aud",
+  // Aún no hay ficha en /topics para estos (puedes agregarlas luego):
+  ocd: "ocd",
+  delirium: "delirium",
+  eating: "tca",
+  selfharm: "selfharm",
+};
+
+function deriveDsmTag(categoryId: string, selected: CatalogItem | null) {
+  const id = selected?.id || categoryId || "";
+  const tag = DSM_TAG_BY_CATALOG_ID[id];
+  return tag ? String(tag).trim().toLowerCase() : "";
+}
+
 const CATALOG: CatalogItem[] = [
   {
     id: "anxiety",
@@ -476,6 +497,7 @@ export default function CasesPage() {
         cfgLearningObjective || (metaObj.learning_objective as string | undefined) || "",
       chief_complaint: cfgChiefComplaint || (metaObj.chief_complaint as string | undefined) || "",
       category: selectedCategory,
+      dsm_tag: deriveDsmTag(selectedCategory, selectedCard) || safeStr(metaObj.dsm_tag as unknown, ""),
     };
 
     // Contexto + etiquetas alternativas
@@ -483,6 +505,9 @@ export default function CasesPage() {
     next.chief_complaint = cfgChiefComplaint || next.chief_complaint || "";
     next.learning_objective =
       cfgLearningObjective || next.learning_objective || "";
+
+    // Mantener dsm_tag a nivel raíz para compatibilidad
+    (next as any).dsm_tag = deriveDsmTag(selectedCategory, selectedCard) || (next as any).dsm_tag || "";
 
     return next;
   }
@@ -683,6 +708,9 @@ export default function CasesPage() {
                 </span>
                 <span className="inline-flex items-center rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
                   Duración: {cfgTargetMinutes} min
+                </span>
+                <span className="inline-flex items-center rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
+                  DSM tag: {deriveDsmTag(selectedCategory, selectedCard) || safeStr((caseObj as any)?.meta?.dsm_tag, "—")}
                 </span>
               </div>
             </div>
