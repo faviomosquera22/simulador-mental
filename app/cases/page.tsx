@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import Sidebar from "../../components/Sidebar";
 
 type CatalogItem = { id: string; title: string; desc: string; tag: string };
 
@@ -513,8 +514,11 @@ export default function CasesPage() {
   const essentials = useMemo(() => (caseObj ? extractEssentials(caseObj) : null), [caseObj]);
 
   return (
-    <main className="min-h-screen p-6 text-white bg-gradient-to-b from-[#070a12] via-[#0b1020] to-black">
-      <div className="mx-auto w-full max-w-5xl relative">
+    <div className="min-h-screen text-white bg-gradient-to-b from-[#070a12] via-[#0b1020] to-black">
+      <div className="mx-auto flex max-w-7xl gap-6 px-4 py-6">
+        <Sidebar />
+        <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl p-5 shadow-[0_20px_60px_rgba(0,0,0,0.55)]">
+          <div className="mx-auto w-full max-w-5xl relative">
         <div
           aria-hidden
           className="pointer-events-none absolute -top-24 left-1/2 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(125,211,252,0.18),rgba(0,0,0,0)_60%)] blur-2xl"
@@ -901,7 +905,9 @@ export default function CasesPage() {
         <div className="mt-8 text-xs text-white/40">
           Nota: los casos son ficticios. Si aparece contenido sensible, el sistema debe responder en modo educativo.
         </div>
+          </div>
+        </main>
       </div>
-    </main>
+    </div>
   );
 }
