@@ -22,19 +22,48 @@
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
 html, body {
   height: 100%;
 }
 
 body {
-  background: radial-gradient(1200px 600px at 20% 10%, rgba(255,255,255,0.08), transparent 60%),
-              radial-gradient(900px 500px at 80% 30%, rgba(99,102,241,0.16), transparent 60%),
-              radial-gradient(900px 500px at 50% 90%, rgba(16,185,129,0.10), transparent 60%),
-              #07070a;
+  background:
+    radial-gradient(1200px 600px at 20% 10%, rgba(255, 255, 255, 0.08), transparent 60%),
+    radial-gradient(900px 500px at 80% 30%, rgba(99, 102, 241, 0.16), transparent 60%),
+    radial-gradient(900px 500px at 50% 90%, rgba(16, 185, 129, 0.10), transparent 60%),
+    #07070a;
   color: white;
+  font-family: Arial, Helvetica, sans-serif;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Subtle grain */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.08;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.035) 1px, transparent 1px, transparent 2px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 3px);
+  mix-blend-mode: overlay;
+}
+
+/* Vignette for depth */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.35) 65%, rgba(0, 0, 0, 0.7) 100%);
+}
+
+/* Make sure app content stays above overlays */
+#__next {
+  position: relative;
+  z-index: 1;
 }
