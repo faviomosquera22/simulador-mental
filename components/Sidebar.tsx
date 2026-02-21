@@ -13,7 +13,7 @@ const NAV: NavItem[] = [
   { label: "Perfil", href: "/profile" },
   { label: "Historial de casos", href: "/history" },
   { label: "Biblioteca de casos", href: "/cases" },
-  { label: "Información de los temas", href: "/topics" },
+  { label: "Biblioteca clínica", href: "/topics" },
 ];
 
 function cn(...classes: Array<string | false | null | undefined>) {

@@ -14,8 +14,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className="min-h-screen text-white antialiased bg-gradient-to-b from-[#070a12] via-[#0b1020] to-black">
-        {children}
+      <body className="min-h-screen text-white antialiased">
+        <div id="app" className="relative z-10">
+          {children}
+        </div>
       </body>
     </html>
   );
