@@ -1,7 +1,9 @@
-// Welcome/Home UI (restored)
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/src/lib/supabaseClient";
 
 function IconShield(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -51,6 +53,58 @@ function IconDot(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export default function HomePage() {
+  const router = useRouter();
+
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string>("");
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const { data } = await supabase.auth.getUser();
+        if (!alive) return;
+        if (data?.user) router.replace("/cases");
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [router]);
+
+  const onLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+
+    if (!email.trim() || !password) {
+      setErrorMsg("Ingresa tu correo y contraseña.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (error) {
+        setErrorMsg(error.message || "No se pudo iniciar sesión.");
+        return;
+      }
+
+      router.replace("/cases");
+    } catch {
+      setErrorMsg("Ocurrió un error al iniciar sesión.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="relative min-h-[calc(100vh-64px)] overflow-hidden">
       {/* Background */}
@@ -65,7 +119,6 @@ export default function HomePage() {
 
       <div className="mx-auto flex max-w-6xl items-center px-6 py-10">
         <section className="w-full">
-          {/* Badge */}
           <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs tracking-[0.24em] text-white/80 shadow-[0_10px_40px_rgba(0,0,0,0.35)] backdrop-blur-md">
             <span className="flex items-center gap-1">
               <IconDot className="h-2 w-2 fill-sky-400" />
@@ -79,7 +132,6 @@ export default function HomePage() {
           </div>
 
           <div className="grid items-start gap-8 lg:grid-cols-[1.35fr_0.85fr]">
-            {/* Left */}
             <div>
               <h1 className="text-balance text-4xl font-semibold leading-tight text-white md:text-5xl">
                 Simulador de entrevista clínica (salud mental)
@@ -138,31 +190,27 @@ export default function HomePage() {
               </div>
 
               <p className="mt-6 text-xs text-white/50">
-                Nota: los casos son ficticios. Si aparece contenido sensible, el sistema responde en
-                modo educativo.
+                Nota: los casos son ficticios. Si aparece contenido sensible, el sistema responde en modo educativo.
               </p>
-
-              <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/75 backdrop-blur-md">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,0.6)]" />
-                <span>
-                  Listo para practicar <span className="text-white/40">•</span> modo educativo.
-                </span>
-              </div>
             </div>
 
-            {/* Right: auth card (UX only) */}
             <aside className="relative">
               <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_30px_120px_rgba(0,0,0,0.5)] backdrop-blur-xl">
                 <h2 className="text-2xl font-semibold text-white">Iniciar sesión</h2>
                 <p className="mt-2 text-sm text-white/70">Accede a tus casos, progreso y biblioteca clínica.</p>
 
-                <div className="mt-6 space-y-4">
+                <form onSubmit={onLogin} className="mt-6 space-y-4">
                   <div>
-                    <label className="mb-2 block text-xs font-medium text-white/70" htmlFor="email">Correo</label>
+                    <label className="mb-2 block text-xs font-medium text-white/70" htmlFor="email">
+                      Correo
+                    </label>
                     <input
                       id="email"
                       name="email"
                       type="email"
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       placeholder="tucorreo@ejemplo.com"
                       className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white placeholder:text-white/35 outline-none transition focus:border-white/20 focus:bg-black/25"
                     />
@@ -170,17 +218,30 @@ export default function HomePage() {
 
                   <div>
                     <div className="mb-2 flex items-center justify-between">
-                      <label className="block text-xs font-medium text-white/70" htmlFor="password">Contraseña</label>
-                      <Link href="/login" className="text-xs text-white/60 hover:text-white/85">¿Olvidaste tu clave?</Link>
+                      <label className="block text-xs font-medium text-white/70" htmlFor="password">
+                        Contraseña
+                      </label>
+                      <Link href="/login" className="text-xs text-white/60 hover:text-white/85">
+                        ¿Olvidaste tu clave?
+                      </Link>
                     </div>
                     <input
                       id="password"
                       name="password"
                       type="password"
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
                       className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white placeholder:text-white/35 outline-none transition focus:border-white/20 focus:bg-black/25"
                     />
                   </div>
+
+                  {errorMsg ? (
+                    <div className="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                      {errorMsg}
+                    </div>
+                  ) : null}
 
                   <div className="flex items-center justify-between">
                     <label className="flex items-center gap-2 text-sm text-white/65">
@@ -189,13 +250,13 @@ export default function HomePage() {
                     </label>
                   </div>
 
-                  {/* UX-only: send to real login page */}
-                  <Link
-                    href="/login"
-                    className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-sky-500/80 via-indigo-500/80 to-fuchsia-500/80 px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_70px_rgba(59,130,246,0.25)] transition hover:shadow-[0_22px_90px_rgba(167,139,250,0.25)]"
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-sky-500/80 via-indigo-500/80 to-fuchsia-500/80 px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_70px_rgba(59,130,246,0.25)] transition hover:shadow-[0_22px_90px_rgba(167,139,250,0.25)] disabled:opacity-60"
                   >
-                    Entrar
-                  </Link>
+                    {loading ? "Entrando…" : "Entrar"}
+                  </button>
 
                   <Link
                     href="/register"
@@ -203,7 +264,7 @@ export default function HomePage() {
                   >
                     Crear cuenta
                   </Link>
-                </div>
+                </form>
               </div>
 
               <div className="pointer-events-none absolute inset-0 -z-10 rounded-3xl bg-[linear-gradient(120deg,rgba(110,231,255,0.15),rgba(167,139,250,0.12),rgba(236,72,153,0.12))] blur-2xl" />
