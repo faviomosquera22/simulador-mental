@@ -270,14 +270,7 @@ export default function SimulatorPage() {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const readActiveCaseRaw = useCallback(() => {
-    // If the last session was finalized, do not allow reopening it as “in progress”.
-    try {
-      const ended = localStorage.getItem("sessionEnded");
-      if (ended === "true") return null;
-    } catch {
-      // ignore
-    }
-    // cargar caso guardado desde /cases (soporta varias claves por compatibilidad)
+    // Cargar caso guardado desde /cases (soporta varias claves por compatibilidad)
     // 1) clave actual
     const rawActive = localStorage.getItem("activeCase");
     if (rawActive) return rawActive;
@@ -289,6 +282,14 @@ export default function SimulatorPage() {
     // 3) compat: algunas rutas usaban sim_case
     const rawSim = localStorage.getItem("sim_case") ?? sessionStorage.getItem("sim_case");
     if (rawSim) return rawSim;
+
+    // Si NO hay caso, entonces sí aplica el gate de cierre
+    try {
+      const ended = localStorage.getItem("sessionEnded");
+      if (ended === "true") return null;
+    } catch {
+      // ignore
+    }
 
     return null;
   }, []);
