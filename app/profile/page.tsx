@@ -69,7 +69,9 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-[#070A0F]">
       <div className="mx-auto flex max-w-[1480px] gap-6 px-4 py-6">
         <Sidebar />
-
+<Link href="/history" className="rounded-xl border border-white/15 px-4 py-2 text-sm hover:bg-white/5">
+  Historial
+</Link>
         <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl p-6">
           {/* Header */}
           <div className="flex items-start justify-between gap-3">

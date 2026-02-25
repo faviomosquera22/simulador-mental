@@ -3,13 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Sidebar from "../../components/Sidebar";
-import { addSession } from "../../lib/history";
-type TranscriptTurn = { role: "user" | "patient"; content: string };
+import { addSession, type EndReason } from "../../lib/history";
+type TranscriptTurn = { role: "user" | "patient" | "tutor"; content: string; kind?: "tip" | "alert" };
 
 
 
 
-type EndReason = "manual" | "timeout";
 
 function chipClass(f: string) {
   const key = String(f).toLowerCase();
@@ -257,6 +256,11 @@ export default function SimulatorPage() {
   const [error, setError] = useState<string | null>(null);
   const [lastEmotionRaw, setLastEmotionRaw] = useState<string>("(sin datos)");
 
+  // UI (layout estilo Claude)
+  const [eduExpanded, setEduExpanded] = useState(true);
+  const [rightTab, setRightTab] = useState<"patient" | "mse" | "dsm" | "risk">("patient");
+  const [mseOpen, setMseOpen] = useState<Record<string, boolean>>({});
+
   // Timer
   const [remainingSec, setRemainingSec] = useState<number | null>(null);
   const [timerEndAt, setTimerEndAt] = useState<number | null>(null);
@@ -266,6 +270,13 @@ export default function SimulatorPage() {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const readActiveCaseRaw = useCallback(() => {
+    // If the last session was finalized, do not allow reopening it as “in progress”.
+    try {
+      const ended = localStorage.getItem("sessionEnded");
+      if (ended === "true") return null;
+    } catch {
+      // ignore
+    }
     // cargar caso guardado desde /cases (soporta varias claves por compatibilidad)
     // 1) clave actual
     const rawActive = localStorage.getItem("activeCase");
@@ -335,9 +346,17 @@ export default function SimulatorPage() {
         // ignore
       }
 
+      // Mark session as ended (used by Sidebar + Simulator gate)
+      try {
+        localStorage.setItem("sessionEnded", "true");
+      } catch {
+        // ignore
+      }
+
+      // Store optional end details separately (used by /reports if needed)
       try {
         localStorage.setItem(
-          "sessionEnded",
+          "sessionEndedInfo",
           JSON.stringify({
             reason,
             ended_at: new Date().toISOString(),
@@ -348,9 +367,76 @@ export default function SimulatorPage() {
         // ignore
       }
 
-      window.location.href = "/results";
+      // Guardar historial (una sola vez, al finalizar)
+      try {
+        const endedAt = new Date().toISOString();
+
+        const caseId = String(caseObject?.id ?? caseObject?.meta?.case_id ?? "default");
+        const caseTitle = String(caseObject?.meta?.title ?? caseObject?.title ?? "Caso clínico");
+        const patientName = String(caseObject?.patient_profile?.display_name ?? "Paciente");
+
+        const startedAt = sessionStartedAt ?? endedAt;
+
+        // duración aproximada
+        const startMs = Date.parse(startedAt);
+        const endMs = Date.parse(endedAt);
+        const durationSec = Number.isFinite(startMs)
+          ? Math.max(0, Math.floor((endMs - startMs) / 1000))
+          : 0;
+
+        // intenta leer lastEmotion ya guardado
+        let lastMeta: any = undefined;
+        try {
+          const raw = localStorage.getItem("lastEmotion");
+          if (raw) lastMeta = JSON.parse(raw);
+        } catch {}
+
+        // Map transcript for history (avoid Tutor IA breaking store)
+        const transcriptForHistory = transcript.map((t) => ({
+          role: t.role,
+          content: t.content,
+        }));
+
+        addSession({
+          sessionId: `${caseId}:${Date.now()}`,
+          caseId,
+          caseTitle,
+          patientName,
+          startedAt,
+          endedAt,
+          endReason: reason,
+          durationSec,
+          targetMinutes: (() => {
+            const raw =
+              caseObject?.meta?.target_minutes ??
+              caseObject?.meta?.targetMinutes ??
+              caseObject?.target_minutes ??
+              caseObject?.targetMinutes;
+            const n = Number(raw);
+            return Number.isFinite(n) ? n : undefined;
+          })(),
+          lastMeta: {
+            state: lastMeta?.state,
+            intensity: lastMeta?.intensity,
+            rapport: lastMeta?.rapport,
+            flags: Array.isArray(lastMeta?.flags) ? lastMeta.flags : [],
+          },
+          transcript: transcriptForHistory as any,
+        });
+      } catch {
+        // si falla el historial, igual deja terminar
+      }
+
+      // Persist active case for /reports page
+      try {
+        localStorage.setItem("activeCase", JSON.stringify(caseObject));
+      } catch {
+        // ignore
+      }
+
+      window.location.href = "/reports";
     },
-    [transcript, remainingSec]
+    [transcript, remainingSec, caseObject, sessionStartedAt]
   );
 
   useEffect(() => {
@@ -360,6 +446,15 @@ export default function SimulatorPage() {
       setTimerReason(null);
       setCaseObject(null);
       setTranscript([]);
+      setTimerEndAt(null);
+      setRemainingSec(null);
+      try {
+        if (typeof window !== "undefined" && window.location?.pathname === "/simulator") {
+          window.location.replace("/dashboard");
+        }
+      } catch {
+        // ignore
+      }
       return;
     }
 
@@ -367,18 +462,25 @@ export default function SimulatorPage() {
       const parsed = JSON.parse(raw);
       setCaseObject(parsed);
 
+      // New case loaded → allow session to be in progress
+      try {
+        localStorage.setItem("sessionEnded", "false");
+      } catch {
+        // ignore
+      }
+
       // Reset de estado de cierre cuando entra un caso nuevo
       finishingRef.current = false;
       setTimerReason(null);
 
       // init timer (depende del caso)
       initTimer(parsed);
-// guardar inicio de sesión (persistente por caso)
-const startKey = `sessionStartedAt:${String(parsed?.id ?? parsed?.meta?.case_id ?? "default")}`;
-const existingStart = localStorage.getItem(startKey);
-const startedAt = existingStart ?? new Date().toISOString();
-localStorage.setItem(startKey, startedAt);
-setSessionStartedAt(startedAt);
+      // guardar inicio de sesión (persistente por caso)
+      const startKey = `sessionStartedAt:${String(parsed?.id ?? parsed?.meta?.case_id ?? "default")}`;
+      const existingStart = localStorage.getItem(startKey);
+      const startedAt = existingStart ?? new Date().toISOString();
+      localStorage.setItem(startKey, startedAt);
+      setSessionStartedAt(startedAt);
       // si hay transcript guardado
       const t =
         localStorage.getItem("activeTranscript") ??
@@ -447,6 +549,30 @@ setSessionStartedAt(startedAt);
     return caseObject?.patient_profile?.display_name ?? "Paciente";
   }, [caseObject]);
 
+  const clinicalDxId = useMemo(() => {
+    // tag corto para conectar con /topics?dx=
+    const raw =
+      caseObject?.meta?.dx_id ??
+      caseObject?.meta?.dxId ??
+      caseObject?.meta?.dx ??
+      caseObject?.meta?.dsm_tag ??
+      caseObject?.meta?.dsmTag ??
+      caseObject?.meta?.diagnosis_tag ??
+      caseObject?.meta?.diagnosisTag ??
+      caseObject?.dsm_tag ??
+      caseObject?.dx;
+
+    const s = String(raw ?? "").trim().toLowerCase();
+    // permite solo slug simple (evita romper URL)
+    if (!s) return null;
+    if (!/^[a-z0-9_-]{2,32}$/.test(s)) return null;
+    return s;
+  }, [caseObject]);
+
+  const clinicalHref = useMemo(() => {
+    return clinicalDxId ? `/topics?dx=${encodeURIComponent(clinicalDxId)}` : "/topics";
+  }, [clinicalDxId]);
+
   const lastMeta = useMemo(() => {
     try {
       const parsed = JSON.parse(lastEmotionRaw);
@@ -476,6 +602,50 @@ setSessionStartedAt(startedAt);
     fearful: "Miedo",
     hopeful: "Esperanza",
   };
+
+  // --- UI helpers (Claude-style layout) ---
+  const riskLevel = useMemo<"Bajo" | "Moderado" | "Alto" | "Sin datos">(() => {
+    const s = String(caseObject?.safety?.risk_level ?? caseObject?.meta?.risk_level ?? "").toLowerCase().trim();
+    if (s === "alto") return "Alto";
+    if (s === "moderado") return "Moderado";
+    if (s === "bajo") return "Bajo";
+
+    const flags = Array.isArray(lastMeta.flags) ? lastMeta.flags.map((x: any) => String(x)) : [];
+    if (!flags.length) return "Sin datos";
+    const riskFlags = flags.filter((f) => flagCategory(f) === "Riesgo");
+    if (!riskFlags.length) return "Bajo";
+    return riskFlags.length >= 3 ? "Alto" : "Moderado";
+  }, [caseObject, lastMeta.flags]);
+
+  const quickChipMap = useMemo(() => {
+    const sq = caseObject?.suggested_questions ?? {};
+    const pick = (arr: any, fallback: string) => {
+      if (Array.isArray(arr) && typeof arr[0] === "string" && arr[0].trim()) return arr[0].trim();
+      return fallback;
+    };
+
+    return {
+      "Pregunta abierta": pick(sq.openers, "¿Qué es lo que te trajo hoy aquí?"),
+      "Explorar síntomas": pick(sq.symptoms, "¿Qué síntomas has notado y cómo han cambiado últimamente?"),
+      "⚠ Riesgo suicida": pick(sq.safety, "¿Has pensado en hacerte daño o en que sería mejor no estar aquí?"),
+      "Clarificar duración": pick(sq.duration, "¿Desde cuándo exactamente empezaste a sentirte así?"),
+      "Impacto funcional": pick(sq.function, "¿Cómo han afectado estos síntomas tu trabajo o tu vida diaria?"),
+    };
+  }, [caseObject]);
+
+  function toggleMse(key: string) {
+    setMseOpen((prev) => ({ ...prev, [key]: !prev[key] }));
+  }
+
+  function asStrArray(v: any): string[] {
+    return Array.isArray(v) ? v.map((x) => String(x)).filter((s) => s.trim().length > 0) : [];
+  }
+
+  function safeText(v: any, fallback = "—") {
+    const s = v == null ? "" : String(v);
+    const t = s.trim();
+    return t ? t : fallback;
+  }
 
   function clamp01(n: number) {
     if (!Number.isFinite(n)) return 0;
@@ -535,7 +705,17 @@ setSessionStartedAt(startedAt);
         throw new Error(data?.detail || "Error en patient-turn");
       }
 
-      setTranscript((prev) => [...prev, { role: "patient", content: data.message_text ?? "(sin respuesta)" }]);
+      setTranscript((prev) => {
+        const next: TranscriptTurn[] = [...prev, { role: "patient", content: data.message_text ?? "(sin respuesta)" }];
+        if (typeof data?.tutor_message === "string" && data.tutor_message.trim().length > 0) {
+          next.push({
+            role: "tutor",
+            content: data.tutor_message,
+            kind: (data.tutor_kind === "alert" || data.tutor_kind === "tip") ? data.tutor_kind : undefined,
+          });
+        }
+        return next;
+      });
 
       const last = JSON.stringify({
         state: data.emotion_state,
@@ -574,264 +754,607 @@ setSessionStartedAt(startedAt);
     );
   }
 
+  // --- New Claude-style UI Layout ---
   return (
     <div className="min-h-screen bg-[#070A0F]">
       <div className="mx-auto flex max-w-[1480px] gap-6 px-4 py-6">
         <Sidebar />
-        <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl p-6">
-          <div className="mx-auto w-full max-w-none">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold">Simulador</h1>
-            <p className="mt-1 text-sm text-white/70">
-              Paciente: <span className="text-white">{patientName}</span> • Modo educativo • No diagnostica.
-            </p>
-          </div>
 
-          <div className="flex items-center gap-2">
-            {/* Cronómetro */}
-            <div
-              className={`hidden sm:flex items-center gap-2 rounded-xl border px-3 py-2 text-sm ${
-                timeIsLow
-                  ? "border-amber-400/30 bg-amber-400/10 text-amber-200"
-                  : "border-white/15 bg-black/30 text-white/80"
-              }`}
-              title="Tiempo restante de la sesión"
-            >
-              <span className="text-xs opacity-80">⏳</span>
-              <span className="font-semibold tabular-nums">{timeLabel}</span>
+        <main className="flex-1 overflow-hidden rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl">
+          {/* TOPNAV */}
+          <header className="flex h-14 items-center gap-3 border-b border-white/10 bg-white/5 px-5">
+            <div className="flex items-center gap-2 text-sm text-white/70">
+              <span className="text-white/60">Sesión</span>
+              <span className="text-white/30">›</span>
+              <span className="font-semibold text-white">Caso en curso</span>
             </div>
 
-            <Link href="/cases" className="rounded-xl border border-white/15 px-4 py-2 text-sm hover:bg-white/5">
-              Volver
-            </Link>
-            <button onClick={() => finishSession("manual")} className="rounded-xl bg-white text-black px-4 py-2 text-sm">
-              Finalizar sesión  
-            </button>
-          </div>
-        </div>
-
-        {/* Chat */}
-        <div className="mt-6 grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)_360px] gap-5">
-          {/* Panel izquierdo (avatar) */}
-          <div className="lg:sticky lg:top-6 h-fit min-w-0">
-            <AvatarCard
-              name={patientName}
-              stateKey={lastMeta.state}
-              stateLabel={emotionLabel[lastMeta.state] ?? lastMeta.state}
-              intensity={lastMeta.intensity}
-            />
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-5 h-[calc(100vh-210px)] min-h-[560px] max-h-[820px] flex flex-col min-w-0 overflow-hidden">
-            {/* Aviso si el tiempo está bajo */}
-            {timeIsLow && remainingSec != null && remainingSec > 0 && (
-              <div className="mb-3 rounded-xl border border-amber-400/20 bg-amber-400/10 p-3 text-sm text-amber-100">
-                Queda poco tiempo: <span className="font-semibold">{timeLabel}</span>. Enfoca el cierre (resumen + plan).
-              </div>
-            )}
-
-            <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-3 pr-1">
-              {transcript.length === 0 ? (
-                <div className="text-sm text-white/70">Escribe tu primer mensaje para iniciar la entrevista.</div>
-              ) : (
-                transcript.map((t, idx) => (
-                  <div
-                    key={idx}
-                    className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                      t.role === "user" ? "ml-auto bg-white text-black" : "mr-auto bg-black/40 border border-white/10"
-                    }`}
-                  >
-                    <div className="text-xs opacity-70 mb-1">{t.role === "user" ? "Tú" : patientName}</div>
-                    {t.content}
-                  </div>
-                ))
-              )}
-              <div ref={bottomRef} />
-            </div>
-
-            {error && (
-              <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm">{error}</div>
-            )}
-
-            <div className="mt-4 flex gap-2">
+            <div className="ml-auto hidden w-full max-w-[360px] items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-2 sm:flex">
+              <span className="text-xs text-white/50">🔎</span>
               <input
-                value={userMessage}
-                onChange={(e) => setUserMessage(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    if (!inputDisabled) sendMessage();
-                  }
-                }}
-                placeholder={remainingSec != null && remainingSec <= 0 ? "Sesión finalizada" : "Escribe tu mensaje…"}
-                disabled={inputDisabled}
-                className="flex-1 rounded-xl bg-black/40 border border-white/10 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-60"
+                className="w-full bg-transparent text-sm text-white/80 outline-none placeholder:text-white/35"
+                placeholder="Buscar en Biblioteca Clínica DSM-5…"
               />
-              <button
-                onClick={sendMessage}
-                disabled={inputDisabled}
-                className="rounded-xl bg-white text-black px-4 py-3 text-sm disabled:opacity-60"
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Cronómetro */}
+              <div
+                className={`hidden sm:flex items-center gap-2 rounded-xl border px-3 py-2 text-sm ${
+                  timeIsLow
+                    ? "border-amber-400/30 bg-amber-400/10 text-amber-200"
+                    : "border-white/15 bg-black/30 text-white/80"
+                }`}
+                title="Tiempo restante de la sesión"
               >
-                {loading ? "Enviando…" : "Enviar"}
+                <span className="text-xs opacity-80">⏳</span>
+                <span className="font-semibold tabular-nums">{timeLabel}</span>
+              </div>
+
+              <Link href="/cases" className="rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5">
+                Volver
+              </Link>
+
+              <Link
+                href={clinicalHref}
+                className="hidden rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5 sm:inline-flex"
+                title={clinicalDxId ? `Abrir ficha: ${clinicalDxId}` : "Abrir Biblioteca clínica"}
+              >
+                Biblioteca clínica
+              </Link>
+
+              <button
+                onClick={() => finishSession("manual")}
+                className="rounded-xl bg-white px-3 py-2 text-sm text-black"
+              >
+                Finalizar
               </button>
             </div>
+          </header>
 
-            <p className="mt-3 text-xs text-white/60">
-              Nota: usa información ficticia. Si aparece contenido sensible, el sistema responde en modo educativo.
-            </p>
-          </div>
+          {/* EDUCATIONAL PANEL */}
+          <section className="border-b border-white/10 bg-white/5">
+            <div className="flex items-center gap-3 px-5 py-3">
+              <button
+                onClick={() => setEduExpanded((v) => !v)}
+                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-1.5 text-xs text-white/70 hover:bg-black/40"
+              >
+                <span className="inline-block h-2 w-2 rounded-full bg-emerald-400" />
+                <span>{eduExpanded ? "Colapsar panel educativo" : "Expandir panel educativo"}</span>
+                <span className="text-white/40">{eduExpanded ? "▴" : "▾"}</span>
+              </button>
 
-          {/* Panel derecho (educativo) */}
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="text-sm text-white/60">Panel educativo</div>
-                <div className="mt-1 text-base font-semibold">Guía rápida</div>
-              </div>
+              <span className="text-xs text-white/50">Panel educativo activo</span>
 
-              <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
-                {emotionLabel[lastMeta.state] ?? lastMeta.state}
-              </span>
-            </div>
-
-            {/* Objetivo */}
-            <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-3">
-              <div className="text-xs text-white/60">Objetivo</div>
-              <div className="mt-1 text-sm text-white/85">Practicar estructura de entrevista: apertura → exploración → cierre.</div>
-            </div>
-            {/* Estado del paciente (resumen) */}
-            <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="text-xs text-white/60">Estado del paciente</div>
-                  <div className="mt-1 text-sm text-white/85">Cómo está reaccionando durante la entrevista</div>
-                </div>
-                <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
-                  {emotionLabel[lastMeta.state] ?? lastMeta.state}
+              <div className="ml-auto hidden items-center gap-2 md:flex">
+                <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/70">
+                  Modo: Guiado
+                </span>
+                <span
+                  className={`rounded-full border px-3 py-1 text-xs ${
+                    riskLevel === "Alto"
+                      ? "border-red-400/25 bg-red-400/10 text-red-100"
+                      : riskLevel === "Moderado"
+                      ? "border-amber-400/25 bg-amber-400/10 text-amber-100"
+                      : riskLevel === "Bajo"
+                      ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-100"
+                      : "border-white/15 bg-black/30 text-white/70"
+                  }`}
+                >
+                  Riesgo: {riskLevel}
+                </span>
+                <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/70">
+                  {clinicalDxId ? `DSM/CIE: ${clinicalDxId}` : "DSM/CIE: —"}
                 </span>
               </div>
+            </div>
 
-              <div className="mt-4 space-y-3">
-                {/* Intensidad emocional */}
-                <div>
-                  <div className="flex items-center justify-between text-xs text-white/60">
-                    <span>Intensidad emocional</span>
-                    <span className="text-white/80">{Math.round(lastMeta.intensity)} / 100</span>
+            {eduExpanded && (
+              <div className="px-5 pb-4">
+                <div className="flex flex-wrap items-start gap-3">
+                  <div className="min-w-[260px] flex-1 rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div className="text-xs text-white/50">DSM-5 (guía rápida)</div>
+                    <div className="mt-1 text-sm font-semibold text-white">Estructura sugerida</div>
+                    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-white/75">
+                      <li>Apertura empática + motivo de consulta.</li>
+                      <li>Explora síntomas, duración e impacto funcional.</li>
+                      <li>Si hay señales de riesgo, prioriza seguridad.</li>
+                      <li>Cierra con resumen y plan.</li>
+                    </ul>
                   </div>
-                  <div className="mt-2 h-2 w-full rounded-full bg-white/10">
-                    <div
-                      className="h-2 rounded-full bg-white/70"
-                      style={{ width: `${Math.round(clamp01(lastMeta.intensity / 100) * 100)}%` }}
-                    />
+
+                  <div className="w-full max-w-[340px] rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div className="text-xs text-white/50">Tip del tutor IA</div>
+                    <div className="mt-2 text-sm text-white/75">
+                      Antes de cerrar el MSE, pregunta por <span className="font-semibold text-white">impacto funcional</span> y
+                      una <span className="font-semibold text-white">pregunta de seguridad</span> si hay señales.
+                    </div>
+                  </div>
+
+                  <Link
+                    href={clinicalHref}
+                    className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black"
+                  >
+                    📚 Abrir Biblioteca Clínica
+                  </Link>
+                </div>
+              </div>
+            )}
+          </section>
+
+          {/* CONTENT AREA */}
+          <div className="flex min-h-0 flex-1">
+            {/* CHAT PANEL */}
+            <section className="flex min-w-0 flex-1 flex-col bg-black/10">
+              {/* Chat header */}
+              <div className="flex items-center gap-3 border-b border-white/10 bg-white/5 px-5 py-4">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <div className="h-9 w-9 flex-shrink-0 rounded-full bg-gradient-to-br from-amber-400 to-red-500 text-center text-sm font-semibold leading-9 text-black">
+                    {String(patientName).slice(0, 1).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-semibold text-white">Paciente: “{patientName}”</div>
+                    <div className="text-xs text-white/55">
+                      Modo educativo · No diagnostica · {sessionStartedAt ? `Inicio: ${new Date(sessionStartedAt).toLocaleString()}` : ""}
+                    </div>
                   </div>
                 </div>
 
-                {/* Conexión / confianza */}
-                <div>
-                  <div className="flex items-center justify-between text-xs text-white/60">
-                    <span>Conexión / confianza</span>
-                    <span className="text-white/80">{Math.round(lastMeta.rapport)} / 100</span>
-                  </div>
-                  <div className="mt-2 h-2 w-full rounded-full bg-white/10">
-                    <div
-                      className="h-2 rounded-full bg-white/50"
-                      style={{ width: `${Math.round(clamp01(lastMeta.rapport / 100) * 100)}%` }}
-                    />
-                  </div>
-                  <div className="mt-2 text-[11px] text-white/45">Más conexión = el paciente se abre más y responde con más detalle.</div>
+                <div className="hidden items-center gap-2 md:flex">
+                  <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/70">
+                    Estado: {emotionLabel[lastMeta.state] ?? lastMeta.state}
+                  </span>
+                  <span
+                    className={`rounded-full border px-3 py-1 text-xs ${
+                      riskLevel === "Alto"
+                        ? "border-red-400/25 bg-red-400/10 text-red-100"
+                        : riskLevel === "Moderado"
+                        ? "border-amber-400/25 bg-amber-400/10 text-amber-100"
+                        : riskLevel === "Bajo"
+                        ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-100"
+                        : "border-white/15 bg-black/30 text-white/70"
+                    }`}
+                  >
+                    ⚠ Riesgo: {riskLevel}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRightTab("risk")}
+                    className="rounded-xl border border-white/15 px-3 py-2 text-sm text-white/80 hover:bg-white/5"
+                    title="Abrir módulo de seguridad"
+                  >
+                    🛡 Seguridad
+                  </button>
                 </div>
               </div>
 
-              {/* Señales (flags) */}
-              <div className="mt-4">
-                <div className="flex items-center justify-between">
-                  <div className="text-xs text-white/60">Señales a explorar</div>
-                  <span className="text-[10px] text-white/45">educativo</span>
-                </div>
-
-                {Array.isArray(lastMeta.flags) && lastMeta.flags.length > 0 ? (
-                  <div className="mt-2 space-y-3">
-                    {(
-                      ["Riesgo", "Ansiedad", "Sueño", "Ánimo", "Funcionamiento", "Otros"] as const
-                    ).map((cat) => {
-                      const items = lastMeta.flags
-                        .map((x: any) => String(x))
-                        .filter(Boolean)
-                        .filter((f: string) => flagCategory(f) === cat);
-
-                      if (items.length === 0) return null;
-
-                      return (
-                        <div key={cat} className="rounded-xl border border-white/10 bg-white/5 p-3">
-                          <div className="flex items-center justify-between">
-                            <div className="text-xs text-white/70">{cat}</div>
-                            <div className="text-[10px] text-white/45">{items.length}</div>
-                          </div>
-
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            {items.slice(0, 8).map((f: string, i: number) => (
-                              <span
-                                key={`${cat}-${f}-${i}`}
-                                className={`rounded-full border px-3 py-1 text-xs ${chipClass(f)}`}
-                                title={f}
-                              >
-                                {prettyFlag(f)}
-                              </span>
-                            ))}
-                            {items.length > 8 && (
-                              <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/60">
-                                +{items.length - 8}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto px-5 py-5">
+                {timeIsLow && remainingSec != null && remainingSec > 0 && (
+                  <div className="mb-4 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-3 text-sm text-amber-100">
+                    Queda poco tiempo: <span className="font-semibold">{timeLabel}</span>. Enfoca el cierre (resumen + plan).
                   </div>
-                ) : (
-                  <div className="mt-2 text-xs text-white/60">Sin señales marcadas aún.</div>
                 )}
 
-                <div className="mt-2 text-[11px] text-white/45">Guían tu entrevista. No son diagnóstico.</div>
-              </div>
-            </div>
+                <div className="flex flex-col gap-3">
+                  {transcript.length === 0 ? (
+                    <div className="text-sm text-white/70">Escribe tu primer mensaje para iniciar la entrevista.</div>
+                  ) : (
+                    transcript.map((t, idx) => {
+                      const isUser = t.role === "user";
+                      const isTutor = t.role === "tutor";
+                      const align = isUser ? "justify-end" : "justify-start";
 
-            {/* Siguiente paso sugerido */}
-            <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-3">
-              <div className="text-xs text-white/60">Siguiente paso sugerido</div>
-              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-white/80">
-                <li>Haz una pregunta abierta (“¿Qué ha cambiado últimamente?”).</li>
-                <li>Refleja emoción (“Suena agotador / frustrante”).</li>
-                <li>Profundiza con ejemplo (“¿Cuándo fue la última vez que…?”).</li>
-              </ul>
-            </div>
+                      const avatar = isTutor
+                        ? { label: "IA", cls: "bg-gradient-to-br from-emerald-400 to-teal-500" }
+                        : isUser
+                        ? { label: "E", cls: "bg-gradient-to-br from-blue-500 to-purple-500" }
+                        : { label: String(patientName).slice(0, 1).toUpperCase(), cls: "bg-gradient-to-br from-amber-400 to-red-500" };
 
-            {/* Checklist */}
-            <div className="mt-4">
-              <div className="text-xs text-white/60">Checklist de habilidades</div>
-              <div className="mt-2 grid gap-2">
-                {["Pregunta abierta", "Reflejo emocional", "Clarificación", "Resumen breve", "Cierre con plan"].map((t) => (
-                  <div
-                    key={t}
-                    className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80"
-                  >
-                    <span className="h-2 w-2 rounded-full bg-white/40" />
-                    {t}
+                      const roleLabel = isTutor ? "Tutor IA" : isUser ? "Estudiante (Tú)" : `${patientName} (Paciente)`;
+
+                      const bubbleCls = isTutor
+                        ? t.kind === "alert"
+                          ? "border border-amber-400/25 bg-amber-400/10 text-amber-100"
+                          : "border border-emerald-400/20 bg-emerald-400/10 text-emerald-100"
+                        : isUser
+                        ? "bg-white text-black"
+                        : "border border-white/10 bg-black/40 text-white/85";
+
+                      return (
+                        <div key={idx} className={`flex gap-2 ${align}`}>
+                          {!isUser && (
+                            <div className={`h-7 w-7 flex-shrink-0 rounded-full ${avatar.cls} text-center text-[11px] font-semibold leading-7 text-black`}>
+                              {avatar.label}
+                            </div>
+                          )}
+
+                          <div className={`max-w-[85%] ${isUser ? "text-right" : "text-left"}`}>
+                            <div className={`mb-1 text-[10px] text-white/50 ${isUser ? "text-right" : "text-left"}`}>
+                              {roleLabel}
+                            </div>
+
+                            <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${bubbleCls}`}>
+                              {isTutor && (
+                                <div
+                                  className={`mb-2 inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-[10px] font-semibold ${
+                                    t.kind === "alert"
+                                      ? "bg-amber-400/15 text-amber-200"
+                                      : "bg-emerald-400/15 text-emerald-200"
+                                  }`}
+                                >
+                                  {t.kind === "alert" ? "⚠ Alerta de seguridad" : "✦ Sugerencia clínica"}
+                                </div>
+                              )}
+                              <div className={isTutor ? "text-white/90" : undefined}>{t.content}</div>
+                            </div>
+                          </div>
+
+                          {isUser && (
+                            <div className={`h-7 w-7 flex-shrink-0 rounded-full ${avatar.cls} text-center text-[11px] font-semibold leading-7 text-black`}>
+                              {avatar.label}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                  <div ref={bottomRef} />
+                </div>
+
+                {error && (
+                  <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-100">
+                    {error}
                   </div>
+                )}
+              </div>
+
+              {/* Input area */}
+              <div className="border-t border-white/10 bg-white/5 px-5 py-4">
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {Object.keys(quickChipMap).map((label) => {
+                    const isRisk = label.includes("Riesgo");
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => setUserMessage((quickChipMap as any)[label] ?? "")}
+                        className={`rounded-full border px-3 py-1 text-xs transition hover:bg-white/5 ${
+                          isRisk ? "border-red-400/30 bg-red-400/10 text-red-100" : "border-white/15 bg-black/30 text-white/70"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    value={userMessage}
+                    onChange={(e) => setUserMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        if (!inputDisabled) sendMessage();
+                      }
+                    }}
+                    placeholder={remainingSec != null && remainingSec <= 0 ? "Sesión finalizada" : "Escribe tu pregunta clínica…"}
+                    disabled={inputDisabled}
+                    className="flex-1 rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/85 outline-none placeholder:text-white/35 focus:ring-2 focus:ring-white/20 disabled:opacity-60"
+                  />
+
+                  <button
+                    onClick={sendMessage}
+                    disabled={inputDisabled}
+                    className="h-11 rounded-full bg-white px-5 text-sm font-semibold text-black disabled:opacity-60"
+                  >
+                    {loading ? "Enviando…" : "Enviar"}
+                  </button>
+                </div>
+
+                <p className="mt-3 text-xs text-white/50">Educativo: no diagnostica. Usa información ficticia.</p>
+              </div>
+            </section>
+
+            {/* RIGHT PANEL */}
+            <aside className="hidden w-[360px] flex-shrink-0 flex-col border-l border-white/10 bg-white/5 md:flex">
+              <div className="flex gap-1 overflow-x-auto border-b border-white/10 px-3">
+                {(
+                  [
+                    ["patient", "Paciente"],
+                    ["mse", "MSE"],
+                    ["dsm", "DSM-5"],
+                    ["risk", "Seguridad"],
+                  ] as const
+                ).map(([key, label]) => (
+                  <button
+                    key={key}
+                    onClick={() => setRightTab(key)}
+                    className={`whitespace-nowrap border-b-2 px-3 py-3 text-xs font-semibold transition ${
+                      rightTab === key ? "border-white text-white" : "border-transparent text-white/50 hover:text-white/80"
+                    }`}
+                  >
+                    {label}
+                  </button>
                 ))}
               </div>
-            </div>
 
-            {/* Debug opcional */}
-            <details className="mt-4">
-              <summary className="cursor-pointer text-xs text-white/60">Ver datos (debug)</summary>
-              <pre className="mt-2 overflow-auto rounded-xl bg-black/40 p-3 text-xs text-white/70">
-                {JSON.stringify({ lastMeta, remainingSec, timerEndAt }, null, 2)}
-              </pre>
-            </details>
-          </div>
-        </div>
+              <div className="flex-1 overflow-y-auto p-4">
+                {rightTab === "patient" && (
+                  <div className="space-y-4">
+                    <AvatarCard
+                      name={patientName}
+                      stateKey={lastMeta.state}
+                      stateLabel={emotionLabel[lastMeta.state] ?? lastMeta.state}
+                      intensity={lastMeta.intensity}
+                    />
+
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Datos del caso</div>
+                      <div className="mt-3 space-y-2 text-sm">
+                        <div className="flex items-center justify-between"><span className="text-white/60">Alias</span><span className="text-white/85">{safeText(caseObject?.patient_profile?.display_name, patientName)}</span></div>
+                        <div className="flex items-center justify-between"><span className="text-white/60">Edad</span><span className="text-white/85">{safeText(caseObject?.patient_profile?.age, "—")}</span></div>
+                        <div className="flex items-center justify-between"><span className="text-white/60">Sexo</span><span className="text-white/85">{safeText(caseObject?.patient_profile?.sex, "—")}</span></div>
+                        <div className="flex items-center justify-between"><span className="text-white/60">Ocupación</span><span className="text-white/85">{safeText(caseObject?.patient_profile?.occupation, "—")}</span></div>
+                        <div className="flex items-center justify-between"><span className="text-white/60">Estado civil</span><span className="text-white/85">{safeText(caseObject?.patient_profile?.marital_status, "—")}</span></div>
+                        <div className="flex items-center justify-between"><span className="text-white/60">Derivación</span><span className="text-white/85">{safeText(caseObject?.patient_profile?.referral_source, "—")}</span></div>
+                      </div>
+
+                      {asStrArray(caseObject?.background_chips).length > 0 && (
+                        <>
+                          <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-white/40">Antecedentes</div>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {asStrArray(caseObject?.background_chips).slice(0, 12).map((c, i) => (
+                              <span key={i} className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">{c}</span>
+                            ))}
+                          </div>
+                        </>
+                      )}
+
+                      {Array.isArray(caseObject?.timeline) && caseObject.timeline.length > 0 && (
+                        <>
+                          <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-white/40">Línea temporal</div>
+                          <div className="mt-3 space-y-3">
+                            {(caseObject.timeline as any[]).slice(0, 6).map((it, i) => {
+                              const lvl = String(it?.level ?? "normal").toLowerCase();
+                              const dot = lvl === "warning" ? "bg-amber-400" : lvl === "neutral" ? "bg-white/25" : "bg-white";
+                              return (
+                                <div key={i} className="flex gap-3">
+                                  <div className={`mt-1 h-2 w-2 rounded-full ${dot}`} />
+                                  <div className="min-w-0">
+                                    <div className="text-xs text-white/50">{safeText(it?.date_label, "—")}</div>
+                                    <div className="text-sm text-white/75">{safeText(it?.text, "")}</div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Señales (flags)</div>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {Array.isArray(lastMeta.flags) && lastMeta.flags.length ? (
+                          lastMeta.flags
+                            .map((x: any) => String(x))
+                            .filter(Boolean)
+                            .slice(0, 16)
+                            .map((f: string, i: number) => (
+                              <span key={i} className={`rounded-full border px-3 py-1 text-xs ${chipClass(f)}`}>{prettyFlag(f)}</span>
+                            ))
+                        ) : (
+                          <span className="text-xs text-white/50">Sin señales marcadas aún.</span>
+                        )}
+                      </div>
+                      <div className="mt-2 text-[11px] text-white/45">Guían tu entrevista. No son diagnóstico.</div>
+                    </div>
+                  </div>
+                )}
+
+                {rightTab === "mse" && (
+                  <div className="space-y-2">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Examen Mental (MSE)</div>
+
+                    {(() => {
+                      const tmpl = Array.isArray(caseObject?.mse_template) ? (caseObject.mse_template as any[]) : [];
+                      const fallback = [
+                        { key: "appearance", title: "Apariencia / Conducta", chips: ["Adecuada", "Descuidada", "Agitación", "Enlentecimiento"], note_prompt: "Nota clínica…" },
+                        { key: "speech", title: "Habla / Lenguaje", chips: ["Fluida", "Enlentecida", "Escasa", "Latencia ↑"], note_prompt: "Nota clínica…" },
+                        { key: "mood", title: "Ánimo / Afecto", chips: ["Deprimido", "Eutímico", "Ansioso", "Lábil", "Restringido"], note_prompt: "Nota clínica…" },
+                        { key: "thought", title: "Pensamiento", chips: ["Coherente", "Rumiación", "Desesperanza", "Lentificado"], note_prompt: "Nota clínica…" },
+                        { key: "perception", title: "Percepción", chips: ["Sin alteraciones", "Alucinaciones", "Ilusiones"], note_prompt: "Nota clínica…" },
+                        { key: "cognition", title: "Cognición", chips: ["Orientada", "Concentración ↓", "Memoria OK"], note_prompt: "Nota clínica…" },
+                        { key: "insight", title: "Insight / Juicio", chips: ["Conciencia parcial", "Niega enfermedad", "Juicio conservado"], note_prompt: "Nota clínica…" },
+                      ];
+
+                      const sections = tmpl.length ? tmpl : fallback;
+
+                      return sections.map((sec) => {
+                        const title = safeText(sec?.title, "Sección");
+                        const key = safeText(sec?.key, title);
+                        const chips = asStrArray(sec?.chips);
+                        const notePrompt = safeText(sec?.note_prompt, "Nota clínica…");
+
+                        return (
+                          <div key={key} className="overflow-hidden rounded-xl border border-white/10 bg-black/20">
+                            <button onClick={() => toggleMse(key)} className="flex w-full items-center justify-between px-3 py-2 text-left">
+                              <span className="text-sm text-white/85">{title}</span>
+                              <span className="text-xs text-white/40">{mseOpen[key] ? "—" : "+"}</span>
+                            </button>
+                            {mseOpen[key] && (
+                              <div className="border-t border-white/10 px-3 py-3">
+                                {chips.length > 0 && (
+                                  <div className="flex flex-wrap gap-2">
+                                    {chips.slice(0, 16).map((c: string, i: number) => (
+                                      <span key={i} className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">{c}</span>
+                                    ))}
+                                  </div>
+                                )}
+                                <textarea
+                                  rows={2}
+                                  className="mt-3 w-full rounded-xl border border-white/10 bg-black/30 p-2 text-sm text-white/80 outline-none placeholder:text-white/35"
+                                  placeholder={notePrompt}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      });
+                    })()}
+
+                    <button
+                      type="button"
+                      onClick={() => setRightTab("risk")}
+                      className="mt-3 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white/80 hover:bg-black/40"
+                    >
+                      Ir a Seguridad
+                    </button>
+                  </div>
+                )}
+
+                {rightTab === "dsm" && (
+                  <div className="space-y-3">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">DSM-5</div>
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm font-semibold text-white">{safeText(caseObject?.dsm?.primary?.label, "Hipótesis principal")}</div>
+                        <div className="text-xs text-white/60">{safeText(caseObject?.meta?.dsm_tag, "—")}</div>
+                      </div>
+                      <div className="mt-2 text-sm text-white/70">
+                        Confianza: <span className="font-semibold text-white">{safeText(caseObject?.dsm?.primary?.confidence, "—")}</span>
+                      </div>
+
+                      {Array.isArray(caseObject?.dsm?.primary?.criteria) && caseObject.dsm.primary.criteria.length > 0 && (
+                        <div className="mt-4 space-y-2">
+                          {(caseObject.dsm.primary.criteria as any[]).slice(0, 8).map((c, i) => {
+                            const status = String(c?.status ?? "no").toLowerCase();
+                            const badge =
+                              status === "yes"
+                                ? "bg-emerald-400/15 text-emerald-200 border-emerald-400/20"
+                                : status === "partial"
+                                ? "bg-amber-400/15 text-amber-200 border-amber-400/20"
+                                : "bg-black/30 text-white/60 border-white/10";
+                            const label = status === "yes" ? "✓" : status === "partial" ? "~" : "·";
+                            return (
+                              <div key={i} className="flex items-start gap-2">
+                                <span className={`mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-md border text-xs ${badge}`}>{label}</span>
+                                <div className="text-sm text-white/75">{safeText(c?.text, "")}</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {asStrArray(caseObject?.dsm?.differentials).length > 0 && (
+                        <>
+                          <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-white/40">Diferenciales</div>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {asStrArray(caseObject?.dsm?.differentials).slice(0, 10).map((d, i) => (
+                              <span key={i} className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">{d}</span>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {rightTab === "risk" && (
+                  <div className="space-y-3">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Seguridad</div>
+                    <div
+                      className={`rounded-2xl border p-4 ${
+                        riskLevel === "Alto"
+                          ? "border-red-400/25 bg-red-400/10"
+                          : riskLevel === "Moderado"
+                          ? "border-amber-400/25 bg-amber-400/10"
+                          : riskLevel === "Bajo"
+                          ? "border-emerald-400/25 bg-emerald-400/10"
+                          : "border-white/10 bg-black/20"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm font-semibold text-white">Riesgo suicida</div>
+                        <div className="text-xs text-white/70">{riskLevel}</div>
+                      </div>
+                      <div className="mt-2 text-sm text-white/70">
+                        {safeText(caseObject?.safety?.summary, "Si detectas señales, prioriza evaluación de riesgo y factores protectores (educativo).")}
+                      </div>
+                      <div className="mt-3 grid gap-2">
+                        <button className="w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white/80 hover:bg-black/40">
+                          Aplicar Mini C-SSRS (demo)
+                        </button>
+                        <button className="w-full rounded-xl bg-white px-3 py-2 text-sm font-semibold text-black">
+                          Crear plan de seguridad (demo)
+                        </button>
+                      </div>
+                      {(asStrArray(caseObject?.safety?.risk_factors).length > 0 || asStrArray(caseObject?.safety?.protective_factors).length > 0) && (
+                        <div className="mt-4 grid gap-3">
+                          {asStrArray(caseObject?.safety?.risk_factors).length > 0 && (
+                            <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                              <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Factores de riesgo</div>
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {asStrArray(caseObject?.safety?.risk_factors).slice(0, 10).map((x, i) => (
+                                  <span key={i} className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">{x}</span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {asStrArray(caseObject?.safety?.protective_factors).length > 0 && (
+                            <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                              <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Factores protectores</div>
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {asStrArray(caseObject?.safety?.protective_factors).slice(0, 10).map((x, i) => (
+                                  <span key={i} className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">{x}</span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {asStrArray(caseObject?.safety?.cssrs_hint).length > 0 && (
+                            <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                              <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Mini C-SSRS sugerido</div>
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {asStrArray(caseObject?.safety?.cssrs_hint).slice(0, 10).map((x, i) => (
+                                  <span key={i} className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">{x}</span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      <div className="mt-3 text-xs text-white/55">
+                        <span className="font-semibold">Si riesgo alto:</span> derivación a urgencias y no dejar sin acompañante.
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Señales detectadas</div>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {Array.isArray(lastMeta.flags) && lastMeta.flags.length ? (
+                          lastMeta.flags
+                            .map((x: any) => String(x))
+                            .filter((f: string) => flagCategory(f) === "Riesgo")
+                            .slice(0, 12)
+                            .map((f: string, i: number) => (
+                              <span key={i} className={`rounded-full border px-3 py-1 text-xs ${chipClass(f)}`}>{prettyFlag(f)}</span>
+                            ))
+                        ) : (
+                          <span className="text-xs text-white/50">Sin señales de riesgo aún.</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </aside>
           </div>
         </main>
       </div>

@@ -1,68 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/src/lib/supabaseClient";
 
-export default function LoginPage() {
+export default function HomePage() {
   const router = useRouter();
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const [checking, setChecking] = useState<boolean>(true);
   const [errorMsg, setErrorMsg] = useState<string>("");
 
-  // Read ?force=1 ONLY on the client to avoid prerender issues.
-  const [forceLogin, setForceLogin] = useState<boolean>(false);
-  const [forceReady, setForceReady] = useState<boolean>(false);
-
-  useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      setForceLogin(params.get("force") === "1");
-    } catch {
-      setForceLogin(false);
-    } finally {
-      setForceReady(true);
-    }
-  }, []);
-
-  // If a session/user exists, /login normally redirects to /cases.
-  // But when force=1 (coming from welcome), we clear any existing session and show the login form.
-  useEffect(() => {
-    if (!forceReady) return;
-
-    let alive = true;
-
-    (async () => {
-      try {
-        if (forceLogin) {
-          await supabase.auth.signOut();
-          if (!alive) return;
-          setChecking(false);
-          return;
-        }
-
-        const { data } = await supabase.auth.getUser();
-        if (!alive) return;
-
-        if (data?.user) {
-          router.replace("/cases");
-          return;
-        }
-      } catch {
-        // ignore
-      } finally {
-        if (alive) setChecking(false);
-      }
-    })();
-
-    return () => {
-      alive = false;
-    };
-  }, [router, forceLogin, forceReady]);
 
   const onLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,7 +35,12 @@ export default function LoginPage() {
         return;
       }
 
-      router.replace("/cases");
+      try {
+        sessionStorage.setItem("postLoginLanding", "dashboard");
+      } catch {
+        // ignore
+      }
+      router.replace("/dashboard");
     } catch {
       setErrorMsg("Ocurrió un error al iniciar sesión.");
     } finally {
@@ -93,71 +48,85 @@ export default function LoginPage() {
     }
   };
 
-  if (checking) {
-    return (
-      <div className="min-h-screen bg-[#070A0F] flex items-center justify-center px-4">
-        <div className="text-sm text-white/60">Cargando…</div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-[#070A0F] flex items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl p-6 shadow-[0_20px_60px_rgba(0,0,0,0.55)]">
-        <div className="mb-5">
-          <h1 className="text-2xl font-semibold text-white">Iniciar sesión</h1>
-          <p className="mt-1 text-sm text-white/60">
-            Entra para acceder a la biblioteca de casos y el simulador.
+    <div className="min-h-screen bg-gradient-to-b from-[#070A0F] to-[#0D1118]">
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:flex lg:items-center lg:justify-between lg:py-20 lg:px-8">
+        <div className="max-w-xl">
+          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
+            Simulador Mental
+          </h1>
+          <p className="mt-6 max-w-3xl text-lg leading-7 text-white/70">
+            Bienvenido al simulador. Inicia sesión para acceder a la biblioteca de casos y el simulador.
           </p>
         </div>
 
-        <form onSubmit={onLogin} className="space-y-4">
-          <div>
-            <label className="block text-sm text-white/70 mb-1">Correo</label>
-            <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              type="email"
-              autoComplete="email"
-              placeholder="tu@correo.com"
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-white outline-none focus:border-orange-400/60"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-white/70 mb-1">Contraseña</label>
-            <input
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              type="password"
-              autoComplete="current-password"
-              placeholder="••••••••"
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-white outline-none focus:border-orange-400/60"
-            />
-          </div>
-
-          {errorMsg ? (
-            <div className="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-              {errorMsg}
+        <div className="mt-10 w-full max-w-sm rounded-2xl border border-white/10 bg-black/20 p-8 backdrop-blur-xl sm:mt-0">
+          <form onSubmit={onLogin} className="mt-6 space-y-4">
+            <div>
+              <label className="mb-2 block text-xs font-medium text-white/70" htmlFor="email">
+                Correo
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="tucorreo@ejemplo.com"
+                className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white placeholder:text-white/35 outline-none transition focus:border-white/20 focus:bg-black/25"
+              />
             </div>
-          ) : null}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-xl bg-white text-black px-4 py-2.5 text-sm font-semibold hover:bg-white/90 disabled:opacity-60"
-          >
-            {loading ? "Entrando…" : "Entrar"}
-          </button>
-        </form>
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <label className="block text-xs font-medium text-white/70" htmlFor="password">
+                  Contraseña
+                </label>
+                <Link href="/login" className="text-xs text-white/60 hover:text-white/85">
+                  ¿Olvidaste tu clave?
+                </Link>
+              </div>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white placeholder:text-white/35 outline-none transition focus:border-white/20 focus:bg-black/25"
+              />
+            </div>
 
-        <div className="mt-5 flex items-center justify-between text-sm">
-          <Link className="text-white/60 hover:text-white" href="/">
-            Volver
-          </Link>
-          <Link className="text-white/60 hover:text-white" href="/register">
-            Crear cuenta
-          </Link>
+            {errorMsg ? (
+              <div className="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                {errorMsg}
+              </div>
+            ) : null}
+
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 text-sm text-white/65">
+                <input type="checkbox" className="h-4 w-4 rounded border-white/20 bg-black/30" />
+                Recordarme
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-sky-500/80 via-indigo-500/80 to-fuchsia-500/80 px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_70px_rgba(59,130,246,0.25)] transition hover:shadow-[0_22px_90px_rgba(167,139,250,0.25)] disabled:opacity-60"
+            >
+              {loading ? "Entrando…" : "Entrar"}
+            </button>
+
+            <Link
+              href="/register"
+              className="inline-flex w-full items-center justify-center rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-medium text-white/85 transition hover:bg-white/10"
+            >
+              Crear cuenta
+            </Link>
+          </form>
         </div>
       </div>
     </div>

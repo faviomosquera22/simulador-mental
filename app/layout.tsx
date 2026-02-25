@@ -14,9 +14,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className="min-h-screen text-white antialiased">
+      <body className="min-h-screen bg-[#070A0F] text-white antialiased font-sans overflow-x-hidden">
         <div id="app" className="relative z-10">
-          {children}
+          <div className="mx-auto w-full max-w-[1680px] px-4 py-6">
+            {children}
+          </div>
         </div>
       </body>
     </html>

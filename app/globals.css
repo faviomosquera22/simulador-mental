@@ -1,26 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
+/* Fonts (Claude UI) */
+
+/* ============================================
+   DESIGN TOKENS (Claude UI) — adaptado a tu tema oscuro
+   ============================================ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Tipografía */
+  --font-body: 'DM Sans', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'DM Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+
+  /* Base (modo oscuro por defecto en tu app) */
+  --bg-app: #07070a;
+  --bg-surface: rgba(255,255,255,0.05);
+  --bg-surface-2: rgba(0,0,0,0.35);
+
+  --text-primary: rgba(255,255,255,0.92);
+  --text-secondary: rgba(255,255,255,0.70);
+  --text-muted: rgba(255,255,255,0.55);
+
+  --accent: #2563EB;
+  --accent-light: rgba(37,99,235,0.14);
+  --accent-hover: #1D4ED8;
+
+  --teal: #0D9488;
+  --teal-light: rgba(13,148,136,0.14);
+  --amber: #D97706;
+  --amber-light: rgba(217,119,6,0.14);
+  --red: #DC2626;
+  --red-light: rgba(220,38,38,0.14);
+  --green: #16A34A;
+  --green-light: rgba(22,163,74,0.14);
+  --purple: #7C3AED;
+  --purple-light: rgba(124,58,237,0.14);
+
+  --border: rgba(255,255,255,0.10);
+  --border-strong: rgba(255,255,255,0.18);
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.25);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.28);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.32);
+  --shadow-xl: 0 16px 40px rgba(0,0,0,0.38);
+
+  /* Spacing */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px;
+
+  /* Radius */
+  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px;
+  --radius-xl: 20px; --radius-full: 9999px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
 
 html, body {
   height: 100%;
@@ -32,8 +64,8 @@ body {
     radial-gradient(900px 500px at 80% 30%, rgba(99, 102, 241, 0.16), transparent 60%),
     radial-gradient(900px 500px at 50% 90%, rgba(16, 185, 129, 0.10), transparent 60%),
     #07070a;
-  color: white;
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text-primary);
+  font-family: var(--font-body);
   position: relative;
   overflow-x: hidden;
 }
@@ -66,4 +98,47 @@ body::after {
 #__next {
   position: relative;
   z-index: 1;
+}
+
+/* ============================================
+   Base UI polish
+   ============================================ */
+
+/* Better text rendering */
+html {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Consistent focus ring */
+:focus-visible {
+  outline: 2px solid rgba(255,255,255,0.22);
+  outline-offset: 2px;
+}
+
+/* Slim scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.18) transparent;
+}
+
+*::-webkit-scrollbar { width: 6px; height: 6px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.16);
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+
+/* Optional helpers for tokenized borders/shadows if los usas en componentes */
+.ui-surface {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.ui-surface-2 {
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border);
 }

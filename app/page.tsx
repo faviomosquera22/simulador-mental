@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/src/lib/supabaseClient";
 
@@ -60,21 +60,6 @@ export default function HomePage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>("");
 
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const { data } = await supabase.auth.getUser();
-        if (!alive) return;
-        if (data?.user) router.replace("/cases");
-      } catch {
-        // ignore
-      }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, [router]);
 
   const onLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,7 +82,7 @@ export default function HomePage() {
         return;
       }
 
-      router.replace("/cases");
+      router.replace("/dashboard");
     } catch {
       setErrorMsg("Ocurrió un error al iniciar sesión.");
     } finally {
