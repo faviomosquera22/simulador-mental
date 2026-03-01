@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/src/lib/supabaseClient";
 
-export default function HomePage() {
+export default function LoginPage() {
   const router = useRouter();
 
   const [email, setEmail] = useState<string>("");
@@ -53,14 +53,20 @@ export default function HomePage() {
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:flex lg:items-center lg:justify-between lg:py-20 lg:px-8">
         <div className="max-w-xl">
           <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
-            Simulador Mental
+            Psyke
           </h1>
+          <p className="mt-2 text-sm text-white/60">Simulador clínico (educativo)</p>
           <p className="mt-6 max-w-3xl text-lg leading-7 text-white/70">
-            Bienvenido al simulador. Inicia sesión para acceder a la biblioteca de casos y el simulador.
+            Bienvenido a Psyke. Inicia sesión para acceder a la biblioteca de casos y al simulador.
+            <span className="text-white/80"> No diagnostica.</span>
           </p>
         </div>
 
         <div className="mt-10 w-full max-w-sm rounded-2xl border border-white/10 bg-black/20 p-8 backdrop-blur-xl sm:mt-0">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-white">Psyke · Iniciar sesión</h2>
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/60">Acceso</span>
+          </div>
           <form onSubmit={onLogin} className="mt-6 space-y-4">
             <div>
               <label className="mb-2 block text-xs font-medium text-white/70" htmlFor="email">
@@ -83,7 +89,7 @@ export default function HomePage() {
                 <label className="block text-xs font-medium text-white/70" htmlFor="password">
                   Contraseña
                 </label>
-                <Link href="/login" className="text-xs text-white/60 hover:text-white/85">
+                <Link href="/reset-password" className="text-xs text-white/60 hover:text-white/85">
                   ¿Olvidaste tu clave?
                 </Link>
               </div>
@@ -124,7 +130,7 @@ export default function HomePage() {
               href="/register"
               className="inline-flex w-full items-center justify-center rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-medium text-white/85 transition hover:bg-white/10"
             >
-              Crear cuenta
+              Crear cuenta en Psyke
             </Link>
           </form>
         </div>

@@ -2,9 +2,12 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Simulador de entrevista clínica (salud mental)",
+  title: {
+    default: "Psyke",
+    template: "%s · Psyke",
+  },
   description:
-    "Simulador educativo (no diagnóstica) para practicar entrevista clínica en salud mental.",
+    "Psyke es un simulador educativo (no diagnostica) para practicar entrevista clínica en salud mental.",
 };
 
 export default function RootLayout({

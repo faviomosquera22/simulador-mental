@@ -109,7 +109,7 @@ export default function HomePage() {
               <IconDot className="h-2 w-2 fill-sky-400" />
               <IconDot className="h-2 w-2 fill-indigo-400" />
             </span>
-            <span>SIMULADOR</span>
+            <span>PSYKE</span>
             <span className="flex items-center gap-1">
               <IconDot className="h-2 w-2 fill-emerald-400" />
               <IconDot className="h-2 w-2 fill-lime-400" />
@@ -119,11 +119,12 @@ export default function HomePage() {
           <div className="grid items-start gap-8 lg:grid-cols-[1.35fr_0.85fr]">
             <div>
               <h1 className="text-balance text-4xl font-semibold leading-tight text-white md:text-5xl">
-                Simulador de entrevista clínica (salud mental)
+                Psyke
               </h1>
+              <p className="mt-2 text-sm text-white/60">Psyke · Simulador de entrevista clínica (salud mental)</p>
 
               <p className="mt-4 max-w-3xl text-pretty text-[15px] leading-relaxed text-white/70">
-                Entrena tu entrevista y razonamiento clínico con casos simulados: preguntas abiertas,
+                Entrena tu entrevista y razonamiento clínico en Psyke con casos simulados: preguntas abiertas,
                 escucha activa, exploración de riesgo (modo educativo) y cierre con plan. Aquí se
                 practica, no reemplaza una evaluación profesional.
               </p>
@@ -181,8 +182,8 @@ export default function HomePage() {
 
             <aside className="relative">
               <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_30px_120px_rgba(0,0,0,0.5)] backdrop-blur-xl">
-                <h2 className="text-2xl font-semibold text-white">Iniciar sesión</h2>
-                <p className="mt-2 text-sm text-white/70">Accede a tus casos, progreso y biblioteca clínica.</p>
+                <h2 className="text-2xl font-semibold text-white">Psyke · Iniciar sesión</h2>
+                <p className="mt-2 text-sm text-white/70">Accede a Psyke: casos, progreso y biblioteca clínica.</p>
 
                 <form onSubmit={onLogin} className="mt-6 space-y-4">
                   <div>
@@ -206,7 +207,7 @@ export default function HomePage() {
                       <label className="block text-xs font-medium text-white/70" htmlFor="password">
                         Contraseña
                       </label>
-                      <Link href="/login" className="text-xs text-white/60 hover:text-white/85">
+                      <Link href="/reset-password" className="text-xs text-white/60 hover:text-white/85">
                         ¿Olvidaste tu clave?
                       </Link>
                     </div>
@@ -247,7 +248,7 @@ export default function HomePage() {
                     href="/register"
                     className="inline-flex w-full items-center justify-center rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-medium text-white/85 transition hover:bg-white/10"
                   >
-                    Crear cuenta
+                    Crear cuenta en Psyke
                   </Link>
                 </form>
               </div>

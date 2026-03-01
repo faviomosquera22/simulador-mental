@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Sidebar from "../../components/Sidebar";
 
 type CatalogItem = { id: string; title: string; desc: string; tag: string };
@@ -9,15 +10,53 @@ type CatalogItem = { id: string; title: string; desc: string; tag: string };
 type SexValue = "female" | "male" | "nonbinary" | "unspecified";
 type DifficultyValue = "beginner" | "intermediate" | "advanced";
 
-// Conexión con Biblioteca clínica (/topics?dx=). Mantén estos tags cortos.
-const DSM_TAG_BY_CATALOG_ID: Record<string, string> = {
+type ApproachValue = "humanistic" | "cbt" | "psychodynamic" | "systemic";
+
+function prettyApproach(a: ApproachValue) {
+  switch (a) {
+    case "humanistic":
+      return "Humanístico";
+    case "cbt":
+      return "Cognitivo-conductual (TCC)";
+    case "psychodynamic":
+      return "Psicodinámico";
+    case "systemic":
+      return "Sistémico / familiar";
+    default:
+      return "Humanístico";
+  }
+}
+
+
+function defaultApproachByCategory(categoryId: string): ApproachValue {
+  const id = String(categoryId || "").toLowerCase();
+  // Heurística simple: por defecto humanístico; en sustancias suele ayudar MI, pero aquí nos quedamos en 4 enfoques.
+  if (id === "substances") return "cbt";
+  return "humanistic";
+}
+
+// Para UI (etiqueta corta DSM) — consistente con el generador (TDM/TAG/etc.)
+const DSM_LABEL_BY_CATALOG_ID: Record<string, string> = {
+  anxiety: "TAG",
+  depression: "TDM",
+  panic: "Pánico",
+  ptsd: "TEPT",
+  bipolar: "Bipolar",
+  substances: "Sustancias",
+  ocd: "TOC",
+  delirium: "Delirio",
+  eating: "TCA",
+  selfharm: "Autolesión",
+};
+
+// Conexión con Biblioteca clínica (/topics?dx=) — IDs cortos para tus fichas
+const TOPICS_DX_BY_CATALOG_ID: Record<string, string> = {
   anxiety: "gad",
   depression: "mdd",
   panic: "panic",
   ptsd: "ptsd",
   bipolar: "bipolar1",
   substances: "aud",
-  // Aún no hay ficha en /topics para estos (puedes agregarlas luego):
   ocd: "ocd",
   delirium: "delirium",
   eating: "tca",
@@ -26,8 +65,14 @@ const DSM_TAG_BY_CATALOG_ID: Record<string, string> = {
 
 function deriveDsmTag(categoryId: string, selected: CatalogItem | null) {
   const id = selected?.id || categoryId || "";
-  const tag = DSM_TAG_BY_CATALOG_ID[id];
-  return tag ? String(tag).trim().toLowerCase() : "";
+  const tag = DSM_LABEL_BY_CATALOG_ID[id];
+  return tag ? String(tag).trim() : "";
+}
+
+function deriveTopicsDx(categoryId: string, selected: CatalogItem | null) {
+  const id = selected?.id || categoryId || "";
+  const dx = TOPICS_DX_BY_CATALOG_ID[id];
+  return dx ? String(dx).trim().toLowerCase() : "";
 }
 
 const CATALOG: CatalogItem[] = [
@@ -349,9 +394,25 @@ function extractEssentials(caseObj: unknown) {
 }
 
 export default function CasesPage() {
+  const router = useRouter();
+
+  // If we arrive here right after login (mis-route), bounce to /dashboard once.
+  useEffect(() => {
+    try {
+      const landing = sessionStorage.getItem("postLoginLanding");
+      if (landing === "dashboard") {
+        sessionStorage.removeItem("postLoginLanding");
+        router.replace("/dashboard");
+      }
+    } catch {
+      // ignore
+    }
+  }, [router]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [caseObj, setCaseObj] = useState<Record<string, unknown> | null>(null);
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const [now, setNow] = useState<number>(() => Date.now());
 
   // ✅ Biblioteca
   const [selectedCategory, setSelectedCategory] = useState<string>("general");
@@ -369,7 +430,17 @@ export default function CasesPage() {
 
   const [cfgDifficulty, setCfgDifficulty] =
     useState<DifficultyValue>("beginner");
-  const [cfgTargetMinutes, setCfgTargetMinutes] = useState<number>(8);
+  const [cfgTargetMinutes, setCfgTargetMinutes] = useState<number>(30);
+
+  const [cfgApproach, setCfgApproach] = useState<ApproachValue>("humanistic");
+  const [cfgTutorEnabled, setCfgTutorEnabled] = useState<boolean>(() => {
+    try {
+      const v = localStorage.getItem("tutorEnabled");
+      if (v === "true") return true;
+      if (v === "false") return false;
+    } catch {}
+    return true;
+  });
 
   const [cfgChiefComplaint, setCfgChiefComplaint] = useState<string>("");
   const [cfgLearningObjective, setCfgLearningObjective] = useState<string>("");
@@ -384,6 +455,14 @@ export default function CasesPage() {
         c.tag.toLowerCase().includes(q)
     );
   }, [query]);
+
+  const cooldownLabel = useMemo(() => {
+    if (!cooldownUntil) return null;
+    const left = Math.max(0, Math.ceil((cooldownUntil - now) / 1000));
+    return left > 0 ? `Espera ${left}s` : null;
+  }, [cooldownUntil, now]);
+
+  const isCooldownActive = cooldownUntil != null && cooldownUntil > now;
 
   function prefillConfigFromCase(nextCase: unknown) {
     const e = extractEssentials(nextCase);
@@ -414,8 +493,36 @@ export default function CasesPage() {
     setCfgTargetMinutes(
       typeof e.targetMinutes === "number"
         ? clampInt(e.targetMinutes, 5, 30)
-        : 8
+        : 30
     );
+
+    // Enfoque psicoterapéutico (si el caso ya lo trae, lo respetamos)
+    try {
+      const base = asRecord(nextCase) ?? {};
+      const meta = asRecord((base as any).meta) ?? {};
+      const raw = safeStr((meta as any).approach as unknown, "").trim().toLowerCase();
+      const allowed: ApproachValue[] = ["humanistic", "cbt", "psychodynamic", "systemic"];
+      const picked = (allowed as string[]).includes(raw) ? (raw as ApproachValue) : defaultApproachByCategory(selectedCategory);
+      setCfgApproach(picked);
+    } catch {
+      setCfgApproach(defaultApproachByCategory(selectedCategory));
+    }
+
+    // Tutor IA (si el caso lo trae, lo respetamos; si no, usamos preferencia local)
+    try {
+      const base = asRecord(nextCase) ?? {};
+      const meta = asRecord((base as any).meta) ?? {};
+      const rawTutor = (meta as any).tutor_enabled ?? (base as any).tutor_enabled;
+      if (typeof rawTutor === "boolean") {
+        setCfgTutorEnabled(rawTutor);
+      } else {
+        const v = localStorage.getItem("tutorEnabled");
+        if (v === "true") setCfgTutorEnabled(true);
+        else if (v === "false") setCfgTutorEnabled(false);
+      }
+    } catch {
+      // ignore
+    }
 
     setCfgChiefComplaint(safeStr(e.chiefComplaint, "") || safeStr(fallbackFromCatalog?.chief, ""));
     setCfgLearningObjective(safeStr(e.learningObjective, "") || safeStr(fallbackFromCatalog?.objective, ""));
@@ -434,19 +541,33 @@ export default function CasesPage() {
           category: selectedCategory, // ✅ biblioteca -> IA
           difficulty: cfgDifficulty, // usa lo que tengas seteado (por defecto beginner)
           target_minutes: cfgTargetMinutes, // por defecto 8
+          approach: cfgApproach,
           // Pide explícitamente campos educativos (si tu backend los soporta)
           include_educational_fields: true,
           language: "es",
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+
+      if (res.status === 429) {
+        const ms = Number((data as any)?.retry_after_ms ?? 120000);
+        setError(
+          (data as any)?.detail ||
+            "Se alcanzó el límite de solicitudes. Intenta nuevamente en unos minutos."
+        );
+        setCooldownUntil(Date.now() + (Number.isFinite(ms) ? ms : 120000));
+        setLoading(false);
+        return;
+      }
+
       if (!res.ok)
         throw new Error(
-          data?.detail || data?.error || "No se pudo generar el caso."
+          (data as any)?.detail || (data as any)?.error || "No se pudo generar el caso."
         );
 
       setCaseObj(data);
+      setCooldownUntil(null);
 
       // Prefill configuración con lo que devolvió la IA
       prefillConfigFromCase(data);
@@ -457,13 +578,18 @@ export default function CasesPage() {
       } catch {
         // ignore
       }
-  } catch (e: unknown) {
+    } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "Error desconocido.";
       setError(message);
     } finally {
       setLoading(false);
     }
   }
+  useEffect(() => {
+    if (cooldownUntil == null) return;
+    const t = window.setInterval(() => setNow(Date.now()), 250);
+    return () => window.clearInterval(t);
+  }, [cooldownUntil]);
 
   function openConfig() {
     if (!caseObj) return;
@@ -488,6 +614,12 @@ export default function CasesPage() {
 
     next.patient_profile = patient_profile;
 
+    // --- DSM/dx helpers
+    const existingDsmTag = safeStr((metaObj as any).dsm_tag as unknown, "").trim();
+    const existingDxId = safeStr((metaObj as any).dx_id as unknown, "").trim();
+    const derivedDsm = deriveDsmTag(selectedCategory, selectedCard);
+    const derivedDx = deriveTopicsDx(selectedCategory, selectedCard);
+
     // Campos "educativos" / metadata
     next.meta = {
       ...metaObj,
@@ -497,7 +629,12 @@ export default function CasesPage() {
         cfgLearningObjective || (metaObj.learning_objective as string | undefined) || "",
       chief_complaint: cfgChiefComplaint || (metaObj.chief_complaint as string | undefined) || "",
       category: selectedCategory,
-      dsm_tag: deriveDsmTag(selectedCategory, selectedCard) || safeStr(metaObj.dsm_tag as unknown, ""),
+      // Mantén el dsm_tag que viene del generador IA; si falta, usa el derivado
+      dsm_tag: existingDsmTag || derivedDsm,
+      // dx_id se usa para /topics?dx=
+      dx_id: existingDxId || derivedDx,
+      approach: cfgApproach,
+      tutor_enabled: cfgTutorEnabled,
     };
 
     // Contexto + etiquetas alternativas
@@ -506,8 +643,11 @@ export default function CasesPage() {
     next.learning_objective =
       cfgLearningObjective || next.learning_objective || "";
 
-    // Mantener dsm_tag a nivel raíz para compatibilidad
-    (next as any).dsm_tag = deriveDsmTag(selectedCategory, selectedCard) || (next as any).dsm_tag || "";
+    // Mantener dsm_tag y dx_id a nivel raíz para compatibilidad
+    (next as any).dsm_tag = safeStr((next as any).dsm_tag, "").trim() || safeStr((next as any)?.meta?.dsm_tag, "").trim() || derivedDsm;
+    (next as any).dx_id = safeStr((next as any).dx_id, "").trim() || safeStr((next as any)?.meta?.dx_id, "").trim() || derivedDx;
+    (next as any).approach = safeStr((next as any).approach, "").trim() || safeStr((next as any)?.meta?.approach, "").trim() || cfgApproach;
+    (next as any).tutor_enabled = typeof (next as any).tutor_enabled === "boolean" ? (next as any).tutor_enabled : cfgTutorEnabled;
 
     return next;
   }
@@ -519,6 +659,7 @@ export default function CasesPage() {
 
     try {
       localStorage.setItem("activeCase", JSON.stringify(updated));
+      localStorage.setItem("tutorEnabled", cfgTutorEnabled ? "true" : "false");
     } catch {}
 
     setShowConfig(false);
@@ -531,7 +672,11 @@ export default function CasesPage() {
     const updated = applyConfigToCaseObj(caseObj);
     try {
       localStorage.setItem("activeCase", JSON.stringify(updated));
+      localStorage.setItem("tutorEnabled", cfgTutorEnabled ? "true" : "false");
       localStorage.setItem("activeTranscript", JSON.stringify([]));
+      // Ensure simulator treats this as a new in-progress session
+      localStorage.setItem("sessionEnded", "false");
+      localStorage.removeItem("sessionEndedInfo");
     } catch {}
     window.location.href = "/simulator";
   }
@@ -650,10 +795,10 @@ export default function CasesPage() {
         <div className="mt-6 flex flex-wrap gap-3">
           <button
             onClick={handleGenerate}
-            disabled={loading}
+            disabled={loading || isCooldownActive}
             className="rounded-xl bg-white text-black px-4 py-2 text-sm disabled:opacity-60"
           >
-            {loading ? "Generando…" : "Generar caso (IA)"}
+            {loading ? "Generando…" : cooldownLabel ? cooldownLabel : "Generar caso (IA)"}
           </button>
 
           <button
@@ -710,7 +855,10 @@ export default function CasesPage() {
                   Duración: {cfgTargetMinutes} min
                 </span>
                 <span className="inline-flex items-center rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
-                  DSM tag: {deriveDsmTag(selectedCategory, selectedCard) || safeStr((caseObj as any)?.meta?.dsm_tag, "—")}
+                  Enfoque: {prettyApproach(cfgApproach)}
+                </span>
+                <span className="inline-flex items-center rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
+                  DSM: {safeStr((caseObj as any)?.meta?.dsm_tag, deriveDsmTag(selectedCategory, selectedCard) || "—")} · dx: {safeStr((caseObj as any)?.meta?.dx_id, deriveTopicsDx(selectedCategory, selectedCard) || "—")}
                 </span>
               </div>
             </div>
@@ -765,8 +913,8 @@ export default function CasesPage() {
               className="absolute inset-0 bg-black/60"
               onClick={() => setShowConfig(false)}
             />
-            <div className="relative w-full max-w-3xl rounded-3xl border border-white/10 bg-[#0b1020]/95 backdrop-blur-xl shadow-2xl">
-              <div className="flex items-start justify-between gap-3 p-5 border-b border-white/10">
+            <div className="relative w-[min(100vw-24px,980px)] max-h-[min(85vh,760px)] overflow-hidden rounded-3xl border border-white/10 bg-[#0b1020]/95 backdrop-blur-xl shadow-2xl flex flex-col">
+              <div className="flex items-start justify-between gap-4 px-6 py-5 md:px-8 border-b border-white/10">
                 <div>
                   <div className="text-sm text-white/60">Configurar caso</div>
                   <h3 className="mt-1 text-lg font-semibold">Ajusta el escenario antes de iniciar</h3>
@@ -782,8 +930,8 @@ export default function CasesPage() {
                 </button>
               </div>
 
-              <div className="p-5">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6 md:px-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                   {/* Paciente */}
                   <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
                     <div className="text-sm font-semibold">Paciente</div>
@@ -834,10 +982,10 @@ export default function CasesPage() {
                   </div>
 
                   {/* Parámetros educativos */}
-                  <div className="rounded-2xl border border-white/10 bg-black/25 p-4 md:col-span-2">
+                  <div className="rounded-2xl border border-white/10 bg-black/25 p-5 md:p-6">
                     <div className="text-sm font-semibold">Parámetros educativos</div>
 
-                    <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div className="mt-3 grid grid-cols-1 md:grid-cols-4 gap-2">
                       <div>
                         <label className="block text-xs text-white/60">Dificultad</label>
                         <select
@@ -853,16 +1001,18 @@ export default function CasesPage() {
 
                       <div>
                         <label className="block text-xs text-white/60">Duración (min)</label>
-                        <input
-                          type="number"
+                        <select
                           value={cfgTargetMinutes}
-                          onChange={(e) =>
-                            setCfgTargetMinutes(clampInt(Number(e.target.value), 5, 30))
-                          }
+                          onChange={(e) => setCfgTargetMinutes(clampInt(Number(e.target.value), 5, 30))}
                           className="mt-1 w-full rounded-xl bg-black/35 border border-white/10 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
-                          min={5}
-                          max={30}
-                        />
+                        >
+                          {[5, 10, 15, 20, 25, 30].map((m) => (
+                            <option key={m} value={m}>
+                              {m} min
+                            </option>
+                          ))}
+                        </select>
+                        <div className="mt-2 text-[11px] text-white/50">Predeterminado: 30 min. Cambia en incrementos de 5 min.</div>
                       </div>
 
                       <div>
@@ -871,6 +1021,48 @@ export default function CasesPage() {
                           {selectedCard?.title ?? "General"}
                         </div>
                       </div>
+                      <div>
+                        <label className="block text-xs text-white/60">Enfoque</label>
+                        <select
+                          value={cfgApproach}
+                          onChange={(e) => setCfgApproach(e.target.value as ApproachValue)}
+                          className="mt-1 w-full rounded-xl bg-black/35 border border-white/10 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
+                        >
+                          <option value="humanistic">Humanístico</option>
+                          <option value="cbt">Cognitivo-conductual (TCC)</option>
+                          <option value="psychodynamic">Psicodinámico</option>
+                          <option value="systemic">Sistémico / familiar</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+                      <div>
+                        <div className="text-sm font-semibold">Tutor IA</div>
+                        <div className="mt-0.5 text-xs text-white/60">
+                          Activa sugerencias y guía durante el chat (opcional).
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setCfgTutorEnabled((v) => !v)}
+                        className={
+                          "relative inline-flex h-7 w-12 items-center rounded-full border transition " +
+                          (cfgTutorEnabled
+                            ? "bg-white/90 border-white/20"
+                            : "bg-black/40 border-white/15")
+                        }
+                        aria-pressed={cfgTutorEnabled}
+                        aria-label="Activar o desactivar tutor IA"
+                      >
+                        <span
+                          className={
+                            "inline-block h-5 w-5 transform rounded-full bg-black transition " +
+                            (cfgTutorEnabled ? "translate-x-6" : "translate-x-1")
+                          }
+                        />
+                      </button>
                     </div>
 
                     <label className="mt-3 block text-xs text-white/60">
@@ -920,7 +1112,7 @@ export default function CasesPage() {
                       </button>
                     </div>
 
-                    <div className="mt-3 text-xs text-white/50">
+                    <div className="mt-4 text-xs text-white/50">
                       Tip: si luego cambias algo, vuelve a “Configurar” y guarda otra vez. Aquí mandas tú, no el caos 😄
                     </div>
                   </div>

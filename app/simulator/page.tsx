@@ -4,7 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Sidebar from "../../components/Sidebar";
 import { addSession, type EndReason } from "../../lib/history";
+
 type TranscriptTurn = { role: "user" | "patient" | "tutor"; content: string; kind?: "tip" | "alert" };
+type ApproachValue = "humanistic" | "cbt" | "psychodynamic" | "systemic";
 
 
 
@@ -255,11 +257,30 @@ export default function SimulatorPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastEmotionRaw, setLastEmotionRaw] = useState<string>("(sin datos)");
+  const [lastProvider, setLastProvider] = useState<"gemini" | "groq" | "openrouter" | null>(null);
+  const [rollingSummary, setRollingSummary] = useState<string>("");
+  const [summaryDebugOpen, setSummaryDebugOpen] = useState(false);
 
   // UI (layout estilo Claude)
-  const [eduExpanded, setEduExpanded] = useState(true);
+  const [eduExpanded, setEduExpanded] = useState(false);
   const [rightTab, setRightTab] = useState<"patient" | "mse" | "dsm" | "risk">("patient");
   const [mseOpen, setMseOpen] = useState<Record<string, boolean>>({});
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [cfgApproach, setCfgApproach] = useState<ApproachValue>("humanistic");
+  const [tutorEnabled, setTutorEnabled] = useState(true);
+  useEffect(() => {
+    // Preferencia (fallback). La fuente de verdad puede venir del caso activo.
+    try {
+      const raw = localStorage.getItem("tutorEnabled");
+      if (raw === null) {
+        setTutorEnabled(true);
+      } else {
+        setTutorEnabled(raw === "true");
+      }
+    } catch {
+      setTutorEnabled(true);
+    }
+  }, []);
 
   // Timer
   const [remainingSec, setRemainingSec] = useState<number | null>(null);
@@ -268,6 +289,18 @@ export default function SimulatorPage() {
   const finishingRef = useRef(false);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  // Ref para abortar peticiones en curso (evita errores "This operation was aborted" al navegar/re-render)
+  const requestAbortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      try {
+        requestAbortRef.current?.abort();
+      } catch {}
+      requestAbortRef.current = null;
+    };
+  }, []);
 
   const readActiveCaseRaw = useCallback(() => {
     // Cargar caso guardado desde /cases (soporta varias claves por compatibilidad)
@@ -306,9 +339,11 @@ export default function SimulatorPage() {
       obj?.meta?.duration_minutes ??
       obj?.meta?.durationMinutes;
 
-    const n = Number(raw);
-    if (Number.isFinite(n) && n > 0) return n;
-    return 20; // default
+    // parse flexible ("30", "30 min", etc.)
+    const n = Number.parseInt(String(raw ?? ""), 10);
+    if (Number.isFinite(n) && n > 0) return Math.max(5, Math.min(90, n));
+
+    return 30; // default
   }, []);
 
   const initTimer = useCallback(
@@ -317,7 +352,8 @@ export default function SimulatorPage() {
 
       // Persistimos un endAt para que si refrescas no se reinicie.
       // Se guarda por caso (si tiene id) o global.
-      const key = `sessionEndAt:${String(obj?.id ?? obj?.meta?.case_id ?? "default")}`;
+      const caseId = String(obj?.id ?? obj?.meta?.case_id ?? "default");
+      const key = `sessionEndAt:${caseId}:${minutes}`;
 
       const existing = Number(localStorage.getItem(key));
       const now = Date.now();
@@ -462,7 +498,27 @@ export default function SimulatorPage() {
     try {
       const parsed = JSON.parse(raw);
       setCaseObject(parsed);
-
+      // Tutor IA: si el caso trae preferencia explícita, úsala (y persiste para el simulador)
+      try {
+        const v = parsed?.meta?.tutor_enabled;
+        if (typeof v === "boolean") {
+          setTutorEnabled(v);
+          try {
+            localStorage.setItem("tutorEnabled", String(v));
+          } catch {
+            // ignore
+          }
+        }
+      } catch {
+        // ignore
+      }
+      try {
+        const a = String(parsed?.meta?.approach ?? parsed?.approach ?? "humanistic").toLowerCase().trim();
+        const allowed: ApproachValue[] = ["humanistic", "cbt", "psychodynamic", "systemic"];
+        setCfgApproach((allowed as string[]).includes(a) ? (a as ApproachValue) : "humanistic");
+      } catch {
+        setCfgApproach("humanistic");
+      }
       // New case loaded → allow session to be in progress
       try {
         localStorage.setItem("sessionEnded", "false");
@@ -477,7 +533,7 @@ export default function SimulatorPage() {
       // init timer (depende del caso)
       initTimer(parsed);
       // guardar inicio de sesión (persistente por caso)
-      const startKey = `sessionStartedAt:${String(parsed?.id ?? parsed?.meta?.case_id ?? "default")}`;
+      const startKey = `sessionStartedAt:${String(parsed?.id ?? parsed?.meta?.case_id ?? "default")}:${getTargetMinutes(parsed)}`;
       const existingStart = localStorage.getItem(startKey);
       const startedAt = existingStart ?? new Date().toISOString();
       localStorage.setItem(startKey, startedAt);
@@ -498,9 +554,20 @@ export default function SimulatorPage() {
       } else {
         setTranscript([]);
       }
+
+      // Load rolling summary (keeps prompt small across long chats)
+      try {
+        const caseId = String(parsed?.id ?? parsed?.meta?.case_id ?? "default");
+        const key = `rollingSummary:${caseId}`;
+        const rs = localStorage.getItem(key);
+        setRollingSummary(rs ?? "");
+      } catch {
+        setRollingSummary("");
+      }
     } catch {
       setCaseObject(null);
       setTranscript([]);
+      setRollingSummary("");
     }
   }, [readActiveCaseRaw, initTimer]);
 
@@ -508,8 +575,21 @@ export default function SimulatorPage() {
     try {
       const raw = localStorage.getItem("lastEmotion");
       setLastEmotionRaw(raw ?? "(sin datos)");
+
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          const p = String(parsed?.provider ?? "").toLowerCase();
+          setLastProvider(p === "gemini" || p === "groq" || p === "openrouter" ? (p as any) : null);
+        } catch {
+          setLastProvider(null);
+        }
+      } else {
+        setLastProvider(null);
+      }
     } catch {
       setLastEmotionRaw("(sin datos)");
+      setLastProvider(null);
     }
   }, [transcript]);
 
@@ -522,8 +602,19 @@ export default function SimulatorPage() {
     } catch {
       // ignore
     }
+
+    // Persist rolling summary per case (prevents prompt growth)
+    try {
+      if (caseObject) {
+        const caseId = String(caseObject?.id ?? caseObject?.meta?.case_id ?? "default");
+        localStorage.setItem(`rollingSummary:${caseId}`, String(rollingSummary ?? ""));
+      }
+    } catch {
+      // ignore
+    }
+
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [transcript, caseObject]);
+  }, [transcript, caseObject, rollingSummary]);
 
   // Tick del cronómetro
   useEffect(() => {
@@ -604,6 +695,14 @@ export default function SimulatorPage() {
     hopeful: "Esperanza",
   };
 
+  const approachLabel = useMemo(() => {
+    const a = String(caseObject?.meta?.approach ?? caseObject?.approach ?? "humanistic").toLowerCase().trim();
+    if (a === "cbt") return "TCC";
+    if (a === "psychodynamic") return "Psicodinámico";
+    if (a === "systemic") return "Sistémico";
+    return "Humanístico";
+  }, [caseObject]);
+
   // --- UI helpers (Claude-style layout) ---
   const riskLevel = useMemo<"Bajo" | "Moderado" | "Alto" | "Sin datos">(() => {
     const s = String(caseObject?.safety?.risk_level ?? caseObject?.meta?.risk_level ?? "").toLowerCase().trim();
@@ -620,23 +719,81 @@ export default function SimulatorPage() {
 
   const quickChipMap = useMemo(() => {
     const sq = caseObject?.suggested_questions ?? {};
-    const pick = (arr: any, fallback: string) => {
-      if (Array.isArray(arr) && typeof arr[0] === "string" && arr[0].trim()) return arr[0].trim();
-      return fallback;
+
+    const toList = (arr: any, fallbacks: string[]) => {
+      const out = Array.isArray(arr)
+        ? arr
+            .map((x) => String(x ?? "").trim())
+            .filter((s) => s.length > 0)
+        : [];
+      // ensure 3–4 options (use fallbacks to fill)
+      const merged = [...out, ...fallbacks].filter(Boolean);
+      const uniq: string[] = [];
+      for (const s of merged) {
+        if (!uniq.includes(s)) uniq.push(s);
+        if (uniq.length >= 4) break;
+      }
+      return uniq.slice(0, 4);
     };
 
     return {
-      "Pregunta abierta": pick(sq.openers, "¿Qué es lo que te trajo hoy aquí?"),
-      "Explorar síntomas": pick(sq.symptoms, "¿Qué síntomas has notado y cómo han cambiado últimamente?"),
-      "⚠ Riesgo suicida": pick(sq.safety, "¿Has pensado en hacerte daño o en que sería mejor no estar aquí?"),
-      "Clarificar duración": pick(sq.duration, "¿Desde cuándo exactamente empezaste a sentirte así?"),
-      "Impacto funcional": pick(sq.function, "¿Cómo han afectado estos síntomas tu trabajo o tu vida diaria?"),
-    };
+      "Pregunta abierta": toList(sq.openers, [
+        "¿Qué es lo que te trajo hoy aquí?",
+        "¿Qué te gustaría trabajar en esta sesión?",
+        "Cuéntame qué ha sido lo más difícil últimamente.",
+        "¿Qué cambió recientemente que te hizo buscar ayuda?",
+      ]),
+      "Explorar síntomas": toList(sq.symptoms, [
+        "¿Qué síntomas has notado y cómo han cambiado últimamente?",
+        "¿Qué pasa en tu cuerpo y en tu mente cuando te sientes así?",
+        "¿Con qué frecuencia te ocurre y cuánto dura?",
+        "¿Hay algo que lo empeore o lo alivie?",
+      ]),
+      "⚠ Riesgo suicida": toList(sq.safety, [
+        "¿Has pensado en hacerte daño o en que sería mejor no estar aquí?",
+        "En los últimos días, ¿has tenido pensamientos de no querer vivir?",
+        "¿Has pensado en lastimarte o en suicidarte?",
+        "Si esos pensamientos aparecen, ¿qué tan intensos son y qué te detiene?",
+      ]),
+      "Clarificar duración": toList(sq.duration, [
+        "¿Desde cuándo exactamente empezaste a sentirte así?",
+        "¿Recuerdas cuándo fue la primera vez que te pasó?",
+        "En una línea de tiempo, ¿qué cambió antes de que esto empezara?",
+        "¿Ha sido continuo o viene por episodios?",
+      ]),
+      "Impacto funcional": toList(sq.function, [
+        "¿Cómo han afectado estos síntomas tu trabajo o tu vida diaria?",
+        "¿Qué cosas has dejado de hacer por sentirte así?",
+        "¿Cómo está tu rendimiento en estudio/trabajo y tus relaciones?",
+        "¿Qué áreas de tu vida se han visto más afectadas?",
+      ]),
+    } as Record<string, string[]>;
   }, [caseObject]);
 
   function toggleMse(key: string) {
     setMseOpen((prev) => ({ ...prev, [key]: !prev[key] }));
   }
+
+  const applyApproach = useCallback(() => {
+    setCaseObject((prev: any) => {
+      const next = prev ? { ...prev } : {};
+      const meta = { ...(next.meta ?? {}) };
+      meta.approach = cfgApproach;
+      next.meta = meta;
+      // compat
+      next.approach = cfgApproach;
+
+      try {
+        localStorage.setItem("activeCase", JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+
+      return next;
+    });
+
+    setSettingsOpen(false);
+  }, [cfgApproach]);
 
   function asStrArray(v: any): string[] {
     return Array.isArray(v) ? v.map((x) => String(x)).filter((s) => s.trim().length > 0) : [];
@@ -689,34 +846,71 @@ export default function SimulatorPage() {
     setUserMessage("");
     setLoading(true);
 
+    // Si hay una petición previa en vuelo, abórtala (por ejemplo, doble Enter o navegación rápida)
+    try {
+      requestAbortRef.current?.abort();
+    } catch {}
+    const controller = new AbortController();
+    requestAbortRef.current = controller;
+
     try {
       const res = await fetch("/api/ai/patient-turn", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
           caseObject,
           transcript: nextTranscript,
           userMessage: msg,
+          tutorEnabled,
+          rollingSummary,
         }),
       });
 
       const data = await res.json();
+      // Si la petición fue abortada después de empezar a recibir respuesta, no continuar
+      if (controller.signal.aborted) return;
 
       if (!res.ok) {
         throw new Error(data?.detail || "Error en patient-turn");
       }
 
+      // Update rolling summary returned by the backend (keeps prompts small)
+      if (typeof data?.rolling_summary === "string") {
+        setRollingSummary(data.rolling_summary);
+        try {
+          const caseId = String(caseObject?.id ?? caseObject?.meta?.case_id ?? "default");
+          localStorage.setItem(`rollingSummary:${caseId}`, data.rolling_summary);
+        } catch {
+          // ignore
+        }
+      }
+
       setTranscript((prev) => {
         const next: TranscriptTurn[] = [...prev, { role: "patient", content: data.message_text ?? "(sin respuesta)" }];
-        if (typeof data?.tutor_message === "string" && data.tutor_message.trim().length > 0) {
+        if (
+          tutorEnabled &&
+          typeof data?.tutor_message === "string" &&
+          data.tutor_message.trim().length > 0
+        ) {
           next.push({
             role: "tutor",
             content: data.tutor_message,
-            kind: (data.tutor_kind === "alert" || data.tutor_kind === "tip") ? data.tutor_kind : undefined,
+            kind:
+              data.tutor_kind === "alert" || data.tutor_kind === "tip"
+                ? data.tutor_kind
+                : undefined,
           });
         }
         return next;
       });
+
+      const providerRaw = String(data?.provider ?? "").toLowerCase();
+      const provider =
+        providerRaw === "gemini" || providerRaw === "groq" || providerRaw === "openrouter"
+          ? (providerRaw as "gemini" | "groq" | "openrouter")
+          : null;
+      setLastProvider(provider);
 
       const last = JSON.stringify({
         state: data.emotion_state,
@@ -724,15 +918,27 @@ export default function SimulatorPage() {
         arousal: data.arousal,
         rapport: data.rapport,
         flags: data.flags,
+        provider: provider ?? undefined,
       });
       localStorage.setItem("lastEmotion", last);
       setLastEmotionRaw(last);
     } catch (e: any) {
-      setError(e?.message ?? "No se pudo enviar el mensaje.");
+      const name = String(e?.name ?? "");
+      const msgText = String(e?.message ?? "");
+      const aborted = name === "AbortError" || /aborted/i.test(msgText);
+
+      // Si fue abortada (navegación, doble envío, hot-reload), no lo mostramos como error.
+      if (!aborted) {
+        setError(msgText || "No se pudo enviar el mensaje.");
+      }
     } finally {
       setLoading(false);
+      // Limpia el controller si esta llamada sigue siendo la activa
+      if (requestAbortRef.current) {
+        requestAbortRef.current = null;
+      }
     }
-  }, [userMessage, transcript, caseObject, inputDisabled]);
+  }, [userMessage, transcript, caseObject, inputDisabled, tutorEnabled, quickChipMap, rollingSummary]);
 
   if (!caseObject) {
     return (
@@ -741,7 +947,7 @@ export default function SimulatorPage() {
           <Sidebar />
           <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl p-6 flex items-center justify-center">
             <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-white/5 p-6">
-              <h1 className="text-xl font-semibold">No hay un caso activo</h1>
+              <h1 className="text-xl font-semibold">Psyke · No hay un caso activo</h1>
               <p className="mt-2 text-sm text-white/70">Vuelve a la biblioteca, genera un caso y presiona “Iniciar simulación”.</p>
               <div className="mt-4">
                 <Link className="inline-flex items-center justify-center rounded-xl bg-white text-black px-4 py-2" href="/cases">
@@ -757,18 +963,25 @@ export default function SimulatorPage() {
 
   // --- New Claude-style UI Layout ---
   return (
-    <div className="min-h-screen bg-[#070A0F]">
-      <div className="mx-auto flex max-w-[1480px] gap-6 px-4 py-6">
+    <div className="h-dvh overflow-hidden bg-[#070A0F]">
+      <div className="mx-auto flex h-full max-w-[1480px] gap-6 px-4 py-4">
         <Sidebar />
 
-        <main className="flex-1 overflow-hidden rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl">
+        <main className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl">
           {/* TOPNAV */}
-          <header className="flex h-14 items-center gap-3 border-b border-white/10 bg-white/5 px-5">
+          <header className="flex h-12 items-center gap-3 border-b border-white/10 bg-white/5 px-5">
             <div className="flex items-center gap-2 text-sm text-white/70">
+              <span className="font-semibold text-white">Psyke</span>
+              <span className="text-white/30">·</span>
               <span className="text-white/60">Sesión</span>
               <span className="text-white/30">›</span>
               <span className="font-semibold text-white">Caso en curso</span>
             </div>
+
+            {/* Approach badge */}
+            <span className="hidden sm:inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/70" title="Enfoque psicoterapéutico (educativo)">
+              🧭 Enfoque: {approachLabel}
+            </span>
 
             <div className="ml-auto hidden w-full max-w-[360px] items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-2 sm:flex">
               <span className="text-xs text-white/50">🔎</span>
@@ -791,6 +1004,23 @@ export default function SimulatorPage() {
                 <span className="text-xs opacity-80">⏳</span>
                 <span className="font-semibold tabular-nums">{timeLabel}</span>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setSettingsOpen(true)}
+                className="rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5"
+                title="Configuraciones"
+              >
+                ⚙️ Config
+              </button>
+              <button
+                type="button"
+                onClick={() => setSummaryDebugOpen((v) => !v)}
+                className="hidden sm:inline-flex rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5"
+                title="Ver/ocultar resumen vivo (debug)"
+              >
+                🧾 Resumen
+              </button>
 
               <Link href="/cases" className="rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5">
                 Volver
@@ -886,9 +1116,9 @@ export default function SimulatorPage() {
           {/* CONTENT AREA */}
           <div className="flex min-h-0 flex-1">
             {/* CHAT PANEL */}
-            <section className="flex min-w-0 flex-1 flex-col bg-black/10">
+            <section className="flex min-w-0 flex-1 min-h-0 flex-col bg-black/10">
               {/* Chat header */}
-              <div className="flex items-center gap-3 border-b border-white/10 bg-white/5 px-5 py-4">
+              <div className="flex flex-wrap items-center gap-3 border-b border-white/10 bg-white/5 px-5 py-3">
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                   <div className="h-9 w-9 flex-shrink-0 rounded-full bg-gradient-to-br from-amber-400 to-red-500 text-center text-sm font-semibold leading-9 text-black">
                     {String(patientName).slice(0, 1).toUpperCase()}
@@ -901,9 +1131,12 @@ export default function SimulatorPage() {
                   </div>
                 </div>
 
-                <div className="hidden items-center gap-2 md:flex">
+                <div className="ml-auto hidden min-w-0 flex-1 flex-wrap items-center justify-end gap-2 md:flex">
                   <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/70">
                     Estado: {emotionLabel[lastMeta.state] ?? lastMeta.state}
+                  </span>
+                  <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/70">
+                    Enfoque: {approachLabel}
                   </span>
                   <span
                     className={`rounded-full border px-3 py-1 text-xs ${
@@ -918,9 +1151,16 @@ export default function SimulatorPage() {
                   >
                     ⚠ Riesgo: {riskLevel}
                   </span>
-                </div>
 
-                <div className="flex items-center gap-2">
+                  {lastProvider && (
+                    <span
+                      className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/70"
+                      title="Proveedor que generó la respuesta"
+                    >
+                      ☁️ {String(lastProvider).toUpperCase()}
+                    </span>
+                  )}
+
                   <button
                     type="button"
                     onClick={() => setRightTab("risk")}
@@ -933,7 +1173,7 @@ export default function SimulatorPage() {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto px-5 py-5">
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4">
                 {timeIsLow && remainingSec != null && remainingSec > 0 && (
                   <div className="mb-4 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-3 text-sm text-amber-100">
                     Queda poco tiempo: <span className="font-semibold">{timeLabel}</span>. Enfoca el cierre (resumen + plan).
@@ -1014,20 +1254,27 @@ export default function SimulatorPage() {
               </div>
 
               {/* Input area */}
-              <div className="border-t border-white/10 bg-white/5 px-5 py-4">
-                <div className="mb-3 flex flex-wrap gap-2">
-                  {Object.keys(quickChipMap).map((label) => {
+              <div className="border-t border-white/10 bg-white/5 px-5 py-3">
+                <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-2">
+                  {Object.keys(quickChipMap ?? {}).map((label) => {
                     const isRisk = label.includes("Riesgo");
                     return (
                       <button
                         key={label}
                         type="button"
-                        onClick={() => setUserMessage((quickChipMap as any)[label] ?? "")}
-                        className={`rounded-full border px-3 py-1 text-xs transition hover:bg-white/5 ${
-                          isRisk ? "border-red-400/30 bg-red-400/10 text-red-100" : "border-white/15 bg-black/30 text-white/70"
+                        onClick={() => {
+                          const list = (quickChipMap as any)[label] as string[] | undefined;
+                          const opts = Array.isArray(list) ? list : [];
+                          const pick = opts.length ? opts[Math.floor(Math.random() * opts.length)] : "";
+                          setUserMessage(pick);
+                        }}
+                        className={`max-w-full rounded-full border px-3 py-1.5 text-xs leading-snug transition hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/20 active:scale-[0.99] ${
+                          isRisk
+                            ? "border-red-400/30 bg-red-400/10 text-red-100"
+                            : "border-white/15 bg-black/30 text-white/70"
                         }`}
                       >
-                        {label}
+                        <span className="whitespace-normal break-words">{label}</span>
                       </button>
                     );
                   })}
@@ -1057,12 +1304,12 @@ export default function SimulatorPage() {
                   </button>
                 </div>
 
-                <p className="mt-3 text-xs text-white/50">Educativo: no diagnostica. Usa información ficticia.</p>
+                <p className="mt-2 text-xs text-white/50">Educativo: no diagnostica. Usa información ficticia.</p>
               </div>
             </section>
 
             {/* RIGHT PANEL */}
-            <aside className="hidden w-[360px] flex-shrink-0 flex-col border-l border-white/10 bg-white/5 md:flex">
+            <aside className="hidden w-[320px] flex-shrink-0 min-h-0 flex-col border-l border-white/10 bg-white/5 md:flex">
               <div className="flex gap-1 overflow-x-auto border-b border-white/10 px-3">
                 {(
                   [
@@ -1357,6 +1604,122 @@ export default function SimulatorPage() {
               </div>
             </aside>
           </div>
+          {/* SETTINGS MODAL */}
+          {settingsOpen && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
+              <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#0F1117] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.65)]">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-base font-semibold text-white">Configuraciones</div>
+                    <div className="mt-1 text-sm text-white/60">
+                      Ajustes educativos para guiar la entrevista. No reemplaza supervisión clínica.
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSettingsOpen(false)}
+                    className="rounded-xl border border-white/15 px-3 py-2 text-sm text-white/80 hover:bg-white/5"
+                  >
+                    Cerrar
+                  </button>
+                </div>
+
+                <div className="mt-5">
+                  <label className="block text-xs text-white/60">Tutor IA (sugerencias)</label>
+                  <div className="mt-2 flex items-center justify-between rounded-xl border border-white/10 bg-black/20 px-3 py-2">
+                    <div className="text-sm text-white/80">
+                      {tutorEnabled ? "Activado" : "Desactivado"}
+                      <div className="text-xs text-white/50">
+                        {tutorEnabled
+                          ? "Mostrará sugerencias/alertas durante la entrevista."
+                          : "No se mostrarán mensajes del tutor en el chat."}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTutorEnabled((v) => {
+                          const next = !v;
+                          try {
+                            localStorage.setItem("tutorEnabled", String(next));
+                          } catch {
+                            // ignore
+                          }
+
+                          // Persistir también en el caso activo para que sea parte de la configuración del escenario
+                          setCaseObject((prev: any) => {
+                            if (!prev) return prev;
+                            const updated = { ...prev, meta: { ...(prev.meta ?? {}), tutor_enabled: next } };
+                            try {
+                              localStorage.setItem("activeCase", JSON.stringify(updated));
+                            } catch {
+                              // ignore
+                            }
+                            return updated;
+                          });
+
+                          return next;
+                        });
+                      }}
+                      className={`relative inline-flex h-8 w-14 items-center rounded-full border transition ${
+                        tutorEnabled
+                          ? "border-emerald-400/30 bg-emerald-400/20"
+                          : "border-white/15 bg-black/30"
+                      }`}
+                      aria-pressed={tutorEnabled}
+                      title="Activar o desactivar el tutor IA"
+                    >
+                      <span
+                        className={`inline-block h-6 w-6 transform rounded-full bg-white transition ${
+                          tutorEnabled ? "translate-x-7" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  <div className="mt-4" />
+                  <label className="block text-xs text-white/60">Enfoque psicoterapéutico (guía)</label>
+                  <select
+                    value={cfgApproach}
+                    onChange={(e) => setCfgApproach(e.target.value as ApproachValue)}
+                    className="mt-2 w-full rounded-xl bg-black/35 border border-white/10 px-3 py-2 text-sm text-white/85 outline-none focus:ring-2 focus:ring-white/20"
+                  >
+                    <option value="humanistic">Humanístico</option>
+                    <option value="cbt">Cognitivo-conductual (TCC)</option>
+                    <option value="psychodynamic">Psicodinámico</option>
+                    <option value="systemic">Sistémico / familiar</option>
+                  </select>
+
+                  <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white/70">
+                    <div className="font-semibold text-white">¿Qué cambia?</div>
+                    <ul className="mt-2 list-disc space-y-1 pl-5">
+                      <li><span className="font-semibold text-white">Humanístico</span>: empatía, validación, reflejos, preguntas abiertas.</li>
+                      <li><span className="font-semibold text-white">TCC</span>: pensamiento–emoción–conducta, ejemplos concretos, activación/evitación.</li>
+                      <li><span className="font-semibold text-white">Psicodinámico</span>: patrones relacionales, significados, defensas (sin interpretar de más).</li>
+                      <li><span className="font-semibold text-white">Sistémico</span>: contexto, red de apoyo, roles y dinámica familiar.</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="mt-5 flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSettingsOpen(false)}
+                    className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={applyApproach}
+                    className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black"
+                  >
+                    Guardar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </div>

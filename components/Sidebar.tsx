@@ -116,10 +116,7 @@ export default function Sidebar() {
     const check = () => setHasActiveCase(hasCaseInProgress());
     check();
 
-    // Listen for changes from other tabs/windows
     window.addEventListener("storage", check);
-
-    // Also poll lightly so same-tab changes (localStorage writes) are reflected
     const id = window.setInterval(check, 750);
 
     return () => {
@@ -130,7 +127,6 @@ export default function Sidebar() {
 
   const handleLogout = () => {
     try {
-      // Limpia estado de sesión local del simulador
       localStorage.removeItem("activeCase");
       localStorage.removeItem("activeTranscript");
       localStorage.removeItem("sessionEnded");
@@ -151,12 +147,11 @@ export default function Sidebar() {
     <aside className="hidden md:flex md:shrink-0">
       <div
         className={cn(
-          "h-[calc(100vh-48px)] rounded-3xl border border-white/10 bg-[#0F1117] shadow-[0_30px_120px_rgba(0,0,0,0.55)]",
-          "flex flex-col overflow-hidden",
+          "h-full min-h-0 rounded-3xl border border-white/10 bg-[#0F1117] shadow-[0_30px_120px_rgba(0,0,0,0.55)]",
+          "flex min-h-0 flex-col overflow-hidden",
           collapsed ? "w-[72px]" : "w-[240px]"
         )}
       >
-        {/* Logo */}
         <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4">
           <div className="grid h-8 w-8 flex-shrink-0 place-items-center rounded-lg bg-gradient-to-br from-blue-600 to-teal-500">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
@@ -166,14 +161,13 @@ export default function Sidebar() {
 
           {!collapsed && (
             <div className="min-w-0">
-              <div className="truncate text-sm font-semibold text-white">Simulador DSM-5</div>
-              <div className="text-[10px] text-white/40">Clinical Training</div>
+              <div className="truncate text-sm font-semibold text-white">Psyke</div>
+              <div className="text-[10px] text-white/40">Simulador clínico</div>
             </div>
           )}
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-2 py-3">
+        <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
           {!collapsed && (
             <div className="px-2 pb-2 text-[10px] font-semibold tracking-[0.14em] text-white/25">PRINCIPAL</div>
           )}
@@ -217,9 +211,7 @@ export default function Sidebar() {
                     )}
 
                     {!collapsed && item.label === "Caso en curso" && hasActiveCase && (
-                      <span className="ml-auto rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-semibold text-white">
-                        1
-                      </span>
+                      <span className="ml-auto rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-semibold text-white">1</span>
                     )}
                   </Link>
                 </li>
@@ -228,7 +220,6 @@ export default function Sidebar() {
           </ul>
         </nav>
 
-        {/* Footer */}
         <div className="border-t border-white/10 p-2">
           <button
             type="button"
@@ -245,6 +236,7 @@ export default function Sidebar() {
             </span>
             {!collapsed && <span>Colapsar</span>}
           </button>
+
           <button
             type="button"
             onClick={handleLogout}
