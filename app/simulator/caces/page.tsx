@@ -7,15 +7,24 @@ import Sidebar from "@/components/Sidebar";
 import {
   CACES_QUESTION_BANK,
   CACES_CATEGORIES,
+  buildCacesQuestionKey,
+  dedupeCacesQuestions,
   deriveQuestionCountByMode,
   evaluateCacesAttempt,
   filterCacesQuestionBank,
   listCacesComponents,
   listCacesSubcomponents,
   listCacesTopics,
-  sampleCacesQuestions,
+  sampleCacesQuestionsPrioritizingUnseen,
 } from "@/src/lib/caces";
+import {
+  appendGeneratedCacesBank,
+  getGeneratedCacesBank,
+  getSeenCacesQuestionKeys,
+  markSeenCacesQuestions,
+} from "@/src/lib/cacesDynamicStore";
 import { addCacesHistory, getCacesHistory } from "@/src/lib/cacesHistory";
+import { getAuthFetchHeaders } from "@/src/lib/clientAuth";
 import type {
   CacesAttemptAnswer,
   CacesAttemptConfig,
@@ -28,6 +37,14 @@ import type {
   CacesQuestion,
   CacesQuestionType,
 } from "@/src/lib/types";
+
+type CacesGenerateApiResponse = {
+  questions?: CacesQuestion[];
+  provider?: string;
+  requested?: number;
+  generated?: number;
+  detail?: string;
+};
 
 type AttemptState = {
   id: string;
@@ -81,6 +98,12 @@ export default function SimulatorCacesPage() {
   const [minutesPerQuestion, setMinutesPerQuestion] = useState<1 | 2>(2);
   const [mixCategories, setMixCategories] = useState(false);
   const [saveResult, setSaveResult] = useState(true);
+  const [enableAIDynamicBank, setEnableAIDynamicBank] = useState(true);
+  const [generatedQuestions, setGeneratedQuestions] = useState<CacesQuestion[]>([]);
+  const [seenQuestionKeys, setSeenQuestionKeys] = useState<Set<string>>(new Set());
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiInfo, setAiInfo] = useState<string | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const [attempt, setAttempt] = useState<AttemptState | null>(null);
   const [selectedOption, setSelectedOption] = useState<CacesOptionId | null>(null);
@@ -96,6 +119,8 @@ export default function SimulatorCacesPage() {
     const t = window.setTimeout(() => {
       setLoadingBank(false);
       setHistory(getCacesHistory());
+      setGeneratedQuestions(getGeneratedCacesBank());
+      setSeenQuestionKeys(new Set(getSeenCacesQuestionKeys()));
     }, 180);
     return () => window.clearTimeout(t);
   }, []);
@@ -151,14 +176,19 @@ export default function SimulatorCacesPage() {
     return selectedCategory || undefined;
   }, [effectiveMixCategories, selectedCategory]);
 
+  const combinedQuestionBank = useMemo(
+    () => dedupeCacesQuestions([...CACES_QUESTION_BANK, ...generatedQuestions]),
+    [generatedQuestions]
+  );
+
   const componentOptions = useMemo(
-    () => listCacesComponents(effectiveCategory),
-    [effectiveCategory]
+    () => listCacesComponents(effectiveCategory, combinedQuestionBank),
+    [effectiveCategory, combinedQuestionBank]
   );
 
   const subcomponentOptions = useMemo(
-    () => listCacesSubcomponents(selectedComponent || undefined, effectiveCategory),
-    [selectedComponent, effectiveCategory]
+    () => listCacesSubcomponents(selectedComponent || undefined, effectiveCategory, combinedQuestionBank),
+    [selectedComponent, effectiveCategory, combinedQuestionBank]
   );
 
   const topicOptions = useMemo(
@@ -166,13 +196,14 @@ export default function SimulatorCacesPage() {
       listCacesTopics(
         selectedComponent || undefined,
         selectedSubcomponent || undefined,
-        effectiveCategory
+        effectiveCategory,
+        combinedQuestionBank
       ),
-    [selectedComponent, selectedSubcomponent, effectiveCategory]
+    [selectedComponent, selectedSubcomponent, effectiveCategory, combinedQuestionBank]
   );
 
-  const filteredQuestions = useMemo(() => {
-    return filterCacesQuestionBank({
+  const activeFilterPayload = useMemo(
+    () => ({
       category: effectiveCategory,
       component: selectedComponent || undefined,
       subcomponent: selectedSubcomponent || undefined,
@@ -180,8 +211,29 @@ export default function SimulatorCacesPage() {
       difficulty: selectedDifficulty === "all" ? undefined : selectedDifficulty,
       type: selectedType === "all" ? undefined : selectedType,
       mix_categories: effectiveMixCategories,
-    });
-  }, [effectiveCategory, selectedComponent, selectedSubcomponent, selectedTopic, selectedDifficulty, selectedType, effectiveMixCategories]);
+    }),
+    [
+      effectiveCategory,
+      selectedComponent,
+      selectedSubcomponent,
+      selectedTopic,
+      selectedDifficulty,
+      selectedType,
+      effectiveMixCategories,
+    ]
+  );
+
+  const filteredQuestions = useMemo(() => {
+    return filterCacesQuestionBank(activeFilterPayload, combinedQuestionBank);
+  }, [activeFilterPayload, combinedQuestionBank]);
+
+  const unseenFilteredCount = useMemo(
+    () =>
+      filteredQuestions.filter(
+        (q) => !seenQuestionKeys.has(buildCacesQuestionKey(q))
+      ).length,
+    [filteredQuestions, seenQuestionKeys]
+  );
 
   const plannedQuestionCount = useMemo(() => {
     if (mode === "simulacro_maximo") return filteredQuestions.length;
@@ -282,6 +334,58 @@ export default function SimulatorCacesPage() {
     ]
   );
 
+  const generateMoreQuestionsWithAI = useCallback(
+    async (requestedCount: number, reason: string) => {
+      setAiError(null);
+      setAiInfo(`Generando preguntas con IA (${reason})...`);
+      setAiBusy(true);
+
+      try {
+        const headers = await getAuthFetchHeaders({
+          "Content-Type": "application/json",
+        });
+
+        const existingKeys = combinedQuestionBank.map((q) => buildCacesQuestionKey(q));
+        const exclude = [...new Set([...Array.from(seenQuestionKeys), ...existingKeys])].slice(-220);
+
+        const res = await fetch("/api/ai/caces-generate", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            count: requestedCount,
+            filters: activeFilterPayload,
+            exclude_question_keys: exclude,
+          }),
+        });
+
+        const data = (await res.json().catch(() => ({}))) as CacesGenerateApiResponse;
+        if (!res.ok) {
+          throw new Error(data?.detail || "No se pudo generar preguntas con IA.");
+        }
+
+        const incoming = Array.isArray(data?.questions) ? dedupeCacesQuestions(data.questions) : [];
+        if (incoming.length === 0) {
+          throw new Error("La IA no devolvió preguntas válidas para este filtro.");
+        }
+
+        const merged = appendGeneratedCacesBank(incoming);
+        setGeneratedQuestions(merged);
+        setAiInfo(
+          `IA agregó ${incoming.length} preguntas nuevas (${data?.provider || "proveedor AI"}).`
+        );
+        return incoming.length;
+      } catch (e: unknown) {
+        const message =
+          e instanceof Error ? e.message : "No se pudo generar preguntas con IA en este momento.";
+        setAiError(message);
+        return 0;
+      } finally {
+        setAiBusy(false);
+      }
+    },
+    [activeFilterPayload, combinedQuestionBank, seenQuestionKeys]
+  );
+
   const persistResultToHistory = useCallback(
     (result: CacesAttemptResult) => {
       const entry: CacesHistoryEntry = {
@@ -342,31 +446,79 @@ export default function SimulatorCacesPage() {
     setAnswerError(null);
   }, []);
 
-  const handleStart = useCallback(() => {
+  const handleStart = useCallback(async () => {
     setConfigError(null);
     setAnswerError(null);
     setShowErrorReview(false);
     setSavedCurrentResult(false);
+    setAiError(null);
 
     if (!effectiveMixCategories && !selectedCategory) {
       setConfigError("Selecciona una categoría para comenzar.");
       return;
     }
 
-    if (filteredQuestions.length === 0) {
+    const count = plannedQuestionCount;
+    let candidatePool = filteredQuestions;
+
+    if (
+      enableAIDynamicBank &&
+      mode !== "simulacro_maximo" &&
+      count > 0
+    ) {
+      const currentSeen = new Set(getSeenCacesQuestionKeys());
+      const unseenNow = candidatePool.filter(
+        (q) => !currentSeen.has(buildCacesQuestionKey(q))
+      ).length;
+
+      if (candidatePool.length < count || unseenNow < count) {
+        const missing = Math.max(count - candidatePool.length, count - unseenNow);
+        const batchSize = Math.min(80, Math.max(missing, count >= 20 ? 14 : 8));
+        await generateMoreQuestionsWithAI(batchSize, "inicio de simulacro");
+
+        const refreshedBank = dedupeCacesQuestions([
+          ...CACES_QUESTION_BANK,
+          ...getGeneratedCacesBank(),
+        ]);
+        candidatePool = filterCacesQuestionBank(activeFilterPayload, refreshedBank);
+      }
+    }
+
+    if (candidatePool.length === 0) {
       setConfigError("No hay preguntas disponibles para este filtro.");
       return;
     }
 
-    const count = plannedQuestionCount;
-    if (filteredQuestions.length < count) {
+    if (candidatePool.length < count) {
       setConfigError(
-        `Este modo requiere ${count} preguntas y solo hay ${filteredQuestions.length} disponibles con el filtro actual.`
+        `Este modo requiere ${count} preguntas y solo hay ${candidatePool.length} disponibles con el filtro actual.`
       );
       return;
     }
 
-    const selected = sampleCacesQuestions(filteredQuestions, count);
+    const freshSeen = new Set(getSeenCacesQuestionKeys());
+    const picked = sampleCacesQuestionsPrioritizingUnseen({
+      input: candidatePool,
+      size: count,
+      seenQuestionKeys: freshSeen,
+    });
+    const selected = picked.selected;
+    if (selected.length < count) {
+      setConfigError(
+        `No se pudo completar el intento con ${count} preguntas válidas.`
+      );
+      return;
+    }
+
+    markSeenCacesQuestions(selected);
+    setSeenQuestionKeys(new Set(getSeenCacesQuestionKeys()));
+    if (picked.seen_reused > 0) {
+      setAiInfo(
+        enableAIDynamicBank
+          ? `Se reutilizaron ${picked.seen_reused} preguntas por disponibilidad del filtro. Puedes generar un lote IA adicional para variar más.`
+          : `Se reutilizaron ${picked.seen_reused} preguntas por disponibilidad del filtro. Activa IA para reducir repeticiones.`
+      );
+    }
 
     const responses: Record<string, CacesAttemptAnswer> = {};
     selected.forEach((q) => {
@@ -399,7 +551,16 @@ export default function SimulatorCacesPage() {
     plannedQuestionCount,
     minutesPerQuestion,
     timerEnabled,
+    enableAIDynamicBank,
+    mode,
+    generateMoreQuestionsWithAI,
+    activeFilterPayload,
   ]);
+
+  const handleGeneratePack = useCallback(async () => {
+    const batch = mode === "simulacro_maximo" ? 30 : Math.max(20, Math.min(60, plannedQuestionCount));
+    await generateMoreQuestionsWithAI(batch, "ampliar banco manual");
+  }, [generateMoreQuestionsWithAI, mode, plannedQuestionCount]);
 
   const handleToggleMark = useCallback(() => {
     if (!attempt || !currentQuestion || attempt.result) return;
@@ -783,11 +944,25 @@ export default function SimulatorCacesPage() {
                               />
                               Guardar resultado en historial
                             </label>
+                            <label className="flex items-center gap-2 text-white/80">
+                              <input
+                                type="checkbox"
+                                checked={enableAIDynamicBank}
+                                onChange={(e) => setEnableAIDynamicBank(e.target.checked)}
+                              />
+                              IA bajo demanda para ampliar banco
+                            </label>
                             <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/65">
                               Banco total CACES: <span className="font-semibold text-white">{CACES_QUESTION_BANK.length}</span>
                             </div>
                             <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/65">
+                              Banco IA acumulado: <span className="font-semibold text-white">{generatedQuestions.length}</span>
+                            </div>
+                            <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/65">
                               Banco disponible para este filtro: <span className="font-semibold text-white">{filteredQuestions.length}</span>
+                            </div>
+                            <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/65">
+                              Preguntas no vistas para este filtro: <span className="font-semibold text-white">{unseenFilteredCount}</span>
                             </div>
                             <div className="rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-xs text-cyan-100">
                               {timerEnabled
@@ -796,7 +971,19 @@ export default function SimulatorCacesPage() {
                             </div>
                             {filteredQuestions.length < plannedQuestionCount && (
                               <div className="rounded-xl border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs text-amber-100">
-                                Faltan preguntas para este modo: se requieren {plannedQuestionCount} y hay {filteredQuestions.length}.
+                                {enableAIDynamicBank
+                                  ? `Faltan preguntas locales (${plannedQuestionCount} requeridas, ${filteredQuestions.length} disponibles). Al iniciar se intentará completar automáticamente con IA.`
+                                  : `Faltan preguntas para este modo: se requieren ${plannedQuestionCount} y hay ${filteredQuestions.length}.`}
+                              </div>
+                            )}
+                            {aiInfo && (
+                              <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-100">
+                                {aiInfo}
+                              </div>
+                            )}
+                            {aiError && (
+                              <div className="rounded-xl border border-red-400/20 bg-red-400/10 px-3 py-2 text-xs text-red-100">
+                                {aiError}
                               </div>
                             )}
                           </div>
@@ -825,13 +1012,24 @@ export default function SimulatorCacesPage() {
                         <button
                           type="button"
                           onClick={handleStart}
-                          className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black"
+                          disabled={aiBusy}
+                          className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black disabled:cursor-not-allowed disabled:opacity-55"
                         >
-                          {mode === "practica_individual"
-                            ? "Iniciar práctica"
-                            : mode === "simulacro_50_mixto"
-                              ? "Iniciar examen amplio"
-                              : "Iniciar simulacro"}
+                          {aiBusy
+                            ? "Preparando banco..."
+                            : mode === "practica_individual"
+                              ? "Iniciar práctica"
+                              : mode === "simulacro_50_mixto"
+                                ? "Iniciar examen amplio"
+                                : "Iniciar simulacro"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleGeneratePack}
+                          disabled={aiBusy || !enableAIDynamicBank}
+                          className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {aiBusy ? "Generando..." : "Generar lote IA"}
                         </button>
                         <button
                           type="button"
@@ -848,7 +1046,10 @@ export default function SimulatorCacesPage() {
                             setMinutesPerQuestion(2);
                             setMixCategories(false);
                             setSaveResult(true);
+                            setEnableAIDynamicBank(true);
                             setConfigError(null);
+                            setAiError(null);
+                            setAiInfo(null);
                           }}
                           className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
                         >

@@ -9,6 +9,7 @@ import type {
   CacesQuestionType,
   QuizQuestion,
 } from "./types";
+import { CACES_EXPANDED_QUESTION_BANK } from "./cacesExpanded";
 
 type LegacyDifficultyFilter = "all" | "basic" | "intermediate" | "advanced";
 
@@ -22,6 +23,8 @@ type CacesFilter = {
   tags?: string[];
   mix_categories?: boolean;
 };
+
+const MAX_QUESTION_KEY_CHARS = 460;
 
 function option(
   id: CacesOptionId,
@@ -57,7 +60,7 @@ export const CACES_CATEGORIES = [
   "Ginecología y salud sexual",
 ] as const;
 
-export const CACES_QUESTION_BANK: CacesQuestion[] = [
+const CACES_CORE_QUESTION_BANK: CacesQuestion[] = [
   {
     id: "caces-001",
     component: "Fundamentos del cuidado enfermero",
@@ -1167,12 +1170,43 @@ export const CACES_QUESTION_BANK: CacesQuestion[] = [
   },
 ];
 
-function normalize(value: string) {
+export const CACES_QUESTION_BANK: CacesQuestion[] = [
+  ...CACES_CORE_QUESTION_BANK,
+  ...CACES_EXPANDED_QUESTION_BANK,
+];
+
+export function normalizeCacesText(value: string) {
   return String(value ?? "")
     .toLowerCase()
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
+}
+
+export function buildCacesQuestionKey(
+  question: Pick<CacesQuestion, "question" | "options">
+) {
+  const stem = normalizeCacesText(question.question);
+  const optionStem = (Array.isArray(question.options) ? question.options : [])
+    .map((opt) => normalizeCacesText(String(opt?.text ?? "")))
+    .join("|");
+  return `${stem}::${optionStem}`.slice(0, MAX_QUESTION_KEY_CHARS);
+}
+
+export function dedupeCacesQuestions(input: CacesQuestion[]) {
+  const out: CacesQuestion[] = [];
+  const seen = new Set<string>();
+
+  for (const question of input) {
+    const key = buildCacesQuestionKey(question);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(question);
+  }
+
+  return out;
 }
 
 function uniqueSorted(values: string[]) {
@@ -1192,13 +1226,13 @@ export function deriveQuestionCountByMode(mode: CacesPracticeMode) {
   return 20;
 }
 
-export function listCacesComponents(category?: string) {
-  const pool = !category ? CACES_QUESTION_BANK : CACES_QUESTION_BANK.filter((q) => q.category === category);
+export function listCacesComponents(category?: string, bank: CacesQuestion[] = CACES_QUESTION_BANK) {
+  const pool = !category ? bank : bank.filter((q) => q.category === category);
   return uniqueSorted(pool.map((q) => q.component));
 }
 
-export function listCacesSubcomponents(component?: string, category?: string) {
-  const pool = CACES_QUESTION_BANK.filter((q) => {
+export function listCacesSubcomponents(component?: string, category?: string, bank: CacesQuestion[] = CACES_QUESTION_BANK) {
+  const pool = bank.filter((q) => {
     if (category && q.category !== category) return false;
     if (component && q.component !== component) return false;
     return true;
@@ -1206,8 +1240,13 @@ export function listCacesSubcomponents(component?: string, category?: string) {
   return uniqueSorted(pool.map((q) => q.subcomponent));
 }
 
-export function listCacesTopics(component?: string, subcomponent?: string, category?: string) {
-  const pool = CACES_QUESTION_BANK.filter((q) => {
+export function listCacesTopics(
+  component?: string,
+  subcomponent?: string,
+  category?: string,
+  bank: CacesQuestion[] = CACES_QUESTION_BANK
+) {
+  const pool = bank.filter((q) => {
     if (category && q.category !== category) return false;
     if (component && q.component !== component) return false;
     if (subcomponent && q.subcomponent !== subcomponent) return false;
@@ -1216,13 +1255,13 @@ export function listCacesTopics(component?: string, subcomponent?: string, categ
   return uniqueSorted(pool.map((q) => q.topic));
 }
 
-export function filterCacesQuestionBank(filters?: CacesFilter) {
+export function filterCacesQuestionBank(filters?: CacesFilter, bank: CacesQuestion[] = CACES_QUESTION_BANK) {
   const f = filters ?? {};
   const tagSet = Array.isArray(f.tags)
-    ? new Set(f.tags.map((t) => normalize(t)).filter(Boolean))
+    ? new Set(f.tags.map((t) => normalizeCacesText(t)).filter(Boolean))
     : null;
 
-  return CACES_QUESTION_BANK.filter((q) => {
+  return bank.filter((q) => {
     if (!f.mix_categories && f.category && q.category !== f.category) return false;
     if (f.component && q.component !== f.component) return false;
     if (f.subcomponent && q.subcomponent !== f.subcomponent) return false;
@@ -1231,7 +1270,7 @@ export function filterCacesQuestionBank(filters?: CacesFilter) {
     if (f.type && q.type !== f.type) return false;
 
     if (tagSet && tagSet.size > 0) {
-      const qTags = new Set(q.tags.map((t) => normalize(t)));
+      const qTags = new Set(q.tags.map((t) => normalizeCacesText(t)));
       for (const tag of tagSet) {
         if (!qTags.has(tag)) return false;
       }
@@ -1242,7 +1281,7 @@ export function filterCacesQuestionBank(filters?: CacesFilter) {
 }
 
 export function sampleCacesQuestions(input: CacesQuestion[], size: number) {
-  const pool = [...input];
+  const pool = dedupeCacesQuestions(input);
   const out: CacesQuestion[] = [];
   const target = Math.max(0, Math.min(pool.length, Math.trunc(size)));
 
@@ -1253,6 +1292,28 @@ export function sampleCacesQuestions(input: CacesQuestion[], size: number) {
   }
 
   return out;
+}
+
+export function sampleCacesQuestionsPrioritizingUnseen(args: {
+  input: CacesQuestion[];
+  size: number;
+  seenQuestionKeys?: Set<string>;
+}) {
+  const { input, size, seenQuestionKeys = new Set<string>() } = args;
+  const pool = dedupeCacesQuestions(input);
+  const unseen = pool.filter((q) => !seenQuestionKeys.has(buildCacesQuestionKey(q)));
+  const seen = pool.filter((q) => seenQuestionKeys.has(buildCacesQuestionKey(q)));
+
+  const target = Math.max(0, Math.min(pool.length, Math.trunc(size)));
+  const pickUnseen = sampleCacesQuestions(unseen, target);
+  const remaining = target - pickUnseen.length;
+  const pickSeen = remaining > 0 ? sampleCacesQuestions(seen, remaining) : [];
+
+  return {
+    selected: [...pickUnseen, ...pickSeen],
+    unseen_available: unseen.length,
+    seen_reused: pickSeen.length,
+  };
 }
 
 export function evaluateCacesAttempt(args: {
