@@ -244,7 +244,7 @@ export type QuizQuestion = {
 };
 
 export type QuizResult = {
-  mode: "practice" | "quiz_5" | "simulacro_10" | "simulacro_20";
+  mode: "practice" | "quiz_5" | "simulacro_10" | "simulacro_20" | "simulacro_50_mixto";
   total_questions: number;
   correct_answers: number;
   accuracy: number;
@@ -259,7 +259,12 @@ export type QuizResult = {
 export type CacesOptionId = "A" | "B" | "C" | "D";
 export type CacesDifficulty = "basica" | "intermedia" | "alta";
 export type CacesQuestionType = "directa" | "caso_clinico";
-export type CacesPracticeMode = "practica_individual" | "quiz_5" | "simulacro_10" | "simulacro_20";
+export type CacesPracticeMode =
+  | "practica_individual"
+  | "quiz_5"
+  | "simulacro_10"
+  | "simulacro_20"
+  | "simulacro_50_mixto";
 export type CacesFeedbackMode = "inmediata" | "final";
 
 export type CacesQuestionOption = {

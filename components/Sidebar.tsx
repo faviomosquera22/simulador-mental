@@ -52,7 +52,7 @@ const NAV: NavItem[] = [
   },
   {
     label: "CACES",
-    href: "/simulator/caces",
+    href: "/caces",
     icon: (
       <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
         <path d="M9.5 9a2.5 2.5 0 1 1 4 2c-.6.4-1 .7-1.2 1.4" />
@@ -133,7 +133,7 @@ export default function Sidebar() {
       try {
         const search = new URLSearchParams(window.location.search);
         setIsCacesRoute(
-          window.location.pathname === "/simulator/caces" ||
+          window.location.pathname === "/caces" ||
           (window.location.pathname === "/simulator" && search.get("tab") === "caces")
         );
       } catch {

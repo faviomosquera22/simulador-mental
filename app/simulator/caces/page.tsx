@@ -39,12 +39,6 @@ type AttemptState = {
   result: CacesAttemptResult | null;
 };
 
-function clampInt(n: number, min: number, max: number) {
-  const x = Math.trunc(Number(n));
-  if (!Number.isFinite(x)) return min;
-  return Math.max(min, Math.min(max, x));
-}
-
 function formatTimer(totalSec: number) {
   const s = Math.max(0, totalSec);
   const mm = Math.floor(s / 60);
@@ -56,6 +50,14 @@ function getPriorityClass(priority: "Alta" | "Media" | "Baja") {
   if (priority === "Alta") return "border-red-400/25 bg-red-400/10 text-red-100";
   if (priority === "Media") return "border-amber-400/25 bg-amber-400/10 text-amber-100";
   return "border-emerald-400/25 bg-emerald-400/10 text-emerald-100";
+}
+
+function getModeLabel(mode: CacesPracticeMode) {
+  if (mode === "practica_individual") return "Práctica individual";
+  if (mode === "quiz_5") return "Quiz de 5";
+  if (mode === "simulacro_10") return "Simulacro de 10";
+  if (mode === "simulacro_20") return "Simulacro de 20";
+  return "Examen amplio (50 mixtas)";
 }
 
 export default function SimulatorCacesPage() {
@@ -70,7 +72,6 @@ export default function SimulatorCacesPage() {
   const [selectedType, setSelectedType] = useState<CacesQuestionType | "all">("all");
 
   const [mode, setMode] = useState<CacesPracticeMode>("quiz_5");
-  const [numberOfQuestions, setNumberOfQuestions] = useState<number>(deriveQuestionCountByMode("quiz_5"));
   const [feedbackMode, setFeedbackMode] = useState<CacesFeedbackMode>("inmediata");
   const [timerEnabled, setTimerEnabled] = useState(true);
   const [mixCategories, setMixCategories] = useState(false);
@@ -98,9 +99,19 @@ export default function SimulatorCacesPage() {
     setNowMs(Date.now());
   }, []);
 
+  const questionCountByMode = useMemo(() => deriveQuestionCountByMode(mode), [mode]);
+  const isWideMixedMode = mode === "simulacro_50_mixto";
+
   useEffect(() => {
-    setNumberOfQuestions(deriveQuestionCountByMode(mode));
-  }, [mode]);
+    if (!isWideMixedMode) return;
+    setMixCategories(true);
+    setSelectedCategory("");
+    setSelectedComponent("");
+    setSelectedSubcomponent("");
+    setSelectedTopic("");
+    setSelectedDifficulty("all");
+    setSelectedType("all");
+  }, [isWideMixedMode]);
 
   useEffect(() => {
     setSelectedComponent("");
@@ -128,10 +139,12 @@ export default function SimulatorCacesPage() {
     return () => window.clearInterval(id);
   }, [attempt]);
 
+  const effectiveMixCategories = isWideMixedMode || mixCategories;
+
   const effectiveCategory = useMemo(() => {
-    if (mixCategories) return undefined;
+    if (effectiveMixCategories) return undefined;
     return selectedCategory || undefined;
-  }, [mixCategories, selectedCategory]);
+  }, [effectiveMixCategories, selectedCategory]);
 
   const componentOptions = useMemo(
     () => listCacesComponents(effectiveCategory),
@@ -161,9 +174,9 @@ export default function SimulatorCacesPage() {
       topic: selectedTopic || undefined,
       difficulty: selectedDifficulty === "all" ? undefined : selectedDifficulty,
       type: selectedType === "all" ? undefined : selectedType,
-      mix_categories: mixCategories,
+      mix_categories: effectiveMixCategories,
     });
-  }, [effectiveCategory, selectedComponent, selectedSubcomponent, selectedTopic, selectedDifficulty, selectedType, mixCategories]);
+  }, [effectiveCategory, selectedComponent, selectedSubcomponent, selectedTopic, selectedDifficulty, selectedType, effectiveMixCategories]);
 
   const currentQuestion = useMemo(() => {
     if (!attempt || attempt.result) return null;
@@ -228,10 +241,10 @@ export default function SimulatorCacesPage() {
       difficulty: selectedDifficulty === "all" ? undefined : selectedDifficulty,
       type: selectedType === "all" ? undefined : selectedType,
       mode,
-      number_of_questions: numberOfQuestions,
+      number_of_questions: questionCountByMode,
       feedback_mode: feedbackMode,
       timer_enabled: timerEnabled,
-      mix_categories: mixCategories,
+      mix_categories: effectiveMixCategories,
       save_result: saveResult,
     }),
     [
@@ -242,10 +255,10 @@ export default function SimulatorCacesPage() {
       selectedDifficulty,
       selectedType,
       mode,
-      numberOfQuestions,
+      questionCountByMode,
       feedbackMode,
       timerEnabled,
-      mixCategories,
+      effectiveMixCategories,
       saveResult,
     ]
   );
@@ -316,7 +329,7 @@ export default function SimulatorCacesPage() {
     setShowErrorReview(false);
     setSavedCurrentResult(false);
 
-    if (!mixCategories && !selectedCategory) {
+    if (!effectiveMixCategories && !selectedCategory) {
       setConfigError("Selecciona una categoría para comenzar.");
       return;
     }
@@ -326,7 +339,14 @@ export default function SimulatorCacesPage() {
       return;
     }
 
-    const count = clampInt(numberOfQuestions, 1, filteredQuestions.length);
+    const count = questionCountByMode;
+    if (filteredQuestions.length < count) {
+      setConfigError(
+        `Este modo requiere ${count} preguntas y solo hay ${filteredQuestions.length} disponibles con el filtro actual.`
+      );
+      return;
+    }
+
     const selected = sampleCacesQuestions(filteredQuestions, count);
 
     const responses: Record<string, CacesAttemptAnswer> = {};
@@ -354,10 +374,10 @@ export default function SimulatorCacesPage() {
       result: null,
     });
   }, [
-    mixCategories,
+    effectiveMixCategories,
     selectedCategory,
     filteredQuestions,
-    numberOfQuestions,
+    questionCountByMode,
     timerEnabled,
   ]);
 
@@ -547,23 +567,29 @@ export default function SimulatorCacesPage() {
                       <div className="text-sm font-semibold text-white">Categorías rápidas</div>
                       <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
                         {CACES_CATEGORIES.map((cat) => {
-                          const active = selectedCategory === cat;
+                          const active = !effectiveMixCategories && selectedCategory === cat;
                           return (
                             <button
                               key={cat}
                               type="button"
                               onClick={() => setSelectedCategory(cat)}
+                              disabled={isWideMixedMode}
                               className={`rounded-2xl border px-3 py-3 text-left text-sm transition ${
                                 active
                                   ? "border-white/25 bg-white/10 text-white"
                                   : "border-white/10 bg-black/25 text-white/75 hover:bg-black/35"
-                              }`}
+                              } ${isWideMixedMode ? "cursor-not-allowed opacity-55" : ""}`}
                             >
                               {cat}
                             </button>
                           );
                         })}
                       </div>
+                      {isWideMixedMode && (
+                        <div className="mt-3 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-xs text-cyan-100">
+                          El modo de examen amplio usa automáticamente mezcla total de categorías.
+                        </div>
+                      )}
                     </section>
 
                     <section className="mt-4 rounded-3xl border border-white/10 bg-white/5 p-5">
@@ -645,6 +671,7 @@ export default function SimulatorCacesPage() {
                             <option value="quiz_5">Quiz de 5</option>
                             <option value="simulacro_10">Simulacro de 10</option>
                             <option value="simulacro_20">Simulacro de 20</option>
+                            <option value="simulacro_50_mixto">Examen amplio (50 mixtas)</option>
                           </select>
                         </div>
 
@@ -662,15 +689,10 @@ export default function SimulatorCacesPage() {
                         </div>
 
                         <div>
-                          <label className="text-xs text-white/60">Número de preguntas</label>
-                          <input
-                            type="number"
-                            min={1}
-                            max={60}
-                            value={numberOfQuestions}
-                            onChange={(e) => setNumberOfQuestions(clampInt(Number(e.target.value), 1, 60))}
-                            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
-                          />
+                          <label className="text-xs text-white/60">Preguntas definidas por modo</label>
+                          <div className="mt-1 rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/90">
+                            {questionCountByMode} ({getModeLabel(mode)})
+                          </div>
                         </div>
                       </div>
 
@@ -713,10 +735,11 @@ export default function SimulatorCacesPage() {
                             <label className="flex items-center gap-2 text-white/80">
                               <input
                                 type="checkbox"
-                                checked={mixCategories}
+                                checked={effectiveMixCategories}
+                                disabled={isWideMixedMode}
                                 onChange={(e) => setMixCategories(e.target.checked)}
                               />
-                              Mezclar categorías
+                              Mezclar categorías {isWideMixedMode ? "(obligatorio en examen amplio)" : ""}
                             </label>
                             <label className="flex items-center gap-2 text-white/80">
                               <input
@@ -729,17 +752,22 @@ export default function SimulatorCacesPage() {
                             <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/65">
                               Banco disponible para este filtro: <span className="font-semibold text-white">{filteredQuestions.length}</span>
                             </div>
+                            {filteredQuestions.length < questionCountByMode && (
+                              <div className="rounded-xl border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs text-amber-100">
+                                Faltan preguntas para este modo: se requieren {questionCountByMode} y hay {filteredQuestions.length}.
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
 
-                      {!mixCategories && !selectedCategory && (
+                      {!effectiveMixCategories && !selectedCategory && (
                         <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/10 p-3 text-sm text-amber-100">
                           Selecciona una categoría para comenzar.
                         </div>
                       )}
 
-                      {filteredQuestions.length === 0 && (mixCategories || selectedCategory) && (
+                      {filteredQuestions.length === 0 && (effectiveMixCategories || selectedCategory) && (
                         <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/10 p-3 text-sm text-amber-100">
                           No hay preguntas disponibles para este filtro.
                         </div>
@@ -757,7 +785,11 @@ export default function SimulatorCacesPage() {
                           onClick={handleStart}
                           className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black"
                         >
-                          {mode === "practica_individual" ? "Iniciar práctica" : "Iniciar simulacro"}
+                          {mode === "practica_individual"
+                            ? "Iniciar práctica"
+                            : mode === "simulacro_50_mixto"
+                              ? "Iniciar examen amplio"
+                              : "Iniciar simulacro"}
                         </button>
                         <button
                           type="button"
@@ -770,7 +802,6 @@ export default function SimulatorCacesPage() {
                             setSelectedType("all");
                             setMode("quiz_5");
                             setFeedbackMode("inmediata");
-                            setNumberOfQuestions(5);
                             setTimerEnabled(true);
                             setMixCategories(false);
                             setSaveResult(true);
@@ -910,7 +941,7 @@ export default function SimulatorCacesPage() {
                             <div key={item.id} className="rounded-xl border border-white/10 bg-black/25 p-3 text-sm">
                               <div className="flex flex-wrap items-center justify-between gap-2">
                                 <div className="font-semibold text-white">
-                                  {item.config.mode.replace(/_/g, " ")} · {item.result.correct_answers}/{item.result.total_questions}
+                                  {getModeLabel(item.config.mode)} · {item.result.correct_answers}/{item.result.total_questions}
                                 </div>
                                 <div className="text-xs text-white/55">{new Date(item.created_at).toLocaleString()}</div>
                               </div>
