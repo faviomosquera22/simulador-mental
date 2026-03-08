@@ -16,6 +16,7 @@ import type { AgeGroup } from "@/src/lib/types";
 
 type SexValue = "female" | "male" | "nonbinary" | "unspecified";
 type DifficultyValue = "beginner" | "intermediate" | "advanced";
+type ConfigStep = 1 | 2 | 3;
 
 type ApproachValue = "humanistic" | "cbt" | "psychodynamic" | "systemic";
 type CatalogFilter = "all" | "adult" | "pediatric";
@@ -85,6 +86,95 @@ function prettyDifficulty(d: DifficultyValue) {
     default:
       return "Básico";
   }
+}
+
+function prettyCompanionRole(
+  role: "madre" | "padre" | "tutor" | "cuidador" | "otro"
+) {
+  switch (role) {
+    case "madre":
+      return "Madre";
+    case "padre":
+      return "Padre";
+    case "tutor":
+      return "Tutor";
+    case "cuidador":
+      return "Cuidador";
+    default:
+      return "Otro";
+  }
+}
+
+function inferCaseRiskLevel(text: string): "alto" | "medio" | "bajo" {
+  const t = String(text || "").toLowerCase();
+
+  const high = [
+    "suicid",
+    "autoles",
+    "plan",
+    "acceso a medios",
+    "psicosis",
+    "alucin",
+    "delirio",
+    "agres",
+    "violencia",
+  ];
+  const medium = [
+    "desesperanza",
+    "aislamiento",
+    "insomnio severo",
+    "consumo",
+    "crisis",
+    "impulsiv",
+  ];
+
+  if (high.some((k) => t.includes(k))) return "alto";
+  if (medium.some((k) => t.includes(k))) return "medio";
+  return "bajo";
+}
+
+function getCaseInterviewSuggestions(args: {
+  categoryId: string;
+  ageGroup: AgeGroup;
+}) {
+  const { categoryId, ageGroup } = args;
+  const id = String(categoryId || "").toLowerCase();
+
+  const focusBase =
+    ageGroup === "child" || ageGroup === "adolescent"
+      ? [
+          "Explorar versión del paciente y del acompañante por separado.",
+          "Indagar escolaridad, sueño, socialización y dinámica familiar.",
+          "Valorar factores protectores y de riesgo en casa y escuela.",
+        ]
+      : [
+          "Precisar cronología de síntomas e impacto funcional.",
+          "Identificar comorbilidades y consumo de sustancias.",
+          "Cerrar con plan de seguridad y objetivos de seguimiento.",
+        ];
+
+  let scales = ["PHQ-9", "GAD-7"];
+  let tests = ["Mini examen orientativo", "Tamizaje funcional breve"];
+
+  if (id.includes("depression") || id.includes("selfharm") || id.includes("suicide")) {
+    scales = ["PHQ-9", "BDI simplificada", "Riesgo suicida estructurado"];
+    tests = ["Tamizaje de depresión", "Evaluación breve de seguridad"];
+  } else if (id.includes("anxiety") || id.includes("panic") || id.includes("ptsd") || id.includes("ocd")) {
+    scales = ["GAD-7", "Hamilton Ansiedad", "Escala de estrés/trauma orientativa"];
+    tests = ["Tamizaje de ansiedad", "Checklist de evitación/impacto funcional"];
+  } else if (id.includes("substances")) {
+    scales = ["AUDIT", "ASSIST simplificado"];
+    tests = ["Tamizaje de consumo problemático", "Checklist de riesgo de recaída"];
+  } else if (id.includes("adhd") || id.includes("asd") || id.includes("learning") || id.includes("mutism")) {
+    scales = ["SNAP-IV (educativa)", "Conners abreviado (educativo)"];
+    tests = ["Tamizaje de neurodesarrollo", "Valoración funcional familiar/escolar"];
+  }
+
+  return {
+    scales,
+    tests,
+    focus: focusBase,
+  };
 }
 
 // Busca el primer string no vacío para cualquiera de estas llaves, recorriendo el objeto en profundidad.
@@ -329,6 +419,8 @@ export default function CasesPage() {
 
   // ✅ Config inline (modal en la MISMA página)
   const [showConfig, setShowConfig] = useState(false);
+  const [configStep, setConfigStep] = useState<ConfigStep>(1);
+  const [configModalTopOffset, setConfigModalTopOffset] = useState<number>(72);
 
   // Campos editables (se prellenan cuando se genera un caso)
   const [cfgName, setCfgName] = useState<string>("");
@@ -537,10 +629,17 @@ export default function CasesPage() {
     return () => window.clearInterval(t);
   }, [cooldownUntil]);
 
-  function openConfig() {
+  function openConfig(anchorEl?: HTMLElement) {
     if (!caseObj) return;
     // refresca por si el caso cambió
     prefillConfigFromCase(caseObj);
+    setConfigStep(1);
+    if (typeof window !== "undefined") {
+      const vh = window.innerHeight || 900;
+      const anchorTop = anchorEl?.getBoundingClientRect().top ?? vh * 0.2;
+      const boundedTop = Math.max(20, Math.min(anchorTop - 14, vh * 0.25));
+      setConfigModalTopOffset(Math.round(boundedTop));
+    }
     setShowConfig(true);
   }
 
@@ -644,522 +743,754 @@ export default function CasesPage() {
   }
 
   const essentials = useMemo(() => (caseObj ? extractEssentials(caseObj) : null), [caseObj]);
+  const isPediatricCase = cfgAgeGroup === "child" || cfgAgeGroup === "adolescent";
+
+  const computedDx = useMemo(
+    () =>
+      safeStr(
+        (caseObj as any)?.meta?.dx_id,
+        deriveTopicsDx(selectedCategory, selectedCard) || ""
+      ),
+    [caseObj, selectedCategory, selectedCard]
+  );
+
+  const caseRiskLevel = useMemo(() => {
+    if (!essentials) return "bajo" as const;
+    return inferCaseRiskLevel(
+      [essentials.summary, cfgChiefComplaint, cfgContext, cfgLearningObjective]
+        .filter(Boolean)
+        .join(" ")
+    );
+  }, [essentials, cfgChiefComplaint, cfgContext, cfgLearningObjective]);
+
+  const interviewSuggestions = useMemo(
+    () =>
+      getCaseInterviewSuggestions({
+        categoryId: selectedCategory,
+        ageGroup: cfgAgeGroup,
+      }),
+    [selectedCategory, cfgAgeGroup]
+  );
+
+  const riskBadgeClass =
+    caseRiskLevel === "alto"
+      ? "border-red-400/30 bg-red-400/10 text-red-100"
+      : caseRiskLevel === "medio"
+      ? "border-amber-400/30 bg-amber-400/10 text-amber-100"
+      : "border-emerald-400/30 bg-emerald-400/10 text-emerald-100";
+
+  const topicsHref = computedDx
+    ? `/topics?dx=${encodeURIComponent(computedDx)}`
+    : "/topics";
 
   return (
-    <div className="min-h-screen text-white bg-gradient-to-b from-[#070a12] via-[#0b1020] to-black">
+    <div className="min-h-screen bg-[#070A12] text-white">
       <div className="mx-auto flex max-w-7xl gap-6 px-4 py-6">
         <Sidebar />
-        <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl p-5 shadow-[0_20px_60px_rgba(0,0,0,0.55)]">
-          <div className="mx-auto w-full max-w-5xl relative">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-24 left-1/2 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(125,211,252,0.18),rgba(0,0,0,0)_60%)] blur-2xl"
-        />
 
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold">Psyke · Biblioteca de casos</h1>
-            <p className="mt-1 text-sm text-white/70">
-              Elige una temática y genera un caso ficticio para practicar entrevista en Psyke.{" "}
-              <span className="text-white">No diagnostica</span>.
-            </p>
-          </div>
-
-          <Link
-            href="/"
-            className="rounded-xl border border-white/15 px-4 py-2 text-sm hover:bg-white/5"
-          >
-            Volver a Psyke
-          </Link>
-        </div>
-
-        {/* ✅ Biblioteca visual (SIEMPRE visible) */}
-        <section className="mt-6 rounded-2xl border border-white/10 bg-black/30 backdrop-blur-md p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <div className="text-sm text-white/60">Antes de generar</div>
-              <h2 className="mt-1 text-lg font-semibold">
-                Elige un tema para practicar
-              </h2>
-              <p className="mt-1 text-sm text-white/70">
-                Selecciona una temática y luego presiona “Generar caso (IA)”.
-              </p>
-            </div>
-
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar (ej. ansiedad, crisis, seguimiento…)"
-              className="w-full sm:w-[360px] rounded-2xl bg-black/40 border border-white/10 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-white/20 placeholder:text-white/40"
+        <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+          <div className="relative mx-auto w-full max-w-6xl">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -top-24 left-1/2 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(64,194,255,0.22),rgba(0,0,0,0)_60%)] blur-2xl"
             />
-          </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            {(
-              [
-                ["all", "Todos"],
-                ["adult", "Adulto"],
-                ["pediatric", "Niño / Adolescente"],
-              ] as const
-            ).map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setCatalogFilter(value)}
-                className={`rounded-full border px-3 py-1.5 text-xs transition ${
-                  catalogFilter === value
-                    ? "border-white/25 bg-white/10 text-white"
-                    : "border-white/15 bg-black/30 text-white/75 hover:bg-black/40"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {filteredCatalog.map((item) => {
-              const selected = selectedCard?.id === item.id;
-              const accent = item.accent ?? "from-white/10 to-transparent";
-
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => {
-                    setSelectedCategory(item.id);
-                    setSelectedCard(item);
-                    setCfgAgeGroup(item.age_group);
-                    setCfgCompanionAvailable(item.age_group === "child" || item.age_group === "adolescent");
-                    setCfgApproach(defaultApproachByCategory(item.id));
-                  }}
-                  className={
-                    "relative overflow-hidden rounded-2xl border p-4 transition cursor-pointer " +
-                    (selected
-                      ? "border-white/25 bg-white/10 ring-2 ring-white/20"
-                      : "border-white/10 bg-black/25 hover:bg-black/35")
-                  }
-                >
-                  <div
-                    className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${accent}`}
-                  />
-
-                  <div className="relative">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="text-base font-semibold">{item.title}</div>
-                      <span className="h-2.5 w-2.5 rounded-full bg-white/40" />
-                    </div>
-
-                    <div className="text-sm text-white/70 mt-1">{item.desc}</div>
-
-                    <div className="inline-flex items-center rounded-full border border-white/15 bg-black/30 px-2 py-0.5 text-xs text-white/70 mt-3">
-                      {item.tag}
-                    </div>
-                    <div className="mt-2 text-[11px] text-white/55">
-                      Grupo etario: {item.age_group === "adult" ? "Adulto" : item.age_group === "adolescent" ? "Adolescente" : "Niñez"}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="mt-4 text-sm text-white/70">
-            Seleccionado:{" "}
-            <span className="text-white">{selectedCard?.title ?? "—"}</span>
-          </div>
-        </section>
-
-        {/* Controles */}
-        <div className="mt-6 flex flex-wrap gap-3">
-          <button
-            onClick={handleGenerate}
-            disabled={loading || isCooldownActive}
-            className="rounded-xl bg-white text-black px-4 py-2 text-sm disabled:opacity-60"
-          >
-            {loading ? "Generando…" : cooldownLabel ? cooldownLabel : "Generar caso (IA)"}
-          </button>
-
-          <button
-            onClick={openConfig}
-            disabled={!caseObj}
-            className="rounded-xl border border-white/15 px-4 py-2 text-sm hover:bg-white/5 disabled:opacity-50"
-          >
-            Configurar
-          </button>
-
-          <button
-            onClick={goStart}
-            disabled={!caseObj}
-            className="rounded-xl border border-white/15 px-4 py-2 text-sm hover:bg-white/5 disabled:opacity-50"
-          >
-            Iniciar entrevista
-          </button>
-        </div>
-
-        {error && (
-          <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm">
-            {error}
-          </div>
-        )}
-
-        {/* Vista del caso generado (más educativo + datos esenciales) */}
-        {caseObj && essentials && (
-          <section className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-5">
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+            <header className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <div className="text-sm text-white/60">Caso generado</div>
-                <div className="mt-2 text-base font-semibold">
-                  {essentials.title}
-                </div>
-                {essentials.summary ? (
-                  <div className="mt-2 text-sm text-white/70">
-                    {essentials.summary}
-                  </div>
-                ) : (
-                  <div className="mt-2 text-sm text-white/60">
-                    Caso listo. Revisa los datos esenciales abajo y ajusta en “Configurar”.
-                  </div>
-                )}
+                <h1 className="text-2xl font-semibold">Biblioteca de casos clínicos</h1>
+                <p className="mt-1 text-sm text-white/70">
+                  Selecciona un tema, genera un caso IA y prepáralo antes de entrar al simulador.
+                </p>
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                <span className="inline-flex items-center rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
-                  Tema: {selectedCard?.title ?? "—"}
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/topics"
+                  className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
+                >
+                  Biblioteca clínica
+                </Link>
+                <Link
+                  href="/"
+                  className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
+                >
+                  Volver a inicio
+                </Link>
+              </div>
+            </header>
+
+            <section className="mt-5 grid grid-cols-1 gap-2 md:grid-cols-4">
+              {[
+                { id: 1, label: "Selecciona tema", done: true },
+                { id: 2, label: "Genera caso", done: Boolean(caseObj) },
+                { id: 3, label: "Configura", done: Boolean(caseObj) },
+                { id: 4, label: "Inicia entrevista", done: false },
+              ].map((step) => (
+                <div
+                  key={step.id}
+                  className={`rounded-xl border px-3 py-2 text-sm ${
+                    step.done
+                      ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100"
+                      : "border-white/10 bg-black/25 text-white/65"
+                  }`}
+                >
+                  {step.id}. {step.label}
+                </div>
+              ))}
+            </section>
+
+            <section className="mt-5 rounded-2xl border border-white/10 bg-[#0C111D]/80 p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <div className="text-sm text-white/60">Paso 1</div>
+                  <h2 className="text-lg font-semibold">Elige la temática del caso</h2>
+                </div>
+
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Buscar temática…"
+                  className="w-full rounded-xl border border-white/10 bg-black/35 px-4 py-2.5 text-sm outline-none focus:border-white/20 sm:w-[300px]"
+                />
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {(
+                  [
+                    ["all", "Todos"],
+                    ["adult", "Adulto"],
+                    ["pediatric", "Niño / Adolescente"],
+                  ] as const
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setCatalogFilter(value)}
+                    className={`rounded-full border px-3 py-1.5 text-xs transition ${
+                      catalogFilter === value
+                        ? "border-white/30 bg-white/10 text-white"
+                        : "border-white/10 bg-black/25 text-white/70 hover:bg-white/5"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {filteredCatalog.map((item) => {
+                  const selected = selectedCard?.id === item.id;
+                  const accent = item.accent ?? "from-white/10 to-transparent";
+
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedCategory(item.id);
+                        setSelectedCard(item);
+                        setCfgAgeGroup(item.age_group);
+                        setCfgCompanionAvailable(
+                          item.age_group === "child" || item.age_group === "adolescent"
+                        );
+                        setCfgApproach(defaultApproachByCategory(item.id));
+                      }}
+                      className={`relative overflow-hidden rounded-2xl border p-4 text-left transition ${
+                        selected
+                          ? "border-cyan-400/35 bg-cyan-500/10 ring-2 ring-cyan-400/25"
+                          : "border-white/10 bg-black/25 hover:bg-black/35"
+                      }`}
+                    >
+                      <div
+                        className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${accent}`}
+                      />
+                      <div className="relative">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="text-base font-semibold">{item.title}</div>
+                          <span className="rounded-full border border-white/15 bg-black/25 px-2 py-0.5 text-[10px] text-white/70">
+                            {item.tag}
+                          </span>
+                        </div>
+                        <div className="mt-1 text-sm text-white/70">{item.desc}</div>
+                        <div className="mt-3 text-[11px] text-white/55">
+                          Grupo etario:{" "}
+                          {item.age_group === "adult"
+                            ? "Adulto"
+                            : item.age_group === "adolescent"
+                            ? "Adolescente"
+                            : "Niñez"}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/75">
+                  Seleccionado: {selectedCard?.title ?? "—"}
                 </span>
-                <span className="inline-flex items-center rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
-                  Dificultad: {prettyDifficulty(cfgDifficulty)}
-                </span>
-                <span className="inline-flex items-center rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
-                  Duración: {cfgTargetMinutes} min
-                </span>
-                <span className="inline-flex items-center rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
+                <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/75">
                   Enfoque: {prettyApproach(cfgApproach)}
                 </span>
-                <span className="inline-flex items-center rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
-                  Grupo: {cfgAgeGroup === "adult" ? "Adulto" : cfgAgeGroup === "adolescent" ? "Adolescente" : "Niñez"}
-                </span>
-                {cfgCompanionAvailable && (
-                  <span className="inline-flex items-center rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
-                    Acompañante: {cfgCompanionRole}
-                  </span>
-                )}
-                <span className="inline-flex items-center rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
-                  DSM: {safeStr((caseObj as any)?.meta?.dsm_tag, deriveDsmTag(selectedCategory, selectedCard) || "—")} · dx: {safeStr((caseObj as any)?.meta?.dx_id, deriveTopicsDx(selectedCategory, selectedCard) || "—")}
-                </span>
-              </div>
-            </div>
-
-            {/* Datos esenciales */}
-            <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-3">
-              <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                <div className="text-xs text-white/60">Paciente</div>
-                <div className="mt-1 text-sm">
-                  <span className="text-white font-medium">{cfgName || essentials.name}</span>
-                </div>
-                <div className="mt-1 text-sm text-white/70">
-                  {prettySex(cfgSex)} · {cfgAge} años
-                </div>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-black/25 p-4 lg:col-span-2">
-                <div className="text-xs text-white/60">Motivo de consulta</div>
-                <div className="mt-1 text-sm text-white/80">
-                  {cfgChiefComplaint || essentials.chiefComplaint || "—"}
-                </div>
-
-                <div className="mt-3 text-xs text-white/60">Contexto breve</div>
-                <div className="mt-1 text-sm text-white/70">
-                  {cfgContext || essentials.context || "—"}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-white/10 bg-black/25 p-4 lg:col-span-3">
-                <div className="text-xs text-white/60">Objetivo de aprendizaje</div>
-                <div className="mt-1 text-sm text-white/80">
-                  {cfgLearningObjective || essentials.learningObjective || "—"}
-                </div>
-              </div>
-            </div>
-
-            <details className="mt-4">
-              <summary className="cursor-pointer text-xs text-white/60">
-                Ver JSON (debug)
-              </summary>
-              <pre className="mt-2 overflow-auto rounded-xl bg-black/40 p-3 text-xs text-white/70">
-                {JSON.stringify(caseObj, null, 2)}
-              </pre>
-            </details>
-          </section>
-        )}
-
-        {/* ✅ Modal de configuración INLINE */}
-        {showConfig && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div
-              className="absolute inset-0 bg-black/60"
-              onClick={() => setShowConfig(false)}
-            />
-            <div className="relative w-[min(100vw-24px,980px)] max-h-[min(85vh,760px)] overflow-hidden rounded-3xl border border-white/10 bg-[#0b1020]/95 backdrop-blur-xl shadow-2xl flex flex-col">
-              <div className="flex items-start justify-between gap-4 px-6 py-5 md:px-8 border-b border-white/10">
-                <div>
-                  <div className="text-sm text-white/60">Configurar caso</div>
-                  <h3 className="mt-1 text-lg font-semibold">Ajusta el escenario antes de iniciar</h3>
-                  <p className="mt-1 text-sm text-white/70">
-                    Esto no “diagnostica”: solo define el guion educativo del caso.
-                  </p>
-                </div>
+              <div className="mt-4 flex flex-wrap gap-3">
                 <button
-                  onClick={() => setShowConfig(false)}
-                  className="rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5"
+                  onClick={goStart}
+                  disabled={!caseObj}
+                  className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-50"
                 >
-                  Cerrar
+                  Iniciar entrevista
+                </button>
+                <button
+                  onClick={(e) => openConfig(e.currentTarget)}
+                  disabled={!caseObj}
+                  className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/85 hover:bg-white/5 disabled:opacity-50"
+                >
+                  Configurar caso
+                </button>
+                <button
+                  onClick={handleGenerate}
+                  disabled={loading || isCooldownActive}
+                  className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-2 text-sm text-cyan-100 disabled:opacity-60"
+                >
+                  {loading
+                    ? "Generando caso…"
+                    : cooldownLabel
+                    ? cooldownLabel
+                    : "Generar caso (IA)"}
                 </button>
               </div>
+            </section>
 
-              <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6 md:px-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-                  {/* Paciente */}
+            {error && (
+              <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-100">
+                {error}
+              </div>
+            )}
+
+            {!caseObj && (
+              <section className="mt-5 rounded-2xl border border-dashed border-white/15 bg-black/20 p-6 text-center">
+                <div className="text-base font-semibold">Aún no hay caso generado</div>
+                <p className="mt-2 text-sm text-white/65">
+                  Elige una temática y genera un caso IA para continuar al simulador.
+                </p>
+              </section>
+            )}
+
+            {caseObj && essentials && (
+              <section className="mt-5 rounded-2xl border border-white/10 bg-[#0C111D]/85 p-5">
+                <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.5fr_1fr]">
                   <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                    <div className="text-sm font-semibold">Paciente</div>
-
-                    <label className="mt-3 block text-xs text-white/60">Nombre</label>
-                    <input
-                      value={cfgName}
-                      onChange={(e) => setCfgName(e.target.value)}
-                      placeholder="Ej: Carla Rodríguez"
-                      className="mt-1 w-full rounded-xl bg-black/35 border border-white/10 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20 placeholder:text-white/40"
-                    />
-
-                    <div className="mt-3 grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-xs text-white/60">Sexo</label>
-                        <select
-                          value={cfgSex}
-                          onChange={(e) => setCfgSex(e.target.value as SexValue)}
-                          className="mt-1 w-full rounded-xl bg-black/35 border border-white/10 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
-                        >
-                          <option value="unspecified">No especificado</option>
-                          <option value="female">Mujer</option>
-                          <option value="male">Hombre</option>
-                          <option value="nonbinary">No binario</option>
-                        </select>
+                    <div className="text-xs uppercase tracking-wider text-white/55">
+                      Resumen clínico
+                    </div>
+                    <div className="mt-2 text-xl font-semibold">{essentials.title}</div>
+                    <div className="mt-2 text-sm text-white/75">
+                      {essentials.summary || "Caso generado correctamente. Revisa motivo y contexto para iniciar."}
+                    </div>
+                    <div className="mt-3 rounded-xl border border-white/10 bg-black/25 p-3">
+                      <div className="text-xs text-white/55">Motivo de consulta</div>
+                      <div className="mt-1 text-sm text-white/85">
+                        {cfgChiefComplaint || essentials.chiefComplaint || "—"}
                       </div>
-
-                      <div>
-                        <label className="block text-xs text-white/60">Edad</label>
-                        <input
-                          type="number"
-                          value={cfgAge}
-                          onChange={(e) => setCfgAge(clampInt(Number(e.target.value), 5, 95))}
-                          className="mt-1 w-full rounded-xl bg-black/35 border border-white/10 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
-                          min={5}
-                          max={95}
-                        />
+                      <div className="mt-3 text-xs text-white/55">Contexto breve</div>
+                      <div className="mt-1 text-sm text-white/75">
+                        {cfgContext || essentials.context || "—"}
                       </div>
                     </div>
-
-                    <label className="mt-3 block text-xs text-white/60">Contexto breve</label>
-                    <textarea
-                      value={cfgContext}
-                      onChange={(e) => setCfgContext(e.target.value)}
-                      placeholder="Ej: presión laboral, insomnio, palpitaciones…"
-                      className="mt-1 w-full min-h-[92px] resize-none rounded-xl bg-black/35 border border-white/10 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20 placeholder:text-white/40"
-                    />
                   </div>
 
-                  {/* Parámetros educativos */}
-                  <div className="rounded-2xl border border-white/10 bg-black/25 p-5 md:p-6">
-                    <div className="text-sm font-semibold">Parámetros educativos</div>
-
-                    <div className="mt-3 grid grid-cols-1 md:grid-cols-4 gap-2">
-                      <div>
-                        <label className="block text-xs text-white/60">Dificultad</label>
-                        <select
-                          value={cfgDifficulty}
-                          onChange={(e) => setCfgDifficulty(e.target.value as DifficultyValue)}
-                          className="mt-1 w-full rounded-xl bg-black/35 border border-white/10 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
-                        >
-                          <option value="beginner">Básico</option>
-                          <option value="intermediate">Intermedio</option>
-                          <option value="advanced">Avanzado</option>
-                        </select>
+                  <div className="space-y-3">
+                    <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                      <div className="text-xs uppercase tracking-wider text-white/55">
+                        Riesgo educativo
                       </div>
-
-                      <div>
-                        <label className="block text-xs text-white/60">Duración (min)</label>
-                        <select
-                          value={cfgTargetMinutes}
-                          onChange={(e) => setCfgTargetMinutes(clampInt(Number(e.target.value), 5, 30))}
-                          className="mt-1 w-full rounded-xl bg-black/35 border border-white/10 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
-                        >
-                          {[5, 10, 15, 20, 25, 30].map((m) => (
-                            <option key={m} value={m}>
-                              {m} min
-                            </option>
-                          ))}
-                        </select>
-                        <div className="mt-2 text-[11px] text-white/50">Predeterminado: 30 min. Cambia en incrementos de 5 min.</div>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs text-white/60">Tema</label>
-                        <div className="mt-1 rounded-xl bg-black/35 border border-white/10 px-3 py-2 text-sm text-white/70">
-                          {selectedCard?.title ?? "—"}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs text-white/60">Enfoque</label>
-                        <select
-                          value={cfgApproach}
-                          onChange={(e) => setCfgApproach(e.target.value as ApproachValue)}
-                          className="mt-1 w-full rounded-xl bg-black/35 border border-white/10 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
-                        >
-                          <option value="humanistic">Humanístico</option>
-                          <option value="cbt">Cognitivo-conductual (TCC)</option>
-                          <option value="psychodynamic">Psicodinámico</option>
-                          <option value="systemic">Sistémico / familiar</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
-                      <div>
-                        <label className="block text-xs text-white/60">Grupo etario</label>
-                        <select
-                          value={cfgAgeGroup}
-                          onChange={(e) => {
-                            const value = e.target.value as AgeGroup;
-                            setCfgAgeGroup(value);
-                            const pediatric = value === "child" || value === "adolescent";
-                            setCfgCompanionAvailable(pediatric ? true : cfgCompanionAvailable);
-                          }}
-                          className="mt-1 w-full rounded-xl bg-black/35 border border-white/10 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
-                        >
-                          <option value="adult">Adulto</option>
-                          <option value="adolescent">Adolescente</option>
-                          <option value="child">Niñez</option>
-                          <option value="mixed">Mixto</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs text-white/60">Acompañante</label>
-                        <select
-                          value={cfgCompanionAvailable ? "yes" : "no"}
-                          onChange={(e) => setCfgCompanionAvailable(e.target.value === "yes")}
-                          className="mt-1 w-full rounded-xl bg-black/35 border border-white/10 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
-                        >
-                          <option value="no">No</option>
-                          <option value="yes">Sí</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs text-white/60">Rol acompañante</label>
-                        <select
-                          value={cfgCompanionRole}
-                          onChange={(e) => setCfgCompanionRole(e.target.value as any)}
-                          disabled={!cfgCompanionAvailable}
-                          className="mt-1 w-full rounded-xl bg-black/35 border border-white/10 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50"
-                        >
-                          <option value="madre">Madre</option>
-                          <option value="padre">Padre</option>
-                          <option value="tutor">Tutor</option>
-                          <option value="cuidador">Cuidador</option>
-                          <option value="otro">Otro</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 flex items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-                      <div>
-                        <div className="text-sm font-semibold">Tutor IA</div>
-                        <div className="mt-0.5 text-xs text-white/60">
-                          Activa sugerencias y guía durante el chat (opcional).
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => setCfgTutorEnabled((v) => !v)}
-                        className={
-                          "relative inline-flex h-7 w-12 items-center rounded-full border transition " +
-                          (cfgTutorEnabled
-                            ? "bg-white/90 border-white/20"
-                            : "bg-black/40 border-white/15")
-                        }
-                        aria-pressed={cfgTutorEnabled}
-                        aria-label="Activar o desactivar tutor IA"
+                      <span
+                        className={`mt-2 inline-flex items-center rounded-full border px-3 py-1 text-xs ${riskBadgeClass}`}
                       >
-                        <span
-                          className={
-                            "inline-block h-5 w-5 transform rounded-full bg-black transition " +
-                            (cfgTutorEnabled ? "translate-x-6" : "translate-x-1")
-                          }
-                        />
-                      </button>
+                        Nivel {caseRiskLevel}
+                      </span>
+                      <p className="mt-2 text-xs text-white/70">
+                        Resultado orientativo para priorizar seguridad en el entrenamiento.
+                      </p>
                     </div>
 
-                    <label className="mt-3 block text-xs text-white/60">
-                      Motivo de consulta (1 línea)
-                    </label>
-                    <input
-                      value={cfgChiefComplaint}
-                      onChange={(e) => setCfgChiefComplaint(e.target.value)}
-                      placeholder="Ej: “Ansiedad intensa con palpitaciones y miedo a fallar”"
-                      className="mt-1 w-full rounded-xl bg-black/35 border border-white/10 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20 placeholder:text-white/40"
-                    />
+                    <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                      <div className="text-xs uppercase tracking-wider text-white/55">
+                        Datos del caso
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <span className="rounded-full border border-white/15 bg-black/20 px-2.5 py-1 text-xs text-white/75">
+                          {prettySex(cfgSex)} · {cfgAge} años
+                        </span>
+                        <span className="rounded-full border border-white/15 bg-black/20 px-2.5 py-1 text-xs text-white/75">
+                          {prettyDifficulty(cfgDifficulty)}
+                        </span>
+                        <span className="rounded-full border border-white/15 bg-black/20 px-2.5 py-1 text-xs text-white/75">
+                          {cfgTargetMinutes} min
+                        </span>
+                        <span className="rounded-full border border-white/15 bg-black/20 px-2.5 py-1 text-xs text-white/75">
+                          {cfgAgeGroup === "adult"
+                            ? "Adulto"
+                            : cfgAgeGroup === "adolescent"
+                            ? "Adolescente"
+                            : "Niñez"}
+                        </span>
+                        {cfgCompanionAvailable && (
+                          <span className="rounded-full border border-white/15 bg-black/20 px-2.5 py-1 text-xs text-white/75">
+                            Acompañante: {prettyCompanionRole(cfgCompanionRole)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-3 text-xs text-white/60">
+                        DSM: {safeStr((caseObj as any)?.meta?.dsm_tag, deriveDsmTag(selectedCategory, selectedCard) || "—")}
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                    <label className="mt-3 block text-xs text-white/60">
-                      Objetivo de aprendizaje
-                    </label>
-                    <textarea
-                      value={cfgLearningObjective}
-                      onChange={(e) => setCfgLearningObjective(e.target.value)}
-                      placeholder="Ej: practicar preguntas abiertas, psicoeducación y cierre seguro."
-                      className="mt-1 w-full min-h-[92px] resize-none rounded-xl bg-black/35 border border-white/10 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20 placeholder:text-white/40"
-                    />
+                <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                  <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                    <div className="text-xs uppercase tracking-wider text-white/55">
+                      Objetivo docente
+                    </div>
+                    <div className="mt-2 text-sm text-white/85">
+                      {cfgLearningObjective || essentials.learningObjective || "—"}
+                    </div>
+                  </div>
 
-                    <div className="mt-4 flex flex-wrap gap-3">
-                      <button
-                        onClick={saveConfig}
-                        className="rounded-xl bg-white text-black px-4 py-2 text-sm"
-                      >
-                        Guardar cambios
-                      </button>
+                  <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                    <div className="text-xs uppercase tracking-wider text-white/55">
+                      Sugerencias para entrevista
+                    </div>
+                    <div className="mt-2 text-sm text-white/80">
+                      Escalas: {interviewSuggestions.scales.join(" · ")}
+                    </div>
+                    <div className="mt-1 text-sm text-white/80">
+                      Tests: {interviewSuggestions.tests.join(" · ")}
+                    </div>
+                    <div className="mt-2 text-xs text-white/65">
+                      {interviewSuggestions.focus[0]}
+                    </div>
+                    <div className="mt-1 text-xs text-white/65">
+                      {interviewSuggestions.focus[1]}
+                    </div>
+                    <div className="mt-1 text-xs text-white/65">
+                      {interviewSuggestions.focus[2]}
+                    </div>
+                  </div>
 
+                  {isPediatricCase && (
+                    <div className="rounded-2xl border border-cyan-300/25 bg-cyan-300/10 p-4 lg:col-span-2">
+                      <div className="text-sm font-semibold text-cyan-100">
+                        Checklist pediátrico sugerido
+                      </div>
+                      <div className="mt-2 text-xs text-cyan-100/90">
+                        Desarrollo · Escolaridad · Conducta en casa · Conducta en escuela · Sueño · Alimentación · Socialización · Antecedentes perinatales.
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Link
+                    href={topicsHref}
+                    className="rounded-xl border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
+                  >
+                    Abrir referencia clínica
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={(e) => openConfig(e.currentTarget)}
+                    className="rounded-xl border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
+                  >
+                    Ajustar escenario
+                  </button>
+                  <button
+                    type="button"
+                    onClick={goStart}
+                    className="rounded-xl bg-white px-3 py-2 text-xs font-medium text-black"
+                  >
+                    Iniciar entrevista ahora
+                  </button>
+                </div>
+
+                <details className="mt-4">
+                  <summary className="cursor-pointer text-xs text-white/60">
+                    Ver JSON (debug)
+                  </summary>
+                  <pre className="mt-2 overflow-auto rounded-xl bg-black/40 p-3 text-xs text-white/70">
+                    {JSON.stringify(caseObj, null, 2)}
+                  </pre>
+                </details>
+              </section>
+            )}
+
+            {showConfig && (
+              <div className="fixed inset-0 z-50 overflow-y-auto">
+                <div
+                  className="absolute inset-0 bg-black/70"
+                  onClick={() => setShowConfig(false)}
+                />
+
+                <div
+                  className="relative mx-auto mb-8 flex max-h-[90vh] w-[min(100vw-20px,1080px)] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0A1020]/95 shadow-2xl backdrop-blur-xl"
+                  style={{ marginTop: configModalTopOffset }}
+                >
+                  <div className="border-b border-white/10 px-6 py-5">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <div className="text-sm text-white/60">Configurar caso</div>
+                        <h3 className="mt-1 text-lg font-semibold">
+                          Ajusta el escenario antes de iniciar
+                        </h3>
+                      </div>
                       <button
                         onClick={() => setShowConfig(false)}
-                        className="rounded-xl border border-white/15 px-4 py-2 text-sm hover:bg-white/5"
+                        className="rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5"
                       >
-                        Seguir revisando
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          saveConfig();
-                          // iniciar al vuelo (con lo guardado)
-                          window.setTimeout(() => goStart(), 50);
-                        }}
-                        className="rounded-xl border border-white/15 px-4 py-2 text-sm hover:bg-white/5"
-                      >
-                        Guardar e iniciar
+                        Cerrar
                       </button>
                     </div>
 
-                    <div className="mt-4 text-xs text-white/50">
-                      Tip: si luego cambias algo, vuelve a “Configurar” y guarda otra vez. Aquí mandas tú, no el caos 😄
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {([
+                        [1, "Paciente"],
+                        [2, "Parámetros"],
+                        [3, "Objetivo y revisión"],
+                      ] as const).map(([step, label]) => (
+                        <button
+                          key={step}
+                          type="button"
+                          onClick={() => setConfigStep(step)}
+                          className={`rounded-full border px-3 py-1 text-xs ${
+                            configStep === step
+                              ? "border-cyan-300/40 bg-cyan-300/10 text-cyan-100"
+                              : "border-white/10 bg-black/20 text-white/65"
+                          }`}
+                        >
+                          {step}. {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+                    {configStep === 1 && (
+                      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                        <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                          <label className="text-xs text-white/60">Nombre</label>
+                          <input
+                            value={cfgName}
+                            onChange={(e) => setCfgName(e.target.value)}
+                            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                          />
+
+                          <div className="mt-3 grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-xs text-white/60">Sexo</label>
+                              <select
+                                value={cfgSex}
+                                onChange={(e) => setCfgSex(e.target.value as SexValue)}
+                                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                              >
+                                <option value="unspecified">No especificado</option>
+                                <option value="female">Mujer</option>
+                                <option value="male">Hombre</option>
+                                <option value="nonbinary">No binario</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="text-xs text-white/60">Edad</label>
+                              <input
+                                type="number"
+                                value={cfgAge}
+                                min={5}
+                                max={95}
+                                onChange={(e) =>
+                                  setCfgAge(clampInt(Number(e.target.value), 5, 95))
+                                }
+                                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                              />
+                            </div>
+                          </div>
+
+                          <label className="mt-3 block text-xs text-white/60">Contexto breve</label>
+                          <textarea
+                            value={cfgContext}
+                            onChange={(e) => setCfgContext(e.target.value)}
+                            className="mt-1 min-h-[120px] w-full resize-none rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                          />
+                        </div>
+
+                        <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                          <div className="text-sm font-semibold">Vista rápida</div>
+                          <div className="mt-3 text-sm text-white/80">
+                            Paciente: {cfgName || "—"}
+                          </div>
+                          <div className="mt-1 text-sm text-white/80">
+                            Perfil: {prettySex(cfgSex)} · {cfgAge} años
+                          </div>
+                          <div className="mt-3 rounded-xl border border-white/10 bg-black/25 p-3 text-xs text-white/70">
+                            Completa estos datos para que la narrativa del caso sea coherente antes
+                            de configurar parámetros docentes.
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {configStep === 2 && (
+                      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                        <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-xs text-white/60">Dificultad</label>
+                              <select
+                                value={cfgDifficulty}
+                                onChange={(e) =>
+                                  setCfgDifficulty(e.target.value as DifficultyValue)
+                                }
+                                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                              >
+                                <option value="beginner">Básico</option>
+                                <option value="intermediate">Intermedio</option>
+                                <option value="advanced">Avanzado</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="text-xs text-white/60">Duración (min)</label>
+                              <select
+                                value={cfgTargetMinutes}
+                                onChange={(e) =>
+                                  setCfgTargetMinutes(clampInt(Number(e.target.value), 5, 30))
+                                }
+                                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                              >
+                                {[5, 10, 15, 20, 25, 30].map((m) => (
+                                  <option key={m} value={m}>
+                                    {m} min
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+
+                          <div className="mt-3 grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-xs text-white/60">Grupo etario</label>
+                              <select
+                                value={cfgAgeGroup}
+                                onChange={(e) => {
+                                  const value = e.target.value as AgeGroup;
+                                  const pediatric = value === "child" || value === "adolescent";
+                                  setCfgAgeGroup(value);
+                                  if (pediatric) setCfgCompanionAvailable(true);
+                                }}
+                                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                              >
+                                <option value="adult">Adulto</option>
+                                <option value="adolescent">Adolescente</option>
+                                <option value="child">Niñez</option>
+                                <option value="mixed">Mixto</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="text-xs text-white/60">Acompañante</label>
+                              <select
+                                value={cfgCompanionAvailable ? "yes" : "no"}
+                                onChange={(e) =>
+                                  setCfgCompanionAvailable(e.target.value === "yes")
+                                }
+                                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                              >
+                                <option value="no">No</option>
+                                <option value="yes">Sí</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div className="mt-3 grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-xs text-white/60">Rol acompañante</label>
+                              <select
+                                value={cfgCompanionRole}
+                                onChange={(e) => setCfgCompanionRole(e.target.value as any)}
+                                disabled={!cfgCompanionAvailable}
+                                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none disabled:opacity-50"
+                              >
+                                <option value="madre">Madre</option>
+                                <option value="padre">Padre</option>
+                                <option value="tutor">Tutor</option>
+                                <option value="cuidador">Cuidador</option>
+                                <option value="otro">Otro</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="text-xs text-white/60">Enfoque</label>
+                              <select
+                                value={cfgApproach}
+                                onChange={(e) => setCfgApproach(e.target.value as ApproachValue)}
+                                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                              >
+                                <option value="humanistic">Humanístico</option>
+                                <option value="cbt">Cognitivo-conductual (TCC)</option>
+                                <option value="psychodynamic">Psicodinámico</option>
+                                <option value="systemic">Sistémico / familiar</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                          <div className="flex items-center justify-between rounded-xl border border-white/10 bg-black/25 px-3 py-2">
+                            <div>
+                              <div className="text-sm font-medium">Tutor IA</div>
+                              <div className="text-xs text-white/60">
+                                Sugerencias durante la entrevista (opcional)
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setCfgTutorEnabled((v) => !v)}
+                              className={`relative inline-flex h-7 w-12 items-center rounded-full border transition ${
+                                cfgTutorEnabled
+                                  ? "border-white/20 bg-white/85"
+                                  : "border-white/15 bg-black/40"
+                              }`}
+                            >
+                              <span
+                                className={`inline-block h-5 w-5 rounded-full bg-black transition ${
+                                  cfgTutorEnabled ? "translate-x-6" : "translate-x-1"
+                                }`}
+                              />
+                            </button>
+                          </div>
+
+                          <div className="mt-3 rounded-xl border border-white/10 bg-black/25 p-3 text-xs text-white/70">
+                            Usa este paso para fijar el nivel de exigencia y la dinámica del caso
+                            antes de trabajar objetivos clínicos.
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {configStep === 3 && (
+                      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                        <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                          <label className="text-xs text-white/60">
+                            Motivo de consulta (1 línea)
+                          </label>
+                          <input
+                            value={cfgChiefComplaint}
+                            onChange={(e) => setCfgChiefComplaint(e.target.value)}
+                            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                          />
+
+                          <label className="mt-3 block text-xs text-white/60">
+                            Objetivo de aprendizaje
+                          </label>
+                          <textarea
+                            value={cfgLearningObjective}
+                            onChange={(e) => setCfgLearningObjective(e.target.value)}
+                            className="mt-1 min-h-[120px] w-full resize-none rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                          />
+                        </div>
+
+                        <div className="space-y-3">
+                          <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                            <div className="text-xs uppercase tracking-wider text-white/55">
+                              Validación rápida
+                            </div>
+                            <div className="mt-2 text-sm text-white/80">
+                              Riesgo orientativo:{" "}
+                              <span
+                                className={`rounded-full border px-2 py-0.5 text-xs ${riskBadgeClass}`}
+                              >
+                                {caseRiskLevel}
+                              </span>
+                            </div>
+                            {isPediatricCase && !cfgCompanionAvailable && (
+                              <div className="mt-2 rounded-xl border border-amber-400/25 bg-amber-400/10 p-2 text-xs text-amber-100">
+                                Caso pediátrico sin acompañante: confirma si esto es intencional.
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                            <div className="text-xs uppercase tracking-wider text-white/55">
+                              Herramientas sugeridas
+                            </div>
+                            <div className="mt-2 text-xs text-white/75">
+                              Escalas: {interviewSuggestions.scales.join(" · ")}
+                            </div>
+                            <div className="mt-1 text-xs text-white/75">
+                              Tests: {interviewSuggestions.tests.join(" · ")}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-black/25 px-6 py-4">
+                    <div className="text-xs text-white/60">Paso {configStep} de 3</div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {configStep > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setConfigStep((s) => (Math.max(1, s - 1) as ConfigStep))}
+                          className="rounded-xl border border-white/15 px-3 py-2 text-sm text-white/85 hover:bg-white/5"
+                        >
+                          Anterior
+                        </button>
+                      )}
+
+                      {configStep < 3 && (
+                        <button
+                          type="button"
+                          onClick={() => setConfigStep((s) => (Math.min(3, s + 1) as ConfigStep))}
+                          className="rounded-xl border border-white/15 px-3 py-2 text-sm text-white/85 hover:bg-white/5"
+                        >
+                          Siguiente
+                        </button>
+                      )}
+
+                      {configStep === 3 && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={saveConfig}
+                            className="rounded-xl border border-white/15 px-3 py-2 text-sm text-white/85 hover:bg-white/5"
+                          >
+                            Guardar cambios
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              saveConfig();
+                              window.setTimeout(() => goStart(), 50);
+                            }}
+                            className="rounded-xl bg-white px-3 py-2 text-sm font-medium text-black"
+                          >
+                            Guardar e iniciar
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        <div className="mt-8 text-xs text-white/40">
-          Psyke es una herramienta educativa. Los casos son ficticios. Si aparece contenido sensible, prioriza seguridad y sugiere ayuda profesional.
-        </div>
+            <div className="mt-8 text-xs text-white/40">
+              Psyke es una herramienta educativa. Los casos son ficticios. Resultado orientativo.
+              No sustituye valoración clínica real.
+            </div>
           </div>
         </main>
       </div>
