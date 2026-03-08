@@ -636,8 +636,10 @@ export default function CasesPage() {
     setConfigStep(1);
     if (typeof window !== "undefined") {
       const vh = window.innerHeight || 900;
-      const anchorTop = anchorEl?.getBoundingClientRect().top ?? vh * 0.2;
-      const boundedTop = Math.max(20, Math.min(anchorTop - 14, vh * 0.25));
+      const anchorTop = anchorEl?.getBoundingClientRect().top ?? vh * 0.45;
+      // Mantiene el modal cerca de la zona donde el usuario hizo click, evitando pegarlo arriba.
+      const desiredTop = anchorTop - 84;
+      const boundedTop = Math.max(20, Math.min(desiredTop, vh - 220));
       setConfigModalTopOffset(Math.round(boundedTop));
     }
     setShowConfig(true);
@@ -1131,17 +1133,18 @@ export default function CasesPage() {
             )}
 
             {showConfig && (
-              <div className="fixed inset-0 z-50 overflow-y-auto">
+              <div className="fixed inset-0 z-50">
                 <div
                   className="absolute inset-0 bg-black/70"
                   onClick={() => setShowConfig(false)}
                 />
 
-                <div
-                  className="relative mx-auto mb-8 flex max-h-[90vh] w-[min(100vw-20px,1080px)] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0A1020]/95 shadow-2xl backdrop-blur-xl"
-                  style={{ marginTop: configModalTopOffset }}
-                >
-                  <div className="border-b border-white/10 px-6 py-5">
+                <div className="relative h-full w-full overflow-y-auto px-2 py-3 sm:px-4 sm:py-4">
+                  <div
+                    className="relative mx-auto mb-6 flex max-h-[calc(100dvh-20px)] w-full max-w-[1080px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0A1020]/95 shadow-2xl backdrop-blur-xl sm:max-h-[calc(100dvh-32px)]"
+                    style={{ marginTop: configModalTopOffset }}
+                  >
+                    <div className="border-b border-white/10 px-4 py-4 sm:px-6 sm:py-5">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
                         <div className="text-sm text-white/60">Configurar caso</div>
@@ -1177,71 +1180,71 @@ export default function CasesPage() {
                         </button>
                       ))}
                     </div>
-                  </div>
+                    </div>
 
-                  <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
-                    {configStep === 1 && (
-                      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                        <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                          <label className="text-xs text-white/60">Nombre</label>
-                          <input
-                            value={cfgName}
-                            onChange={(e) => setCfgName(e.target.value)}
-                            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
-                          />
+                    <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+                      {configStep === 1 && (
+                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                          <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                            <label className="text-xs text-white/60">Nombre</label>
+                            <input
+                              value={cfgName}
+                              onChange={(e) => setCfgName(e.target.value)}
+                              className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                            />
 
-                          <div className="mt-3 grid grid-cols-2 gap-2">
-                            <div>
-                              <label className="text-xs text-white/60">Sexo</label>
-                              <select
-                                value={cfgSex}
-                                onChange={(e) => setCfgSex(e.target.value as SexValue)}
-                                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
-                              >
-                                <option value="unspecified">No especificado</option>
-                                <option value="female">Mujer</option>
-                                <option value="male">Hombre</option>
-                                <option value="nonbinary">No binario</option>
-                              </select>
+                            <div className="mt-3 grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="text-xs text-white/60">Sexo</label>
+                                <select
+                                  value={cfgSex}
+                                  onChange={(e) => setCfgSex(e.target.value as SexValue)}
+                                  className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                                >
+                                  <option value="unspecified">No especificado</option>
+                                  <option value="female">Mujer</option>
+                                  <option value="male">Hombre</option>
+                                  <option value="nonbinary">No binario</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="text-xs text-white/60">Edad</label>
+                                <input
+                                  type="number"
+                                  value={cfgAge}
+                                  min={5}
+                                  max={95}
+                                  onChange={(e) =>
+                                    setCfgAge(clampInt(Number(e.target.value), 5, 95))
+                                  }
+                                  className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                                />
+                              </div>
                             </div>
-                            <div>
-                              <label className="text-xs text-white/60">Edad</label>
-                              <input
-                                type="number"
-                                value={cfgAge}
-                                min={5}
-                                max={95}
-                                onChange={(e) =>
-                                  setCfgAge(clampInt(Number(e.target.value), 5, 95))
-                                }
-                                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
-                              />
+
+                            <label className="mt-3 block text-xs text-white/60">Contexto breve</label>
+                            <textarea
+                              value={cfgContext}
+                              onChange={(e) => setCfgContext(e.target.value)}
+                              className="mt-1 min-h-[120px] w-full resize-none rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                            />
+                          </div>
+
+                          <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                            <div className="text-sm font-semibold">Vista rápida</div>
+                            <div className="mt-3 text-sm text-white/80">
+                              Paciente: {cfgName || "—"}
+                            </div>
+                            <div className="mt-1 text-sm text-white/80">
+                              Perfil: {prettySex(cfgSex)} · {cfgAge} años
+                            </div>
+                            <div className="mt-3 rounded-xl border border-white/10 bg-black/25 p-3 text-xs text-white/70">
+                              Completa estos datos para que la narrativa del caso sea coherente antes
+                              de configurar parámetros docentes.
                             </div>
                           </div>
-
-                          <label className="mt-3 block text-xs text-white/60">Contexto breve</label>
-                          <textarea
-                            value={cfgContext}
-                            onChange={(e) => setCfgContext(e.target.value)}
-                            className="mt-1 min-h-[120px] w-full resize-none rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
-                          />
                         </div>
-
-                        <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                          <div className="text-sm font-semibold">Vista rápida</div>
-                          <div className="mt-3 text-sm text-white/80">
-                            Paciente: {cfgName || "—"}
-                          </div>
-                          <div className="mt-1 text-sm text-white/80">
-                            Perfil: {prettySex(cfgSex)} · {cfgAge} años
-                          </div>
-                          <div className="mt-3 rounded-xl border border-white/10 bg-black/25 p-3 text-xs text-white/70">
-                            Completa estos datos para que la narrativa del caso sea coherente antes
-                            de configurar parámetros docentes.
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                      )}
 
                     {configStep === 2 && (
                       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -1434,9 +1437,9 @@ export default function CasesPage() {
                         </div>
                       </div>
                     )}
-                  </div>
+                    </div>
 
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-black/25 px-6 py-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-black/25 px-4 py-3 sm:px-6 sm:py-4">
                     <div className="text-xs text-white/60">Paso {configStep} de 3</div>
 
                     <div className="flex flex-wrap gap-2">
@@ -1485,6 +1488,7 @@ export default function CasesPage() {
                   </div>
                 </div>
               </div>
+            </div>
             )}
 
             <div className="mt-8 text-xs text-white/40">

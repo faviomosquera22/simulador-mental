@@ -13,6 +13,7 @@ import {
   scoreScale,
   scoreTest,
 } from "@/src/lib/assessments";
+import { CLINICAL_BATTERIES, getBatteryById } from "@/src/lib/batteries";
 import {
   deriveAgeGroup,
   isPediatricCase,
@@ -21,6 +22,8 @@ import {
 } from "@/src/lib/clinicalRuntime";
 import type {
   ActiveInstrumentContext,
+  BatterySession,
+  BatteryStepResult,
   ScaleAnswer,
   ScaleSession,
   SpeakerRole,
@@ -290,7 +293,7 @@ export default function SimulatorPage() {
 
   // UI (layout estilo Claude)
   const [eduExpanded, setEduExpanded] = useState(false);
-  const [rightTab, setRightTab] = useState<"patient" | "mse" | "dsm" | "risk" | "scales" | "tests">("patient");
+  const [rightTab, setRightTab] = useState<"patient" | "mse" | "dsm" | "risk" | "scales" | "tests" | "batteries">("patient");
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
   const [mseOpen, setMseOpen] = useState<Record<string, boolean>>({});
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -308,6 +311,11 @@ export default function SimulatorPage() {
   const [testSession, setTestSession] = useState<TestSession | null>(null);
   const [lastTestResult, setLastTestResult] = useState<ReturnType<typeof scoreTest> | null>(null);
 
+  // Baterías clínicas
+  const [selectedBatteryId, setSelectedBatteryId] = useState<string>(CLINICAL_BATTERIES[0]?.id ?? "");
+  const [batterySession, setBatterySession] = useState<BatterySession | null>(null);
+  const [lastBatterySession, setLastBatterySession] = useState<BatterySession | null>(null);
+
   const [sessionNotes, setSessionNotes] = useState<string[]>([]);
   const [useScaleInFeedback, setUseScaleInFeedback] = useState(false);
   const [useTestInFeedback, setUseTestInFeedback] = useState(false);
@@ -320,7 +328,7 @@ export default function SimulatorPage() {
     )
       .toLowerCase()
       .trim();
-    if (tab === "patient" || tab === "mse" || tab === "dsm" || tab === "risk" || tab === "scales" || tab === "tests") {
+    if (tab === "patient" || tab === "mse" || tab === "dsm" || tab === "risk" || tab === "scales" || tab === "tests" || tab === "batteries") {
       setRightTab(tab);
     }
   }, []);
@@ -835,6 +843,39 @@ export default function SimulatorPage() {
 
   const selectedScale = useMemo(() => getScaleById(selectedScaleId), [selectedScaleId]);
   const selectedTest = useMemo(() => getTestById(selectedTestId), [selectedTestId]);
+  const selectedBattery = useMemo(() => getBatteryById(selectedBatteryId), [selectedBatteryId]);
+
+  const batteryViewSession = batterySession ?? lastBatterySession;
+  const batteryViewDef = useMemo(
+    () => (batteryViewSession ? getBatteryById(batteryViewSession.battery_id) : null),
+    [batteryViewSession]
+  );
+
+  const batterySummary = useMemo(() => {
+    if (!batteryViewSession || !batteryViewDef) return null;
+    const totalSteps = batteryViewDef.steps.length;
+    const completedSteps = batteryViewSession.step_results.length;
+    const completionPct = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+    const highRisk = batteryViewSession.step_results.some((step) => {
+      const label = String(step.classification ?? "").toLowerCase();
+      return (
+        step.risk_alert === true ||
+        /(alto|cr[ií]tico|severo|muy alto|alteraci[oó]n marcada)/.test(label)
+      );
+    });
+    const weakAreas = batteryViewSession.step_results
+      .filter((step) => /(moderado|severo|alto|cr[ií]tico|riesgo|alteraci[oó]n)/.test(String(step.classification ?? "").toLowerCase()))
+      .map((step) => step.instrument_name)
+      .slice(0, 4);
+
+    return {
+      totalSteps,
+      completedSteps,
+      completionPct,
+      highRisk,
+      weakAreas,
+    };
+  }, [batteryViewSession, batteryViewDef]);
 
   // --- UI helpers (Claude-style layout) ---
   const riskLevel = useMemo<"Bajo" | "Moderado" | "Alto" | "Sin datos">(() => {
@@ -955,13 +996,18 @@ export default function SimulatorPage() {
     return loading || (remainingSec != null && remainingSec <= 0) || !!timerReason;
   }, [loading, remainingSec, timerReason]);
 
-  const startScaleInChat = useCallback((auto = false) => {
-    if (!selectedScale) return;
+  const beginScaleSession = useCallback((scaleId: string, auto = false) => {
+    const definition = getScaleById(scaleId);
+    if (!definition) {
+      setError("No se pudo iniciar la escala seleccionada.");
+      return false;
+    }
+    setSelectedScaleId(definition.id);
     setLastScaleResult(null);
     setInstrumentAutoRun(auto);
     setScaleSession({
       session_id: makeSessionId("scale"),
-      scale_id: selectedScale.id,
+      scale_id: definition.id,
       status: "in_progress",
       current_index: 0,
       answers: [],
@@ -969,24 +1015,30 @@ export default function SimulatorPage() {
     });
     setActiveInstrumentContext({
       mode: "scale",
-      instrument_id: selectedScale.id,
-      instrument_name: selectedScale.short_name,
+      instrument_id: definition.id,
+      instrument_name: definition.short_name,
       item_index: 0,
-      total_items: selectedScale.items.length,
-      item_id: selectedScale.items[0]?.id ?? "item_1",
-      item_prompt: selectedScale.items[0]?.prompt ?? "Pregunta clínica",
-      response_type: selectedScale.response_type,
-      options: selectedScale.items[0]?.options ?? [],
+      total_items: definition.items.length,
+      item_id: definition.items[0]?.id ?? "item_1",
+      item_prompt: definition.items[0]?.prompt ?? "Pregunta clínica",
+      response_type: definition.response_type,
+      options: definition.items[0]?.options ?? [],
     });
-  }, [selectedScale]);
+    return true;
+  }, []);
 
-  const startTestInChat = useCallback((auto = false) => {
-    if (!selectedTest) return;
+  const beginTestSession = useCallback((testId: string, auto = false) => {
+    const definition = getTestById(testId);
+    if (!definition) {
+      setError("No se pudo iniciar el test seleccionado.");
+      return false;
+    }
+    setSelectedTestId(definition.id);
     setLastTestResult(null);
     setInstrumentAutoRun(auto);
     setTestSession({
       session_id: makeSessionId("test"),
-      test_id: selectedTest.id,
+      test_id: definition.id,
       status: "in_progress",
       current_index: 0,
       answers: [],
@@ -994,16 +1046,57 @@ export default function SimulatorPage() {
     });
     setActiveInstrumentContext({
       mode: "test",
-      instrument_id: selectedTest.id,
-      instrument_name: selectedTest.short_name,
+      instrument_id: definition.id,
+      instrument_name: definition.short_name,
       item_index: 0,
-      total_items: selectedTest.items.length,
-      item_id: selectedTest.items[0]?.id ?? "item_1",
-      item_prompt: selectedTest.items[0]?.prompt ?? "Pregunta clínica",
-      response_type: selectedTest.response_type,
-      options: selectedTest.items[0]?.options ?? [],
+      total_items: definition.items.length,
+      item_id: definition.items[0]?.id ?? "item_1",
+      item_prompt: definition.items[0]?.prompt ?? "Pregunta clínica",
+      response_type: definition.response_type,
+      options: definition.items[0]?.options ?? [],
     });
-  }, [selectedTest]);
+    return true;
+  }, []);
+
+  const startScaleInChat = useCallback((auto = false) => {
+    if (!selectedScaleId) return;
+    void beginScaleSession(selectedScaleId, auto);
+  }, [selectedScaleId, beginScaleSession]);
+
+  const startTestInChat = useCallback((auto = false) => {
+    if (!selectedTestId) return;
+    void beginTestSession(selectedTestId, auto);
+  }, [selectedTestId, beginTestSession]);
+
+  const startBatteryInChat = useCallback((auto = true) => {
+    if (!selectedBattery || selectedBattery.steps.length === 0) {
+      setError("La batería seleccionada no tiene pasos configurados.");
+      return;
+    }
+    setError(null);
+    setRightTab("batteries");
+    setLastBatterySession(null);
+    const session: BatterySession = {
+      session_id: makeSessionId("battery"),
+      battery_id: selectedBattery.id,
+      status: "in_progress",
+      current_step_index: 0,
+      step_results: [],
+      started_at: new Date().toISOString(),
+      auto_run: auto,
+    };
+    setBatterySession(session);
+
+    const firstStep = selectedBattery.steps[0];
+    const ok =
+      firstStep.mode === "scale"
+        ? beginScaleSession(firstStep.instrument_id, auto)
+        : beginTestSession(firstStep.instrument_id, auto);
+
+    if (!ok) {
+      setBatterySession((prev) => (prev ? { ...prev, status: "cancelled", completed_at: new Date().toISOString() } : prev));
+    }
+  }, [selectedBattery, beginScaleSession, beginTestSession]);
 
   const cancelActiveInstrument = useCallback(() => {
     setInstrumentAutoRun(false);
@@ -1011,6 +1104,126 @@ export default function SimulatorPage() {
     setScaleSession((prev) => (prev ? { ...prev, status: "cancelled" } : prev));
     setTestSession((prev) => (prev ? { ...prev, status: "cancelled" } : prev));
   }, []);
+
+  const cancelBatterySession = useCallback(() => {
+    cancelActiveInstrument();
+    setBatterySession((prev) =>
+      prev
+        ? {
+            ...prev,
+            status: "cancelled",
+            completed_at: new Date().toISOString(),
+          }
+        : prev
+    );
+  }, [cancelActiveInstrument]);
+
+  useEffect(() => {
+    if (!batterySession || batterySession.status !== "in_progress") return;
+    const batteryDef = getBatteryById(batterySession.battery_id);
+    if (!batteryDef) return;
+    if (activeInstrumentContext) return;
+
+    const currentStep = batteryDef.steps[batterySession.current_step_index];
+    if (!currentStep) return;
+    if (batterySession.step_results.some((r) => r.step_id === currentStep.id)) return;
+
+    let stepResult: BatteryStepResult | null = null;
+
+    if (currentStep.mode === "scale") {
+      if (scaleSession?.status === "cancelled") {
+        setBatterySession((prev) =>
+          prev ? { ...prev, status: "cancelled", completed_at: new Date().toISOString() } : prev
+        );
+        return;
+      }
+      if (scaleSession?.status !== "completed" || scaleSession.scale_id !== currentStep.instrument_id || !scaleSession.result) {
+        return;
+      }
+      stepResult = {
+        step_id: currentStep.id,
+        mode: "scale",
+        instrument_id: currentStep.instrument_id,
+        instrument_name: getScaleById(currentStep.instrument_id)?.short_name ?? currentStep.label,
+        total_score: scaleSession.result.total_score,
+        max_score: scaleSession.result.max_score,
+        classification: scaleSession.result.severity_label,
+        interpretation: scaleSession.result.interpretation,
+        risk_alert: !!scaleSession.result.risk_alert,
+        completed_at: scaleSession.result.completed_at,
+      };
+    } else {
+      if (testSession?.status === "cancelled") {
+        setBatterySession((prev) =>
+          prev ? { ...prev, status: "cancelled", completed_at: new Date().toISOString() } : prev
+        );
+        return;
+      }
+      if (testSession?.status !== "completed" || testSession.test_id !== currentStep.instrument_id || !testSession.result) {
+        return;
+      }
+      stepResult = {
+        step_id: currentStep.id,
+        mode: "test",
+        instrument_id: currentStep.instrument_id,
+        instrument_name: getTestById(currentStep.instrument_id)?.short_name ?? currentStep.label,
+        total_score: testSession.result.total_score,
+        max_score: testSession.result.max_score,
+        classification: testSession.result.classification,
+        interpretation: testSession.result.interpretation,
+        completed_at: testSession.result.completed_at,
+      };
+    }
+
+    setBatterySession((prev) => {
+      if (!prev || prev.status !== "in_progress") return prev;
+      if (prev.step_results.some((r) => r.step_id === currentStep.id)) return prev;
+
+      const nextResults = [...prev.step_results, stepResult as BatteryStepResult];
+      const nextStepIndex = prev.current_step_index + 1;
+      if (nextStepIndex >= batteryDef.steps.length) {
+        return {
+          ...prev,
+          current_step_index: batteryDef.steps.length,
+          step_results: nextResults,
+          status: "completed",
+          completed_at: new Date().toISOString(),
+        };
+      }
+
+      return {
+        ...prev,
+        current_step_index: nextStepIndex,
+        step_results: nextResults,
+      };
+    });
+  }, [batterySession, activeInstrumentContext, scaleSession, testSession]);
+
+  useEffect(() => {
+    if (!batterySession || batterySession.status !== "in_progress") return;
+    const batteryDef = getBatteryById(batterySession.battery_id);
+    if (!batteryDef) return;
+    if (activeInstrumentContext) return;
+    if (batterySession.step_results.length !== batterySession.current_step_index) return;
+
+    const step = batteryDef.steps[batterySession.current_step_index];
+    if (!step) return;
+    const ok =
+      step.mode === "scale"
+        ? beginScaleSession(step.instrument_id, batterySession.auto_run)
+        : beginTestSession(step.instrument_id, batterySession.auto_run);
+
+    if (!ok) {
+      setBatterySession((prev) =>
+        prev ? { ...prev, status: "cancelled", completed_at: new Date().toISOString() } : prev
+      );
+    }
+  }, [batterySession, activeInstrumentContext, beginScaleSession, beginTestSession]);
+
+  useEffect(() => {
+    if (!batterySession || batterySession.status !== "completed") return;
+    setLastBatterySession(batterySession);
+  }, [batterySession]);
 
   const addNote = useCallback((text: string) => {
     const clean = String(text ?? "").trim();
@@ -1795,6 +2008,7 @@ export default function SimulatorPage() {
                     ["risk", "Seguridad"],
                     ["scales", "Escalas"],
                     ["tests", "Tests"],
+                    ["batteries", "Baterías"],
                   ] as const
                 ).map(([key, label]) => (
                   <button
@@ -2348,6 +2562,157 @@ export default function SimulatorPage() {
                                 }`}
                               >
                                 {useTestInFeedback ? "Usando en feedback final" : "Usar resultado en retroalimentación final"}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {rightTab === "batteries" && (
+                  <div className="space-y-3">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Baterías mentales</div>
+
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <label className="text-xs text-white/60">Selecciona batería</label>
+                      <select
+                        value={selectedBatteryId}
+                        onChange={(e) => setSelectedBatteryId(e.target.value)}
+                        className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
+                      >
+                        {CLINICAL_BATTERIES.map((battery) => (
+                          <option key={battery.id} value={battery.id}>
+                            {battery.name}
+                          </option>
+                        ))}
+                      </select>
+
+                      {selectedBattery && (
+                        <div className="mt-3 text-xs text-white/60">
+                          <div>Población: {selectedBattery.target_population}</div>
+                          <div>Rango sugerido: {selectedBattery.suggested_age_range}</div>
+                          <div className="mt-1 text-white/50">{selectedBattery.description}</div>
+                          <div className="mt-2 rounded-xl border border-white/10 bg-black/30 p-2 text-[11px] text-white/65">
+                            {selectedBattery.educational_note}
+                          </div>
+                          <div className="mt-3 text-[11px] font-semibold uppercase tracking-wider text-white/45">Secuencia</div>
+                          <div className="mt-2 space-y-2">
+                            {selectedBattery.steps.map((step, idx) => (
+                              <div key={step.id} className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs text-white/75">
+                                {idx + 1}. {step.label} <span className="text-white/45">({step.mode === "scale" ? "Escala" : "Test"})</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => startBatteryInChat(false)}
+                          className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs text-white/80"
+                        >
+                          Iniciar paso a paso
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => startBatteryInChat(true)}
+                          className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-black"
+                        >
+                          Autoejecutar batería
+                        </button>
+                        {batterySession?.status === "in_progress" && activeInstrumentContext && !instrumentAutoRun && (
+                          <button
+                            type="button"
+                            onClick={() => void askCurrentInstrumentItem()}
+                            disabled={loading || inputDisabled}
+                            className="rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-3 py-2 text-xs text-cyan-100 disabled:opacity-50"
+                          >
+                            Ejecutar siguiente ítem
+                          </button>
+                        )}
+                        {batterySession?.status === "in_progress" && (
+                          <button
+                            type="button"
+                            onClick={cancelBatterySession}
+                            className="rounded-xl border border-red-400/25 bg-red-400/10 px-3 py-2 text-xs text-red-100"
+                          >
+                            Cancelar batería
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {(batteryViewSession || lastBatterySession) && batteryViewDef && batterySummary && (
+                      <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                        <div className="flex items-center justify-between text-xs text-white/60">
+                          <span>Estado: <span className="text-white/85">{batteryViewSession?.status ?? "completed"}</span></span>
+                          <span>
+                            {batterySummary.completedSteps}/{batterySummary.totalSteps} pasos
+                          </span>
+                        </div>
+
+                        <div className="mt-2 h-2 w-full rounded-full bg-white/10">
+                          <div
+                            className={`h-2 rounded-full ${batterySummary.highRisk ? "bg-red-300" : "bg-cyan-300"}`}
+                            style={{ width: `${batterySummary.completionPct}%` }}
+                          />
+                        </div>
+
+                        <div className="mt-3 space-y-2">
+                          {batteryViewDef.steps.map((step, idx) => {
+                            const done = (batteryViewSession?.step_results ?? []).some((r) => r.step_id === step.id);
+                            const isCurrent = batteryViewSession?.status === "in_progress" && idx === batteryViewSession.current_step_index;
+                            return (
+                              <div
+                                key={step.id}
+                                className={`rounded-xl border px-3 py-2 text-xs ${
+                                  done
+                                    ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-100"
+                                    : isCurrent
+                                    ? "border-cyan-300/25 bg-cyan-300/10 text-cyan-100"
+                                    : "border-white/10 bg-black/30 text-white/70"
+                                }`}
+                              >
+                                {idx + 1}. {step.label}
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {(batteryViewSession?.step_results ?? []).length > 0 && (
+                          <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-white/75">
+                            <div className="font-semibold text-white/90">Reporte integrado</div>
+                            <div className="mt-1">
+                              {batterySummary.highRisk
+                                ? "Se detectaron resultados de mayor severidad/riesgo en al menos un instrumento."
+                                : "No se detectaron puntajes de alto riesgo en los instrumentos completados."}
+                            </div>
+                            {batterySummary.weakAreas.length > 0 && (
+                              <div className="mt-2">
+                                Áreas a reforzar: {batterySummary.weakAreas.join(" · ")}
+                              </div>
+                            )}
+                            <div className="mt-2 text-white/60">
+                              Resultado orientativo para entrenamiento. No sustituye valoración clínica real.
+                            </div>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const s = batteryViewSession;
+                                  if (!s) return;
+                                  addNote(
+                                    `[Batería ${batteryViewDef.name}] ${batterySummary.completedSteps}/${batterySummary.totalSteps} pasos · ${
+                                      batterySummary.highRisk ? "requiere seguimiento de seguridad" : "sin alerta crítica"
+                                    }.`
+                                  );
+                                }}
+                                className="rounded-xl border border-white/15 bg-black/30 px-3 py-1.5 text-xs text-white/80"
+                              >
+                                Guardar en notas de sesión
                               </button>
                             </div>
                           </div>

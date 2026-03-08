@@ -232,6 +232,49 @@ export type TestSession = {
   result?: TestResult;
 };
 
+export type BatteryStep = {
+  id: string;
+  mode: "scale" | "test";
+  instrument_id: string;
+  label: string;
+  rationale?: string;
+};
+
+export type BatteryDefinition = {
+  id: string;
+  name: string;
+  description: string;
+  target_population: string;
+  suggested_age_range: string;
+  educational_only: boolean;
+  steps: BatteryStep[];
+  educational_note: string;
+};
+
+export type BatteryStepResult = {
+  step_id: string;
+  mode: "scale" | "test";
+  instrument_id: string;
+  instrument_name: string;
+  total_score: number;
+  max_score: number;
+  classification: string;
+  interpretation: string;
+  risk_alert?: boolean;
+  completed_at: string;
+};
+
+export type BatterySession = {
+  session_id: string;
+  battery_id: string;
+  status: "idle" | "in_progress" | "completed" | "cancelled";
+  current_step_index: number;
+  step_results: BatteryStepResult[];
+  started_at: string;
+  completed_at?: string;
+  auto_run: boolean;
+};
+
 export type QuizQuestion = {
   id: string;
   category: string;
