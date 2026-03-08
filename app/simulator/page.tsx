@@ -15,6 +15,12 @@ import {
 } from "@/src/lib/assessments";
 import { getBatteriesByDomain, getBatteryById } from "@/src/lib/batteries";
 import {
+  getMedicalExamById,
+  getMedicalExamsForCase,
+  runMedicalExam,
+  type MedicalExamResult,
+} from "@/src/lib/medicalExams";
+import {
   deriveAgeGroup,
   isPediatricCase,
   normalizeSpeakerRole,
@@ -315,6 +321,11 @@ export default function SimulatorPage() {
   const [selectedBatteryId, setSelectedBatteryId] = useState<string>("");
   const [batterySession, setBatterySession] = useState<BatterySession | null>(null);
   const [lastBatterySession, setLastBatterySession] = useState<BatterySession | null>(null);
+
+  // Exámenes clínicos (patologías médicas)
+  const [selectedMedicalExamId, setSelectedMedicalExamId] = useState<string>("");
+  const [medicalExamResults, setMedicalExamResults] = useState<MedicalExamResult[]>([]);
+  const [runningMedicalExam, setRunningMedicalExam] = useState(false);
 
   const [sessionNotes, setSessionNotes] = useState<string[]>([]);
   const [useScaleInFeedback, setUseScaleInFeedback] = useState(false);
@@ -784,6 +795,41 @@ export default function SimulatorPage() {
     }
   }, [caseObject, sessionNotes]);
 
+  useEffect(() => {
+    try {
+      if (!caseObject || !isMedicalCase) return;
+      const caseId = String(caseObject?.id ?? caseObject?.meta?.case_id ?? "default");
+      const raw = localStorage.getItem(`medicalExamResults:${caseId}`);
+      if (!raw) {
+        setMedicalExamResults([]);
+        return;
+      }
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) {
+        setMedicalExamResults([]);
+        return;
+      }
+      setMedicalExamResults(
+        parsed
+          .map((item) => (item && typeof item === "object" ? (item as MedicalExamResult) : null))
+          .filter(Boolean)
+          .slice(0, 40) as MedicalExamResult[]
+      );
+    } catch {
+      setMedicalExamResults([]);
+    }
+  }, [caseObject, isMedicalCase]);
+
+  useEffect(() => {
+    try {
+      if (!caseObject || !isMedicalCase) return;
+      const caseId = String(caseObject?.id ?? caseObject?.meta?.case_id ?? "default");
+      localStorage.setItem(`medicalExamResults:${caseId}`, JSON.stringify(medicalExamResults.slice(0, 40)));
+    } catch {
+      // ignore
+    }
+  }, [caseObject, isMedicalCase, medicalExamResults]);
+
   const clinicalDxId = useMemo(() => {
     // tag corto para conectar con /topics?dx=
     const raw =
@@ -810,7 +856,7 @@ export default function SimulatorPage() {
   }, [clinicalDxId, isMedicalCase]);
 
   const backHref = isMedicalCase ? "/medical-cases" : "/cases";
-  const libraryButtonLabel = isMedicalCase ? "Biblioteca de patologías" : "Biblioteca clínica";
+  const libraryButtonLabel = isMedicalCase ? "Simulador de patologías" : "Biblioteca clínica";
   const codeBadgeLabel = isMedicalCase ? "Código clínico" : "DSM/CIE";
   const riskBadgeLabel = isMedicalCase ? "Urgencia" : "Riesgo";
 
@@ -858,6 +904,14 @@ export default function SimulatorPage() {
   const scaleCatalog = useMemo(() => getScalesByDomain(caseDomain), [caseDomain]);
   const testCatalog = useMemo(() => getTestsByDomain(caseDomain), [caseDomain]);
   const batteryCatalog = useMemo(() => getBatteriesByDomain(caseDomain), [caseDomain]);
+  const medicalExamCatalog = useMemo(
+    () => (isMedicalCase ? getMedicalExamsForCase(caseObject) : []),
+    [isMedicalCase, caseObject]
+  );
+  const selectedMedicalExam = useMemo(
+    () => getMedicalExamById(selectedMedicalExamId),
+    [selectedMedicalExamId]
+  );
 
   useEffect(() => {
     if (!scaleCatalog.length) {
@@ -888,6 +942,21 @@ export default function SimulatorPage() {
       setSelectedBatteryId(batteryCatalog[0].id);
     }
   }, [batteryCatalog, selectedBatteryId]);
+
+  useEffect(() => {
+    if (!isMedicalCase) {
+      setSelectedMedicalExamId("");
+      setMedicalExamResults([]);
+      return;
+    }
+    if (!medicalExamCatalog.length) {
+      setSelectedMedicalExamId("");
+      return;
+    }
+    if (!medicalExamCatalog.some((exam) => exam.id === selectedMedicalExamId)) {
+      setSelectedMedicalExamId(medicalExamCatalog[0].id);
+    }
+  }, [isMedicalCase, medicalExamCatalog, selectedMedicalExamId]);
 
   const batteryViewSession = batterySession ?? lastBatterySession;
   const batteryViewDef = useMemo(
@@ -1063,6 +1132,20 @@ export default function SimulatorPage() {
     if (v === "both") return "Adulto y adolescente";
     if (v === "adolescent") return "Adolescente";
     return "Adulto";
+  }
+
+  function examStatusLabel(status: string) {
+    const key = String(status ?? "").toLowerCase();
+    if (key === "critical") return "Crítico";
+    if (key === "altered") return "Alterado";
+    return "Normal";
+  }
+
+  function examStatusClass(status: string) {
+    const key = String(status ?? "").toLowerCase();
+    if (key === "critical") return "border-red-400/25 bg-red-400/10 text-red-100";
+    if (key === "altered") return "border-amber-400/25 bg-amber-400/10 text-amber-100";
+    return "border-emerald-400/25 bg-emerald-400/10 text-emerald-100";
   }
 
   const timeLabel = useMemo(() => {
@@ -1316,6 +1399,34 @@ export default function SimulatorPage() {
     if (!clean) return;
     setSessionNotes((prev) => [clean, ...prev].slice(0, 30));
   }, []);
+
+  const runSingleMedicalExam = useCallback(
+    (examId: string) => {
+      if (!isMedicalCase || !caseObject) return;
+      const exam = getMedicalExamById(examId);
+      if (!exam) return;
+      const result = runMedicalExam(exam, caseObject);
+      setMedicalExamResults((prev) => [result, ...prev.filter((r) => r.exam_id !== result.exam_id)].slice(0, 40));
+    },
+    [isMedicalCase, caseObject]
+  );
+
+  const runMedicalExamBundle = useCallback(() => {
+    if (!isMedicalCase || !caseObject) return;
+    const bundle = medicalExamCatalog.slice(0, 5);
+    if (!bundle.length) return;
+    setRunningMedicalExam(true);
+    const generated = bundle.map((exam) => runMedicalExam(exam, caseObject));
+    setMedicalExamResults((prev) => {
+      const next = [...generated.reverse(), ...prev];
+      const dedupe = new Map<string, MedicalExamResult>();
+      for (const row of next) {
+        if (!dedupe.has(row.exam_id)) dedupe.set(row.exam_id, row);
+      }
+      return Array.from(dedupe.values()).slice(0, 40);
+    });
+    window.setTimeout(() => setRunningMedicalExam(false), 180);
+  }, [isMedicalCase, caseObject, medicalExamCatalog]);
 
   const sendMessage = useCallback(async (opts?: {
     message?: string;
@@ -1648,10 +1759,10 @@ export default function SimulatorPage() {
               <p className="mt-2 text-sm text-white/70">Vuelve a la biblioteca, genera un caso y presiona “Iniciar simulación”.</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <Link className="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2 text-black" href="/cases">
-                  Trastornos mentales
+                  Simulador de trastornos mentales
                 </Link>
                 <Link className="inline-flex items-center justify-center rounded-xl border border-white/15 px-4 py-2 text-white/85" href="/medical-cases">
-                  Patologías médicas
+                  Simulador de patologías
                 </Link>
               </div>
             </div>
@@ -2138,12 +2249,32 @@ export default function SimulatorPage() {
               <div className="flex-1 overflow-y-auto p-4">
                 {rightTab === "patient" && (
                   <div className="space-y-4">
-                    <AvatarCard
-                      name={patientName}
-                      stateKey={lastMeta.state}
-                      stateLabel={emotionLabel[lastMeta.state] ?? lastMeta.state}
-                      intensity={lastMeta.intensity}
-                    />
+                    {isMedicalCase ? (
+                      <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                        <div className="text-sm text-white/60">Paciente</div>
+                        <div className="mt-1 text-base font-semibold text-white">{patientName}</div>
+                        <div className="mt-4 grid grid-cols-2 gap-2">
+                          <div className="rounded-xl border border-white/10 bg-black/25 p-3">
+                            <div className="text-[11px] text-white/55">Estado clínico</div>
+                            <div className="mt-1 text-sm text-white/85">{emotionLabel[lastMeta.state] ?? lastMeta.state}</div>
+                          </div>
+                          <div className="rounded-xl border border-white/10 bg-black/25 p-3">
+                            <div className="text-[11px] text-white/55">Prioridad</div>
+                            <div className="mt-1 text-sm text-white/85">{riskLevel}</div>
+                          </div>
+                        </div>
+                        <div className="mt-3 text-xs text-white/55">
+                          Vista compacta para casos de patologías: prioridad en datos clínicos sobre avatar emocional.
+                        </div>
+                      </div>
+                    ) : (
+                      <AvatarCard
+                        name={patientName}
+                        stateKey={lastMeta.state}
+                        stateLabel={emotionLabel[lastMeta.state] ?? lastMeta.state}
+                        intensity={lastMeta.intensity}
+                      />
+                    )}
 
                     <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                       <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Datos del caso</div>
@@ -2240,22 +2371,115 @@ export default function SimulatorPage() {
 
                 {rightTab === "mse" && (
                   <div className="space-y-2">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
-                      {isMedicalCase ? "Examen clínico orientado" : "Examen Mental (MSE)"}
-                    </div>
+                    {isMedicalCase ? (
+                      <>
+                        <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
+                          Exámenes clínicos sugeridos
+                        </div>
+                        <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                          <label className="text-xs text-white/60">Selecciona examen</label>
+                          <select
+                            value={selectedMedicalExamId}
+                            onChange={(e) => setSelectedMedicalExamId(e.target.value)}
+                            className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
+                          >
+                            {medicalExamCatalog.map((exam) => (
+                              <option key={exam.id} value={exam.id}>
+                                {exam.short_name} · {exam.name}
+                              </option>
+                            ))}
+                          </select>
 
-                    {(() => {
-                      const tmpl = Array.isArray(caseObject?.mse_template) ? (caseObject.mse_template as any[]) : [];
-                      const fallback = isMedicalCase
-                        ? [
-                            { key: "general", title: "Estado general", chips: ["Consciente", "Decaído", "Diaforético", "Compromiso moderado"], note_prompt: "Nota de estado general…" },
-                            { key: "resp", title: "Respiratorio", chips: ["Sin disnea", "Taquipnea", "Uso de accesorios", "SatO2 baja"], note_prompt: "Patrón respiratorio y oxigenación…" },
-                            { key: "cardio", title: "Cardiovascular", chips: ["Perfusión adecuada", "Taquicardia", "Hipotensión", "Llenado capilar lento"], note_prompt: "Estado hemodinámico/perfusión…" },
-                            { key: "neuro", title: "Neurológico", chips: ["Orientado", "Somnoliento", "Confuso", "Déficit focal"], note_prompt: "Estado neurológico breve…" },
-                            { key: "pain", title: "Dolor / confort", chips: ["Sin dolor", "Dolor leve", "Dolor moderado", "Dolor intenso"], note_prompt: "Intensidad e impacto funcional del dolor…" },
-                            { key: "hydration", title: "Hidratación / eliminación", chips: ["Hidratación conservada", "Mucosas secas", "Diuresis baja", "Náusea/vómito"], note_prompt: "Hidratación, diuresis y tolerancia oral…" },
-                          ]
-                        : [
+                          {selectedMedicalExam && (
+                            <div className="mt-3 text-xs text-white/60">
+                              <div>Categoría: {selectedMedicalExam.category}</div>
+                              <div className="mt-1 text-white/50">{selectedMedicalExam.description}</div>
+                            </div>
+                          )}
+
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() => selectedMedicalExamId && runSingleMedicalExam(selectedMedicalExamId)}
+                              disabled={!selectedMedicalExamId}
+                              className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs text-white/80 disabled:opacity-50"
+                            >
+                              Ejecutar examen oculto
+                            </button>
+                            <button
+                              type="button"
+                              onClick={runMedicalExamBundle}
+                              disabled={!medicalExamCatalog.length || runningMedicalExam}
+                              className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-black disabled:opacity-60"
+                            >
+                              {runningMedicalExam ? "Ejecutando..." : "Autoejecutar panel básico"}
+                            </button>
+                          </div>
+
+                          <div className="mt-2 text-[11px] text-white/50">
+                            Ejecución oculta: los resultados no se muestran en el chat, solo en este panel.
+                          </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                          <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Resultados</div>
+                          {medicalExamResults.length === 0 ? (
+                            <div className="mt-2 text-xs text-white/55">Aún no hay exámenes ejecutados.</div>
+                          ) : (
+                            <div className="mt-2 space-y-2">
+                              {medicalExamResults.slice(0, 8).map((result) => (
+                                <div key={`${result.exam_id}:${result.completed_at}`} className="rounded-xl border border-white/10 bg-black/30 p-3">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div className="text-sm font-semibold text-white">{result.exam_name}</div>
+                                    <span className={`rounded-full border px-2 py-0.5 text-[10px] ${examStatusClass(result.status)}`}>
+                                      {examStatusLabel(result.status)}
+                                    </span>
+                                  </div>
+                                  <div className="mt-1 text-xs text-white/75">{result.summary}</div>
+                                  <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-white/70">
+                                    {result.findings.slice(0, 3).map((finding) => (
+                                      <li key={finding}>{finding}</li>
+                                    ))}
+                                  </ul>
+                                  <div className="mt-2 text-[11px] text-white/55">{result.interpretation}</div>
+                                  {result.red_flags.length > 0 && (
+                                    <div className="mt-2 flex flex-wrap gap-1">
+                                      {result.red_flags.slice(0, 4).map((flag) => (
+                                        <span key={flag} className="rounded-full border border-red-400/25 bg-red-400/10 px-2 py-0.5 text-[10px] text-red-100">
+                                          {flag}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                  <div className="mt-2 flex flex-wrap gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => addNote(`[Examen ${result.exam_name}] ${result.summary}. ${result.interpretation}`)}
+                                      className="rounded-xl border border-white/15 bg-black/30 px-2.5 py-1 text-[11px] text-white/80"
+                                    >
+                                      Guardar en notas
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setRightTab("risk")}
+                          className="mt-3 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white/80 hover:bg-black/40"
+                        >
+                          Ir a Urgencia y seguridad
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Examen Mental (MSE)</div>
+                        {(() => {
+                          const tmpl = Array.isArray(caseObject?.mse_template) ? (caseObject.mse_template as any[]) : [];
+                          const fallback = [
                             { key: "appearance", title: "Apariencia / Conducta", chips: ["Adecuada", "Descuidada", "Agitación", "Enlentecimiento"], note_prompt: "Nota clínica…" },
                             { key: "speech", title: "Habla / Lenguaje", chips: ["Fluida", "Enlentecida", "Escasa", "Latencia ↑"], note_prompt: "Nota clínica…" },
                             { key: "mood", title: "Ánimo / Afecto", chips: ["Deprimido", "Eutímico", "Ansioso", "Lábil", "Restringido"], note_prompt: "Nota clínica…" },
@@ -2264,49 +2488,47 @@ export default function SimulatorPage() {
                             { key: "cognition", title: "Cognición", chips: ["Orientada", "Concentración ↓", "Memoria OK"], note_prompt: "Nota clínica…" },
                             { key: "insight", title: "Insight / Juicio", chips: ["Conciencia parcial", "Niega enfermedad", "Juicio conservado"], note_prompt: "Nota clínica…" },
                           ];
-
-                      const sections = tmpl.length ? tmpl : fallback;
-
-                      return sections.map((sec) => {
-                        const title = safeText(sec?.title, "Sección");
-                        const key = safeText(sec?.key, title);
-                        const chips = asStrArray(sec?.chips);
-                        const notePrompt = safeText(sec?.note_prompt, "Nota clínica…");
-
-                        return (
-                          <div key={key} className="overflow-hidden rounded-xl border border-white/10 bg-black/20">
-                            <button onClick={() => toggleMse(key)} className="flex w-full items-center justify-between px-3 py-2 text-left">
-                              <span className="text-sm text-white/85">{title}</span>
-                              <span className="text-xs text-white/40">{mseOpen[key] ? "—" : "+"}</span>
-                            </button>
-                            {mseOpen[key] && (
-                              <div className="border-t border-white/10 px-3 py-3">
-                                {chips.length > 0 && (
-                                  <div className="flex flex-wrap gap-2">
-                                    {chips.slice(0, 16).map((c: string, i: number) => (
-                                      <span key={i} className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">{c}</span>
-                                    ))}
+                          const sections = tmpl.length ? tmpl : fallback;
+                          return sections.map((sec) => {
+                            const title = safeText(sec?.title, "Sección");
+                            const key = safeText(sec?.key, title);
+                            const chips = asStrArray(sec?.chips);
+                            const notePrompt = safeText(sec?.note_prompt, "Nota clínica…");
+                            return (
+                              <div key={key} className="overflow-hidden rounded-xl border border-white/10 bg-black/20">
+                                <button onClick={() => toggleMse(key)} className="flex w-full items-center justify-between px-3 py-2 text-left">
+                                  <span className="text-sm text-white/85">{title}</span>
+                                  <span className="text-xs text-white/40">{mseOpen[key] ? "—" : "+"}</span>
+                                </button>
+                                {mseOpen[key] && (
+                                  <div className="border-t border-white/10 px-3 py-3">
+                                    {chips.length > 0 && (
+                                      <div className="flex flex-wrap gap-2">
+                                        {chips.slice(0, 16).map((c: string, i: number) => (
+                                          <span key={i} className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">{c}</span>
+                                        ))}
+                                      </div>
+                                    )}
+                                    <textarea
+                                      rows={2}
+                                      className="mt-3 w-full rounded-xl border border-white/10 bg-black/30 p-2 text-sm text-white/80 outline-none placeholder:text-white/35"
+                                      placeholder={notePrompt}
+                                    />
                                   </div>
                                 )}
-                                <textarea
-                                  rows={2}
-                                  className="mt-3 w-full rounded-xl border border-white/10 bg-black/30 p-2 text-sm text-white/80 outline-none placeholder:text-white/35"
-                                  placeholder={notePrompt}
-                                />
                               </div>
-                            )}
-                          </div>
-                        );
-                      });
-                    })()}
-
-                    <button
-                      type="button"
-                      onClick={() => setRightTab("risk")}
-                      className="mt-3 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white/80 hover:bg-black/40"
-                    >
-                      {isMedicalCase ? "Ir a Urgencia y seguridad" : "Ir a Seguridad"}
-                    </button>
+                            );
+                          });
+                        })()}
+                        <button
+                          type="button"
+                          onClick={() => setRightTab("risk")}
+                          className="mt-3 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white/80 hover:bg-black/40"
+                        >
+                          Ir a Seguridad
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
 

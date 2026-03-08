@@ -51,7 +51,7 @@ const NAV: NavItem[] = [
     ),
   },
   {
-    label: "Biblioteca de patologías médicas",
+    label: "Simulador de patologías",
     href: "/medical-cases",
     icon: (
       <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -73,7 +73,7 @@ const NAV: NavItem[] = [
     ),
   },
   {
-    label: "Biblioteca de trastornos mentales",
+    label: "Simulador de trastornos mentales",
     href: "/cases",
     icon: (
       <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -243,7 +243,7 @@ export default function Sidebar() {
                     aria-current={active ? "page" : undefined}
                     title={
                       disabledCase
-                        ? "No hay caso en curso. Genera un caso primero en Biblioteca de trastornos mentales."
+                        ? "No hay caso en curso. Genera un caso primero en Simulador de trastornos mentales."
                         : collapsed
                         ? item.label
                         : undefined

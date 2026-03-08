@@ -799,7 +799,7 @@ export default function CasesPage() {
 
             <header className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-semibold">Biblioteca de trastornos mentales</h1>
+                <h1 className="text-2xl font-semibold">Simulador de trastornos mentales</h1>
                 <p className="mt-1 text-sm text-white/70">
                   Casos clínicos de salud mental para práctica de entrevista y razonamiento clínico.
                 </p>

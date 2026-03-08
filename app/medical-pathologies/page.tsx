@@ -83,7 +83,7 @@ export default function MedicalPathologiesPage() {
                 href="/cases"
                 className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
               >
-                Biblioteca de trastornos mentales
+                Simulador de trastornos mentales
               </Link>
               <Link
                 href="/caces"
@@ -244,4 +244,3 @@ export default function MedicalPathologiesPage() {
     </div>
   );
 }
-
