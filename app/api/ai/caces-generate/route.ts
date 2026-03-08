@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 
-import { CACES_CATEGORIES, buildCacesQuestionKey, dedupeCacesQuestions } from "@/src/lib/caces";
+import {
+  CACES_CATEGORIES,
+  alignQuestionToEhepManual,
+  buildCacesQuestionKey,
+  dedupeCacesQuestions,
+} from "@/src/lib/caces";
 import { geminiChatJSON } from "@/src/lib/gemini";
 import { enforceRateLimit, requireAuthenticatedUser } from "@/src/lib/serverGuards";
 import type { CacesDifficulty, CacesOptionId, CacesQuestion, CacesQuestionType } from "@/src/lib/types";
@@ -208,7 +213,7 @@ function sanitizeGeneratedQuestions(args: {
     });
   }
 
-  return dedupeCacesQuestions(out);
+  return dedupeCacesQuestions(out).map(alignQuestionToEhepManual);
 }
 
 export async function POST(req: Request) {
@@ -279,6 +284,9 @@ Reglas:
 - Preguntas originales. No copiar reactivos oficiales.
 - Estilo académico profesional con razonamiento clínico.
 - 4 opciones plausibles, una correcta.
+- En preguntas de caso clínico, incluir escenario clínico breve, valoración y una instrucción interrogativa clara.
+- Evitar defectos técnicos: términos absolutos ("siempre", "nunca"), "ninguna/todas las anteriores", pistas gramaticales o lógicas.
+- Mantener opciones de la misma categoría conceptual y extensión relativa similar.
 - Explicación breve y didáctica.
 - Uso educativo.
 - Evita repetir o parafrasear demasiado preguntas previas.
@@ -419,4 +427,3 @@ Reglas:
     );
   }
 }
-

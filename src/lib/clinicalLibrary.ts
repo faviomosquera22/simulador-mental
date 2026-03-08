@@ -77,7 +77,7 @@ export const DX_AGE_BANDS: DxAgeBand[] = [
   "transversal",
 ];
 
-export const DX_LIBRARY: ClinicalDx[] = [
+const CURATED_DX_LIBRARY: ClinicalDx[] = [
   {
     id: "mdd",
     name: "Trastorno depresivo mayor (TDM)",
@@ -789,3 +789,883 @@ export const DX_LIBRARY: ClinicalDx[] = [
   },
 ];
 
+type DxSeed = {
+  id: string;
+  name: string;
+  category: DxCategory;
+  urgency: DxUrgency;
+  difficulty: DxDifficulty;
+  duration?: string;
+  keywords?: string[];
+  focus?: string;
+  ageBands?: DxAgeBand[];
+  frequentEmergency?: boolean;
+  severityHint?: string;
+  scales?: string[];
+  comorbidities?: string[];
+  differentials?: string[];
+  redFlags?: string[];
+};
+
+const DEFAULT_AGE_BANDS_BY_CATEGORY: Record<DxCategory, DxAgeBand[]> = {
+  Ánimo: ["adolescencia", "adulto", "adulto_mayor"],
+  Ansiedad: ["adolescencia", "adulto", "adulto_mayor"],
+  Trauma: ["adolescencia", "adulto", "adulto_mayor"],
+  Psicóticos: ["adolescencia", "adulto"],
+  Sustancias: ["adolescencia", "adulto", "adulto_mayor"],
+  Personalidad: ["adolescencia", "adulto"],
+  Neurodesarrollo: ["niñez", "adolescencia", "adulto"],
+  Sueño: ["niñez", "adolescencia", "adulto", "adulto_mayor"],
+};
+
+const DEFAULT_DIFFERENTIALS_BY_CATEGORY: Record<DxCategory, string[]> = {
+  Ánimo: ["Trastorno bipolar", "causa médica", "uso de sustancias", "trastorno de adaptación"],
+  Ansiedad: ["Causa médica", "uso de sustancias", "trastorno del ánimo", "estrés agudo"],
+  Trauma: ["TEPT", "trastorno de adaptación", "depresión", "consumo de sustancias"],
+  Psicóticos: ["Bipolaridad con psicosis", "depresión psicótica", "delirium", "intoxicación"],
+  Sustancias: ["Uso no problemático", "trastorno primario del ánimo", "psicosis primaria", "abstinencia"],
+  Personalidad: ["Trastorno del ánimo", "TEPT complejo", "consumo de sustancias", "trastorno psicótico"],
+  Neurodesarrollo: ["Ansiedad", "trastorno del ánimo", "dificultades de aprendizaje", "problemas del sueño"],
+  Sueño: ["Ansiedad", "depresión", "apnea del sueño", "uso de sustancias"],
+};
+
+const DEFAULT_SCALES_BY_CATEGORY: Record<DxCategory, string[]> = {
+  Ánimo: ["PHQ-9", "BDI", "Escala de riesgo suicida"],
+  Ansiedad: ["GAD-7", "Hamilton Ansiedad", "PHQ-9"],
+  Trauma: ["PCL-5 (educativa)", "PHQ-9", "Escala de riesgo suicida"],
+  Psicóticos: ["BPRS/PANSS abreviado (educativo)", "Escala de riesgo suicida", "ASSIST"],
+  Sustancias: ["AUDIT", "ASSIST", "PHQ-9"],
+  Personalidad: ["Tamizaje de rasgos de personalidad (educativo)", "PHQ-9", "Escala de riesgo suicida"],
+  Neurodesarrollo: ["Escalas de desarrollo (educativas)", "Conners/SNAP-IV", "tamizaje emocional"],
+  Sueño: ["ISI (educativa)", "PSQI (educativa)", "PHQ-9"],
+};
+
+const DEFAULT_COMORBIDITIES_BY_CATEGORY: Record<DxCategory, string[]> = {
+  Ánimo: ["ansiedad", "insomnio", "consumo de sustancias"],
+  Ansiedad: ["depresión", "insomnio", "somatización"],
+  Trauma: ["ansiedad", "depresión", "consumo de sustancias"],
+  Psicóticos: ["consumo de sustancias", "depresión", "riesgo suicida"],
+  Sustancias: ["depresión", "ansiedad", "insomnio"],
+  Personalidad: ["depresión", "ansiedad", "consumo de sustancias"],
+  Neurodesarrollo: ["ansiedad", "dificultades académicas", "problemas de sueño"],
+  Sueño: ["ansiedad", "depresión", "fatiga diurna"],
+};
+
+const DEFAULT_QUESTIONS_BY_CATEGORY: Record<DxCategory, string[]> = {
+  Ánimo: [
+    "¿Desde cuándo notas cambios emocionales persistentes?",
+    "¿Qué impacto tiene en motivación, energía y funcionamiento diario?",
+    "¿Cómo están sueño, apetito y concentración?",
+    "¿Existe ideación de muerte o autolesión?",
+  ],
+  Ansiedad: [
+    "¿Qué situaciones activan la ansiedad y con qué intensidad?",
+    "¿Qué síntomas físicos aparecen durante la activación?",
+    "¿Qué conductas de evitación se han instaurado?",
+    "¿Cómo afecta el problema a tu estudio, trabajo y relaciones?",
+  ],
+  Trauma: [
+    "¿Qué evento o contexto precipitó el cuadro actual?",
+    "¿Hay recuerdos intrusivos, evitación o hipervigilancia?",
+    "¿Existe exposición a peligro actual?",
+    "¿Cómo impacta en sueño, seguridad y funcionalidad?",
+  ],
+  Psicóticos: [
+    "¿Has percibido voces, ideas extrañas o señales dirigidas a ti?",
+    "¿Cuándo inició la desorganización y cómo evolucionó?",
+    "¿Hubo consumo de sustancias o condición médica reciente?",
+    "¿Existe riesgo de daño a sí mismo/a o a terceros?",
+  ],
+  Sustancias: [
+    "¿Cuál es el patrón de consumo y la sustancia principal?",
+    "¿Qué consecuencias ha tenido en tu vida diaria?",
+    "¿Presentas craving, tolerancia o abstinencia?",
+    "¿Qué motivación tienes para reducir o suspender el consumo?",
+  ],
+  Personalidad: [
+    "¿Qué patrones relacionales se repiten en diferentes contextos?",
+    "¿Cómo regulas emociones intensas y conflictos interpersonales?",
+    "¿Qué conductas impulsivas o de riesgo han ocurrido?",
+    "¿Qué deterioro funcional observas en trabajo, estudio o familia?",
+  ],
+  Neurodesarrollo: [
+    "¿Cómo fue el desarrollo temprano y el rendimiento académico/social?",
+    "¿Los síntomas aparecen en más de un contexto?",
+    "¿Qué reportan cuidadores, docentes u observadores cercanos?",
+    "¿Qué fortalezas y apoyos están disponibles actualmente?",
+  ],
+  Sueño: [
+    "¿Qué patrón de sueño presenta entre semana y fines de semana?",
+    "¿Cómo afecta el problema al rendimiento diurno?",
+    "¿Qué hábitos de sueño y consumo nocturno están presentes?",
+    "¿Hay signos de apnea, parasomnia o riesgo de accidentes?",
+  ],
+};
+
+const BASE_RED_FLAGS_BY_URGENCY: Record<DxUrgency, string[]> = {
+  alto: [
+    "Riesgo suicida o de auto/heteroagresión",
+    "Desorganización severa o pérdida de juicio de realidad",
+    "Deterioro funcional grave con incapacidad de autocuidado",
+  ],
+  medio: [
+    "Deterioro funcional sostenido",
+    "Escalada de consumo, impulsividad o aislamiento",
+    "Comorbilidad médica o psiquiátrica no controlada",
+  ],
+  bajo: [
+    "Persistencia de síntomas sin mejoría",
+    "Interferencia progresiva en estudio/trabajo",
+    "Falta de adherencia a recomendaciones básicas",
+  ],
+};
+
+const EXTRA_DX_SEEDS: DxSeed[] = [
+  {
+    id: "dysthymia",
+    name: "Trastorno depresivo persistente (distimia)",
+    category: "Ánimo",
+    urgency: "medio",
+    difficulty: "intermedio",
+    duration: ">=2 años (>=1 en adolescencia)",
+  },
+  {
+    id: "bipolar2",
+    name: "Trastorno bipolar II",
+    category: "Ánimo",
+    urgency: "alto",
+    difficulty: "avanzado",
+  },
+  {
+    id: "cyclothymia",
+    name: "Trastorno ciclotímico",
+    category: "Ánimo",
+    urgency: "medio",
+    difficulty: "intermedio",
+    duration: ">=2 años",
+  },
+  {
+    id: "dmdd",
+    name: "Trastorno disruptivo de desregulación del estado de ánimo",
+    category: "Ánimo",
+    urgency: "medio",
+    difficulty: "avanzado",
+  },
+  {
+    id: "pmdd",
+    name: "Trastorno disfórico premenstrual",
+    category: "Ánimo",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "seasonal-depression",
+    name: "Trastorno depresivo con patrón estacional",
+    category: "Ánimo",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "postpartum-depression",
+    name: "Depresión posparto",
+    category: "Ánimo",
+    urgency: "alto",
+    difficulty: "intermedio",
+    frequentEmergency: true,
+  },
+  {
+    id: "substance-induced-depression",
+    name: "Trastorno depresivo inducido por sustancias",
+    category: "Ánimo",
+    urgency: "alto",
+    difficulty: "avanzado",
+    frequentEmergency: true,
+  },
+  {
+    id: "depression-medical-condition",
+    name: "Trastorno depresivo debido a condición médica",
+    category: "Ánimo",
+    urgency: "medio",
+    difficulty: "avanzado",
+  },
+  {
+    id: "unspecified-depression",
+    name: "Trastorno depresivo no especificado",
+    category: "Ánimo",
+    urgency: "medio",
+    difficulty: "básico",
+  },
+  {
+    id: "recurrent-brief-depression",
+    name: "Trastorno depresivo breve recurrente (orientativo)",
+    category: "Ánimo",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "mixed-features-depression",
+    name: "Episodio depresivo con características mixtas",
+    category: "Ánimo",
+    urgency: "alto",
+    difficulty: "avanzado",
+    frequentEmergency: true,
+  },
+  {
+    id: "social-anxiety",
+    name: "Trastorno de ansiedad social",
+    category: "Ansiedad",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "specific-phobia",
+    name: "Fobia específica",
+    category: "Ansiedad",
+    urgency: "bajo",
+    difficulty: "básico",
+  },
+  {
+    id: "agoraphobia",
+    name: "Agorafobia",
+    category: "Ansiedad",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "separation-anxiety",
+    name: "Trastorno de ansiedad por separación",
+    category: "Ansiedad",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "selective-mutism",
+    name: "Mutismo selectivo",
+    category: "Ansiedad",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "illness-anxiety",
+    name: "Trastorno de ansiedad por enfermedad",
+    category: "Ansiedad",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "somatic-symptom-disorder",
+    name: "Trastorno de síntomas somáticos",
+    category: "Ansiedad",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "body-dysmorphic",
+    name: "Trastorno dismórfico corporal",
+    category: "Ansiedad",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "hoarding-disorder",
+    name: "Trastorno de acumulación",
+    category: "Ansiedad",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "trichotillomania",
+    name: "Tricotilomanía",
+    category: "Ansiedad",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "excoriation-disorder",
+    name: "Trastorno de excoriación",
+    category: "Ansiedad",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "acute-stress-disorder",
+    name: "Trastorno de estrés agudo",
+    category: "Ansiedad",
+    urgency: "alto",
+    difficulty: "intermedio",
+    frequentEmergency: true,
+  },
+  {
+    id: "emetophobia",
+    name: "Fobia específica: miedo a vomitar (emetofobia)",
+    category: "Ansiedad",
+    urgency: "bajo",
+    difficulty: "básico",
+  },
+  {
+    id: "unspecified-anxiety",
+    name: "Trastorno de ansiedad no especificado",
+    category: "Ansiedad",
+    urgency: "medio",
+    difficulty: "básico",
+  },
+  {
+    id: "adjustment-disorder",
+    name: "Trastorno de adaptación (general)",
+    category: "Trauma",
+    urgency: "medio",
+    difficulty: "básico",
+  },
+  {
+    id: "adjustment-anxious",
+    name: "Trastorno de adaptación con ansiedad",
+    category: "Trauma",
+    urgency: "medio",
+    difficulty: "básico",
+  },
+  {
+    id: "adjustment-depressed",
+    name: "Trastorno de adaptación con estado de ánimo depresivo",
+    category: "Trauma",
+    urgency: "medio",
+    difficulty: "básico",
+  },
+  {
+    id: "adjustment-mixed",
+    name: "Trastorno de adaptación mixto ansioso-depresivo",
+    category: "Trauma",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "complex-trauma",
+    name: "Trauma complejo (orientativo)",
+    category: "Trauma",
+    urgency: "alto",
+    difficulty: "avanzado",
+    frequentEmergency: true,
+  },
+  {
+    id: "reactive-attachment",
+    name: "Trastorno reactivo del apego",
+    category: "Trauma",
+    urgency: "medio",
+    difficulty: "avanzado",
+  },
+  {
+    id: "disinhibited-social-engagement",
+    name: "Trastorno de relación social desinhibida",
+    category: "Trauma",
+    urgency: "medio",
+    difficulty: "avanzado",
+  },
+  {
+    id: "trauma-related-grief",
+    name: "Duelo traumático persistente (orientativo)",
+    category: "Trauma",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "schizophrenia",
+    name: "Esquizofrenia",
+    category: "Psicóticos",
+    urgency: "alto",
+    difficulty: "avanzado",
+    frequentEmergency: true,
+  },
+  {
+    id: "schizophreniform",
+    name: "Trastorno esquizofreniforme",
+    category: "Psicóticos",
+    urgency: "alto",
+    difficulty: "avanzado",
+    frequentEmergency: true,
+  },
+  {
+    id: "brief-psychotic",
+    name: "Trastorno psicótico breve",
+    category: "Psicóticos",
+    urgency: "alto",
+    difficulty: "avanzado",
+    frequentEmergency: true,
+  },
+  {
+    id: "schizoaffective",
+    name: "Trastorno esquizoafectivo",
+    category: "Psicóticos",
+    urgency: "alto",
+    difficulty: "avanzado",
+    frequentEmergency: true,
+  },
+  {
+    id: "delusional-disorder",
+    name: "Trastorno delirante",
+    category: "Psicóticos",
+    urgency: "alto",
+    difficulty: "avanzado",
+    frequentEmergency: true,
+  },
+  {
+    id: "substance-induced-psychosis",
+    name: "Trastorno psicótico inducido por sustancias",
+    category: "Psicóticos",
+    urgency: "alto",
+    difficulty: "avanzado",
+    frequentEmergency: true,
+  },
+  {
+    id: "medical-condition-psychosis",
+    name: "Trastorno psicótico debido a condición médica",
+    category: "Psicóticos",
+    urgency: "alto",
+    difficulty: "avanzado",
+    frequentEmergency: true,
+  },
+  {
+    id: "attenuated-psychosis",
+    name: "Síndrome de psicosis atenuada (orientativo)",
+    category: "Psicóticos",
+    urgency: "medio",
+    difficulty: "avanzado",
+  },
+  {
+    id: "catatonia-mental",
+    name: "Catatonía asociada a trastorno mental",
+    category: "Psicóticos",
+    urgency: "alto",
+    difficulty: "avanzado",
+    frequentEmergency: true,
+  },
+  {
+    id: "catatonia-medical",
+    name: "Catatonía por condición médica",
+    category: "Psicóticos",
+    urgency: "alto",
+    difficulty: "avanzado",
+    frequentEmergency: true,
+  },
+  {
+    id: "postpartum-psychosis",
+    name: "Psicosis posparto",
+    category: "Psicóticos",
+    urgency: "alto",
+    difficulty: "avanzado",
+    frequentEmergency: true,
+  },
+  {
+    id: "shared-delusional",
+    name: "Trastorno delirante compartido (orientativo)",
+    category: "Psicóticos",
+    urgency: "medio",
+    difficulty: "avanzado",
+  },
+  {
+    id: "cannabis-use",
+    name: "Trastorno por consumo de cannabis",
+    category: "Sustancias",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "stimulant-use",
+    name: "Trastorno por consumo de estimulantes",
+    category: "Sustancias",
+    urgency: "alto",
+    difficulty: "avanzado",
+    frequentEmergency: true,
+  },
+  {
+    id: "opioid-use",
+    name: "Trastorno por consumo de opioides",
+    category: "Sustancias",
+    urgency: "alto",
+    difficulty: "avanzado",
+    frequentEmergency: true,
+  },
+  {
+    id: "sedative-use",
+    name: "Trastorno por consumo de sedantes/hipnóticos",
+    category: "Sustancias",
+    urgency: "alto",
+    difficulty: "avanzado",
+    frequentEmergency: true,
+  },
+  {
+    id: "tobacco-use",
+    name: "Trastorno por consumo de tabaco",
+    category: "Sustancias",
+    urgency: "medio",
+    difficulty: "básico",
+  },
+  {
+    id: "hallucinogen-use",
+    name: "Trastorno por consumo de alucinógenos",
+    category: "Sustancias",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "inhalant-use",
+    name: "Trastorno por consumo de inhalantes",
+    category: "Sustancias",
+    urgency: "alto",
+    difficulty: "intermedio",
+    frequentEmergency: true,
+  },
+  {
+    id: "polysubstance-use",
+    name: "Trastorno por consumo de múltiples sustancias",
+    category: "Sustancias",
+    urgency: "alto",
+    difficulty: "avanzado",
+    frequentEmergency: true,
+  },
+  {
+    id: "alcohol-withdrawal",
+    name: "Síndrome de abstinencia alcohólica",
+    category: "Sustancias",
+    urgency: "alto",
+    difficulty: "avanzado",
+    frequentEmergency: true,
+  },
+  {
+    id: "opioid-withdrawal",
+    name: "Síndrome de abstinencia a opioides",
+    category: "Sustancias",
+    urgency: "alto",
+    difficulty: "intermedio",
+    frequentEmergency: true,
+  },
+  {
+    id: "sedative-withdrawal",
+    name: "Síndrome de abstinencia a sedantes",
+    category: "Sustancias",
+    urgency: "alto",
+    difficulty: "avanzado",
+    frequentEmergency: true,
+  },
+  {
+    id: "stimulant-intoxication",
+    name: "Intoxicación por estimulantes",
+    category: "Sustancias",
+    urgency: "alto",
+    difficulty: "avanzado",
+    frequentEmergency: true,
+  },
+  {
+    id: "gambling-disorder",
+    name: "Trastorno por juego patológico",
+    category: "Sustancias",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "gaming-disorder",
+    name: "Trastorno por uso problemático de videojuegos",
+    category: "Sustancias",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "antisocial-personality",
+    name: "Trastorno de personalidad antisocial",
+    category: "Personalidad",
+    urgency: "alto",
+    difficulty: "avanzado",
+    frequentEmergency: true,
+  },
+  {
+    id: "narcissistic-personality",
+    name: "Trastorno de personalidad narcisista",
+    category: "Personalidad",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "avoidant-personality",
+    name: "Trastorno de personalidad evitativa",
+    category: "Personalidad",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "dependent-personality",
+    name: "Trastorno de personalidad dependiente",
+    category: "Personalidad",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "obsessive-compulsive-personality",
+    name: "Trastorno de personalidad obsesivo-compulsiva",
+    category: "Personalidad",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "paranoid-personality",
+    name: "Trastorno de personalidad paranoide",
+    category: "Personalidad",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "schizoid-personality",
+    name: "Trastorno de personalidad esquizoide",
+    category: "Personalidad",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "schizotypal-personality",
+    name: "Trastorno de personalidad esquizotípica",
+    category: "Personalidad",
+    urgency: "alto",
+    difficulty: "avanzado",
+    frequentEmergency: true,
+  },
+  {
+    id: "histrionic-personality",
+    name: "Trastorno de personalidad histriónica",
+    category: "Personalidad",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "unspecified-personality",
+    name: "Trastorno de personalidad no especificado",
+    category: "Personalidad",
+    urgency: "medio",
+    difficulty: "básico",
+  },
+  {
+    id: "adhd-adult",
+    name: "TDAH en adultez",
+    category: "Neurodesarrollo",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "intellectual-disability-mild",
+    name: "Discapacidad intelectual leve",
+    category: "Neurodesarrollo",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "global-developmental-delay",
+    name: "Retraso global del desarrollo",
+    category: "Neurodesarrollo",
+    urgency: "medio",
+    difficulty: "avanzado",
+  },
+  {
+    id: "developmental-language-disorder",
+    name: "Trastorno del desarrollo del lenguaje",
+    category: "Neurodesarrollo",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "social-communication-disorder",
+    name: "Trastorno de la comunicación social (pragmática)",
+    category: "Neurodesarrollo",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "developmental-coordination-disorder",
+    name: "Trastorno del desarrollo de la coordinación",
+    category: "Neurodesarrollo",
+    urgency: "bajo",
+    difficulty: "intermedio",
+  },
+  {
+    id: "specific-learning-reading",
+    name: "Trastorno específico del aprendizaje con dificultad en lectura",
+    category: "Neurodesarrollo",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "specific-learning-writing",
+    name: "Trastorno específico del aprendizaje con dificultad en expresión escrita",
+    category: "Neurodesarrollo",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "specific-learning-math",
+    name: "Trastorno específico del aprendizaje con dificultad matemática",
+    category: "Neurodesarrollo",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "tourette-syndrome",
+    name: "Síndrome de Tourette",
+    category: "Neurodesarrollo",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "persistent-motor-tic",
+    name: "Trastorno de tics motores persistentes",
+    category: "Neurodesarrollo",
+    urgency: "bajo",
+    difficulty: "básico",
+  },
+  {
+    id: "stereotypic-movement-disorder",
+    name: "Trastorno de movimientos estereotipados",
+    category: "Neurodesarrollo",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "hypersomnolence-disorder",
+    name: "Trastorno de hipersomnolencia",
+    category: "Sueño",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "narcolepsy",
+    name: "Narcolepsia",
+    category: "Sueño",
+    urgency: "medio",
+    difficulty: "avanzado",
+  },
+  {
+    id: "circadian-delayed-phase",
+    name: "Trastorno del ritmo circadiano: fase de sueño retrasada",
+    category: "Sueño",
+    urgency: "bajo",
+    difficulty: "intermedio",
+  },
+  {
+    id: "shift-work-sleep-disorder",
+    name: "Trastorno del sueño por trabajo en turnos",
+    category: "Sueño",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+  {
+    id: "nightmare-disorder",
+    name: "Trastorno de pesadillas",
+    category: "Sueño",
+    urgency: "bajo",
+    difficulty: "básico",
+  },
+  {
+    id: "sleep-terror-disorder",
+    name: "Trastorno de terrores nocturnos",
+    category: "Sueño",
+    urgency: "medio",
+    difficulty: "intermedio",
+  },
+];
+
+function buildDxFromSeed(seed: DxSeed): ClinicalDx {
+  const normalizedName = seed.name.toLowerCase();
+  const focus = seed.focus ?? normalizedName;
+  const generatedKeywords = seed.id
+    .split("-")
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  const keywords = Array.from(
+    new Set([...(seed.keywords ?? []), ...generatedKeywords, seed.category.toLowerCase()])
+  );
+
+  const differentials = seed.differentials ?? DEFAULT_DIFFERENTIALS_BY_CATEGORY[seed.category];
+  const redFlags = seed.redFlags ?? BASE_RED_FLAGS_BY_URGENCY[seed.urgency];
+  const comorbidities = seed.comorbidities ?? DEFAULT_COMORBIDITIES_BY_CATEGORY[seed.category];
+  const scales = seed.scales ?? DEFAULT_SCALES_BY_CATEGORY[seed.category];
+  const questions = DEFAULT_QUESTIONS_BY_CATEGORY[seed.category];
+
+  return {
+    id: seed.id,
+    name: seed.name,
+    category: seed.category,
+    keywords,
+    quick: {
+      definition: `${seed.name} con impacto clínico en funcionamiento y bienestar psicosocial.`,
+      typical: `Presentación orientativa centrada en ${focus}, con variación según contexto y comorbilidad.`,
+    },
+    dsm5: {
+      core: [
+        `Criterios clínicos orientativos compatibles con ${seed.name}`,
+        "Deterioro funcional clínicamente significativo",
+        "Valorar curso temporal, severidad y contexto",
+        "Descartar causas médicas y/o sustancias cuando corresponda",
+      ],
+      duration: seed.duration,
+    },
+    differentials,
+    redFlags,
+    questions,
+    initialCare: [
+      "Evaluar seguridad y nivel de riesgo al inicio",
+      "Priorizar estabilización, psicoeducación y objetivos inmediatos",
+      "Explorar comorbilidades psiquiátricas/médicas relevantes",
+      "Definir plan de seguimiento o derivación según severidad",
+    ],
+    meta: {
+      ageBands: seed.ageBands ?? DEFAULT_AGE_BANDS_BY_CATEGORY[seed.category],
+      urgency: seed.urgency,
+      difficulty: seed.difficulty,
+      severityHint:
+        seed.severityHint ??
+        `Resultado orientativo: la severidad de ${seed.name} depende del riesgo, deterioro funcional y comorbilidad.`,
+      frequentEmergency: seed.frequentEmergency ?? seed.urgency === "alto",
+      comorbidities,
+      recommendedScales: scales,
+    },
+    evaluation: {
+      firstQuestions: [
+        `¿Cuándo iniciaron los síntomas compatibles con ${seed.name}?`,
+        "¿Qué impacto tienen en autocuidado, trabajo/estudio y relaciones?",
+        "¿Qué factores disparan, mantienen o alivian el cuadro?",
+        "¿Qué cambios recientes hubo en sueño, consumo o salud médica?",
+      ],
+      mustNotMiss: [
+        "Riesgo suicida y autolesivo",
+        "Riesgo heteroagresivo o de negligencia grave",
+        "Psicosis, confusión o desorganización conductual marcada",
+      ],
+      ruleOut: [
+        ...differentials.slice(0, 3),
+        "Causa médica o farmacológica no identificada",
+      ],
+      urgentReferral: [
+        "Riesgo suicida alto o plan activo",
+        "Riesgo para terceros o deterioro funcional severo",
+        "Descompensación aguda sin soporte seguro",
+      ],
+    },
+    plan: {
+      goals24h72h: [
+        "Reducir riesgo clínico inmediato",
+        "Definir objetivos concretos de estabilización",
+        "Asegurar continuidad terapéutica y red de apoyo",
+      ],
+      nonPharmacological: [
+        "Psicoeducación breve centrada en el problema",
+        "Rutinas de regulación (sueño, estructura diaria, autocuidado)",
+        "Intervenciones de apoyo familiar/social según contexto",
+      ],
+      followupMarkers: [
+        "Disminución de síntomas nucleares",
+        "Mejoría funcional en actividades diarias",
+        "Mayor adherencia y compromiso con el plan",
+      ],
+    },
+  };
+}
+
+export const DX_LIBRARY: ClinicalDx[] = [
+  ...CURATED_DX_LIBRARY,
+  ...EXTRA_DX_SEEDS.map(buildDxFromSeed),
+];

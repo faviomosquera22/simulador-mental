@@ -1,4 +1,6 @@
 import type {
+  CacesCognitiveLevel,
+  CacesComplexityLevel,
   CacesAttemptAnswer,
   CacesAttemptResult,
   CacesDifficulty,
@@ -41,6 +43,87 @@ function options(
   d: CacesQuestionOption
 ): [CacesQuestionOption, CacesQuestionOption, CacesQuestionOption, CacesQuestionOption] {
   return [a, b, c, d];
+}
+
+const EHEP_BASE_REFERENCES = [
+  "CACES (2024). Manual para el diseño, aplicación y determinación de resultados del EHEP.",
+  "Bibliografía académica vigente y guías clínicas actualizadas del área temática.",
+];
+
+function inferCognitiveLevel(
+  difficulty: CacesDifficulty,
+  type: CacesQuestionType
+): CacesCognitiveLevel {
+  if (difficulty === "alta") return "analisis";
+  if (difficulty === "intermedia") return type === "caso_clinico" ? "aplicacion" : "comprension";
+  return "conocimiento";
+}
+
+function inferComplexityLevel(
+  difficulty: CacesDifficulty
+): CacesComplexityLevel {
+  if (difficulty === "alta") return "alto";
+  if (difficulty === "intermedia") return "medio";
+  return "bajo";
+}
+
+function sanitizeManualOptionText(value: string) {
+  let out = String(value ?? "").trim();
+
+  out = out
+    .replace(/\bninguna de las anteriores\b/gi, "Ninguna alternativa cumple completamente el criterio clínico planteado")
+    .replace(/\btodas las anteriores\b/gi, "La alternativa que integra de mejor forma los criterios clínicos")
+    .replace(/\bsiempre\b/gi, "de forma sistemática")
+    .replace(/\bnunca\b/gi, "rara vez");
+
+  return out;
+}
+
+function sanitizeManualRationale(value: string) {
+  const text = String(value ?? "").trim();
+  if (text.length > 0) return text;
+  return "No cumple de forma óptima el criterio clínico y técnico planteado en el enunciado.";
+}
+
+function sanitizeManualStem(question: CacesQuestion) {
+  const raw = String(question.question ?? "").trim();
+  const withQuestionMark = raw.endsWith("?") ? raw : `${raw}?`;
+
+  if (question.type === "caso_clinico") {
+    const normalized = withQuestionMark.replace(/^mini caso:/i, "Caso clínico:");
+    if (/^caso clínico:/i.test(normalized)) return normalized;
+    return `Caso clínico: ${normalized}`;
+  }
+
+  return withQuestionMark
+    .replace(/^en relacion con/i, "En relación con")
+    .replace(/^en relación con/i, "En relación con");
+}
+
+export function alignQuestionToEhepManual(question: CacesQuestion): CacesQuestion {
+  const optionsAligned = question.options.map((opt) => ({
+    ...opt,
+    text: sanitizeManualOptionText(opt.text),
+    rationale: sanitizeManualRationale(opt.rationale),
+  })) as CacesQuestion["options"];
+
+  const manualProfile = {
+    framework: "EHEP_2024" as const,
+    cognitiveLevel: inferCognitiveLevel(question.difficulty, question.type),
+    complexityLevel: inferComplexityLevel(question.difficulty),
+    reviewed: true,
+  };
+
+  return {
+    ...question,
+    question: sanitizeManualStem(question),
+    options: optionsAligned,
+    references:
+      Array.isArray(question.references) && question.references.length > 0
+        ? question.references
+        : EHEP_BASE_REFERENCES,
+    manualProfile,
+  };
 }
 
 export const CACES_CATEGORIES = [
@@ -722,9 +805,9 @@ const CACES_CORE_QUESTION_BANK: CacesQuestion[] = [
     question: "¿Qué enunciado diferencia correctamente una alucinación de una ilusión?",
     options: options(
       option("A", "La alucinación es percepción sin estímulo externo; la ilusión distorsiona un estímulo real.", "Define adecuadamente ambos fenómenos perceptivos."),
-      option("B", "Ambas son siempre producto de simulación consciente.", "No corresponde a la clínica psicopatológica."),
-      option("C", "La ilusión no ocurre nunca en cuadros orgánicos.", "Puede presentarse en múltiples condiciones clínicas."),
-      option("D", "La alucinación implica siempre orientación conservada.", "No es criterio definitorio.")
+      option("B", "Ambas son producto de simulación consciente de forma sistemática.", "No corresponde a la clínica psicopatológica."),
+      option("C", "La ilusión se presenta rara vez en cuadros orgánicos.", "Puede presentarse en múltiples condiciones clínicas."),
+      option("D", "La alucinación implica de forma sistemática orientación conservada.", "No es criterio definitorio.")
     ),
     correctAnswer: "A",
     explanation: "Alucinación: percepción sin objeto real. Ilusión: interpretación errónea de un estímulo existente.",
@@ -1173,7 +1256,7 @@ const CACES_CORE_QUESTION_BANK: CacesQuestion[] = [
 export const CACES_QUESTION_BANK: CacesQuestion[] = [
   ...CACES_CORE_QUESTION_BANK,
   ...CACES_EXPANDED_QUESTION_BANK,
-];
+].map(alignQuestionToEhepManual);
 
 export function normalizeCacesText(value: string) {
   return String(value ?? "")

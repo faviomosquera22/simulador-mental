@@ -267,6 +267,12 @@ export type QuizResult = {
 export type CacesOptionId = "A" | "B" | "C" | "D";
 export type CacesDifficulty = "basica" | "intermedia" | "alta";
 export type CacesQuestionType = "directa" | "caso_clinico";
+export type CacesCognitiveLevel =
+  | "conocimiento"
+  | "comprension"
+  | "aplicacion"
+  | "analisis";
+export type CacesComplexityLevel = "bajo" | "medio" | "alto";
 export type CacesPracticeMode =
   | "practica_individual"
   | "quiz_5"
@@ -297,6 +303,13 @@ export type CacesQuestion = {
   explanation: string;
   difficulty: CacesDifficulty;
   tags: string[];
+  manualProfile?: {
+    framework: "EHEP_2024";
+    cognitiveLevel: CacesCognitiveLevel;
+    complexityLevel: CacesComplexityLevel;
+    reviewed: boolean;
+  };
+  references?: string[];
 };
 
 export type CacesAttemptConfig = {

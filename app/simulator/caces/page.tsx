@@ -1214,6 +1214,16 @@ export default function SimulatorCacesPage() {
                         <span className={`rounded-full border px-3 py-1 ${getPriorityClass(currentQuestion?.difficulty === "alta" ? "Alta" : currentQuestion?.difficulty === "intermedia" ? "Media" : "Baja")}`}>
                           {currentQuestion?.type === "caso_clinico" ? "Caso clínico" : "Directa"}
                         </span>
+                        {currentQuestion?.manualProfile?.cognitiveLevel && (
+                          <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-white/75">
+                            Nivel cognitivo: {currentQuestion.manualProfile.cognitiveLevel}
+                          </span>
+                        )}
+                        {currentQuestion?.manualProfile?.complexityLevel && (
+                          <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-white/75">
+                            Complejidad: {currentQuestion.manualProfile.complexityLevel}
+                          </span>
+                        )}
                         {remainingSec != null && (
                           <span className="rounded-full border border-amber-400/25 bg-amber-400/10 px-3 py-1 text-amber-100">
                             Tiempo: {formatTimer(remainingSec)}
@@ -1274,6 +1284,14 @@ export default function SimulatorCacesPage() {
                               </div>
                             ))}
                           </div>
+                          {!!currentQuestion?.references?.length && (
+                            <div className="mt-3 rounded-xl border border-white/10 bg-black/25 p-2 text-xs text-white/70">
+                              <div className="font-semibold text-white/80">Referencia base</div>
+                              <div className="mt-1">
+                                {currentQuestion.references[0]}
+                              </div>
+                            </div>
+                          )}
                           <button
                             type="button"
                             onClick={() => {
