@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import Sidebar from "@/components/Sidebar";
 import {
+  CACES_QUESTION_BANK,
   CACES_CATEGORIES,
   deriveQuestionCountByMode,
   evaluateCacesAttempt,
@@ -57,7 +58,10 @@ function getModeLabel(mode: CacesPracticeMode) {
   if (mode === "quiz_5") return "Quiz de 5";
   if (mode === "simulacro_10") return "Simulacro de 10";
   if (mode === "simulacro_20") return "Simulacro de 20";
-  return "Examen amplio (50 mixtas)";
+  if (mode === "simulacro_30") return "Simulacro de 30";
+  if (mode === "simulacro_40") return "Simulacro de 40";
+  if (mode === "simulacro_50_mixto") return "Examen amplio (50 mixtas)";
+  return "Simulacro máximo disponible";
 }
 
 export default function SimulatorCacesPage() {
@@ -74,6 +78,7 @@ export default function SimulatorCacesPage() {
   const [mode, setMode] = useState<CacesPracticeMode>("quiz_5");
   const [feedbackMode, setFeedbackMode] = useState<CacesFeedbackMode>("inmediata");
   const [timerEnabled, setTimerEnabled] = useState(true);
+  const [minutesPerQuestion, setMinutesPerQuestion] = useState<1 | 2>(2);
   const [mixCategories, setMixCategories] = useState(false);
   const [saveResult, setSaveResult] = useState(true);
 
@@ -178,6 +183,16 @@ export default function SimulatorCacesPage() {
     });
   }, [effectiveCategory, selectedComponent, selectedSubcomponent, selectedTopic, selectedDifficulty, selectedType, effectiveMixCategories]);
 
+  const plannedQuestionCount = useMemo(() => {
+    if (mode === "simulacro_maximo") return filteredQuestions.length;
+    return questionCountByMode;
+  }, [mode, filteredQuestions.length, questionCountByMode]);
+
+  const estimatedTimeMinutes = useMemo(
+    () => plannedQuestionCount * minutesPerQuestion,
+    [plannedQuestionCount, minutesPerQuestion]
+  );
+
   const currentQuestion = useMemo(() => {
     if (!attempt || attempt.result) return null;
     return attempt.questions[attempt.currentIndex] ?? null;
@@ -241,7 +256,9 @@ export default function SimulatorCacesPage() {
       difficulty: selectedDifficulty === "all" ? undefined : selectedDifficulty,
       type: selectedType === "all" ? undefined : selectedType,
       mode,
-      number_of_questions: questionCountByMode,
+      number_of_questions: plannedQuestionCount,
+      minutes_per_question: minutesPerQuestion,
+      estimated_time_minutes: estimatedTimeMinutes,
       feedback_mode: feedbackMode,
       timer_enabled: timerEnabled,
       mix_categories: effectiveMixCategories,
@@ -255,7 +272,9 @@ export default function SimulatorCacesPage() {
       selectedDifficulty,
       selectedType,
       mode,
-      questionCountByMode,
+      plannedQuestionCount,
+      minutesPerQuestion,
+      estimatedTimeMinutes,
       feedbackMode,
       timerEnabled,
       effectiveMixCategories,
@@ -339,7 +358,7 @@ export default function SimulatorCacesPage() {
       return;
     }
 
-    const count = questionCountByMode;
+    const count = plannedQuestionCount;
     if (filteredQuestions.length < count) {
       setConfigError(
         `Este modo requiere ${count} preguntas y solo hay ${filteredQuestions.length} disponibles con el filtro actual.`
@@ -361,7 +380,7 @@ export default function SimulatorCacesPage() {
 
     const attemptId = `attempt:${Date.now()}:${Math.floor(Math.random() * 10_000)}`;
     const startedAt = Date.now();
-    const timerPerQuestionSec = 75;
+    const timerPerQuestionSec = minutesPerQuestion * 60;
 
     setAttempt({
       id: attemptId,
@@ -377,7 +396,8 @@ export default function SimulatorCacesPage() {
     effectiveMixCategories,
     selectedCategory,
     filteredQuestions,
-    questionCountByMode,
+    plannedQuestionCount,
+    minutesPerQuestion,
     timerEnabled,
   ]);
 
@@ -671,7 +691,10 @@ export default function SimulatorCacesPage() {
                             <option value="quiz_5">Quiz de 5</option>
                             <option value="simulacro_10">Simulacro de 10</option>
                             <option value="simulacro_20">Simulacro de 20</option>
+                            <option value="simulacro_30">Simulacro de 30</option>
+                            <option value="simulacro_40">Simulacro de 40</option>
                             <option value="simulacro_50_mixto">Examen amplio (50 mixtas)</option>
+                            <option value="simulacro_maximo">Simulacro máximo (banco disponible)</option>
                           </select>
                         </div>
 
@@ -691,7 +714,7 @@ export default function SimulatorCacesPage() {
                         <div>
                           <label className="text-xs text-white/60">Preguntas definidas por modo</label>
                           <div className="mt-1 rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/90">
-                            {questionCountByMode} ({getModeLabel(mode)})
+                            {plannedQuestionCount} ({getModeLabel(mode)})
                           </div>
                         </div>
                       </div>
@@ -726,6 +749,17 @@ export default function SimulatorCacesPage() {
                               />
                               Temporizador activado
                             </label>
+                            <label className="text-white/80">
+                              <span className="mb-1 block text-xs text-white/60">Tiempo por pregunta (recomendado: 2 min)</span>
+                              <select
+                                value={minutesPerQuestion}
+                                onChange={(e) => setMinutesPerQuestion(Number(e.target.value) === 1 ? 1 : 2)}
+                                className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
+                              >
+                                <option value={1}>1 minuto por pregunta (rápido)</option>
+                                <option value={2}>2 minutos por pregunta (más realista)</option>
+                              </select>
+                            </label>
                           </div>
                         </div>
 
@@ -750,11 +784,19 @@ export default function SimulatorCacesPage() {
                               Guardar resultado en historial
                             </label>
                             <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/65">
+                              Banco total CACES: <span className="font-semibold text-white">{CACES_QUESTION_BANK.length}</span>
+                            </div>
+                            <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/65">
                               Banco disponible para este filtro: <span className="font-semibold text-white">{filteredQuestions.length}</span>
                             </div>
-                            {filteredQuestions.length < questionCountByMode && (
+                            <div className="rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-xs text-cyan-100">
+                              {timerEnabled
+                                ? `Tiempo límite antes de iniciar: ${estimatedTimeMinutes} min (${plannedQuestionCount} preguntas x ${minutesPerQuestion} min).`
+                                : `Tiempo estimado sugerido: ${estimatedTimeMinutes} min (${plannedQuestionCount} preguntas x ${minutesPerQuestion} min).`}
+                            </div>
+                            {filteredQuestions.length < plannedQuestionCount && (
                               <div className="rounded-xl border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs text-amber-100">
-                                Faltan preguntas para este modo: se requieren {questionCountByMode} y hay {filteredQuestions.length}.
+                                Faltan preguntas para este modo: se requieren {plannedQuestionCount} y hay {filteredQuestions.length}.
                               </div>
                             )}
                           </div>
@@ -803,6 +845,7 @@ export default function SimulatorCacesPage() {
                             setMode("quiz_5");
                             setFeedbackMode("inmediata");
                             setTimerEnabled(true);
+                            setMinutesPerQuestion(2);
                             setMixCategories(false);
                             setSaveResult(true);
                             setConfigError(null);
@@ -947,6 +990,9 @@ export default function SimulatorCacesPage() {
                               </div>
                               <div className="mt-1 text-white/70">
                                 {item.result.accuracy}% · Tiempo {formatTimer(item.result.elapsed_seconds)} ·
+                                {item.config.timer_enabled
+                                  ? ` Límite ${item.config.estimated_time_minutes ?? item.config.number_of_questions * (item.config.minutes_per_question ?? 2)} min ·`
+                                  : " Sin límite ·"}
                                 {item.config.category ? ` ${item.config.category}` : " Categorías mixtas"}
                               </div>
                             </div>

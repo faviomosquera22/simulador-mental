@@ -244,7 +244,15 @@ export type QuizQuestion = {
 };
 
 export type QuizResult = {
-  mode: "practice" | "quiz_5" | "simulacro_10" | "simulacro_20" | "simulacro_50_mixto";
+  mode:
+    | "practice"
+    | "quiz_5"
+    | "simulacro_10"
+    | "simulacro_20"
+    | "simulacro_30"
+    | "simulacro_40"
+    | "simulacro_50_mixto"
+    | "simulacro_maximo";
   total_questions: number;
   correct_answers: number;
   accuracy: number;
@@ -264,7 +272,10 @@ export type CacesPracticeMode =
   | "quiz_5"
   | "simulacro_10"
   | "simulacro_20"
-  | "simulacro_50_mixto";
+  | "simulacro_30"
+  | "simulacro_40"
+  | "simulacro_50_mixto"
+  | "simulacro_maximo";
 export type CacesFeedbackMode = "inmediata" | "final";
 
 export type CacesQuestionOption = {
@@ -297,6 +308,8 @@ export type CacesAttemptConfig = {
   type?: CacesQuestionType;
   mode: CacesPracticeMode;
   number_of_questions: number;
+  minutes_per_question: 1 | 2;
+  estimated_time_minutes: number;
   feedback_mode: CacesFeedbackMode;
   timer_enabled: boolean;
   mix_categories: boolean;
