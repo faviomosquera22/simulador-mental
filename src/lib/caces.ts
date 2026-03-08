@@ -1222,7 +1222,7 @@ export function deriveQuestionCountByMode(mode: CacesPracticeMode) {
   if (mode === "simulacro_30") return 30;
   if (mode === "simulacro_40") return 40;
   if (mode === "simulacro_50_mixto") return 50;
-  if (mode === "simulacro_maximo") return 0;
+  if (mode === "simulacro_maximo") return 80;
   return 20;
 }
 

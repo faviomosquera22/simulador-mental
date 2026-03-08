@@ -1,337 +1,29 @@
-
-
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+
 import Sidebar from "../../components/Sidebar";
+import {
+  DX_AGE_BANDS,
+  DX_CATEGORIES,
+  DX_LIBRARY,
+  type DxAgeBand,
+  type DxCategory,
+  type DxDifficulty,
+  type DxUrgency,
+} from "../../src/lib/clinicalLibrary";
 
-type DxCategory =
-  | "Ánimo"
-  | "Ansiedad"
-  | "Trauma"
-  | "Psicóticos"
-  | "Sustancias"
-  | "Personalidad"
-  | "Neurodesarrollo"
-  | "Sueño";
+type DetailTab =
+  | "Resumen"
+  | "DSM-5"
+  | "Evaluación"
+  | "Diferenciales"
+  | "Red flags"
+  | "Preguntas"
+  | "Plan inicial";
 
-type Dx = {
-  id: string; // slug corto (para ?dx=)
-  name: string;
-  category: DxCategory;
-  keywords: string[];
-  quick: {
-    definition: string;
-    typical: string;
-  };
-  dsm5: {
-    core: string[]; // checklist corto
-    duration?: string;
-    specifiers?: string[];
-  };
-  differentials: string[];
-  redFlags: string[];
-  questions: string[];
-  initialCare: string[];
-};
-
-// Datos iniciales (mínimos, editables). No es el DSM-5 textual: es una guía resumida para estudio/uso en simulador.
-const DX: Dx[] = [
-  {
-    id: "mdd",
-    name: "Trastorno depresivo mayor (TDM)",
-    category: "Ánimo",
-    keywords: ["depresión", "anhedonia", "tristeza", "mdd", "tdm"],
-    quick: {
-      definition:
-        "Episodio de ánimo deprimido o anhedonia con impacto funcional y síntomas asociados.",
-      typical:
-        "Baja energía, alteraciones de sueño/apetito, culpa, enlentecimiento o agitación; puede haber ideación suicida.",
-    },
-    dsm5: {
-      core: [
-        "≥5 síntomas, casi todos los días",
-        "Incluye ánimo deprimido y/o anhedonia",
-        "Deterioro funcional",
-        "No atribuible a sustancias/condición médica",
-      ],
-      duration: "≥2 semanas",
-      specifiers: ["con ansiedad", "melancólico", "atípico", "con características psicóticas"],
-    },
-    differentials: [
-      "Duelo vs TDM (persistencia, culpa, ideación suicida, deterioro)",
-      "Trastorno bipolar (historia de manía/hipomanía)",
-      "Hipotiroidismo/anemia/efectos de fármacos",
-      "Trastorno depresivo persistente",
-    ],
-    redFlags: [
-      "Ideación/plan suicida, intento previo",
-      "Síntomas psicóticos",
-      "Catatonía o deterioro grave (no come/no bebe)",
-    ],
-    questions: [
-      "¿Qué tanto disfrutas hoy lo que antes te gustaba?",
-      "¿Cómo están tu sueño y tu apetito?",
-      "¿Has sentido culpa excesiva o que no vales nada?",
-      "¿Te cuesta concentrarte o tomar decisiones?",
-      "Pregunta de seguridad: ¿has pensado en hacerte daño? ¿tienes un plan?",
-    ],
-    initialCare: [
-      "Evaluar riesgo suicida y red flags; derivación urgente si aplica",
-      "Psicoeducación + plan de apoyo (red de soporte)",
-      "Higiene del sueño, activación conductual básica",
-      "Coordinar evaluación médica si sospecha orgánica",
-    ],
-  },
-  {
-    id: "gad",
-    name: "Trastorno de ansiedad generalizada (TAG)",
-    category: "Ansiedad",
-    keywords: ["ansiedad", "preocupación", "nervios", "gad", "tag"],
-    quick: {
-      definition:
-        "Preocupación excesiva y difícil de controlar sobre múltiples áreas, con síntomas somáticos/cognitivos.",
-      typical:
-        "Inquietud, fatigabilidad, tensión muscular, irritabilidad, problemas de sueño y concentración.",
-    },
-    dsm5: {
-      core: [
-        "Preocupación excesiva y persistente",
-        "Difícil de controlar",
-        "Síntomas físicos/cognitivos asociados",
-        "Deterioro funcional",
-      ],
-      duration: "≥6 meses",
-    },
-    differentials: [
-      "Trastorno de pánico",
-      "Hipertiroidismo/intoxicación por estimulantes",
-      "TEPT",
-      "Ansiedad por enfermedad",
-    ],
-    redFlags: ["Dolor torácico/síncope (descartar orgánico)", "Uso de sustancias", "Ideación suicida por desesperanza"],
-    questions: [
-      "¿Cuánto tiempo al día te ocupan las preocupaciones?",
-      "¿Qué tan difícil es parar esos pensamientos?",
-      "¿Dónde lo sientes en el cuerpo (tensión, palpitaciones, dolor)?",
-      "¿Cómo afecta tu estudio/trabajo/sueño?",
-    ],
-    initialCare: [
-      "Técnicas breves: respiración diafragmática, grounding",
-      "Identificar disparadores y patrones de evitación",
-      "Higiene del sueño; limitar cafeína/energizantes",
-      "Derivar si hay comorbilidad grave o riesgo",
-    ],
-  },
-  {
-    id: "panic",
-    name: "Trastorno de pánico",
-    category: "Ansiedad",
-    keywords: ["pánico", "crisis", "ataque", "panic"],
-    quick: {
-      definition:
-        "Ataques de pánico recurrentes e inesperados + preocupación persistente o cambios conductuales.",
-      typical:
-        "Palpitaciones, disnea, temblor, miedo a morir/volverse loco; evitación de lugares.",
-    },
-    dsm5: {
-      core: [
-        "Ataques de pánico inesperados y recurrentes",
-        "≥1 mes de preocupación por nuevos ataques y/o evitación",
-        "No explicado mejor por sustancia/condición médica",
-      ],
-    },
-    differentials: ["Arritmias/asma/hipoglucemia", "TEPT", "Fobia específica/social"],
-    redFlags: ["Primer ataque con síntomas cardiopulmonares intensos", "Uso de cocaína/anfetaminas", "Síncope"],
-    questions: [
-      "¿Qué síntomas aparecen primero? ¿cuánto dura el pico?",
-      "¿Qué temes que pase durante el ataque?",
-      "¿Evitas lugares por miedo a otro ataque?",
-    ],
-    initialCare: [
-      "Descartar causas médicas si es primer episodio o atípico",
-      "Psicoeducación: curva del pánico y reatribución",
-      "Respiración/grounding; exposición gradual con guía profesional",
-    ],
-  },
-  {
-    id: "ptsd",
-    name: "Trastorno de estrés postraumático (TEPT)",
-    category: "Trauma",
-    keywords: ["trauma", "tept", "flashbacks", "pesadillas", "ptsd"],
-    quick: {
-      definition:
-        "Síntomas intrusivos + evitación + cambios cognitivo/afectivos + hiperactivación tras un evento traumático.",
-      typical:
-        "Pesadillas, recuerdos intrusivos, hipervigilancia, irritabilidad, anestesia emocional.",
-    },
-    dsm5: {
-      core: [
-        "Exposición a trauma",
-        "Intrusiones (recuerdos, pesadillas, flashbacks)",
-        "Evitación",
-        "Cambios negativos en cognición/ánimo",
-        "Hiperactivación",
-        "Deterioro funcional",
-      ],
-      duration: ">1 mes",
-    },
-    differentials: ["Trastorno de adaptación", "Trastorno de pánico", "Depresión mayor"],
-    redFlags: ["Disociación severa", "Riesgo suicida", "Violencia en curso"],
-    questions: [
-      "¿Hay recuerdos que llegan sin querer?",
-      "¿Qué cosas evitas para no recordar?",
-      "¿Te sientes en guardia todo el tiempo?",
-      "Seguridad: ¿sigues expuesto/a al peligro?",
-    ],
-    initialCare: [
-      "Priorizar seguridad (riesgo actual, violencia)",
-      "Grounding y estabilización antes de exposición a trauma",
-      "Plan de apoyo + derivación a terapia enfocada en trauma",
-    ],
-  },
-  {
-    id: "bipolar1",
-    name: "Trastorno bipolar I (episodio maníaco)",
-    category: "Ánimo",
-    keywords: ["manía", "bipolar", "bipolar1", "euforia"],
-    quick: {
-      definition:
-        "Episodio maníaco (ánimo elevado/irritable) con aumento de energía y deterioro marcado o psicosis.",
-      typical:
-        "Menos sueño, verborrea, grandiosidad, impulsividad (gastos/sexo), conductas de riesgo.",
-    },
-    dsm5: {
-      core: [
-        "Ánimo elevado/irritable + ↑ energía",
-        "Síntomas: grandiosidad, ↓ sueño, verborrea, fuga de ideas, distractibilidad, ↑ actividad, conductas riesgosas",
-        "Deterioro marcado / hospitalización / psicosis",
-      ],
-      duration: "≥1 semana (o cualquier duración si hospitalización)",
-    },
-    differentials: ["Sustancias (cocaína/anfetaminas)", "Hipertiroidismo", "TDAH", "Trastorno límite"],
-    redFlags: ["Psicosis", "Conductas de alto riesgo", "Agitación severa", "Falta total de sueño"],
-    questions: [
-      "¿Cuántas horas duermes y cómo te sientes al despertar?",
-      "¿Has tenido periodos con energía ‘inagotable’?",
-      "¿Gastos/decisiones impulsivas recientes?",
-      "¿Alguien te ha dicho que hablas más rápido de lo normal?",
-    ],
-    initialCare: [
-      "Evaluación urgente si manía probable (riesgo/psicosis)",
-      "Reducir estímulos; apoyo familiar si es seguro",
-      "Derivación médica/psiquiatría",
-    ],
-  },
-  {
-    id: "psychosis",
-    name: "Psicosis / Espectro esquizofrenia (screening)",
-    category: "Psicóticos",
-    keywords: ["psicosis", "alucinaciones", "delirios", "esquizofrenia"],
-    quick: {
-      definition:
-        "Síntomas psicóticos (delirios, alucinaciones, pensamiento desorganizado) con impacto funcional.",
-      typical:
-        "Voces, ideas persecutorias, conducta extraña, aislamiento, deterioro progresivo.",
-    },
-    dsm5: {
-      core: [
-        "Delirios y/o alucinaciones y/o lenguaje desorganizado",
-        "Deterioro social/ocupacional",
-        "Descartar sustancias/condición médica",
-      ],
-    },
-    differentials: ["Trastorno bipolar/depresión con psicosis", "Intoxicación/abstinencia", "Delirium"],
-    redFlags: ["Comando alucinatorio", "Ideas de daño a otros", "Delirium (inicio agudo, fluctuante)"],
-    questions: [
-      "¿Has escuchado o visto cosas que otros no perciben?",
-      "¿Sientes que te vigilan o te quieren hacer daño?",
-      "¿Te han ordenado hacer algo?",
-      "¿Consumes alcohol/drogas? ¿cuándo fue la última vez?",
-    ],
-    initialCare: [
-      "Priorizar seguridad: riesgo auto/heteroagresivo",
-      "Evaluación médica si inicio agudo o sospecha de delirium",
-      "Derivación urgente a salud mental",
-    ],
-  },
-  {
-    id: "aud",
-    name: "Trastorno por consumo de alcohol (AUD)",
-    category: "Sustancias",
-    keywords: ["alcohol", "consumo", "dependencia", "aud"],
-    quick: {
-      definition:
-        "Patrón problemático de consumo con deterioro, tolerancia/abstinencia o pérdida de control.",
-      typical:
-        "Aumento de cantidad, fallas en responsabilidades, consumo pese a consecuencias, craving.",
-    },
-    dsm5: {
-      core: [
-        "Pérdida de control / craving",
-        "Deterioro social/ocupacional",
-        "Uso riesgoso",
-        "Tolerancia y/o abstinencia",
-      ],
-    },
-    differentials: ["Consumo social", "Trastorno depresivo con automedicación", "Otras sustancias"],
-    redFlags: ["Abstinencia severa (temblor, delirium)", "Ideación suicida", "Violencia"],
-    questions: [
-      "¿Cuántos días a la semana tomas y cuánto?",
-      "¿Has intentado bajar y no has podido?",
-      "¿Has tenido abstinencia (temblor, sudor, ansiedad) al dejarlo?",
-      "¿Te ha traído problemas en casa/estudio/trabajo?",
-    ],
-    initialCare: [
-      "Tamizaje (AUDIT-C) + entrevista motivacional breve",
-      "Plan de reducción/abstinencia con apoyo",
-      "Derivar si abstinencia probable o comorbilidad grave",
-    ],
-  },
-  {
-    id: "insomnia",
-    name: "Trastorno de insomnio",
-    category: "Sueño",
-    keywords: ["insomnio", "sueño", "no duermo"],
-    quick: {
-      definition:
-        "Dificultad para iniciar/mantener el sueño o despertar precoz con malestar o deterioro.",
-      typical:
-        "Somnolencia diurna, irritabilidad, mala concentración; a veces asociado a ansiedad/depresión.",
-    },
-    dsm5: {
-      core: ["Problema de sueño", "Malestar/deterioro", "Ocurre pese a oportunidad de dormir"],
-      duration: "≥3 meses (crónico) / ≥3 noches por semana",
-    },
-    differentials: ["Apnea del sueño", "Uso de cafeína/estimulantes", "Depresión/ansiedad"],
-    redFlags: ["Ronquidos + pausas respiratorias", "Somnolencia extrema", "Uso de sedantes"],
-    questions: [
-      "¿Cuánto tardas en dormirte? ¿cuántas veces despiertas?",
-      "¿Qué haces 2 horas antes de dormir?",
-      "¿Cafeína/energizantes? ¿a qué hora?",
-      "¿Roncas o te han visto dejar de respirar?",
-    ],
-    initialCare: [
-      "Higiene del sueño (horario fijo, luz, pantallas)",
-      "Control de estímulos y restricción del sueño (si aplica)",
-      "Evaluar comorbilidades y derivar si apnea probable",
-    ],
-  },
-];
-
-const CATEGORIES: DxCategory[] = [
-  "Ánimo",
-  "Ansiedad",
-  "Trauma",
-  "Psicóticos",
-  "Sustancias",
-  "Personalidad",
-  "Neurodesarrollo",
-  "Sueño",
-];
-
-function getDxFromUrl(): string | null {
+function getDxFromUrl() {
   if (typeof window === "undefined") return null;
   const params = new URLSearchParams(window.location.search);
   return params.get("dx");
@@ -344,34 +36,102 @@ function setDxInUrl(dxId: string) {
   window.history.replaceState({}, "", url.toString());
 }
 
-export default function Page() {
+function urgencyBadge(urgency: DxUrgency) {
+  if (urgency === "alto") return "border-red-400/25 bg-red-400/10 text-red-100";
+  if (urgency === "medio") return "border-amber-400/25 bg-amber-400/10 text-amber-100";
+  return "border-emerald-400/25 bg-emerald-400/10 text-emerald-100";
+}
+
+function difficultyBadge(level: DxDifficulty) {
+  if (level === "avanzado") return "border-fuchsia-400/25 bg-fuchsia-400/10 text-fuchsia-100";
+  if (level === "intermedio") return "border-cyan-400/25 bg-cyan-400/10 text-cyan-100";
+  return "border-slate-300/20 bg-slate-300/10 text-slate-100";
+}
+
+function listPreview(values: string[], count: number) {
+  return values.slice(0, count).join(" · ");
+}
+
+export default function TopicsPage() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<DxCategory | "Todas">("Todas");
-  const [activeId, setActiveId] = useState<string>(DX[0]?.id ?? "mdd");
-  const [tab, setTab] = useState<"Resumen" | "DSM-5" | "Diferenciales" | "Red flags" | "Preguntas" | "Manejo">("Resumen");
+  const [ageBand, setAgeBand] = useState<DxAgeBand | "todas">("todas");
+  const [urgencyFilter, setUrgencyFilter] = useState<DxUrgency | "todas">("todas");
+  const [difficultyFilter, setDifficultyFilter] = useState<DxDifficulty | "todas">("todas");
+  const [sortBy, setSortBy] = useState<"relevancia" | "riesgo" | "alfabetico">(
+    "relevancia"
+  );
+  const [emergencyOnly, setEmergencyOnly] = useState(false);
+  const [activeId, setActiveId] = useState<string>(DX_LIBRARY[0]?.id ?? "mdd");
+  const [tab, setTab] = useState<DetailTab>("Resumen");
+  const [compareId, setCompareId] = useState<string>("");
 
-  // Selección inicial por URL (?dx=)
   useEffect(() => {
     const dx = getDxFromUrl();
     if (!dx) return;
-    const exists = DX.some((d) => d.id === dx);
-    if (exists) setActiveId(dx);
+    if (DX_LIBRARY.some((d) => d.id === dx)) setActiveId(dx);
   }, []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return DX.filter((d) => {
-      const catOk = category === "Todas" ? true : d.category === category;
-      if (!catOk) return false;
+    const base = DX_LIBRARY.filter((d) => {
+      if (category !== "Todas" && d.category !== category) return false;
+      if (ageBand !== "todas" && !d.meta.ageBands.includes(ageBand)) return false;
+      if (urgencyFilter !== "todas" && d.meta.urgency !== urgencyFilter) return false;
+      if (difficultyFilter !== "todas" && d.meta.difficulty !== difficultyFilter) return false;
+      if (emergencyOnly && !d.meta.frequentEmergency) return false;
+
       if (!q) return true;
-      const hay = `${d.name} ${d.category} ${d.keywords.join(" ")}`.toLowerCase();
-      return hay.includes(q);
+      const haystack = [
+        d.name,
+        d.category,
+        d.quick.definition,
+        ...d.keywords,
+        ...d.meta.comorbidities,
+        ...d.meta.recommendedScales,
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      return haystack.includes(q);
     });
-  }, [query, category]);
+    const urgencyWeight: Record<DxUrgency, number> = { alto: 3, medio: 2, bajo: 1 };
+    if (sortBy === "alfabetico") {
+      return [...base].sort((a, b) => a.name.localeCompare(b.name, "es"));
+    }
+    if (sortBy === "riesgo") {
+      return [...base].sort(
+        (a, b) =>
+          urgencyWeight[b.meta.urgency] - urgencyWeight[a.meta.urgency] ||
+          a.name.localeCompare(b.name, "es")
+      );
+    }
+    if (!q) return base;
+
+    const score = (d: (typeof base)[number]) => {
+      let s = 0;
+      if (d.name.toLowerCase().includes(q)) s += 3;
+      if (d.category.toLowerCase().includes(q)) s += 2;
+      s += d.keywords.filter((k) => k.toLowerCase().includes(q)).length;
+      return s;
+    };
+
+    return [...base].sort((a, b) => score(b) - score(a));
+  }, [query, category, ageBand, urgencyFilter, difficultyFilter, emergencyOnly, sortBy]);
 
   const active = useMemo(() => {
-    return DX.find((d) => d.id === activeId) ?? filtered[0] ?? DX[0];
+    return DX_LIBRARY.find((d) => d.id === activeId) ?? filtered[0] ?? DX_LIBRARY[0];
   }, [activeId, filtered]);
+
+  const compareTarget = useMemo(() => {
+    if (!compareId) return null;
+    return DX_LIBRARY.find((d) => d.id === compareId) ?? null;
+  }, [compareId]);
+
+  const compareOptions = useMemo(() => {
+    if (!active) return filtered;
+    return filtered.filter((d) => d.id !== active.id);
+  }, [filtered, active]);
 
   useEffect(() => {
     if (!active?.id) return;
@@ -379,50 +139,82 @@ export default function Page() {
   }, [active?.id]);
 
   useEffect(() => {
-    // si el filtro dejó fuera el active, selecciona el primero
     if (!active) return;
     const inFiltered = filtered.some((d) => d.id === active.id);
     if (!inFiltered && filtered[0]) setActiveId(filtered[0].id);
   }, [filtered, active]);
+
+  useEffect(() => {
+    if (!compareTarget && compareId) setCompareId("");
+  }, [compareTarget, compareId]);
+
+  const stats = useMemo(() => {
+    const highRisk = DX_LIBRARY.filter((d) => d.meta.urgency === "alto").length;
+    const emergency = DX_LIBRARY.filter((d) => d.meta.frequentEmergency).length;
+    const pediatric = DX_LIBRARY.filter(
+      (d) =>
+        d.meta.ageBands.includes("niñez") || d.meta.ageBands.includes("adolescencia")
+    ).length;
+    return { highRisk, emergency, pediatric };
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#070A0F]">
       <div className="mx-auto flex max-w-[1480px] gap-6 px-4 py-6">
         <Sidebar />
 
-        <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl p-6">
-          <div className="flex items-start justify-between gap-3">
+        <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 p-6 backdrop-blur-xl">
+          <header className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold">Biblioteca clínica</h1>
+              <h1 className="text-2xl font-semibold text-white">Biblioteca clínica</h1>
               <p className="mt-1 text-sm text-white/70">
-                DSM-5 en versión práctica: rápido, claro y listo para el simulador.
+                Guía práctica para entrevista clínica, priorización de riesgo y plan inicial.
               </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80">
+                  Diagnósticos: {DX_LIBRARY.length}
+                </span>
+                <span className="rounded-full border border-red-400/25 bg-red-400/10 px-3 py-1 text-xs text-red-100">
+                  Riesgo alto: {stats.highRisk}
+                </span>
+                <span className="rounded-full border border-amber-400/25 bg-amber-400/10 px-3 py-1 text-xs text-amber-100">
+                  Frecuentes en urgencias: {stats.emergency}
+                </span>
+                <span className="rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-100">
+                  Niñez/adolescencia: {stats.pediatric}
+                </span>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Link
                 href="/cases"
-                className="rounded-xl border border-white/15 px-4 py-2 text-sm hover:bg-white/5"
+                className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/85 hover:bg-white/5"
               >
                 Biblioteca de casos
               </Link>
               <Link
+                href="/caces"
+                className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/85 hover:bg-white/5"
+              >
+                Practicar CACES
+              </Link>
+              <Link
                 href="/history"
-                className="rounded-xl border border-white/15 px-4 py-2 text-sm hover:bg-white/5"
+                className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/85 hover:bg-white/5"
               >
                 Historial
               </Link>
             </div>
-          </div>
+          </header>
 
-          <div className="mt-6 grid grid-cols-1 lg:grid-cols-[360px_minmax(0,1fr)] gap-5">
-            {/* Left: search + list */}
+          <div className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-[390px_minmax(0,1fr)]">
             <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <div className="flex flex-col gap-3">
+              <div className="space-y-3">
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Busca: depresión, pánico, TEPT…"
+                  placeholder="Busca: depresión, psicosis, TDAH, trauma..."
                   className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/40 outline-none focus:border-white/20"
                 />
 
@@ -437,7 +229,7 @@ export default function Page() {
                   >
                     Todas
                   </button>
-                  {CATEGORIES.map((c) => (
+                  {DX_CATEGORIES.map((c) => (
                     <button
                       key={c}
                       onClick={() => setCategory(c)}
@@ -451,63 +243,228 @@ export default function Page() {
                     </button>
                   ))}
                 </div>
+
+                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                  <select
+                    value={ageBand}
+                    onChange={(e) => setAgeBand(e.target.value as DxAgeBand | "todas")}
+                    className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs text-white/85 outline-none"
+                  >
+                    <option value="todas">Grupo etario: todos</option>
+                    {DX_AGE_BANDS.map((band) => (
+                      <option key={band} value={band}>
+                        {band}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={urgencyFilter}
+                    onChange={(e) => setUrgencyFilter(e.target.value as DxUrgency | "todas")}
+                    className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs text-white/85 outline-none"
+                  >
+                    <option value="todas">Urgencia: todas</option>
+                    <option value="alto">Urgencia alta</option>
+                    <option value="medio">Urgencia media</option>
+                    <option value="bajo">Urgencia baja</option>
+                  </select>
+
+                  <select
+                    value={difficultyFilter}
+                    onChange={(e) =>
+                      setDifficultyFilter(e.target.value as DxDifficulty | "todas")
+                    }
+                    className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs text-white/85 outline-none"
+                  >
+                    <option value="todas">Dificultad: todas</option>
+                    <option value="básico">Básico</option>
+                    <option value="intermedio">Intermedio</option>
+                    <option value="avanzado">Avanzado</option>
+                  </select>
+
+                  <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs text-white/80">
+                    <input
+                      type="checkbox"
+                      checked={emergencyOnly}
+                      onChange={(e) => setEmergencyOnly(e.target.checked)}
+                    />
+                    Frecuentes en urgencias
+                  </label>
+                </div>
               </div>
 
-              <div className="mt-4 space-y-2">
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-white/60">
+                <span>Resultados: {filtered.length}</span>
+                <div className="flex items-center gap-2">
+                  <label className="text-white/60">Orden:</label>
+                  <select
+                    value={sortBy}
+                    onChange={(e) =>
+                      setSortBy(
+                        e.target.value as "relevancia" | "riesgo" | "alfabetico"
+                      )
+                    }
+                    className="rounded-lg border border-white/10 bg-black/30 px-2 py-1 text-xs text-white/80 outline-none"
+                  >
+                    <option value="relevancia">Relevancia</option>
+                    <option value="riesgo">Riesgo clínico</option>
+                    <option value="alfabetico">Alfabético</option>
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuery("");
+                      setCategory("Todas");
+                      setAgeBand("todas");
+                      setUrgencyFilter("todas");
+                      setDifficultyFilter("todas");
+                      setSortBy("relevancia");
+                      setEmergencyOnly(false);
+                    }}
+                    className="rounded-lg border border-white/10 px-2 py-1 text-white/75 hover:bg-white/5"
+                  >
+                    Limpiar filtros
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-3 max-h-[560px] space-y-2 overflow-y-auto pr-1">
                 {filtered.length === 0 ? (
                   <div className="rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-white/70">
-                    No hay coincidencias. Prueba con otra palabra.
+                    No hay diagnósticos para este filtro. Ajusta categoría, urgencia o grupo
+                    etario para ampliar resultados.
                   </div>
                 ) : (
                   filtered.map((d) => (
                     <button
                       key={d.id}
+                      type="button"
                       onClick={() => {
                         setActiveId(d.id);
                         setTab("Resumen");
                       }}
-                      className={`w-full text-left rounded-xl border p-4 transition ${
+                      className={`w-full rounded-xl border p-4 text-left transition ${
                         active?.id === d.id
                           ? "border-white/25 bg-white/10"
                           : "border-white/10 bg-black/20 hover:bg-white/5"
                       }`}
                     >
-                      <div className="text-xs text-white/60">{d.category}</div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs text-white/60">{d.category}</span>
+                        <span
+                          className={`rounded-full border px-2 py-0.5 text-[10px] ${urgencyBadge(
+                            d.meta.urgency
+                          )}`}
+                        >
+                          Riesgo {d.meta.urgency}
+                        </span>
+                        <span
+                          className={`rounded-full border px-2 py-0.5 text-[10px] ${difficultyBadge(
+                            d.meta.difficulty
+                          )}`}
+                        >
+                          {d.meta.difficulty}
+                        </span>
+                      </div>
                       <div className="mt-1 text-sm font-semibold text-white">{d.name}</div>
-                      <div className="mt-1 text-xs text-white/60 line-clamp-2">{d.quick.definition}</div>
+                      <div className="mt-1 line-clamp-2 text-xs text-white/65">
+                        {d.quick.definition}
+                      </div>
                     </button>
                   ))
                 )}
               </div>
-
-              <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4 text-xs text-white/60">
-                Tip: puedes abrir una ficha directo con <span className="text-white">/topics?dx=gad</span>.
-              </div>
             </section>
 
-            {/* Right: details */}
             <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
               {!active ? (
-                <div className="text-sm text-white/70">Selecciona un tema a la izquierda.</div>
+                <div className="rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-white/70">
+                  Selecciona un diagnóstico a la izquierda.
+                </div>
               ) : (
                 <>
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <div className="text-xs text-white/60">{active.category}</div>
                       <h2 className="mt-1 text-xl font-semibold text-white">{active.name}</h2>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <span
+                          className={`rounded-full border px-3 py-1 text-xs ${urgencyBadge(
+                            active.meta.urgency
+                          )}`}
+                        >
+                          Riesgo {active.meta.urgency}
+                        </span>
+                        <span
+                          className={`rounded-full border px-3 py-1 text-xs ${difficultyBadge(
+                            active.meta.difficulty
+                          )}`}
+                        >
+                          Complejidad {active.meta.difficulty}
+                        </span>
+                        <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/75">
+                          {active.meta.ageBands.join(" · ")}
+                        </span>
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Link
+                        href="/cases"
+                        className="rounded-xl border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
+                      >
+                        Practicar caso
+                      </Link>
+                      <Link
+                        href="/simulator"
+                        className="rounded-xl border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
+                      >
+                        Abrir simulador
+                      </Link>
                       <button
+                        type="button"
                         onClick={() => {
                           try {
                             navigator.clipboard.writeText(window.location.href);
                           } catch {}
                         }}
-                        className="rounded-xl border border-white/15 px-4 py-2 text-sm hover:bg-white/5"
+                        className="rounded-xl border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
                       >
                         Copiar link
                       </button>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+                    <div className="rounded-xl border border-white/10 bg-black/25 p-3">
+                      <div className="text-[11px] uppercase tracking-wider text-white/50">
+                        Ficha 30 segundos
+                      </div>
+                      <div className="mt-1 text-xs text-white/80">{active.meta.severityHint}</div>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-black/25 p-3">
+                      <div className="text-[11px] uppercase tracking-wider text-white/50">
+                        Comorbilidades frecuentes
+                      </div>
+                      <div className="mt-1 text-xs text-white/80">
+                        {listPreview(active.meta.comorbidities, 3)}
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-black/25 p-3">
+                      <div className="text-[11px] uppercase tracking-wider text-white/50">
+                        Escalas sugeridas
+                      </div>
+                      <div className="mt-1 text-xs text-white/80">
+                        {listPreview(active.meta.recommendedScales, 3)}
+                      </div>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-black/25 p-3">
+                      <div className="text-[11px] uppercase tracking-wider text-white/50">
+                        Enfoque inicial
+                      </div>
+                      <div className="mt-1 text-xs text-white/80">
+                        Seguridad, funcionalidad y diferenciales prioritarios.
+                      </div>
                     </div>
                   </div>
 
@@ -516,14 +473,16 @@ export default function Page() {
                       [
                         "Resumen",
                         "DSM-5",
+                        "Evaluación",
                         "Diferenciales",
                         "Red flags",
                         "Preguntas",
-                        "Manejo",
+                        "Plan inicial",
                       ] as const
                     ).map((t) => (
                       <button
                         key={t}
+                        type="button"
                         onClick={() => setTab(t)}
                         className={`rounded-full border px-3 py-1 text-xs ${
                           tab === t
@@ -547,6 +506,19 @@ export default function Page() {
                           <div className="text-xs text-white/60">Presentación típica</div>
                           <div className="mt-1 text-sm text-white/85">{active.quick.typical}</div>
                         </div>
+                        <div>
+                          <div className="text-xs text-white/60">Comorbilidades frecuentes</div>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {active.meta.comorbidities.map((c) => (
+                              <span
+                                key={c}
+                                className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/75"
+                              >
+                                {c}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     )}
 
@@ -554,9 +526,9 @@ export default function Page() {
                       <div className="space-y-4">
                         <div>
                           <div className="text-xs text-white/60">Checklist núcleo</div>
-                          <ul className="mt-2 space-y-2 text-sm text-white/85 list-disc pl-5">
-                            {active.dsm5.core.map((x, i) => (
-                              <li key={i}>{x}</li>
+                          <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-white/85">
+                            {active.dsm5.core.map((x) => (
+                              <li key={x}>{x}</li>
                             ))}
                           </ul>
                         </div>
@@ -581,8 +553,42 @@ export default function Page() {
                             </div>
                           </div>
                         )}
-                        <div className="text-xs text-white/50">
-                          Nota: Esto es un resumen para estudio/uso clínico simulado. No reemplaza evaluación profesional.
+                      </div>
+                    )}
+
+                    {tab === "Evaluación" && (
+                      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                        <div>
+                          <div className="text-xs text-white/60">Qué preguntar primero</div>
+                          <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-white/85">
+                            {active.evaluation.firstQuestions.map((x) => (
+                              <li key={x}>{x}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div>
+                          <div className="text-xs text-white/60">Qué no olvidar</div>
+                          <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-white/85">
+                            {active.evaluation.mustNotMiss.map((x) => (
+                              <li key={x}>{x}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div>
+                          <div className="text-xs text-white/60">Qué descartar</div>
+                          <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-white/85">
+                            {active.evaluation.ruleOut.map((x) => (
+                              <li key={x}>{x}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div>
+                          <div className="text-xs text-white/60">Cuándo derivar urgente</div>
+                          <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-white/85">
+                            {active.evaluation.urgentReferral.map((x) => (
+                              <li key={x}>{x}</li>
+                            ))}
+                          </ul>
                         </div>
                       </div>
                     )}
@@ -590,9 +596,9 @@ export default function Page() {
                     {tab === "Diferenciales" && (
                       <div>
                         <div className="text-xs text-white/60">Diferenciales clave</div>
-                        <ul className="mt-2 space-y-2 text-sm text-white/85 list-disc pl-5">
-                          {active.differentials.map((x, i) => (
-                            <li key={i}>{x}</li>
+                        <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-white/85">
+                          {active.differentials.map((x) => (
+                            <li key={x}>{x}</li>
                           ))}
                         </ul>
                       </div>
@@ -601,38 +607,113 @@ export default function Page() {
                     {tab === "Red flags" && (
                       <div>
                         <div className="text-xs text-white/60">Banderas rojas</div>
-                        <ul className="mt-2 space-y-2 text-sm text-white/85 list-disc pl-5">
-                          {active.redFlags.map((x, i) => (
-                            <li key={i}>{x}</li>
+                        <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-white/85">
+                          {active.redFlags.map((x) => (
+                            <li key={x}>{x}</li>
                           ))}
                         </ul>
-                        <div className="mt-4 rounded-xl border border-white/10 bg-black/30 p-4 text-sm text-white/75">
-                          Si aparece una bandera roja, tu objetivo cambia: primero seguridad, luego entrevista.
+                        <div className="mt-4 rounded-xl border border-red-400/20 bg-red-400/10 p-4 text-sm text-red-100">
+                          Si aparece una red flag, prioriza seguridad y ruta de derivación.
                         </div>
                       </div>
                     )}
 
                     {tab === "Preguntas" && (
                       <div>
-                        <div className="text-xs text-white/60">Preguntas sugeridas (entrevista)</div>
-                        <ul className="mt-2 space-y-2 text-sm text-white/85 list-disc pl-5">
-                          {active.questions.map((x, i) => (
-                            <li key={i}>{x}</li>
+                        <div className="text-xs text-white/60">Preguntas guía de entrevista</div>
+                        <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-white/85">
+                          {active.questions.map((x) => (
+                            <li key={x}>{x}</li>
                           ))}
                         </ul>
                       </div>
                     )}
 
-                    {tab === "Manejo" && (
+                    {tab === "Plan inicial" && (
+                      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                        <div>
+                          <div className="text-xs text-white/60">Objetivos de 24-72h</div>
+                          <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-white/85">
+                            {active.plan.goals24h72h.map((x) => (
+                              <li key={x}>{x}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div>
+                          <div className="text-xs text-white/60">Intervenciones no farmacológicas</div>
+                          <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-white/85">
+                            {active.plan.nonPharmacological.map((x) => (
+                              <li key={x}>{x}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className="lg:col-span-2">
+                          <div className="text-xs text-white/60">Marcadores de seguimiento</div>
+                          <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-white/85">
+                            {active.plan.followupMarkers.map((x) => (
+                              <li key={x}>{x}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-5">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <div>
-                        <div className="text-xs text-white/60">Manejo inicial (primeros pasos)</div>
-                        <ul className="mt-2 space-y-2 text-sm text-white/85 list-disc pl-5">
-                          {active.initialCare.map((x, i) => (
-                            <li key={i}>{x}</li>
-                          ))}
-                        </ul>
-                        <div className="mt-4 text-xs text-white/50">
-                          Próximo paso: conectar esta ficha con cada caso (meta.dsm_tag) para abrirla desde el simulador en 1 clic.
+                        <div className="text-sm font-semibold text-white">Comparador clínico</div>
+                        <div className="text-xs text-white/60">
+                          Compara rápidamente diagnóstico activo vs otro diagnóstico filtrado.
+                        </div>
+                      </div>
+                      <select
+                        value={compareId}
+                        onChange={(e) => setCompareId(e.target.value)}
+                        className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs text-white/85 outline-none"
+                      >
+                        <option value="">Selecciona diagnóstico para comparar</option>
+                        {compareOptions.map((d) => (
+                          <option key={d.id} value={d.id}>
+                            {d.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {!compareTarget ? (
+                      <div className="mt-3 rounded-xl border border-white/10 bg-black/25 p-3 text-sm text-white/65">
+                        Sin comparador seleccionado.
+                      </div>
+                    ) : (
+                      <div className="mt-4 grid grid-cols-1 gap-3 xl:grid-cols-2">
+                        <div className="rounded-xl border border-white/10 bg-black/25 p-4">
+                          <div className="text-xs text-white/50">Diagnóstico activo</div>
+                          <div className="mt-1 text-sm font-semibold text-white">{active.name}</div>
+                          <div className="mt-2 text-xs text-white/70">{active.quick.definition}</div>
+                          <div className="mt-3 text-xs text-white/55">
+                            Duración clave: {active.dsm5.duration ?? "Según criterios nucleares"}
+                          </div>
+                          <div className="mt-2 text-xs text-white/70">
+                            Red flags: {listPreview(active.redFlags, 2)}
+                          </div>
+                        </div>
+
+                        <div className="rounded-xl border border-white/10 bg-black/25 p-4">
+                          <div className="text-xs text-white/50">Comparador</div>
+                          <div className="mt-1 text-sm font-semibold text-white">
+                            {compareTarget.name}
+                          </div>
+                          <div className="mt-2 text-xs text-white/70">
+                            {compareTarget.quick.definition}
+                          </div>
+                          <div className="mt-3 text-xs text-white/55">
+                            Duración clave:{" "}
+                            {compareTarget.dsm5.duration ?? "Según criterios nucleares"}
+                          </div>
+                          <div className="mt-2 text-xs text-white/70">
+                            Red flags: {listPreview(compareTarget.redFlags, 2)}
+                          </div>
                         </div>
                       </div>
                     )}

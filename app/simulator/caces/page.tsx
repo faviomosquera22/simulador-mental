@@ -78,7 +78,7 @@ function getModeLabel(mode: CacesPracticeMode) {
   if (mode === "simulacro_30") return "Simulacro de 30";
   if (mode === "simulacro_40") return "Simulacro de 40";
   if (mode === "simulacro_50_mixto") return "Examen amplio (50 mixtas)";
-  return "Simulacro máximo disponible";
+  return "Simulacro amplio (80 mixtas)";
 }
 
 export default function SimulatorCacesPage() {
@@ -130,7 +130,8 @@ export default function SimulatorCacesPage() {
   }, []);
 
   const questionCountByMode = useMemo(() => deriveQuestionCountByMode(mode), [mode]);
-  const isWideMixedMode = mode === "simulacro_50_mixto";
+  const isWideMixedMode =
+    mode === "simulacro_50_mixto" || mode === "simulacro_maximo";
 
   useEffect(() => {
     if (!isWideMixedMode) return;
@@ -235,10 +236,7 @@ export default function SimulatorCacesPage() {
     [filteredQuestions, seenQuestionKeys]
   );
 
-  const plannedQuestionCount = useMemo(() => {
-    if (mode === "simulacro_maximo") return filteredQuestions.length;
-    return questionCountByMode;
-  }, [mode, filteredQuestions.length, questionCountByMode]);
+  const plannedQuestionCount = questionCountByMode;
 
   const estimatedTimeMinutes = useMemo(
     () => plannedQuestionCount * minutesPerQuestion,
@@ -463,7 +461,6 @@ export default function SimulatorCacesPage() {
 
     if (
       enableAIDynamicBank &&
-      mode !== "simulacro_maximo" &&
       count > 0
     ) {
       const currentSeen = new Set(getSeenCacesQuestionKeys());
@@ -552,13 +549,12 @@ export default function SimulatorCacesPage() {
     minutesPerQuestion,
     timerEnabled,
     enableAIDynamicBank,
-    mode,
     generateMoreQuestionsWithAI,
     activeFilterPayload,
   ]);
 
   const handleGeneratePack = useCallback(async () => {
-    const batch = mode === "simulacro_maximo" ? 30 : Math.max(20, Math.min(60, plannedQuestionCount));
+    const batch = mode === "simulacro_maximo" ? 50 : Math.max(20, Math.min(60, plannedQuestionCount));
     await generateMoreQuestionsWithAI(batch, "ampliar banco manual");
   }, [generateMoreQuestionsWithAI, mode, plannedQuestionCount]);
 
@@ -855,7 +851,7 @@ export default function SimulatorCacesPage() {
                             <option value="simulacro_30">Simulacro de 30</option>
                             <option value="simulacro_40">Simulacro de 40</option>
                             <option value="simulacro_50_mixto">Examen amplio (50 mixtas)</option>
-                            <option value="simulacro_maximo">Simulacro máximo (banco disponible)</option>
+                            <option value="simulacro_maximo">Simulacro amplio de 80</option>
                           </select>
                         </div>
 
@@ -1019,7 +1015,7 @@ export default function SimulatorCacesPage() {
                             ? "Preparando banco..."
                             : mode === "practica_individual"
                               ? "Iniciar práctica"
-                              : mode === "simulacro_50_mixto"
+                              : mode === "simulacro_50_mixto" || mode === "simulacro_maximo"
                                 ? "Iniciar examen amplio"
                                 : "Iniciar simulacro"}
                         </button>
