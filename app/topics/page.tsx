@@ -5,19 +5,14 @@ import { useEffect, useMemo, useState } from "react";
 
 import Sidebar from "../../components/Sidebar";
 import {
-  DX_AGE_BANDS,
-  DX_CATEGORIES,
   DX_LIBRARY,
   type ClinicalDx,
   type DxAgeBand,
-  type DxCategory,
   type DxDifficulty,
   type DxUrgency,
 } from "../../src/lib/clinicalLibrary";
 import {
-  MEDICAL_AREAS,
   MEDICAL_PATHOLOGY_LIBRARY,
-  type MedicalArea,
   type MedicalPathology,
 } from "../../src/lib/medicalPathologyLibrary";
 
@@ -103,15 +98,9 @@ function deriveMedicalAgeBands(pathology: MedicalPathology): DxAgeBand[] {
 export default function TopicsPage() {
   const [query, setQuery] = useState("");
   const [libraryType, setLibraryType] = useState<LibraryType>("todas");
-  const [category, setCategory] = useState<DxCategory | "Todas">("Todas");
-  const [medicalArea, setMedicalArea] = useState<MedicalArea | "Todas">("Todas");
-  const [ageBand, setAgeBand] = useState<DxAgeBand | "todas">("todas");
-  const [urgencyFilter, setUrgencyFilter] = useState<DxUrgency | "todas">("todas");
-  const [difficultyFilter, setDifficultyFilter] = useState<DxDifficulty | "todas">("todas");
   const [sortBy, setSortBy] = useState<"relevancia" | "riesgo" | "alfabetico">(
     "relevancia"
   );
-  const [emergencyOnly, setEmergencyOnly] = useState(false);
   const [activeKey, setActiveKey] = useState<string>("mental:mdd");
   const [tab, setTab] = useState<DetailTab>("Resumen");
   const [compareId, setCompareId] = useState<string>("");
@@ -169,32 +158,11 @@ export default function TopicsPage() {
     }
   }, [unifiedLibrary]);
 
-  useEffect(() => {
-    if (libraryType === "todas") {
-      setCategory("Todas");
-      setMedicalArea("Todas");
-      return;
-    }
-    if (libraryType === "trastornos") setMedicalArea("Todas");
-    if (libraryType === "patologias") setCategory("Todas");
-  }, [libraryType]);
-
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     const base = unifiedLibrary.filter((item) => {
       if (libraryType === "trastornos" && item.kind !== "mental") return false;
       if (libraryType === "patologias" && item.kind !== "medical") return false;
-
-      if (item.kind === "mental") {
-        if (category !== "Todas" && item.groupLabel !== category) return false;
-      } else if (medicalArea !== "Todas" && item.groupLabel !== medicalArea) {
-        return false;
-      }
-
-      if (ageBand !== "todas" && !item.ageBands.includes(ageBand)) return false;
-      if (urgencyFilter !== "todas" && item.urgency !== urgencyFilter) return false;
-      if (difficultyFilter !== "todas" && item.difficulty !== difficultyFilter) return false;
-      if (emergencyOnly && !item.frequentEmergency) return false;
 
       if (!q) return true;
       const haystack = [
@@ -239,12 +207,6 @@ export default function TopicsPage() {
     query,
     unifiedLibrary,
     libraryType,
-    category,
-    medicalArea,
-    ageBand,
-    urgencyFilter,
-    difficultyFilter,
-    emergencyOnly,
     sortBy,
   ]);
 
@@ -405,102 +367,6 @@ export default function TopicsPage() {
                     Patologías médicas
                   </button>
                 </div>
-
-                {libraryType !== "patologias" && (
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() => setCategory("Todas")}
-                      className={`rounded-full border px-3 py-1 text-xs ${
-                        category === "Todas"
-                          ? "border-white/30 bg-white/10 text-white"
-                          : "border-white/10 bg-black/20 text-white/70 hover:bg-white/5"
-                      }`}
-                    >
-                      Todas
-                    </button>
-                    {DX_CATEGORIES.map((c) => (
-                      <button
-                        key={c}
-                        onClick={() => setCategory(c)}
-                        className={`rounded-full border px-3 py-1 text-xs ${
-                          category === c
-                            ? "border-white/30 bg-white/10 text-white"
-                            : "border-white/10 bg-black/20 text-white/70 hover:bg-white/5"
-                        }`}
-                      >
-                        {c}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {libraryType !== "trastornos" && (
-                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                    <select
-                      value={medicalArea}
-                      onChange={(e) => setMedicalArea(e.target.value as MedicalArea | "Todas")}
-                      className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs text-white/85 outline-none"
-                    >
-                      <option value="Todas">Área médica: todas</option>
-                      {MEDICAL_AREAS.map((areaOption) => (
-                        <option key={areaOption} value={areaOption}>
-                          {areaOption}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                  <select
-                    value={ageBand}
-                    onChange={(e) => setAgeBand(e.target.value as DxAgeBand | "todas")}
-                    className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs text-white/85 outline-none"
-                  >
-                    <option value="todas">Grupo etario: todos</option>
-                    {DX_AGE_BANDS.map((band) => (
-                      <option key={band} value={band}>
-                        {band}
-                      </option>
-                    ))}
-                  </select>
-
-                  <select
-                    value={urgencyFilter}
-                    onChange={(e) => setUrgencyFilter(e.target.value as DxUrgency | "todas")}
-                    className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs text-white/85 outline-none"
-                  >
-                    <option value="todas">Riesgo/Urgencia: todas</option>
-                    <option value="alto">Alta</option>
-                    <option value="medio">Media</option>
-                    <option value="bajo">Baja</option>
-                  </select>
-
-                  <select
-                    value={difficultyFilter}
-                    onChange={(e) =>
-                      setDifficultyFilter(e.target.value as DxDifficulty | "todas")
-                    }
-                    className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs text-white/85 outline-none"
-                  >
-                    <option value="todas">Complejidad: todas</option>
-                    <option value="básico">Básica</option>
-                    <option value="intermedio">Intermedia</option>
-                    <option value="avanzado">Alta</option>
-                  </select>
-
-                  <button
-                    type="button"
-                    onClick={() => setEmergencyOnly((value) => !value)}
-                    className={`rounded-xl border px-3 py-2 text-xs ${
-                      emergencyOnly
-                        ? "border-amber-400/25 bg-amber-400/10 text-amber-100"
-                        : "border-white/10 bg-black/30 text-white/80 hover:bg-white/5"
-                    }`}
-                  >
-                    Frecuentes en urgencias
-                  </button>
-                </div>
               </div>
 
               <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-white/60">
@@ -525,13 +391,7 @@ export default function TopicsPage() {
                     onClick={() => {
                       setQuery("");
                       setLibraryType("todas");
-                      setCategory("Todas");
-                      setMedicalArea("Todas");
-                      setAgeBand("todas");
-                      setUrgencyFilter("todas");
-                      setDifficultyFilter("todas");
                       setSortBy("relevancia");
-                      setEmergencyOnly(false);
                     }}
                     className="rounded-lg border border-white/10 px-2 py-1 text-white/75 hover:bg-white/5"
                   >
