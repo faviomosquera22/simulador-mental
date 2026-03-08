@@ -37,9 +37,22 @@ const NAV: NavItem[] = [
     ),
   },
   {
-    label: "Preguntas CACES",
-    href: "/simulator?tab=caces",
-    requiresActiveCase: true,
+    label: "Biblioteca clínica",
+    href: "/topics",
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M9 3H5a2 2 0 0 0-2 2v4" />
+        <path d="M9 3h10a2 2 0 0 1 2 2v4" />
+        <path d="M9 3v18" />
+        <path d="M9 21h10a2 2 0 0 0 2-2V9" />
+        <path d="M9 21H5a2 2 0 0 1-2-2V9" />
+        <path d="M3 9h18" />
+      </svg>
+    ),
+  },
+  {
+    label: "CACES",
+    href: "/simulator/caces",
     icon: (
       <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
         <path d="M9.5 9a2.5 2.5 0 1 1 4 2c-.6.4-1 .7-1.2 1.4" />
@@ -55,20 +68,6 @@ const NAV: NavItem[] = [
       <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
         <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-      </svg>
-    ),
-  },
-  {
-    label: "Biblioteca clínica",
-    href: "/topics",
-    icon: (
-      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M9 3H5a2 2 0 0 0-2 2v4" />
-        <path d="M9 3h10a2 2 0 0 1 2 2v4" />
-        <path d="M9 3v18" />
-        <path d="M9 21h10a2 2 0 0 0 2-2V9" />
-        <path d="M9 21H5a2 2 0 0 1-2-2V9" />
-        <path d="M3 9h18" />
       </svg>
     ),
   },
@@ -133,7 +132,10 @@ export default function Sidebar() {
       setHasActiveCase(hasCaseInProgress());
       try {
         const search = new URLSearchParams(window.location.search);
-        setIsCacesRoute(window.location.pathname === "/simulator" && search.get("tab") === "caces");
+        setIsCacesRoute(
+          window.location.pathname === "/simulator/caces" ||
+          (window.location.pathname === "/simulator" && search.get("tab") === "caces")
+        );
       } catch {
         setIsCacesRoute(false);
       }
@@ -208,7 +210,7 @@ export default function Sidebar() {
             {NAV.map((item) => {
               const disabledCase = Boolean(item.requiresActiveCase) && !hasActiveCase;
               const href = disabledCase ? "/cases" : item.href;
-              const isCacesItem = item.label === "Preguntas CACES";
+              const isCacesItem = item.label === "CACES";
               const active = !disabledCase && (
                 isCacesItem
                   ? isCacesRoute

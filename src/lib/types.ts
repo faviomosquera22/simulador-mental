@@ -256,6 +256,91 @@ export type QuizResult = {
   }>;
 };
 
+export type CacesOptionId = "A" | "B" | "C" | "D";
+export type CacesDifficulty = "basica" | "intermedia" | "alta";
+export type CacesQuestionType = "directa" | "caso_clinico";
+export type CacesPracticeMode = "practica_individual" | "quiz_5" | "simulacro_10" | "simulacro_20";
+export type CacesFeedbackMode = "inmediata" | "final";
+
+export type CacesQuestionOption = {
+  id: CacesOptionId;
+  text: string;
+  rationale: string;
+};
+
+export type CacesQuestion = {
+  id: string;
+  component: string;
+  subcomponent: string;
+  topic: string;
+  category: string;
+  type: CacesQuestionType;
+  question: string;
+  options: [CacesQuestionOption, CacesQuestionOption, CacesQuestionOption, CacesQuestionOption];
+  correctAnswer: CacesOptionId;
+  explanation: string;
+  difficulty: CacesDifficulty;
+  tags: string[];
+};
+
+export type CacesAttemptConfig = {
+  component?: string;
+  subcomponent?: string;
+  topic?: string;
+  category?: string;
+  difficulty?: CacesDifficulty;
+  type?: CacesQuestionType;
+  mode: CacesPracticeMode;
+  number_of_questions: number;
+  feedback_mode: CacesFeedbackMode;
+  timer_enabled: boolean;
+  mix_categories: boolean;
+  save_result: boolean;
+};
+
+export type CacesAttemptAnswer = {
+  question_id: string;
+  selected: CacesOptionId | null;
+  skipped: boolean;
+  marked_for_review: boolean;
+};
+
+export type CacesAttemptResult = {
+  attempt_id: string;
+  total_questions: number;
+  correct_answers: number;
+  incorrect_answers: number;
+  skipped_answers: number;
+  accuracy: number;
+  total_score: number;
+  elapsed_seconds: number;
+  finished_at: string;
+  by_category: Array<{
+    category: string;
+    total: number;
+    correct: number;
+    incorrect: number;
+    accuracy: number;
+  }>;
+  weak_topics: string[];
+  review: Array<{
+    question_id: string;
+    category: string;
+    topic: string;
+    selected: CacesOptionId | null;
+    correct: CacesOptionId;
+    is_correct: boolean;
+    skipped: boolean;
+  }>;
+};
+
+export type CacesHistoryEntry = {
+  id: string;
+  created_at: string;
+  config: CacesAttemptConfig;
+  result: CacesAttemptResult;
+};
+
 export type CaseSeed = {
   id: string;
   title: string;
