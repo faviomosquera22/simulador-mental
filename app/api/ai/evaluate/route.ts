@@ -2,14 +2,20 @@ import { NextResponse } from "next/server";
 import type { CaseObject } from "../../../../src/lib/types";
 // Gemini client (the exported function name in src/lib/gemini is legacy)
 import { geminiChatJSON } from "../../../../src/lib/gemini";
+import {
+  enforceRateLimit,
+  requireAuthenticatedUser,
+} from "../../../../src/lib/serverGuards";
 
 // Gemini model (fallbacks kept for backwards-compat)
 const MODEL =
   process.env.GEMINI_MODEL ||
   process.env.NEXT_PUBLIC_GEMINI_MODEL ||
   "gemini-2.0-flash";
+const RATE_LIMIT_WINDOW_MS = Number(process.env.AI_RATE_LIMIT_WINDOW_MS ?? 60_000);
+const RATE_LIMIT_EVALUATE = Number(process.env.AI_RATE_LIMIT_EVALUATE ?? 20);
 
-type TranscriptTurn = { role: "user" | "patient"; content: string };
+type TranscriptTurn = { role: "user" | "patient" | "caregiver" | "tutor"; content: string };
 
 type EvalOut = {
   summary: string;
@@ -33,6 +39,16 @@ function toNumber(n: any, fallback = 0) {
 
 export async function POST(req: Request) {
   try {
+    const auth = await requireAuthenticatedUser(req);
+    if (!auth.ok) return auth.response;
+
+    const limited = enforceRateLimit({
+      key: `evaluate:${auth.data.userId}`,
+      limit: Number.isFinite(RATE_LIMIT_EVALUATE) && RATE_LIMIT_EVALUATE > 0 ? RATE_LIMIT_EVALUATE : 20,
+      windowMs: Number.isFinite(RATE_LIMIT_WINDOW_MS) && RATE_LIMIT_WINDOW_MS >= 1000 ? RATE_LIMIT_WINDOW_MS : 60_000,
+    });
+    if (!limited.ok) return limited.response;
+
     const body = await req.json();
 
     const caseObject: CaseObject | any = body?.caseObject;
@@ -47,7 +63,7 @@ export async function POST(req: Request) {
       .slice(-40)
       .map(
         (t) =>
-          `${t.role === "user" ? "ENTREVISTADOR" : "PACIENTE"}: ${String(t.content ?? "").slice(0, 600)}`
+          `${t.role === "user" ? "ENTREVISTADOR" : t.role === "caregiver" ? "ACOMPAÑANTE" : t.role === "tutor" ? "TUTOR_IA" : "PACIENTE"}: ${String(t.content ?? "").slice(0, 600)}`
       )
       .join("\n");
 

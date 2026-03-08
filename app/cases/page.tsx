@@ -4,13 +4,21 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Sidebar from "../../components/Sidebar";
-
-type CatalogItem = { id: string; title: string; desc: string; tag: string };
+import { getAuthFetchHeaders } from "@/src/lib/clientAuth";
+import {
+  CASE_CATALOG,
+  defaultApproachByCategory,
+  getCatalogByAgeFilter,
+  pickSeedByCategory,
+  type CaseCatalogItem,
+} from "@/src/lib/caseCatalog";
+import type { AgeGroup } from "@/src/lib/types";
 
 type SexValue = "female" | "male" | "nonbinary" | "unspecified";
 type DifficultyValue = "beginner" | "intermediate" | "advanced";
 
 type ApproachValue = "humanistic" | "cbt" | "psychodynamic" | "systemic";
+type CatalogFilter = "all" | "adult" | "pediatric";
 
 function prettyApproach(a: ApproachValue) {
   switch (a) {
@@ -27,116 +35,15 @@ function prettyApproach(a: ApproachValue) {
   }
 }
 
-
-function defaultApproachByCategory(categoryId: string): ApproachValue {
-  const id = String(categoryId || "").toLowerCase();
-  // Heurística simple: por defecto humanístico; en sustancias suele ayudar MI, pero aquí nos quedamos en 4 enfoques.
-  if (id === "substances") return "cbt";
-  return "humanistic";
+function deriveDsmTag(categoryId: string, selected: CaseCatalogItem | null) {
+  const item = selected ?? CASE_CATALOG.find((c) => c.id === categoryId) ?? null;
+  return item?.dsm_tag ? String(item.dsm_tag).trim() : "";
 }
 
-// Para UI (etiqueta corta DSM) — consistente con el generador (TDM/TAG/etc.)
-const DSM_LABEL_BY_CATALOG_ID: Record<string, string> = {
-  anxiety: "TAG",
-  depression: "TDM",
-  panic: "Pánico",
-  ptsd: "TEPT",
-  bipolar: "Bipolar",
-  substances: "Sustancias",
-  ocd: "TOC",
-  delirium: "Delirio",
-  eating: "TCA",
-  selfharm: "Autolesión",
-};
-
-// Conexión con Biblioteca clínica (/topics?dx=) — IDs cortos para tus fichas
-const TOPICS_DX_BY_CATALOG_ID: Record<string, string> = {
-  anxiety: "gad",
-  depression: "mdd",
-  panic: "panic",
-  ptsd: "ptsd",
-  bipolar: "bipolar1",
-  substances: "aud",
-  ocd: "ocd",
-  delirium: "delirium",
-  eating: "tca",
-  selfharm: "selfharm",
-};
-
-function deriveDsmTag(categoryId: string, selected: CatalogItem | null) {
-  const id = selected?.id || categoryId || "";
-  const tag = DSM_LABEL_BY_CATALOG_ID[id];
-  return tag ? String(tag).trim() : "";
+function deriveTopicsDx(categoryId: string, selected: CaseCatalogItem | null) {
+  const item = selected ?? CASE_CATALOG.find((c) => c.id === categoryId) ?? null;
+  return item?.dx_id ? String(item.dx_id).trim().toLowerCase() : "";
 }
-
-function deriveTopicsDx(categoryId: string, selected: CatalogItem | null) {
-  const id = selected?.id || categoryId || "";
-  const dx = TOPICS_DX_BY_CATALOG_ID[id];
-  return dx ? String(dx).trim().toLowerCase() : "";
-}
-
-const CATALOG: CatalogItem[] = [
-  {
-    id: "anxiety",
-    title: "Ansiedad",
-    desc: "Preocupación persistente, tensión, síntomas físicos. Practica contención y preguntas abiertas.",
-    tag: "Entrevista",
-  },
-  {
-    id: "depression",
-    title: "Depresión",
-    desc: "Ánimo bajo, anhedonia, fatiga. Practica exploración de riesgo y apoyo.",
-    tag: "Seguimiento",
-  },
-  {
-    id: "panic",
-    title: "Crisis de pánico",
-    desc: "Inicio súbito, miedo intenso, palpitaciones. Practica grounding y psicoeducación.",
-    tag: "Crisis",
-  },
-  {
-    id: "ptsd",
-    title: "TEPT",
-    desc: "Recuerdos intrusivos, hipervigilancia. Practica seguridad y enfoque gradual.",
-    tag: "Entrevista",
-  },
-  {
-    id: "ocd",
-    title: "TOC",
-    desc: "Obsesiones y compulsiones. Practica clarificación sin reforzar rituales.",
-    tag: "Entrevista",
-  },
-  {
-    id: "bipolar",
-    title: "Trastorno bipolar",
-    desc: "Cambios de ánimo, posible hipomanía/manía. Practica evaluación de curso.",
-    tag: "Seguimiento",
-  },
-  {
-    id: "delirium",
-    title: "Delirio / confusión",
-    desc: "Desorientación, ideas falsas. Practica reorientación y seguridad.",
-    tag: "Crisis",
-  },
-  {
-    id: "substances",
-    title: "Consumo de sustancias",
-    desc: "Uso problemático y ambivalencia. Practica entrevista motivacional.",
-    tag: "Seguimiento",
-  },
-  {
-    id: "eating",
-    title: "TCA",
-    desc: "Relación con comida/imagen corporal. Practica enfoque no estigmatizante.",
-    tag: "Entrevista",
-  },
-  {
-    id: "selfharm",
-    title: "Ideación autolesiva (educativo)",
-    desc: "Señales de alarma y plan de seguridad. Practica derivación y contención.",
-    tag: "Crisis",
-  },
-];
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (value && typeof value === "object" && !Array.isArray(value)) return value as Record<string, unknown>;
@@ -415,8 +322,9 @@ export default function CasesPage() {
   const [now, setNow] = useState<number>(() => Date.now());
 
   // ✅ Biblioteca
-  const [selectedCategory, setSelectedCategory] = useState<string>("general");
-  const [selectedCard, setSelectedCard] = useState<CatalogItem | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>("anxiety");
+  const [selectedCard, setSelectedCard] = useState<CaseCatalogItem | null>(CASE_CATALOG[0] ?? null);
+  const [catalogFilter, setCatalogFilter] = useState<CatalogFilter>("all");
   const [query, setQuery] = useState<string>("");
 
   // ✅ Config inline (modal en la MISMA página)
@@ -426,6 +334,9 @@ export default function CasesPage() {
   const [cfgName, setCfgName] = useState<string>("");
   const [cfgSex, setCfgSex] = useState<SexValue>("unspecified");
   const [cfgAge, setCfgAge] = useState<number>(25);
+  const [cfgAgeGroup, setCfgAgeGroup] = useState<AgeGroup>("adult");
+  const [cfgCompanionAvailable, setCfgCompanionAvailable] = useState<boolean>(false);
+  const [cfgCompanionRole, setCfgCompanionRole] = useState<"madre" | "padre" | "tutor" | "cuidador" | "otro">("madre");
   const [cfgContext, setCfgContext] = useState<string>("");
 
   const [cfgDifficulty, setCfgDifficulty] =
@@ -447,14 +358,15 @@ export default function CasesPage() {
 
   const filteredCatalog = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return CATALOG;
-    return CATALOG.filter(
+    const visible = getCatalogByAgeFilter(catalogFilter);
+    if (!q) return visible;
+    return visible.filter(
       (c) =>
         c.title.toLowerCase().includes(q) ||
         c.desc.toLowerCase().includes(q) ||
         c.tag.toLowerCase().includes(q)
     );
-  }, [query]);
+  }, [query, catalogFilter]);
 
   const cooldownLabel = useMemo(() => {
     if (!cooldownUntil) return null;
@@ -483,6 +395,34 @@ export default function CasesPage() {
       typeof e.age === "number" ? clampInt(e.age, 5, 95) : 25
     );
     setCfgContext(safeStr(e.context, "") || safeStr(fallbackFromCatalog?.context, ""));
+    try {
+      const base = asRecord(nextCase) ?? {};
+      const meta = asRecord((base as any).meta) ?? {};
+      const rawGroup = safeStr((meta as any).age_group as unknown, "").trim().toLowerCase();
+      const fromMeta: AgeGroup | null =
+        rawGroup === "child" || rawGroup === "adolescent" || rawGroup === "mixed" || rawGroup === "adult"
+          ? (rawGroup as AgeGroup)
+          : null;
+      const pickedGroup = fromMeta ?? selectedCard?.age_group ?? "adult";
+      setCfgAgeGroup(pickedGroup);
+
+      const companionAvailable =
+        Boolean((meta as any).companion_available ?? (base as any).companion_available) ||
+        pickedGroup === "child" ||
+        pickedGroup === "adolescent";
+      setCfgCompanionAvailable(companionAvailable);
+
+      const roleRaw = safeStr((meta as any).companion_role as unknown, "").toLowerCase();
+      if (roleRaw === "madre" || roleRaw === "padre" || roleRaw === "tutor" || roleRaw === "cuidador" || roleRaw === "otro") {
+        setCfgCompanionRole(roleRaw as any);
+      } else {
+        setCfgCompanionRole("madre");
+      }
+    } catch {
+      setCfgAgeGroup(selectedCard?.age_group ?? "adult");
+      setCfgCompanionAvailable((selectedCard?.age_group ?? "adult") !== "adult");
+      setCfgCompanionRole("madre");
+    }
 
     setCfgDifficulty(
       (["beginner", "intermediate", "advanced"].includes(e.difficulty)
@@ -534,14 +474,20 @@ export default function CasesPage() {
     setCaseObj(null);
 
     try {
+      const headers = await getAuthFetchHeaders({
+        "Content-Type": "application/json",
+      });
+
       const res = await fetch("/api/ai/generate-case", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           category: selectedCategory, // ✅ biblioteca -> IA
+          age_group: cfgAgeGroup,
           difficulty: cfgDifficulty, // usa lo que tengas seteado (por defecto beginner)
           target_minutes: cfgTargetMinutes, // por defecto 8
           approach: cfgApproach,
+          case_seed: pickSeedByCategory(selectedCategory),
           // Pide explícitamente campos educativos (si tu backend los soporta)
           include_educational_fields: true,
           language: "es",
@@ -633,6 +579,10 @@ export default function CasesPage() {
       dsm_tag: existingDsmTag || derivedDsm,
       // dx_id se usa para /topics?dx=
       dx_id: existingDxId || derivedDx,
+      age_group: cfgAgeGroup,
+      pediatric_mode: cfgAgeGroup === "child" || cfgAgeGroup === "adolescent",
+      companion_available: cfgCompanionAvailable,
+      companion_role: cfgCompanionRole,
       approach: cfgApproach,
       tutor_enabled: cfgTutorEnabled,
     };
@@ -642,12 +592,24 @@ export default function CasesPage() {
     next.chief_complaint = cfgChiefComplaint || next.chief_complaint || "";
     next.learning_objective =
       cfgLearningObjective || next.learning_objective || "";
+    (next as any).companion_profile = cfgCompanionAvailable
+      ? {
+          display_name: (next as any)?.companion_profile?.display_name ?? "Acompañante",
+          relation: cfgCompanionRole,
+          cooperativeness: (next as any)?.companion_profile?.cooperativeness ?? "medium",
+          reliability: (next as any)?.companion_profile?.reliability ?? "medium",
+          narrative_style: (next as any)?.companion_profile?.narrative_style ?? "detailed",
+        }
+      : undefined;
 
     // Mantener dsm_tag y dx_id a nivel raíz para compatibilidad
     (next as any).dsm_tag = safeStr((next as any).dsm_tag, "").trim() || safeStr((next as any)?.meta?.dsm_tag, "").trim() || derivedDsm;
     (next as any).dx_id = safeStr((next as any).dx_id, "").trim() || safeStr((next as any)?.meta?.dx_id, "").trim() || derivedDx;
     (next as any).approach = safeStr((next as any).approach, "").trim() || safeStr((next as any)?.meta?.approach, "").trim() || cfgApproach;
     (next as any).tutor_enabled = typeof (next as any).tutor_enabled === "boolean" ? (next as any).tutor_enabled : cfgTutorEnabled;
+    (next as any).age_group = cfgAgeGroup;
+    (next as any).companion_available = cfgCompanionAvailable;
+    (next as any).companion_role = cfgCompanionRole;
 
     return next;
   }
@@ -732,23 +694,33 @@ export default function CasesPage() {
             />
           </div>
 
+          <div className="mt-4 flex flex-wrap gap-2">
+            {(
+              [
+                ["all", "Todos"],
+                ["adult", "Adulto"],
+                ["pediatric", "Niño / Adolescente"],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setCatalogFilter(value)}
+                className={`rounded-full border px-3 py-1.5 text-xs transition ${
+                  catalogFilter === value
+                    ? "border-white/25 bg-white/10 text-white"
+                    : "border-white/15 bg-black/30 text-white/75 hover:bg-black/40"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {filteredCatalog.map((item) => {
               const selected = selectedCard?.id === item.id;
-
-              const accentById: Record<string, string> = {
-                anxiety: "from-sky-500/20 to-transparent",
-                depression: "from-violet-500/20 to-transparent",
-                panic: "from-rose-500/20 to-transparent",
-                ptsd: "from-amber-500/20 to-transparent",
-                ocd: "from-cyan-500/20 to-transparent",
-                bipolar: "from-indigo-500/20 to-transparent",
-                delirium: "from-orange-500/20 to-transparent",
-                substances: "from-emerald-500/20 to-transparent",
-                eating: "from-pink-500/20 to-transparent",
-                selfharm: "from-red-500/20 to-transparent",
-              };
-              const accent = accentById[item.id] ?? "from-white/10 to-transparent";
+              const accent = item.accent ?? "from-white/10 to-transparent";
 
               return (
                 <div
@@ -756,6 +728,9 @@ export default function CasesPage() {
                   onClick={() => {
                     setSelectedCategory(item.id);
                     setSelectedCard(item);
+                    setCfgAgeGroup(item.age_group);
+                    setCfgCompanionAvailable(item.age_group === "child" || item.age_group === "adolescent");
+                    setCfgApproach(defaultApproachByCategory(item.id));
                   }}
                   className={
                     "relative overflow-hidden rounded-2xl border p-4 transition cursor-pointer " +
@@ -779,6 +754,9 @@ export default function CasesPage() {
                     <div className="inline-flex items-center rounded-full border border-white/15 bg-black/30 px-2 py-0.5 text-xs text-white/70 mt-3">
                       {item.tag}
                     </div>
+                    <div className="mt-2 text-[11px] text-white/55">
+                      Grupo etario: {item.age_group === "adult" ? "Adulto" : item.age_group === "adolescent" ? "Adolescente" : "Niñez"}
+                    </div>
                   </div>
                 </div>
               );
@@ -787,7 +765,7 @@ export default function CasesPage() {
 
           <div className="mt-4 text-sm text-white/70">
             Seleccionado:{" "}
-            <span className="text-white">{selectedCard?.title ?? "General"}</span>
+            <span className="text-white">{selectedCard?.title ?? "—"}</span>
           </div>
         </section>
 
@@ -846,7 +824,7 @@ export default function CasesPage() {
 
               <div className="flex flex-wrap gap-2">
                 <span className="inline-flex items-center rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
-                  Tema: {selectedCard?.title ?? "General"}
+                  Tema: {selectedCard?.title ?? "—"}
                 </span>
                 <span className="inline-flex items-center rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
                   Dificultad: {prettyDifficulty(cfgDifficulty)}
@@ -857,6 +835,14 @@ export default function CasesPage() {
                 <span className="inline-flex items-center rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
                   Enfoque: {prettyApproach(cfgApproach)}
                 </span>
+                <span className="inline-flex items-center rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
+                  Grupo: {cfgAgeGroup === "adult" ? "Adulto" : cfgAgeGroup === "adolescent" ? "Adolescente" : "Niñez"}
+                </span>
+                {cfgCompanionAvailable && (
+                  <span className="inline-flex items-center rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
+                    Acompañante: {cfgCompanionRole}
+                  </span>
+                )}
                 <span className="inline-flex items-center rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
                   DSM: {safeStr((caseObj as any)?.meta?.dsm_tag, deriveDsmTag(selectedCategory, selectedCard) || "—")} · dx: {safeStr((caseObj as any)?.meta?.dx_id, deriveTopicsDx(selectedCategory, selectedCard) || "—")}
                 </span>
@@ -1018,7 +1004,7 @@ export default function CasesPage() {
                       <div>
                         <label className="block text-xs text-white/60">Tema</label>
                         <div className="mt-1 rounded-xl bg-black/35 border border-white/10 px-3 py-2 text-sm text-white/70">
-                          {selectedCard?.title ?? "General"}
+                          {selectedCard?.title ?? "—"}
                         </div>
                       </div>
                       <div>
@@ -1032,6 +1018,55 @@ export default function CasesPage() {
                           <option value="cbt">Cognitivo-conductual (TCC)</option>
                           <option value="psychodynamic">Psicodinámico</option>
                           <option value="systemic">Sistémico / familiar</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+                      <div>
+                        <label className="block text-xs text-white/60">Grupo etario</label>
+                        <select
+                          value={cfgAgeGroup}
+                          onChange={(e) => {
+                            const value = e.target.value as AgeGroup;
+                            setCfgAgeGroup(value);
+                            const pediatric = value === "child" || value === "adolescent";
+                            setCfgCompanionAvailable(pediatric ? true : cfgCompanionAvailable);
+                          }}
+                          className="mt-1 w-full rounded-xl bg-black/35 border border-white/10 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
+                        >
+                          <option value="adult">Adulto</option>
+                          <option value="adolescent">Adolescente</option>
+                          <option value="child">Niñez</option>
+                          <option value="mixed">Mixto</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs text-white/60">Acompañante</label>
+                        <select
+                          value={cfgCompanionAvailable ? "yes" : "no"}
+                          onChange={(e) => setCfgCompanionAvailable(e.target.value === "yes")}
+                          className="mt-1 w-full rounded-xl bg-black/35 border border-white/10 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20"
+                        >
+                          <option value="no">No</option>
+                          <option value="yes">Sí</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs text-white/60">Rol acompañante</label>
+                        <select
+                          value={cfgCompanionRole}
+                          onChange={(e) => setCfgCompanionRole(e.target.value as any)}
+                          disabled={!cfgCompanionAvailable}
+                          className="mt-1 w-full rounded-xl bg-black/35 border border-white/10 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50"
+                        >
+                          <option value="madre">Madre</option>
+                          <option value="padre">Padre</option>
+                          <option value="tutor">Tutor</option>
+                          <option value="cuidador">Cuidador</option>
+                          <option value="otro">Otro</option>
                         </select>
                       </div>
                     </div>

@@ -4,9 +4,54 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Sidebar from "../../components/Sidebar";
 import { addSession, type EndReason } from "../../lib/history";
+import { getAuthFetchHeaders } from "@/src/lib/clientAuth";
+import {
+  CLINICAL_SCALES,
+  MENTAL_TESTS,
+  getScaleById,
+  getTestById,
+  scoreScale,
+  scoreTest,
+} from "@/src/lib/assessments";
+import {
+  CACES_CATEGORIES,
+  getCacesQuestions,
+  sampleQuestions,
+} from "@/src/lib/caces";
+import {
+  deriveAgeGroup,
+  isPediatricCase,
+  normalizeSpeakerRole,
+  pediatricExplorationChecklist,
+} from "@/src/lib/clinicalRuntime";
+import type {
+  ActiveInstrumentContext,
+  QuizQuestion,
+  QuizResult,
+  ScaleAnswer,
+  ScaleSession,
+  SpeakerRole,
+  TestAnswer,
+  TestSession,
+} from "@/src/lib/types";
 
-type TranscriptTurn = { role: "user" | "patient" | "tutor"; content: string; kind?: "tip" | "alert" };
+type TranscriptTurn = { role: "user" | "patient" | "caregiver" | "tutor"; content: string; kind?: "tip" | "alert" };
 type ApproachValue = "humanistic" | "cbt" | "psychodynamic" | "systemic";
+type CacesMode = "practice" | "quiz_5" | "simulacro_10" | "simulacro_20";
+
+type QuizSession = {
+  mode: CacesMode;
+  questions: QuizQuestion[];
+  currentIndex: number;
+  answers: Array<{
+    questionId: string;
+    selected: "A" | "B" | "C" | "D" | null;
+    correct: "A" | "B" | "C" | "D";
+  }>;
+  completed: boolean;
+  showImmediate: boolean;
+  result?: QuizResult;
+};
 
 
 
@@ -67,6 +112,10 @@ function flagCategory(f: string):
   }
 
   return "Otros";
+}
+
+function makeSessionId(prefix: string) {
+  return `${prefix}:${Date.now()}:${Math.floor(Math.random() * 10_000)}`;
 }
 
 function AvatarFace({
@@ -263,11 +312,36 @@ export default function SimulatorPage() {
 
   // UI (layout estilo Claude)
   const [eduExpanded, setEduExpanded] = useState(false);
-  const [rightTab, setRightTab] = useState<"patient" | "mse" | "dsm" | "risk">("patient");
+  const [rightTab, setRightTab] = useState<"patient" | "mse" | "dsm" | "risk" | "scales" | "tests" | "caces">("patient");
   const [mseOpen, setMseOpen] = useState<Record<string, boolean>>({});
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [cfgApproach, setCfgApproach] = useState<ApproachValue>("humanistic");
   const [tutorEnabled, setTutorEnabled] = useState(true);
+  const [targetSpeaker, setTargetSpeaker] = useState<SpeakerRole>("patient");
+
+  // Escalas clínicas
+  const [selectedScaleId, setSelectedScaleId] = useState<string>(CLINICAL_SCALES[0]?.id ?? "");
+  const [scaleSession, setScaleSession] = useState<ScaleSession | null>(null);
+  const [lastScaleResult, setLastScaleResult] = useState<ReturnType<typeof scoreScale> | null>(null);
+
+  // Tests mentales
+  const [selectedTestId, setSelectedTestId] = useState<string>(MENTAL_TESTS[0]?.id ?? "");
+  const [testSession, setTestSession] = useState<TestSession | null>(null);
+  const [lastTestResult, setLastTestResult] = useState<ReturnType<typeof scoreTest> | null>(null);
+
+  // CACES
+  const [cacesCategory, setCacesCategory] = useState<string>("Salud mental y entrevista clínica");
+  const [cacesDifficulty, setCacesDifficulty] = useState<"all" | "basic" | "intermediate" | "advanced">("all");
+  const [cacesMode, setCacesMode] = useState<CacesMode>("practice");
+  const [quizSession, setQuizSession] = useState<QuizSession | null>(null);
+  const [lastQuizResult, setLastQuizResult] = useState<QuizResult | null>(null);
+
+  const [sessionNotes, setSessionNotes] = useState<string[]>([]);
+  const [useScaleInFeedback, setUseScaleInFeedback] = useState(false);
+  const [useTestInFeedback, setUseTestInFeedback] = useState(false);
+
+  const [activeInstrumentContext, setActiveInstrumentContext] = useState<ActiveInstrumentContext | null>(null);
+  const [instrumentAutoRun, setInstrumentAutoRun] = useState(false);
   useEffect(() => {
     // Preferencia (fallback). La fuente de verdad puede venir del caso activo.
     try {
@@ -383,6 +457,31 @@ export default function SimulatorPage() {
         // ignore
       }
 
+      try {
+        const scaleDef = getScaleById(selectedScaleId);
+        const testDef = getTestById(selectedTestId);
+        localStorage.setItem(
+          "sessionFeedbackContext",
+          JSON.stringify({
+            use_scale_result: Boolean(useScaleInFeedback),
+            use_test_result: Boolean(useTestInFeedback),
+            scale_result: useScaleInFeedback ? lastScaleResult : null,
+            test_result: useTestInFeedback ? lastTestResult : null,
+            scale_definition:
+              useScaleInFeedback && scaleDef
+                ? { id: scaleDef.id, name: scaleDef.name, short_name: scaleDef.short_name }
+                : null,
+            test_definition:
+              useTestInFeedback && testDef
+                ? { id: testDef.id, name: testDef.name, short_name: testDef.short_name }
+                : null,
+            saved_at: new Date().toISOString(),
+          })
+        );
+      } catch {
+        // ignore
+      }
+
       // Mark session as ended (used by Sidebar + Simulator gate)
       try {
         localStorage.setItem("sessionEnded", "true");
@@ -473,7 +572,18 @@ export default function SimulatorPage() {
 
       window.location.href = "/reports";
     },
-    [transcript, remainingSec, caseObject, sessionStartedAt]
+    [
+      transcript,
+      remainingSec,
+      caseObject,
+      sessionStartedAt,
+      useScaleInFeedback,
+      useTestInFeedback,
+      lastScaleResult,
+      lastTestResult,
+      selectedScaleId,
+      selectedTestId,
+    ]
   );
 
   useEffect(() => {
@@ -569,7 +679,7 @@ export default function SimulatorPage() {
       setTranscript([]);
       setRollingSummary("");
     }
-  }, [readActiveCaseRaw, initTimer]);
+  }, [readActiveCaseRaw, initTimer, getTargetMinutes]);
 
   useEffect(() => {
     try {
@@ -640,6 +750,43 @@ export default function SimulatorPage() {
   const patientName = useMemo(() => {
     return caseObject?.patient_profile?.display_name ?? "Paciente";
   }, [caseObject]);
+  const companionName = useMemo(() => {
+    return String(caseObject?.companion_profile?.display_name ?? "Acompañante");
+  }, [caseObject]);
+  const pediatricCase = useMemo(() => isPediatricCase(caseObject), [caseObject]);
+  const caseAgeGroup = useMemo(() => deriveAgeGroup(caseObject), [caseObject]);
+
+  useEffect(() => {
+    if (!caseObject) return;
+    if (!pediatricCase) setTargetSpeaker("patient");
+    else if (targetSpeaker === "both") setTargetSpeaker("patient");
+  }, [caseObject, pediatricCase, targetSpeaker]);
+
+  useEffect(() => {
+    try {
+      if (!caseObject) return;
+      const caseId = String(caseObject?.id ?? caseObject?.meta?.case_id ?? "default");
+      const raw = localStorage.getItem(`sessionNotes:${caseId}`);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          setSessionNotes(parsed.map((x: any) => String(x)).filter(Boolean).slice(0, 30));
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, [caseObject]);
+
+  useEffect(() => {
+    try {
+      if (!caseObject) return;
+      const caseId = String(caseObject?.id ?? caseObject?.meta?.case_id ?? "default");
+      localStorage.setItem(`sessionNotes:${caseId}`, JSON.stringify(sessionNotes.slice(0, 30)));
+    } catch {
+      // ignore
+    }
+  }, [caseObject, sessionNotes]);
 
   const clinicalDxId = useMemo(() => {
     // tag corto para conectar con /topics?dx=
@@ -702,6 +849,9 @@ export default function SimulatorPage() {
     if (a === "systemic") return "Sistémico";
     return "Humanístico";
   }, [caseObject]);
+
+  const selectedScale = useMemo(() => getScaleById(selectedScaleId), [selectedScaleId]);
+  const selectedTest = useMemo(() => getTestById(selectedTestId), [selectedTestId]);
 
   // --- UI helpers (Claude-style layout) ---
   const riskLevel = useMemo<"Bajo" | "Moderado" | "Alto" | "Sin datos">(() => {
@@ -805,11 +955,6 @@ export default function SimulatorPage() {
     return t ? t : fallback;
   }
 
-  function clamp01(n: number) {
-    if (!Number.isFinite(n)) return 0;
-    return Math.max(0, Math.min(1, n));
-  }
-
   const timeLabel = useMemo(() => {
     if (remainingSec == null) return "--:--";
     const m = Math.floor(remainingSec / 60);
@@ -827,12 +972,146 @@ export default function SimulatorPage() {
     return loading || (remainingSec != null && remainingSec <= 0) || !!timerReason;
   }, [loading, remainingSec, timerReason]);
 
-  const sendMessage = useCallback(async () => {
+  const startScaleInChat = useCallback((auto = false) => {
+    if (!selectedScale) return;
+    setLastScaleResult(null);
+    setInstrumentAutoRun(auto);
+    setScaleSession({
+      session_id: makeSessionId("scale"),
+      scale_id: selectedScale.id,
+      status: "in_progress",
+      current_index: 0,
+      answers: [],
+      started_at: new Date().toISOString(),
+    });
+    setActiveInstrumentContext({
+      mode: "scale",
+      instrument_id: selectedScale.id,
+      instrument_name: selectedScale.short_name,
+      item_index: 0,
+      total_items: selectedScale.items.length,
+      item_id: selectedScale.items[0]?.id ?? "item_1",
+      item_prompt: selectedScale.items[0]?.prompt ?? "Pregunta clínica",
+      response_type: selectedScale.response_type,
+      options: selectedScale.items[0]?.options ?? [],
+    });
+  }, [selectedScale]);
+
+  const startTestInChat = useCallback((auto = false) => {
+    if (!selectedTest) return;
+    setLastTestResult(null);
+    setInstrumentAutoRun(auto);
+    setTestSession({
+      session_id: makeSessionId("test"),
+      test_id: selectedTest.id,
+      status: "in_progress",
+      current_index: 0,
+      answers: [],
+      started_at: new Date().toISOString(),
+    });
+    setActiveInstrumentContext({
+      mode: "test",
+      instrument_id: selectedTest.id,
+      instrument_name: selectedTest.short_name,
+      item_index: 0,
+      total_items: selectedTest.items.length,
+      item_id: selectedTest.items[0]?.id ?? "item_1",
+      item_prompt: selectedTest.items[0]?.prompt ?? "Pregunta clínica",
+      response_type: selectedTest.response_type,
+      options: selectedTest.items[0]?.options ?? [],
+    });
+  }, [selectedTest]);
+
+  const cancelActiveInstrument = useCallback(() => {
+    setInstrumentAutoRun(false);
+    setActiveInstrumentContext(null);
+    setScaleSession((prev) => (prev ? { ...prev, status: "cancelled" } : prev));
+    setTestSession((prev) => (prev ? { ...prev, status: "cancelled" } : prev));
+  }, []);
+
+  const addNote = useCallback((text: string) => {
+    const clean = String(text ?? "").trim();
+    if (!clean) return;
+    setSessionNotes((prev) => [clean, ...prev].slice(0, 30));
+  }, []);
+
+  const startCacesSession = useCallback(() => {
+    const source = getCacesQuestions({
+      category: cacesCategory,
+      difficulty: cacesDifficulty,
+    });
+    const modeSize = cacesMode === "quiz_5" ? 5 : cacesMode === "simulacro_10" ? 10 : cacesMode === "simulacro_20" ? 20 : 1;
+    const picked = sampleQuestions(source, modeSize);
+    setLastQuizResult(null);
+    setQuizSession({
+      mode: cacesMode,
+      questions: picked,
+      currentIndex: 0,
+      answers: [],
+      completed: false,
+      showImmediate: cacesMode === "practice",
+    });
+  }, [cacesCategory, cacesDifficulty, cacesMode]);
+
+  const answerCacesQuestion = useCallback((choice: "A" | "B" | "C" | "D") => {
+    setQuizSession((prev) => {
+      if (!prev || prev.completed) return prev;
+      const q = prev.questions[prev.currentIndex];
+      if (!q) return prev;
+
+      const nextAnswers = [
+        ...prev.answers,
+        { questionId: q.id, selected: choice, correct: q.correct_option },
+      ];
+      const nextIndex = prev.currentIndex + 1;
+      const done = nextIndex >= prev.questions.length;
+
+      if (!done) {
+        return {
+          ...prev,
+          answers: nextAnswers,
+          currentIndex: nextIndex,
+        };
+      }
+
+      const correctAnswers = nextAnswers.filter((a) => a.selected === a.correct).length;
+      const result: QuizResult = {
+        mode: prev.mode,
+        total_questions: prev.questions.length,
+        correct_answers: correctAnswers,
+        accuracy: prev.questions.length > 0 ? Math.round((correctAnswers / prev.questions.length) * 100) : 0,
+        finished_at: new Date().toISOString(),
+        review: nextAnswers.map((a) => ({
+          question_id: a.questionId,
+          selected: a.selected,
+          correct: a.correct,
+        })),
+      };
+      setLastQuizResult(result);
+      return {
+        ...prev,
+        answers: nextAnswers,
+        currentIndex: prev.questions.length,
+        completed: true,
+        result,
+      };
+    });
+  }, []);
+
+  const sendMessage = useCallback(async (opts?: {
+    message?: string;
+    mode?: "free" | "scale" | "test";
+    instrumentContext?: ActiveInstrumentContext | null;
+    speakerTarget?: SpeakerRole;
+  }) => {
     setError(null);
 
-    const msg = userMessage.trim();
+    const msg = String(opts?.message ?? userMessage).trim();
     if (!msg) return;
     if (inputDisabled) return;
+    const interactionMode = opts?.mode ?? activeInstrumentContext?.mode ?? "free";
+    const instrumentContext = opts?.instrumentContext ?? activeInstrumentContext ?? null;
+    const speakerTarget = opts?.speakerTarget ?? targetSpeaker;
 
     const nextTranscript: TranscriptTurn[] = [...transcript, { role: "user", content: msg }];
     setTranscript(nextTranscript);
@@ -843,7 +1122,9 @@ export default function SimulatorPage() {
       // ignore
     }
 
-    setUserMessage("");
+    if (!opts?.message) {
+      setUserMessage("");
+    }
     setLoading(true);
 
     // Si hay una petición previa en vuelo, abórtala (por ejemplo, doble Enter o navegación rápida)
@@ -854,9 +1135,13 @@ export default function SimulatorPage() {
     requestAbortRef.current = controller;
 
     try {
+      const headers = await getAuthFetchHeaders({
+        "Content-Type": "application/json",
+      });
+
       const res = await fetch("/api/ai/patient-turn", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         signal: controller.signal,
         body: JSON.stringify({
           caseObject,
@@ -864,6 +1149,9 @@ export default function SimulatorPage() {
           userMessage: msg,
           tutorEnabled,
           rollingSummary,
+          interviewMode: interactionMode,
+          instrumentContext,
+          targetSpeaker: speakerTarget,
         }),
       });
 
@@ -887,7 +1175,11 @@ export default function SimulatorPage() {
       }
 
       setTranscript((prev) => {
-        const next: TranscriptTurn[] = [...prev, { role: "patient", content: data.message_text ?? "(sin respuesta)" }];
+        const role =
+          normalizeSpeakerRole(data?.speaker_role ?? "") === "caregiver"
+            ? "caregiver"
+            : "patient";
+        const next: TranscriptTurn[] = [...prev, { role, content: data.message_text ?? "(sin respuesta)" }];
         if (
           tutorEnabled &&
           typeof data?.tutor_message === "string" &&
@@ -904,6 +1196,141 @@ export default function SimulatorPage() {
         }
         return next;
       });
+
+      const resolveOption = (
+        options: Array<{ id: string; label: string; value: number }>,
+        answerPayload: any
+      ) => {
+        if (!Array.isArray(options) || options.length === 0) return null;
+        const byId = options.find((o) => String(o.id) === String(answerPayload?.option_id ?? ""));
+        if (byId) return byId;
+
+        const idx = Number(answerPayload?.option_index);
+        if (Number.isFinite(idx) && idx >= 0 && idx < options.length) return options[idx];
+
+        const val = Number(answerPayload?.option_value);
+        if (Number.isFinite(val)) {
+          const nearest = [...options].sort((a, b) => Math.abs(a.value - val) - Math.abs(b.value - val))[0];
+          if (nearest) return nearest;
+        }
+        return options[0];
+      };
+
+      if (interactionMode === "scale" && instrumentContext?.mode === "scale") {
+        setScaleSession((prev) => {
+          if (!prev || prev.status !== "in_progress") return prev;
+          const def = getScaleById(prev.scale_id);
+          if (!def) return prev;
+          const item = def.items[prev.current_index];
+          if (!item) return prev;
+          const option = resolveOption(item.options, data?.instrument_answer);
+          if (!option) return prev;
+
+          const answer: ScaleAnswer = {
+            item_id: item.id,
+            option_id: option.id,
+            value: option.value,
+            label: option.label,
+            speaker:
+              normalizeSpeakerRole(data?.speaker_role ?? "") === "caregiver"
+                ? "caregiver"
+                : "patient",
+          };
+
+          const answers = [...prev.answers, answer];
+          const nextIndex = prev.current_index + 1;
+
+          if (nextIndex >= def.items.length) {
+            const result = scoreScale(def, answers);
+            setLastScaleResult(result);
+            setActiveInstrumentContext(null);
+            return {
+              ...prev,
+              status: "completed",
+              answers,
+              current_index: def.items.length,
+              completed_at: new Date().toISOString(),
+              result,
+            };
+          }
+
+          const nextItem = def.items[nextIndex];
+          setActiveInstrumentContext({
+            mode: "scale",
+            instrument_id: def.id,
+            instrument_name: def.short_name,
+            item_index: nextIndex,
+            total_items: def.items.length,
+            item_id: nextItem.id,
+            item_prompt: nextItem.prompt,
+            response_type: def.response_type,
+            options: nextItem.options,
+          });
+          return {
+            ...prev,
+            answers,
+            current_index: nextIndex,
+          };
+        });
+      }
+
+      if (interactionMode === "test" && instrumentContext?.mode === "test") {
+        setTestSession((prev) => {
+          if (!prev || prev.status !== "in_progress") return prev;
+          const def = getTestById(prev.test_id);
+          if (!def) return prev;
+          const item = def.items[prev.current_index];
+          if (!item) return prev;
+          const option = resolveOption(item.options, data?.instrument_answer);
+          if (!option) return prev;
+
+          const answer: TestAnswer = {
+            item_id: item.id,
+            option_id: option.id,
+            value: option.value,
+            label: option.label,
+            speaker:
+              normalizeSpeakerRole(data?.speaker_role ?? "") === "caregiver"
+                ? "caregiver"
+                : "patient",
+          };
+
+          const answers = [...prev.answers, answer];
+          const nextIndex = prev.current_index + 1;
+
+          if (nextIndex >= def.items.length) {
+            const result = scoreTest(def, answers);
+            setLastTestResult(result);
+            setActiveInstrumentContext(null);
+            return {
+              ...prev,
+              status: "completed",
+              answers,
+              current_index: def.items.length,
+              completed_at: new Date().toISOString(),
+              result,
+            };
+          }
+
+          const nextItem = def.items[nextIndex];
+          setActiveInstrumentContext({
+            mode: "test",
+            instrument_id: def.id,
+            instrument_name: def.short_name,
+            item_index: nextIndex,
+            total_items: def.items.length,
+            item_id: nextItem.id,
+            item_prompt: nextItem.prompt,
+            response_type: def.response_type,
+            options: nextItem.options,
+          });
+          return {
+            ...prev,
+            answers,
+            current_index: nextIndex,
+          };
+        });
+      }
 
       const providerRaw = String(data?.provider ?? "").toLowerCase();
       const provider =
@@ -929,7 +1356,11 @@ export default function SimulatorPage() {
 
       // Si fue abortada (navegación, doble envío, hot-reload), no lo mostramos como error.
       if (!aborted) {
-        setError(msgText || "No se pudo enviar el mensaje.");
+        if (/401|unauthorized/i.test(msgText)) {
+          setError("Tu sesión expiró. Inicia sesión nuevamente para continuar.");
+        } else {
+          setError(msgText || "No se pudo enviar el mensaje.");
+        }
       }
     } finally {
       setLoading(false);
@@ -938,7 +1369,44 @@ export default function SimulatorPage() {
         requestAbortRef.current = null;
       }
     }
-  }, [userMessage, transcript, caseObject, inputDisabled, tutorEnabled, quickChipMap, rollingSummary]);
+  }, [
+    userMessage,
+    inputDisabled,
+    transcript,
+    caseObject,
+    tutorEnabled,
+    rollingSummary,
+    activeInstrumentContext,
+    targetSpeaker,
+  ]);
+
+  const askCurrentInstrumentItem = useCallback(async () => {
+    if (!activeInstrumentContext) return;
+    const lines = [
+      `${activeInstrumentContext.mode === "scale" ? "Escala clínica" : "Test mental"} ${activeInstrumentContext.instrument_name} · ítem ${activeInstrumentContext.item_index + 1}/${activeInstrumentContext.total_items}`,
+      activeInstrumentContext.item_prompt,
+      "Opciones:",
+      ...activeInstrumentContext.options.map((o, i) => `${i}. ${o.label}`),
+      "Responde como paciente simulado según el caso activo.",
+    ];
+    const message = lines.join("\n");
+    await sendMessage({
+      message,
+      mode: activeInstrumentContext.mode,
+      instrumentContext: activeInstrumentContext,
+      speakerTarget: pediatricCase ? targetSpeaker : "patient",
+    });
+  }, [activeInstrumentContext, pediatricCase, targetSpeaker, sendMessage]);
+
+  useEffect(() => {
+    if (!instrumentAutoRun) return;
+    if (!activeInstrumentContext) return;
+    if (loading || inputDisabled) return;
+    const id = window.setTimeout(() => {
+      void askCurrentInstrumentItem();
+    }, 220);
+    return () => window.clearTimeout(id);
+  }, [instrumentAutoRun, activeInstrumentContext, loading, inputDisabled, askCurrentInstrumentItem]);
 
   if (!caseObject) {
     return (
@@ -1138,6 +1606,11 @@ export default function SimulatorPage() {
                   <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/70">
                     Enfoque: {approachLabel}
                   </span>
+                  {pediatricCase && (
+                    <span className="rounded-full border border-lime-400/25 bg-lime-400/10 px-3 py-1 text-xs text-lime-100">
+                      Fuente activa: {targetSpeaker === "caregiver" ? "Acompañante" : targetSpeaker === "both" ? "Ambos" : "Paciente"}
+                    </span>
+                  )}
                   <span
                     className={`rounded-full border px-3 py-1 text-xs ${
                       riskLevel === "Alto"
@@ -1174,6 +1647,15 @@ export default function SimulatorPage() {
 
               {/* Messages */}
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4">
+                {summaryDebugOpen && (
+                  <div className="mb-4 rounded-2xl border border-white/10 bg-black/35 p-3">
+                    <div className="text-xs text-white/50">Resumen vivo (debug)</div>
+                    <pre className="mt-2 max-h-32 overflow-auto whitespace-pre-wrap text-xs text-white/70">
+                      {rollingSummary || "(vacío)"}
+                    </pre>
+                  </div>
+                )}
+
                 {timeIsLow && remainingSec != null && remainingSec > 0 && (
                   <div className="mb-4 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-3 text-sm text-amber-100">
                     Queda poco tiempo: <span className="font-semibold">{timeLabel}</span>. Enfoca el cierre (resumen + plan).
@@ -1187,15 +1669,24 @@ export default function SimulatorPage() {
                     transcript.map((t, idx) => {
                       const isUser = t.role === "user";
                       const isTutor = t.role === "tutor";
+                      const isCaregiver = t.role === "caregiver";
                       const align = isUser ? "justify-end" : "justify-start";
 
                       const avatar = isTutor
                         ? { label: "IA", cls: "bg-gradient-to-br from-emerald-400 to-teal-500" }
+                        : isCaregiver
+                        ? { label: "A", cls: "bg-gradient-to-br from-lime-400 to-emerald-500" }
                         : isUser
                         ? { label: "E", cls: "bg-gradient-to-br from-blue-500 to-purple-500" }
                         : { label: String(patientName).slice(0, 1).toUpperCase(), cls: "bg-gradient-to-br from-amber-400 to-red-500" };
 
-                      const roleLabel = isTutor ? "Tutor IA" : isUser ? "Estudiante (Tú)" : `${patientName} (Paciente)`;
+                      const roleLabel = isTutor
+                        ? "Tutor IA"
+                        : isUser
+                        ? "Estudiante (Tú)"
+                        : isCaregiver
+                        ? `${companionName} (Acompañante)`
+                        : `${patientName} (Paciente)`;
 
                       const bubbleCls = isTutor
                         ? t.kind === "alert"
@@ -1255,6 +1746,81 @@ export default function SimulatorPage() {
 
               {/* Input area */}
               <div className="border-t border-white/10 bg-white/5 px-5 py-3">
+                {pediatricCase && (
+                  <div className="mb-3 rounded-2xl border border-white/10 bg-black/25 p-3">
+                    <div className="text-xs text-white/55">Fuente dual (pediatría)</div>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setTargetSpeaker("patient")}
+                        className={`rounded-full border px-3 py-1 text-xs ${
+                          targetSpeaker === "patient"
+                            ? "border-white/25 bg-white/10 text-white"
+                            : "border-white/15 bg-black/30 text-white/70"
+                        }`}
+                      >
+                        Preguntar al paciente
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTargetSpeaker("caregiver")}
+                        className={`rounded-full border px-3 py-1 text-xs ${
+                          targetSpeaker === "caregiver"
+                            ? "border-white/25 bg-white/10 text-white"
+                            : "border-white/15 bg-black/30 text-white/70"
+                        }`}
+                      >
+                        Preguntar al acompañante
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTargetSpeaker("both");
+                          setUserMessage("Quisiera explorar dinámica familiar, escuela y desarrollo reciente.");
+                        }}
+                        className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70"
+                      >
+                        Explorar dinámica familiar
+                      </button>
+                    </div>
+                    <div className="mt-2 text-[11px] text-white/50">
+                      Activo: {targetSpeaker === "caregiver" ? companionName : targetSpeaker === "both" ? "Ambos" : patientName}
+                    </div>
+                  </div>
+                )}
+
+                {activeInstrumentContext && (
+                  <div className="mb-3 rounded-2xl border border-white/10 bg-black/25 p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-xs text-white/55">
+                        {activeInstrumentContext.mode === "scale" ? "Escala clínica en curso" : "Test mental en curso"} ·{" "}
+                        {activeInstrumentContext.instrument_name}
+                      </div>
+                      <div className="text-xs text-white/70">
+                        {activeInstrumentContext.item_index + 1}/{activeInstrumentContext.total_items}
+                      </div>
+                    </div>
+                    <div className="mt-2 text-sm text-white/80">{activeInstrumentContext.item_prompt}</div>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void askCurrentInstrumentItem()}
+                        disabled={loading || inputDisabled}
+                        className="rounded-xl border border-white/15 bg-black/30 px-3 py-1.5 text-xs text-white/80 disabled:opacity-50"
+                      >
+                        {instrumentAutoRun ? "Reenviar ítem" : "Aplicar ítem en chat"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={cancelActiveInstrument}
+                        className="rounded-xl border border-red-400/25 bg-red-400/10 px-3 py-1.5 text-xs text-red-100"
+                      >
+                        Cancelar instrumento
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-2">
                   {Object.keys(quickChipMap ?? {}).map((label) => {
                     const isRisk = label.includes("Riesgo");
@@ -1287,7 +1853,7 @@ export default function SimulatorPage() {
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
-                        if (!inputDisabled) sendMessage();
+                        if (!inputDisabled) void sendMessage();
                       }
                     }}
                     placeholder={remainingSec != null && remainingSec <= 0 ? "Sesión finalizada" : "Escribe tu pregunta clínica…"}
@@ -1296,7 +1862,7 @@ export default function SimulatorPage() {
                   />
 
                   <button
-                    onClick={sendMessage}
+                    onClick={() => void sendMessage()}
                     disabled={inputDisabled}
                     className="h-11 rounded-full bg-white px-5 text-sm font-semibold text-black disabled:opacity-60"
                   >
@@ -1317,6 +1883,9 @@ export default function SimulatorPage() {
                     ["mse", "MSE"],
                     ["dsm", "DSM-5"],
                     ["risk", "Seguridad"],
+                    ["scales", "Escalas"],
+                    ["tests", "Tests"],
+                    ["caces", "CACES"],
                   ] as const
                 ).map(([key, label]) => (
                   <button
@@ -1385,6 +1954,20 @@ export default function SimulatorPage() {
                       )}
                     </div>
 
+                    {pediatricCase && (
+                      <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                        <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Checklist pediátrico</div>
+                        <div className="mt-2 text-xs text-white/55">
+                          Grupo etario detectado: {caseAgeGroup === "child" ? "Niñez" : "Adolescencia"}.
+                        </div>
+                        <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-white/75">
+                          {pediatricExplorationChecklist().map((item) => (
+                            <li key={item}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
                     <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                       <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Señales (flags)</div>
                       <div className="mt-3 flex flex-wrap gap-2">
@@ -1401,6 +1984,21 @@ export default function SimulatorPage() {
                         )}
                       </div>
                       <div className="mt-2 text-[11px] text-white/45">Guían tu entrevista. No son diagnóstico.</div>
+                    </div>
+
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Notas de sesión</div>
+                      {sessionNotes.length === 0 ? (
+                        <div className="mt-2 text-xs text-white/55">Sin notas guardadas aún.</div>
+                      ) : (
+                        <ul className="mt-2 space-y-2 text-xs text-white/75">
+                          {sessionNotes.slice(0, 8).map((n, i) => (
+                            <li key={`${i}:${n.slice(0, 18)}`} className="rounded-xl border border-white/10 bg-black/30 p-2">
+                              {n}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1599,6 +2197,340 @@ export default function SimulatorPage() {
                         )}
                       </div>
                     </div>
+                  </div>
+                )}
+
+                {rightTab === "scales" && (
+                  <div className="space-y-3">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Escalas clínicas</div>
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <label className="text-xs text-white/60">Selecciona escala</label>
+                      <select
+                        value={selectedScaleId}
+                        onChange={(e) => setSelectedScaleId(e.target.value)}
+                        className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
+                      >
+                        {CLINICAL_SCALES.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.short_name} · {s.name}
+                          </option>
+                        ))}
+                      </select>
+
+                      {selectedScale && (
+                        <div className="mt-3 text-xs text-white/60">
+                          <div>Población: {selectedScale.population}</div>
+                          <div>Rango sugerido: {selectedScale.suggested_age_range}</div>
+                          <div className="mt-1 text-white/50">{selectedScale.description}</div>
+                          {selectedScale.placeholder && (
+                            <div className="mt-2 rounded-xl border border-amber-400/20 bg-amber-400/10 p-2 text-amber-100">
+                              Placeholder técnico: escala pendiente de validar/reemplazar.
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => startScaleInChat(false)}
+                          className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs text-white/80"
+                        >
+                          Aplicar paso a paso
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => startScaleInChat(true)}
+                          className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-black"
+                        >
+                          Aplicación automática
+                        </button>
+                        {activeInstrumentContext?.mode === "scale" && (
+                          <button
+                            type="button"
+                            onClick={cancelActiveInstrument}
+                            className="rounded-xl border border-red-400/25 bg-red-400/10 px-3 py-2 text-xs text-red-100"
+                          >
+                            Cancelar escala
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {scaleSession && (
+                      <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                        <div className="text-xs text-white/60">
+                          Estado: <span className="text-white/85">{scaleSession.status}</span>
+                        </div>
+                        <div className="mt-1 text-xs text-white/60">
+                          Ítems respondidos: {scaleSession.answers.length} / {selectedScale?.items.length ?? "—"}
+                        </div>
+                        {lastScaleResult && (
+                          <div
+                            className={`mt-3 rounded-xl border p-3 text-sm ${
+                              lastScaleResult.risk_alert
+                                ? "border-red-400/25 bg-red-400/10 text-red-100"
+                                : "border-white/10 bg-black/30 text-white/80"
+                            }`}
+                          >
+                            <div className="font-semibold">
+                              Score: {lastScaleResult.total_score}/{lastScaleResult.max_score} · {lastScaleResult.severity_label}
+                            </div>
+                            <div className="mt-1">{lastScaleResult.interpretation}</div>
+                            <div className="mt-1 text-xs text-white/60">{lastScaleResult.educational_note}</div>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  addNote(
+                                    `[Escala ${selectedScale?.short_name}] ${lastScaleResult.total_score}/${lastScaleResult.max_score} · ${lastScaleResult.severity_label}: ${lastScaleResult.interpretation}`
+                                  )
+                                }
+                                className="rounded-xl border border-white/15 bg-black/30 px-3 py-1.5 text-xs text-white/80"
+                              >
+                                Guardar en notas de sesión
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setUseScaleInFeedback((v) => !v)}
+                                className={`rounded-xl border px-3 py-1.5 text-xs ${
+                                  useScaleInFeedback
+                                    ? "border-emerald-400/30 bg-emerald-400/15 text-emerald-100"
+                                    : "border-white/15 bg-black/30 text-white/80"
+                                }`}
+                              >
+                                {useScaleInFeedback ? "Usando en feedback final" : "Usar resultado en retroalimentación final"}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {rightTab === "tests" && (
+                  <div className="space-y-3">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Tests mentales</div>
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <label className="text-xs text-white/60">Selecciona test</label>
+                      <select
+                        value={selectedTestId}
+                        onChange={(e) => setSelectedTestId(e.target.value)}
+                        className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
+                      >
+                        {MENTAL_TESTS.map((t) => (
+                          <option key={t.id} value={t.id}>
+                            {t.short_name} · {t.name}
+                          </option>
+                        ))}
+                      </select>
+                      {selectedTest && (
+                        <div className="mt-3 text-xs text-white/60">
+                          <div>Tipo: {selectedTest.kind === "screening" ? "Tamizaje" : "Evaluación orientativa"}</div>
+                          <div>Aplica a: {selectedTest.applies_to === "both" ? "Adulto y adolescente" : selectedTest.applies_to}</div>
+                          <div className="mt-1 text-white/50">{selectedTest.description}</div>
+                        </div>
+                      )}
+
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => startTestInChat(false)}
+                          className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs text-white/80"
+                        >
+                          Aplicar paso a paso
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => startTestInChat(true)}
+                          className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-black"
+                        >
+                          Autoejecutar
+                        </button>
+                        {activeInstrumentContext?.mode === "test" && (
+                          <button
+                            type="button"
+                            onClick={cancelActiveInstrument}
+                            className="rounded-xl border border-red-400/25 bg-red-400/10 px-3 py-2 text-xs text-red-100"
+                          >
+                            Cancelar test actual
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {testSession && (
+                      <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                        <div className="text-xs text-white/60">
+                          Estado: <span className="text-white/85">{testSession.status}</span>
+                        </div>
+                        <div className="mt-1 text-xs text-white/60">
+                          Ítems respondidos: {testSession.answers.length} / {selectedTest?.items.length ?? "—"}
+                        </div>
+                        {lastTestResult && (
+                          <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3 text-sm text-white/80">
+                            <div className="font-semibold">
+                              Score: {lastTestResult.total_score}/{lastTestResult.max_score} · {lastTestResult.classification}
+                            </div>
+                            <div className="mt-1">{lastTestResult.interpretation}</div>
+                            {lastTestResult.observations.length > 0 && (
+                              <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-white/70">
+                                {lastTestResult.observations.map((o, i) => (
+                                  <li key={i}>{o}</li>
+                                ))}
+                              </ul>
+                            )}
+                            {lastTestResult.limitations.length > 0 && (
+                              <div className="mt-2 text-xs text-white/60">
+                                Limitaciones: {lastTestResult.limitations.join(" · ")}
+                              </div>
+                            )}
+                            <div className="mt-1 text-xs text-white/60">{lastTestResult.educational_note}</div>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  addNote(
+                                    `[Test ${selectedTest?.short_name}] ${lastTestResult.total_score}/${lastTestResult.max_score} · ${lastTestResult.classification}: ${lastTestResult.interpretation}`
+                                  )
+                                }
+                                className="rounded-xl border border-white/15 bg-black/30 px-3 py-1.5 text-xs text-white/80"
+                              >
+                                Guardar en notas de sesión
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setUseTestInFeedback((v) => !v)}
+                                className={`rounded-xl border px-3 py-1.5 text-xs ${
+                                  useTestInFeedback
+                                    ? "border-emerald-400/30 bg-emerald-400/15 text-emerald-100"
+                                    : "border-white/15 bg-black/30 text-white/80"
+                                }`}
+                              >
+                                {useTestInFeedback ? "Usando en feedback final" : "Usar resultado en retroalimentación final"}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {rightTab === "caces" && (
+                  <div className="space-y-3">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Preguntas CACES (estilo original)</div>
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <label className="text-xs text-white/60">Categoría</label>
+                      <select
+                        value={cacesCategory}
+                        onChange={(e) => setCacesCategory(e.target.value)}
+                        className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
+                      >
+                        {CACES_CATEGORIES.map((c) => (
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
+                        ))}
+                      </select>
+
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-xs text-white/60">Dificultad</label>
+                          <select
+                            value={cacesDifficulty}
+                            onChange={(e) => setCacesDifficulty(e.target.value as any)}
+                            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
+                          >
+                            <option value="all">Todas</option>
+                            <option value="basic">Básica</option>
+                            <option value="intermediate">Intermedia</option>
+                            <option value="advanced">Avanzada</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-xs text-white/60">Modo</label>
+                          <select
+                            value={cacesMode}
+                            onChange={(e) => setCacesMode(e.target.value as CacesMode)}
+                            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
+                          >
+                            <option value="practice">Pregunta individual</option>
+                            <option value="quiz_5">Mini quiz (5)</option>
+                            <option value="simulacro_10">Simulacro (10)</option>
+                            <option value="simulacro_20">Simulacro (20)</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={startCacesSession}
+                        className="mt-3 w-full rounded-xl bg-white px-3 py-2 text-sm font-semibold text-black"
+                      >
+                        Iniciar
+                      </button>
+                    </div>
+
+                    {quizSession && !quizSession.completed && quizSession.questions[quizSession.currentIndex] && (
+                      <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                        <div className="text-xs text-white/60">
+                          Pregunta {quizSession.currentIndex + 1}/{quizSession.questions.length}
+                        </div>
+                        <div className="mt-2 text-sm text-white/85">
+                          {quizSession.questions[quizSession.currentIndex].prompt}
+                        </div>
+                        <div className="mt-3 space-y-2">
+                          {quizSession.questions[quizSession.currentIndex].options.map((opt) => (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={() => answerCacesQuestion(opt.id)}
+                              className="w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-left text-sm text-white/80 hover:bg-black/40"
+                            >
+                              <span className="font-semibold">{opt.id}.</span> {opt.text}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {quizSession?.completed && quizSession.result && (
+                      <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                        <div className="text-sm font-semibold text-white">
+                          Resultado: {quizSession.result.correct_answers}/{quizSession.result.total_questions} ({quizSession.result.accuracy}%)
+                        </div>
+                        <div className="mt-2 text-xs text-white/60">
+                          Banco académico independiente, con preguntas originales estilo CACES.
+                        </div>
+                        <div className="mt-3 space-y-2">
+                          {quizSession.result.review.slice(0, 6).map((r) => {
+                            const q = quizSession.questions.find((x) => x.id === r.question_id);
+                            return (
+                              <div key={r.question_id} className="rounded-xl border border-white/10 bg-black/30 p-2 text-xs text-white/75">
+                                <div className="font-semibold">
+                                  {q?.subcategory ?? "Pregunta"} · {r.selected === r.correct ? "Correcta" : "Incorrecta"}
+                                </div>
+                                <div className="mt-1">
+                                  Tu respuesta: {r.selected ?? "—"} · Correcta: {r.correct}
+                                </div>
+                                {q?.rationale && <div className="mt-1 text-white/60">{q.rationale}</div>}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {!quizSession && lastQuizResult && (
+                      <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                        <div className="text-xs text-white/60">Último resultado</div>
+                        <div className="mt-1 text-sm text-white/85">
+                          {lastQuizResult.correct_answers}/{lastQuizResult.total_questions} ({lastQuizResult.accuracy}%)
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

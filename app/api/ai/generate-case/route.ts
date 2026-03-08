@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { geminiChatJSON } from "../../../../src/lib/gemini";
+import {
+  enforceRateLimit,
+  requireAuthenticatedUser,
+} from "../../../../src/lib/serverGuards";
 
 // === AI Providers (Gemini primary + Groq/OpenRouter fallbacks) ===
 // Groq (OpenAI-compatible)
@@ -25,6 +29,8 @@ const MAX_CHIPS = Number(process.env.AI_CASE_MAX_CHIPS ?? 10);
 const MAX_MSE_SECTIONS = Number(process.env.AI_CASE_MAX_MSE_SECTIONS ?? 8);
 const MAX_MSE_CHIPS = Number(process.env.AI_CASE_MAX_MSE_CHIPS ?? 10);
 const MAX_DSM_DIFFERENTIALS = Number(process.env.AI_CASE_MAX_DSM_DIFFS ?? 6);
+const RATE_LIMIT_WINDOW_MS = Number(process.env.AI_RATE_LIMIT_WINDOW_MS ?? 60_000);
+const RATE_LIMIT_GENERATE_CASE = Number(process.env.AI_RATE_LIMIT_GENERATE_CASE ?? 8);
 
 function clampStr(s: any, maxChars: number) {
   const str = String(s ?? "").trim();
@@ -43,8 +49,83 @@ function uniqList(list: any[], max = 10) {
   return out;
 }
 
+function clampStructuredValue(value: any, depth = 0): any {
+  if (value == null) return value;
+  if (typeof value === "string") return clampStr(value, 220);
+  if (typeof value === "number" || typeof value === "boolean") return value;
+
+  if (depth >= 4) {
+    if (Array.isArray(value)) return value.slice(0, 4).map((v) => clampStructuredValue(v, depth + 1));
+    if (typeof value === "object") return { _truncated: true };
+    return String(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value.slice(0, 8).map((v) => clampStructuredValue(v, depth + 1));
+  }
+
+  if (typeof value === "object") {
+    const out: Record<string, any> = {};
+    for (const [k, v] of Object.entries(value).slice(0, 12)) {
+      out[clampStr(k, 40)] = clampStructuredValue(v, depth + 1);
+    }
+    out._truncated = true;
+    return out;
+  }
+
+  return String(value);
+}
+
+function clampStructuredObjectBySize(value: any, maxChars: number) {
+  try {
+    const serialized = JSON.stringify(value);
+    if (serialized.length <= maxChars) return value;
+  } catch {
+    return { _truncated: true };
+  }
+
+  return clampStructuredValue(value, 0);
+}
+
 function normalizeCaseSize(caseJson: any) {
   const j: any = caseJson ?? {};
+  j.meta = typeof j.meta === "object" && j.meta ? j.meta : {};
+  j.patient_profile = typeof j.patient_profile === "object" && j.patient_profile ? j.patient_profile : {};
+
+  const inferredAge = Number(j?.patient_profile?.age);
+  const inferredAgeGroup =
+    inferredAge > 0 && inferredAge < 13
+      ? "child"
+      : inferredAge >= 13 && inferredAge < 18
+      ? "adolescent"
+      : "adult";
+
+  const rawAgeGroup = String(j?.meta?.age_group ?? "").toLowerCase().trim();
+  j.meta.age_group =
+    rawAgeGroup === "child" || rawAgeGroup === "adolescent" || rawAgeGroup === "mixed" || rawAgeGroup === "adult"
+      ? rawAgeGroup
+      : inferredAgeGroup;
+  j.meta.pediatric_mode = j.meta.age_group === "child" || j.meta.age_group === "adolescent";
+  j.meta.companion_available = Boolean(
+    j?.meta?.companion_available ?? (j.meta.pediatric_mode ? true : false)
+  );
+  if (j.meta.companion_available) {
+    j.meta.companion_role = String(j?.meta?.companion_role ?? "madre").toLowerCase();
+    j.companion_profile = typeof j.companion_profile === "object" && j.companion_profile ? j.companion_profile : {};
+    j.companion_profile.display_name = clampStr(j.companion_profile.display_name ?? "Acompañante", 64);
+    j.companion_profile.relation = clampStr(j.companion_profile.relation ?? j.meta.companion_role, 20);
+    j.companion_profile.cooperativeness = ["low", "medium", "high"].includes(String(j.companion_profile.cooperativeness))
+      ? j.companion_profile.cooperativeness
+      : "medium";
+    j.companion_profile.reliability = ["low", "medium", "high"].includes(String(j.companion_profile.reliability))
+      ? j.companion_profile.reliability
+      : "medium";
+    j.companion_profile.narrative_style = ["brief", "detailed", "minimizing", "anxious"].includes(String(j.companion_profile.narrative_style))
+      ? j.companion_profile.narrative_style
+      : "detailed";
+  } else {
+    j.companion_profile = undefined;
+  }
 
   // clamp big text fields
   j.chief_complaint = clampStr(j.chief_complaint, 360);
@@ -128,9 +209,9 @@ function normalizeCaseSize(caseJson: any) {
   }
 
   // reveal_plan / conversation_style / truth_reveal can get huge
-  if (j.reveal_plan) j.reveal_plan = JSON.parse(clampStr(JSON.stringify(j.reveal_plan), MAX_TEXT_CHARS));
-  if (j.conversation_style) j.conversation_style = JSON.parse(clampStr(JSON.stringify(j.conversation_style), MAX_TEXT_CHARS));
-  if (j.truth_reveal) j.truth_reveal = JSON.parse(clampStr(JSON.stringify(j.truth_reveal), MAX_TEXT_CHARS));
+  if (j.reveal_plan) j.reveal_plan = clampStructuredObjectBySize(j.reveal_plan, MAX_TEXT_CHARS);
+  if (j.conversation_style) j.conversation_style = clampStructuredObjectBySize(j.conversation_style, MAX_TEXT_CHARS);
+  if (j.truth_reveal) j.truth_reveal = clampStructuredObjectBySize(j.truth_reveal, MAX_TEXT_CHARS);
 
   return j;
 }
@@ -291,8 +372,27 @@ async function openAICompatChatJSON(opts: {
 
 export async function POST(req: Request) {
   try {
+    const auth = await requireAuthenticatedUser(req);
+    if (!auth.ok) return auth.response;
+
+    const limited = enforceRateLimit({
+      key: `generate-case:${auth.data.userId}`,
+      limit: Number.isFinite(RATE_LIMIT_GENERATE_CASE) && RATE_LIMIT_GENERATE_CASE > 0 ? RATE_LIMIT_GENERATE_CASE : 8,
+      windowMs: Number.isFinite(RATE_LIMIT_WINDOW_MS) && RATE_LIMIT_WINDOW_MS >= 1000 ? RATE_LIMIT_WINDOW_MS : 60_000,
+    });
+    if (!limited.ok) return limited.response;
+
     const body = await req.json();
-    const { category = "ansiedad", difficulty = 2, target_minutes = 20 } = body ?? {};
+    const {
+      category = "ansiedad",
+      difficulty = 2,
+      target_minutes = 20,
+      age_group = "adult",
+      case_seed,
+    } = body ?? {};
+    const normalizedAgeGroup =
+      age_group === "child" || age_group === "adolescent" || age_group === "mixed" ? age_group : "adult";
+    const isPediatric = normalizedAgeGroup === "child" || normalizedAgeGroup === "adolescent";
 
     let provider: "gemini" | "groq" | "openrouter" = "gemini";
 
@@ -315,7 +415,7 @@ Reglas duras:
 - Idioma: ESPAÑOL (LatAm). Usa nombres ficticios latinoamericanos.
 
 El JSON debe incluir como mínimo:
-meta { title, difficulty, category, target_minutes, dsm_tag, cie11_code (opcional), risk_level (bajo|moderado|alto) },
+meta { title, difficulty, category, target_minutes, dsm_tag, cie11_code (opcional), risk_level (bajo|moderado|alto), age_group (adult|adolescent|child|mixed), pediatric_mode (boolean), companion_available (boolean), companion_role (opcional: madre|padre|tutor|cuidador|otro) },
 patient_profile {
   display_name,
   age,
@@ -325,6 +425,7 @@ patient_profile {
   referral_source (string),
   context (string)
 },
+companion_profile (opcional para pediatría) { display_name, relation, cooperativeness (low|medium|high), reliability (low|medium|high), narrative_style (brief|detailed|minimizing|anxious) },
 chief_complaint (string),
 brief_context (string),
 learning_objective (string),
@@ -375,9 +476,27 @@ Además:
 - timeline debe tener 4–6 eventos en orden (de pasado a hoy), con date_label tipo "2020", "Mar 2025", "Hoy".
 - suggested_questions debe tener frases listas para copiar/pegar (preguntas en segunda persona).
 - mse_template debe cubrir al menos: Apariencia/Conducta, Habla/Lenguaje, Ánimo/Afecto, Pensamiento, Percepción, Cognición, Insight/Juicio.
+- Si age_group es child/adolescent: adapta lenguaje y síntomas a población pediátrica y agrega companion_profile + companion_available=true.
+- Si categoría es sexualidad: usa lenguaje clínico, respetuoso y no sensacionalista.
 `;
-
-    const user = `Genera un caso de salud mental. category="${category}" (si category no es de salud mental, usa "ansiedad" por defecto), difficulty=${difficulty}, target_minutes=${target_minutes}.`;
+    const user = JSON.stringify(
+      {
+        instruction:
+          "Genera un caso clínico educativo de salud mental, compacto y utilizable en simulador.",
+        category,
+        difficulty,
+        target_minutes,
+        age_group: normalizedAgeGroup,
+        pediatric_mode: isPediatric,
+        companion_required: isPediatric,
+        case_seed:
+          case_seed && typeof case_seed === "object"
+            ? case_seed
+            : undefined,
+      },
+      null,
+      2
+    );
 
     const callGemini = async () =>
       geminiChatJSON({

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { getAuthFetchHeaders } from "@/src/lib/clientAuth";
 
 type CoverageMap = Record<string, number>;
 
@@ -15,7 +16,7 @@ type Evaluation = {
   red_flags?: string[];
 };
 
-type TranscriptTurn = { role: "user" | "patient"; content: string };
+type TranscriptTurn = { role: "user" | "patient" | "caregiver" | "tutor"; content: string };
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (value && typeof value === "object" && !Array.isArray(value)) return value as Record<string, unknown>;
@@ -93,9 +94,13 @@ export default function ResultsPage() {
       }
 
       try {
+        const headers = await getAuthFetchHeaders({
+          "Content-Type": "application/json",
+        });
+
         const res = await fetch("/api/ai/evaluate", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify({ caseObject, transcript }),
         });
 

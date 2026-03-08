@@ -7,7 +7,26 @@ import { useEffect, useMemo, useState } from "react";
 
 import Sidebar from "@/components/Sidebar";
 
-type TranscriptTurn = { role: "user" | "patient" | "tutor"; content: string };
+type TranscriptTurn = { role: "user" | "patient" | "caregiver" | "tutor"; content: string };
+
+type FeedbackInstrumentResult = {
+  total_score?: number;
+  max_score?: number;
+  severity_label?: string;
+  classification?: string;
+  interpretation?: string;
+  educational_note?: string;
+};
+
+type FeedbackContext = {
+  use_scale_result?: boolean;
+  use_test_result?: boolean;
+  scale_result?: FeedbackInstrumentResult | null;
+  test_result?: FeedbackInstrumentResult | null;
+  scale_definition?: { id?: string; name?: string; short_name?: string } | null;
+  test_definition?: { id?: string; name?: string; short_name?: string } | null;
+  saved_at?: string;
+};
 
 type AnyCase = any;
 
@@ -179,19 +198,23 @@ function computeScore(caseObj: AnyCase, transcript: TranscriptTurn[]): ScoreBrea
 export default function ReportsPage() {
   const [caseObj, setCaseObj] = useState<AnyCase | null>(null);
   const [transcript, setTranscript] = useState<TranscriptTurn[]>([]);
+  const [feedbackContext, setFeedbackContext] = useState<FeedbackContext | null>(null);
   const [loadedAt, setLoadedAt] = useState<string>("");
 
 useEffect(() => {
   try {
     const cRaw = localStorage.getItem("activeCase");
     const tRaw = localStorage.getItem("activeTranscript");
+    const fRaw = localStorage.getItem("sessionFeedbackContext");
     const c = cRaw ? JSON.parse(cRaw) : null;
     const t = tRaw ? JSON.parse(tRaw) : [];
+    const f = fRaw ? JSON.parse(fRaw) : null;
     const normalized = Array.isArray(t)
       ? (t as any[]).map((turn) => {
           const role = String((turn as any)?.role ?? "");
           const content = String((turn as any)?.content ?? "");
           if (role === "assistant") return { role: "patient" as const, content };
+          if (role === "caregiver" || role === "acompanante" || role === "acompañante") return { role: "caregiver" as const, content };
           if (role === "system") return { role: "tutor" as const, content };
           if (role === "tutor") return { role: "tutor" as const, content };
           if (role === "patient") return { role: "patient" as const, content };
@@ -200,10 +223,12 @@ useEffect(() => {
       : [];
     setCaseObj(c);
     setTranscript(normalized);
+    setFeedbackContext(f);
     setLoadedAt(new Date().toISOString());
   } catch {
     setCaseObj(null);
     setTranscript([]);
+    setFeedbackContext(null);
     setLoadedAt(new Date().toISOString());
   }
 }, []);
@@ -359,6 +384,46 @@ useEffect(() => {
               </div>
             </section>
 
+            {(feedbackContext?.use_scale_result || feedbackContext?.use_test_result) && (
+              <section className="mt-5 rounded-3xl border border-white/10 bg-white/5 p-5">
+                <div className="text-sm font-semibold text-white">Instrumentos incluidos en retroalimentación final</div>
+                <div className="mt-3 space-y-3 text-sm text-white/75">
+                  {feedbackContext?.use_scale_result && feedbackContext?.scale_result && (
+                    <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
+                      <div className="font-semibold text-white">
+                        Escala: {feedbackContext?.scale_definition?.short_name ?? feedbackContext?.scale_definition?.name ?? "Escala"}
+                      </div>
+                      <div className="mt-1">
+                        Score: {feedbackContext.scale_result.total_score ?? "—"}/{feedbackContext.scale_result.max_score ?? "—"} ·{" "}
+                        {feedbackContext.scale_result.severity_label ?? "Sin clasificación"}
+                      </div>
+                      {feedbackContext.scale_result.interpretation && (
+                        <div className="mt-1 text-white/65">{feedbackContext.scale_result.interpretation}</div>
+                      )}
+                    </div>
+                  )}
+
+                  {feedbackContext?.use_test_result && feedbackContext?.test_result && (
+                    <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
+                      <div className="font-semibold text-white">
+                        Test: {feedbackContext?.test_definition?.short_name ?? feedbackContext?.test_definition?.name ?? "Test"}
+                      </div>
+                      <div className="mt-1">
+                        Score: {feedbackContext.test_result.total_score ?? "—"}/{feedbackContext.test_result.max_score ?? "—"} ·{" "}
+                        {feedbackContext.test_result.classification ?? "Sin clasificación"}
+                      </div>
+                      {feedbackContext.test_result.interpretation && (
+                        <div className="mt-1 text-white/65">{feedbackContext.test_result.interpretation}</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="mt-3 text-xs text-white/55">
+                  Uso educativo. No sustituye valoración clínica real ni constituye diagnóstico definitivo.
+                </div>
+              </section>
+            )}
+
             {/* Missing questions */}
             <section className="mt-5 rounded-3xl border border-white/10 bg-white/5 p-5">
               <div className="text-sm font-semibold text-white">Preguntas que no exploraste</div>
@@ -391,6 +456,7 @@ useEffect(() => {
                           case: caseObj,
                           transcript,
                           score,
+                          feedbackContext,
                         };
                         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
                         const url = URL.createObjectURL(blob);
@@ -430,7 +496,7 @@ useEffect(() => {
             <details className="mt-5">
               <summary className="cursor-pointer text-xs text-white/60">Ver datos (debug)</summary>
               <pre className="mt-2 overflow-auto rounded-2xl bg-black/40 p-4 text-xs text-white/70">
-{JSON.stringify({ hasCase: !!caseObj, transcriptLen: transcript.length, dsmTag }, null, 2)}
+{JSON.stringify({ hasCase: !!caseObj, transcriptLen: transcript.length, dsmTag, feedbackContext }, null, 2)}
               </pre>
             </details>
           </div>

@@ -1,7 +1,19 @@
 import { NextResponse } from "next/server";
-import type { CaseObject, PatientTurnOutput, EmotionState } from "../../../../src/lib/types";
+import type {
+  ActiveInstrumentContext,
+  CaseObject,
+  EmotionState,
+  InterviewMode,
+  PatientTurnOutput,
+  SpeakerRole,
+} from "../../../../src/lib/types";
 import { geminiChatJSON } from "../../../../src/lib/gemini";
 import { detectSelfHarm } from "../../../../src/lib/guardrails";
+import {
+  enforceRateLimit,
+  requireAuthenticatedUser,
+} from "../../../../src/lib/serverGuards";
+import { deriveAgeGroup, isPediatricCase, normalizeSpeakerRole } from "../../../../src/lib/clinicalRuntime";
 
 // === AI Providers (Gemini primary + Groq/OpenRouter fallbacks) ===
 // Groq (OpenAI-compatible)
@@ -17,6 +29,8 @@ const OPENROUTER_APP_NAME = process.env.OPENROUTER_APP_NAME; // optional
 // Optional: force provider (useful for debugging / quota situations)
 // AI_PROVIDER=gemini | groq | openrouter
 const FORCE_PROVIDER = String(process.env.AI_PROVIDER ?? "").toLowerCase().trim();
+const RATE_LIMIT_WINDOW_MS = Number(process.env.AI_RATE_LIMIT_WINDOW_MS ?? 60_000);
+const RATE_LIMIT_PATIENT_TURN = Number(process.env.AI_RATE_LIMIT_PATIENT_TURN ?? 60);
 
 
 // === Prompt size controls (prevent saturation) ===
@@ -124,7 +138,7 @@ function clampStr(s: string, maxChars: number) {
 }
 
 function trimTranscript(
-  transcript: Array<{ role: "user" | "patient"; content: string }>,
+  transcript: Array<{ role: "user" | "patient" | "caregiver" | "tutor"; content: string }>,
   maxTurns = MAX_TRANSCRIPT_TURNS
 ) {
   if (!Array.isArray(transcript)) return [];
@@ -144,6 +158,7 @@ function buildCaseSnapshot(caseObject: any) {
   const meta = (caseObject as any)?.meta ?? {};
   const patient = (caseObject as any)?.patient ?? (caseObject as any)?.persona ?? {};
   const presentation = (caseObject as any)?.presentation ?? (caseObject as any)?.complaint ?? {};
+  const companion = (caseObject as any)?.companion_profile ?? {};
 
   return {
     id: (caseObject as any)?.id,
@@ -172,6 +187,28 @@ function buildCaseSnapshot(caseObject: any) {
       (caseObject as any)?.risks_seed ??
       (caseObject as any)?.risk_seed ??
       meta?.risks,
+    age_group:
+      meta?.age_group ??
+      (caseObject as any)?.age_group ??
+      deriveAgeGroup(caseObject),
+    pediatric_mode:
+      Boolean(meta?.pediatric_mode ?? (caseObject as any)?.pediatric_mode) ||
+      isPediatricCase(caseObject),
+    companion_available: Boolean(
+      meta?.companion_available ??
+      (caseObject as any)?.companion_available ??
+      companion?.display_name
+    ),
+    companion_profile:
+      companion && typeof companion === "object"
+        ? {
+            display_name: clampStr(companion?.display_name ?? "Acompañante", 64),
+            relation: clampStr(companion?.relation ?? meta?.companion_role ?? "cuidador", 24),
+            cooperativeness: clampStr(companion?.cooperativeness ?? "medium", 12),
+            reliability: clampStr(companion?.reliability ?? "medium", 12),
+            narrative_style: clampStr(companion?.narrative_style ?? "detailed", 14),
+          }
+        : undefined,
     facts_bank: pickFacts(caseObject),
     facts_focus: undefined,
     facts_core: undefined,
@@ -181,7 +218,7 @@ function buildCaseSnapshot(caseObject: any) {
 
 function updateRollingSummary(opts: {
   prev?: string;
-  lastTurns: Array<{ role: "user" | "patient"; content: string }>;
+  lastTurns: Array<{ role: "user" | "patient" | "caregiver" | "tutor"; content: string }>;
   userMessage: string;
   patientMessage?: string;
 }) {
@@ -190,7 +227,17 @@ function updateRollingSummary(opts: {
   const prev = String(opts.prev ?? "").trim();
   const latestTurns = opts.lastTurns
     .slice(-6)
-    .map((t) => `- ${t.role === "user" ? "Estudiante" : "Paciente"}: ${clampStr(t.content, 220)}`)
+    .map((t) => {
+      const label =
+        t.role === "user"
+          ? "Estudiante"
+          : t.role === "caregiver"
+          ? "Acompañante"
+          : t.role === "tutor"
+          ? "Tutor IA"
+          : "Paciente";
+      return `- ${label}: ${clampStr(t.content, 220)}`;
+    })
     .join("\n");
 
   const add = [
@@ -294,20 +341,40 @@ const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
 export async function POST(req: Request) {
   try {
+    const auth = await requireAuthenticatedUser(req);
+    if (!auth.ok) return auth.response;
+
+    const limited = enforceRateLimit({
+      key: `patient-turn:${auth.data.userId}`,
+      limit: Number.isFinite(RATE_LIMIT_PATIENT_TURN) && RATE_LIMIT_PATIENT_TURN > 0 ? RATE_LIMIT_PATIENT_TURN : 60,
+      windowMs: Number.isFinite(RATE_LIMIT_WINDOW_MS) && RATE_LIMIT_WINDOW_MS >= 1000 ? RATE_LIMIT_WINDOW_MS : 60_000,
+    });
+    if (!limited.ok) return limited.response;
+
     const body = await req.json();
-    const { caseObject, transcript, userMessage, tutorEnabled = true, rollingSummary } = body as {
+    const { caseObject, transcript, userMessage, tutorEnabled = true, rollingSummary, interviewMode, instrumentContext, targetSpeaker } = body as {
       caseObject: CaseObject;
-      transcript: Array<{ role: "user" | "patient"; content: string }>;
+      transcript: Array<{ role: "user" | "patient" | "caregiver" | "tutor"; content: string }>;
       userMessage: string;
       tutorEnabled?: boolean;
       rollingSummary?: string;
+      interviewMode?: InterviewMode;
+      instrumentContext?: ActiveInstrumentContext | null;
+      targetSpeaker?: SpeakerRole;
     };
 
     const tutorOn = Boolean(tutorEnabled);
+    const mode: InterviewMode =
+      interviewMode === "scale" || interviewMode === "test" || interviewMode === "quiz"
+        ? interviewMode
+        : "free";
 
     const selfHarm = detectSelfHarm(userMessage);
 
     const approach = String((caseObject as any)?.meta?.approach ?? (caseObject as any)?.approach ?? "humanistic").toLowerCase();
+    const pediatricMode = isPediatricCase(caseObject);
+    const requestedSpeaker = normalizeSpeakerRole(targetSpeaker);
+    const activeSpeaker: SpeakerRole = pediatricMode ? requestedSpeaker : "patient";
 
     function approachLabel(a: string) {
       if (a === "cbt") return "Cognitivo-conductual (TCC)";
@@ -338,7 +405,24 @@ Tu fuente de verdad es el caseSnapshot (facts_core + facts_focus + facts_bank). 
 Revelación gradual: máximo 2 hechos nuevos por turno. Si no hay suficiente información, pide 1 pregunta aclaratoria.
 Nunca diagnostiques. Nunca des instrucciones de daño.
 Devuelve SIEMPRE SOLO JSON válido con tipo PatientTurnOutput:
-{ message_text, emotion_state, emotion_intensity, optional arousal, rapport, flags }.
+{ message_text, speaker_role, emotion_state, emotion_intensity, optional arousal, rapport, flags, optional instrument_answer }.
+
+Modo de interacción actual: ${mode}.
+Caso pediátrico: ${pediatricMode ? "sí" : "no"}.
+Fuente solicitada: ${activeSpeaker}.
+
+Reglas pediátricas:
+- Si speaker_role="caregiver", responde como acompañante (madre/padre/tutor/cuidador), aportando historia de desarrollo, conducta en casa/escuela, sueño, alimentación y antecedentes.
+- Si speaker_role="patient" y es niño, usa lenguaje simple y respuestas breves.
+- Si speaker_role="patient" y es adolescente, permite respuestas más elaboradas con resistencia variable.
+- Si source="both", elige UNA voz predominante para este turno e indica speaker_role correctamente.
+
+Reglas para escalas/tests:
+- Si mode es "scale" o "test", NO hagas entrevista libre extensa: responde específicamente al ítem del instrumento.
+- El campo instrument_answer es obligatorio en mode "scale"/"test" y debe incluir:
+  { item_id, option_id, option_index, option_label, option_value, confidence, rationale }.
+- option_index es 0-based y debe corresponder a la lista de opciones provista en instrument_context.
+- message_text debe seguir siendo natural y coherente con la opción elegida.
 
 ${tutorOn ? `Además, si detectas un punto clínico educativo importante (p. ej. falta explorar seguridad, impacto funcional, o diferenciales), incluye opcionalmente:
 { tutor_message, tutor_kind }
@@ -369,13 +453,30 @@ emotion_intensity 0-100
       // IMPORTANT: we send a compact snapshot instead of the full CaseObject to prevent prompt saturation.
       caseSnapshot,
       approach: approachLabel(approach),
+      mode,
+      targetSpeaker: activeSpeaker,
       rollingSummary: clampStr(summaryIn, MAX_SUMMARY_CHARS),
       transcript: trimmedTranscript,
       userMessage,
+      instrumentContext:
+        mode === "scale" || mode === "test"
+          ? {
+              instrument_id: instrumentContext?.instrument_id,
+              instrument_name: instrumentContext?.instrument_name,
+              item_index: instrumentContext?.item_index,
+              total_items: instrumentContext?.total_items,
+              item_id: instrumentContext?.item_id,
+              item_prompt: instrumentContext?.item_prompt,
+              response_type: instrumentContext?.response_type,
+              options: instrumentContext?.options,
+            }
+          : undefined,
       safety: { selfHarm },
       instruction: selfHarm
         ? "Responde con contención educativa y recomendación genérica de buscar ayuda profesional/servicios locales, sin consejos personalizados."
-        : "Responde como paciente consistente con el caso y con revelación gradual.",
+        : mode === "scale" || mode === "test"
+          ? "Responde al ítem del instrumento con coherencia clínica y devuelve instrument_answer válido."
+          : "Responde como paciente consistente con el caso y con revelación gradual.",
     });
 
     let provider: "gemini" | "groq" | "openrouter" = "gemini";
@@ -481,14 +582,61 @@ emotion_intensity 0-100
       userMessage,
       patientMessage: (out as any)?.message_text,
     });
+    (out as any).interaction_mode = mode;
 
-    if (!tutorOn) {
+    if (!tutorOn || mode === "scale" || mode === "test") {
       delete (out as any).tutor_message;
       delete (out as any).tutor_kind;
     }
 
+    // Normaliza fuente de respuesta (paciente/acompañante)
+    const modelSpeaker = normalizeSpeakerRole((out as any)?.speaker_role);
+    if (pediatricMode) {
+      if (activeSpeaker === "caregiver") (out as any).speaker_role = "caregiver";
+      else if (activeSpeaker === "patient") (out as any).speaker_role = "patient";
+      else (out as any).speaker_role = modelSpeaker === "caregiver" ? "caregiver" : "patient";
+    } else {
+      (out as any).speaker_role = "patient";
+    }
+
     // Ensure flags is always an array
     (out as any).flags = Array.isArray((out as any).flags) ? (out as any).flags : [];
+
+    if (mode === "scale" || mode === "test") {
+      const payload = (out as any)?.instrument_answer;
+      const options = Array.isArray(instrumentContext?.options) ? instrumentContext.options : [];
+      const fallbackOption = options[0];
+      const fallback = {
+        item_id: instrumentContext?.item_id,
+        option_id: fallbackOption?.id,
+        option_index: 0,
+        option_label: fallbackOption?.label,
+        option_value: fallbackOption?.value,
+        confidence: 0.4,
+        rationale: "Fallback técnico: opción por defecto.",
+      };
+
+      if (!payload || typeof payload !== "object") {
+        (out as any).instrument_answer = fallback;
+      } else {
+        const idx = Number(payload?.option_index);
+        const safeIdx = Number.isFinite(idx) && idx >= 0 && idx < options.length ? idx : 0;
+        const optionByIndex = options[safeIdx] ?? fallbackOption;
+        (out as any).instrument_answer = {
+          item_id: String(payload?.item_id ?? instrumentContext?.item_id ?? ""),
+          option_id: String(payload?.option_id ?? optionByIndex?.id ?? ""),
+          option_index: safeIdx,
+          option_label: String(payload?.option_label ?? optionByIndex?.label ?? ""),
+          option_value: Number.isFinite(Number(payload?.option_value))
+            ? Number(payload.option_value)
+            : Number(optionByIndex?.value ?? 0),
+          confidence: Math.max(0, Math.min(1, Number(payload?.confidence ?? 0.6))),
+          rationale: clampStr(String(payload?.rationale ?? "Respuesta consistente con el caso."), 180),
+        };
+      }
+    } else {
+      delete (out as any).instrument_answer;
+    }
 
     // Self-harm risk: strengthen flags and tutor message
     if (selfHarm) {
@@ -518,7 +666,7 @@ emotion_intensity 0-100
     const flags = (out as any).flags as string[];
     const hasTutor = typeof (out as any).tutor_message === "string" && String((out as any).tutor_message).trim().length > 0;
 
-    if (tutorOn && !hasTutor) {
+    if (tutorOn && mode === "free" && !hasTutor) {
       const riskFlags = flags.filter((f) => f.toLowerCase().startsWith("risk:"));
       const missingSafety = riskFlags.length > 0;
       const missingFunction = flags.some((f) => f.toLowerCase().includes("function")) === false;

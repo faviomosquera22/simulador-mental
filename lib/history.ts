@@ -19,7 +19,7 @@ export type SessionRecord = {
     flags?: string[];
   };
 
-  transcript?: { role: "user" | "patient"; content: string }[];
+  transcript?: { role: "user" | "patient" | "caregiver" | "tutor"; content: string }[];
 };
 
 const KEY = "caseHistory:v1";

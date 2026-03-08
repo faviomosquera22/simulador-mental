@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Sidebar from "../../components/Sidebar";
+import { supabase } from "@/src/lib/supabaseClient";
 
 type Profile = {
   name?: string;
@@ -44,7 +45,13 @@ export default function ProfilePage() {
     return { name, email, role, career, initial };
   }, [profile]);
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // ignore
+    }
+
     // “Borrar la huella” (lo básico)
     const keys = [
       "profile",

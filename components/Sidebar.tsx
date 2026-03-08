@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { supabase } from "@/src/lib/supabaseClient";
 
 type NavItem = {
   label: string;
@@ -125,7 +126,13 @@ export default function Sidebar() {
     };
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // ignore
+    }
+
     try {
       localStorage.removeItem("activeCase");
       localStorage.removeItem("activeTranscript");
