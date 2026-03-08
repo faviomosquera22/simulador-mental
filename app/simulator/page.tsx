@@ -343,6 +343,17 @@ export default function SimulatorPage() {
   const [activeInstrumentContext, setActiveInstrumentContext] = useState<ActiveInstrumentContext | null>(null);
   const [instrumentAutoRun, setInstrumentAutoRun] = useState(false);
   useEffect(() => {
+    const tab = String(
+      typeof window !== "undefined" ? new URL(window.location.href).searchParams.get("tab") ?? "" : ""
+    )
+      .toLowerCase()
+      .trim();
+    if (tab === "patient" || tab === "mse" || tab === "dsm" || tab === "risk" || tab === "scales" || tab === "tests" || tab === "caces") {
+      setRightTab(tab);
+    }
+  }, []);
+
+  useEffect(() => {
     // Preferencia (fallback). La fuente de verdad puede venir del caso activo.
     try {
       const raw = localStorage.getItem("tutorEnabled");

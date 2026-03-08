@@ -9,6 +9,7 @@ type NavItem = {
   label: string;
   href: string;
   icon?: React.ReactNode;
+  requiresActiveCase?: boolean;
 };
 
 const NAV: NavItem[] = [
@@ -27,10 +28,23 @@ const NAV: NavItem[] = [
   {
     label: "Caso en curso",
     href: "/simulator",
+    requiresActiveCase: true,
     icon: (
       <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
         <circle cx="12" cy="12" r="9" />
         <path d="M12 8v4l3 3" />
+      </svg>
+    ),
+  },
+  {
+    label: "Preguntas CACES",
+    href: "/simulator?tab=caces",
+    requiresActiveCase: true,
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M9.5 9a2.5 2.5 0 1 1 4 2c-.6.4-1 .7-1.2 1.4" />
+        <circle cx="12" cy="17" r="1" />
+        <circle cx="12" cy="12" r="9" />
       </svg>
     ),
   },
@@ -112,16 +126,27 @@ export default function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [hasActiveCase, setHasActiveCase] = useState(false);
+  const [isCacesRoute, setIsCacesRoute] = useState(false);
 
   useEffect(() => {
-    const check = () => setHasActiveCase(hasCaseInProgress());
+    const check = () => {
+      setHasActiveCase(hasCaseInProgress());
+      try {
+        const search = new URLSearchParams(window.location.search);
+        setIsCacesRoute(window.location.pathname === "/simulator" && search.get("tab") === "caces");
+      } catch {
+        setIsCacesRoute(false);
+      }
+    };
     check();
 
     window.addEventListener("storage", check);
+    window.addEventListener("popstate", check);
     const id = window.setInterval(check, 750);
 
     return () => {
       window.removeEventListener("storage", check);
+      window.removeEventListener("popstate", check);
       window.clearInterval(id);
     };
   }, []);
@@ -181,10 +206,14 @@ export default function Sidebar() {
 
           <ul className="space-y-1">
             {NAV.map((item) => {
-              const isCaseInProgress = item.label === "Caso en curso";
-              const disabledCase = isCaseInProgress && !hasActiveCase;
+              const disabledCase = Boolean(item.requiresActiveCase) && !hasActiveCase;
               const href = disabledCase ? "/cases" : item.href;
-              const active = !disabledCase && (pathname === item.href || pathname.startsWith(item.href + "/"));
+              const isCacesItem = item.label === "Preguntas CACES";
+              const active = !disabledCase && (
+                isCacesItem
+                  ? isCacesRoute
+                  : pathname === item.href || pathname.startsWith(item.href + "/")
+              );
 
               return (
                 <li key={`${item.href}::${item.label}`}>

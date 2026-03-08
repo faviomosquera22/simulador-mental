@@ -248,13 +248,13 @@ export default function DashboardPage() {
     const cards: RecommendationCard[] = hasHighRisk
       ? [
           { priority: "Alta", title: "Practicar seguridad", desc: "Enfoca tamizaje suicida, factores protectores y cierre seguro.", href: "/cases" },
-          { priority: "Media", title: "Fortalecer MSE", desc: "Completa cognición, juicio e insight en cada entrevista.", href: "/cases" },
-          { priority: "Baja", title: "Diferenciales", desc: "Explora bipolaridad, sustancias y causas orgánicas cuando aplique.", href: "/cases" },
+          { priority: "Media", title: "Practicar CACES", desc: "Resuelve preguntas tipo examen para reforzar razonamiento clínico.", href: "/simulator?tab=caces" },
+          { priority: "Baja", title: "Fortalecer MSE", desc: "Completa cognición, juicio e insight en cada entrevista.", href: "/cases" },
         ]
       : [
           { priority: "Alta", title: "Mejorar MSE", desc: "Haz un barrido completo y consistente del examen mental.", href: "/cases" },
-          { priority: "Media", title: "Diferenciales", desc: "Contrasta hipótesis clínicas antes del cierre de sesión.", href: "/cases" },
-          { priority: "Baja", title: "Practicar seguridad", desc: "Mantén tamizaje breve de riesgo en casos sensibles.", href: "/cases" },
+          { priority: "Media", title: "Practicar CACES", desc: "Entrena estructura de examen y toma de decisiones clínicas.", href: "/simulator?tab=caces" },
+          { priority: "Baja", title: "Diferenciales", desc: "Contrasta hipótesis clínicas antes del cierre de sesión.", href: "/cases" },
         ];
 
     return { focus: cards[0].title, cards };
@@ -318,6 +318,9 @@ export default function DashboardPage() {
                     </Link>
                     <Link href="/reports" className="rounded-xl border border-white/15 bg-black/25 px-4 py-2 text-sm text-white/80 hover:bg-white/5">
                       Ver reporte
+                    </Link>
+                    <Link href="/simulator?tab=caces" className="rounded-xl border border-white/15 bg-black/25 px-4 py-2 text-sm text-white/80 hover:bg-white/5">
+                      Practicar CACES
                     </Link>
                     <Link href="/topics" className="rounded-xl border border-white/15 bg-black/25 px-4 py-2 text-sm text-white/80 hover:bg-white/5">
                       Biblioteca clínica
