@@ -39,6 +39,20 @@ import type {
 
 type TranscriptTurn = { role: "user" | "patient" | "caregiver" | "tutor"; content: string; kind?: "tip" | "alert" };
 type ApproachValue = "humanistic" | "cbt" | "psychodynamic" | "systemic";
+type RiskWorkflowKind =
+  | "medical_alert_checklist"
+  | "medical_stabilization_plan"
+  | "mental_cssrs"
+  | "mental_safety_plan";
+type RiskWorkflowEntry = {
+  id: string;
+  kind: RiskWorkflowKind;
+  title: string;
+  summary: string;
+  items: string[];
+  caution: string;
+  created_at: string;
+};
 
 
 
@@ -326,6 +340,8 @@ export default function SimulatorPage() {
   const [selectedMedicalExamId, setSelectedMedicalExamId] = useState<string>("");
   const [medicalExamResults, setMedicalExamResults] = useState<MedicalExamResult[]>([]);
   const [runningMedicalExam, setRunningMedicalExam] = useState(false);
+  const [runningRiskWorkflow, setRunningRiskWorkflow] = useState<RiskWorkflowKind | null>(null);
+  const [riskWorkflowHistory, setRiskWorkflowHistory] = useState<RiskWorkflowEntry[]>([]);
 
   const [sessionNotes, setSessionNotes] = useState<string[]>([]);
   const [useScaleInFeedback, setUseScaleInFeedback] = useState(false);
@@ -829,6 +845,44 @@ export default function SimulatorPage() {
       // ignore
     }
   }, [caseObject, isMedicalCase, medicalExamResults]);
+
+  useEffect(() => {
+    try {
+      if (!caseObject) {
+        setRiskWorkflowHistory([]);
+        return;
+      }
+      const caseId = String(caseObject?.id ?? caseObject?.meta?.case_id ?? "default");
+      const raw = localStorage.getItem(`riskWorkflowHistory:${caseId}`);
+      if (!raw) {
+        setRiskWorkflowHistory([]);
+        return;
+      }
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) {
+        setRiskWorkflowHistory([]);
+        return;
+      }
+      setRiskWorkflowHistory(
+        parsed
+          .map((row) => (row && typeof row === "object" ? (row as RiskWorkflowEntry) : null))
+          .filter(Boolean)
+          .slice(0, 24) as RiskWorkflowEntry[]
+      );
+    } catch {
+      setRiskWorkflowHistory([]);
+    }
+  }, [caseObject]);
+
+  useEffect(() => {
+    try {
+      if (!caseObject) return;
+      const caseId = String(caseObject?.id ?? caseObject?.meta?.case_id ?? "default");
+      localStorage.setItem(`riskWorkflowHistory:${caseId}`, JSON.stringify(riskWorkflowHistory.slice(0, 24)));
+    } catch {
+      // ignore
+    }
+  }, [caseObject, riskWorkflowHistory]);
 
   const clinicalDxId = useMemo(() => {
     // tag corto para conectar con /topics?dx=
@@ -1400,23 +1454,8 @@ export default function SimulatorPage() {
     setSessionNotes((prev) => [clean, ...prev].slice(0, 30));
   }, []);
 
-  const runSingleMedicalExam = useCallback(
-    (examId: string) => {
-      if (!isMedicalCase || !caseObject) return;
-      const exam = getMedicalExamById(examId);
-      if (!exam) return;
-      const result = runMedicalExam(exam, caseObject);
-      setMedicalExamResults((prev) => [result, ...prev.filter((r) => r.exam_id !== result.exam_id)].slice(0, 40));
-    },
-    [isMedicalCase, caseObject]
-  );
-
-  const runMedicalExamBundle = useCallback(() => {
-    if (!isMedicalCase || !caseObject) return;
-    const bundle = medicalExamCatalog.slice(0, 5);
-    if (!bundle.length) return;
-    setRunningMedicalExam(true);
-    const generated = bundle.map((exam) => runMedicalExam(exam, caseObject));
+  const mergeMedicalExamResults = useCallback((generated: MedicalExamResult[]) => {
+    if (!generated.length) return;
     setMedicalExamResults((prev) => {
       const next = [...generated.reverse(), ...prev];
       const dedupe = new Map<string, MedicalExamResult>();
@@ -1425,8 +1464,202 @@ export default function SimulatorPage() {
       }
       return Array.from(dedupe.values()).slice(0, 40);
     });
+  }, []);
+
+  const appendRiskWorkflow = useCallback((entry: RiskWorkflowEntry) => {
+    setRiskWorkflowHistory((prev) => [entry, ...prev].slice(0, 24));
+  }, []);
+
+  const runSingleMedicalExam = useCallback(
+    (examId: string) => {
+      if (!isMedicalCase || !caseObject) return;
+      const exam = getMedicalExamById(examId);
+      if (!exam) return;
+      const result = runMedicalExam(exam, caseObject);
+      mergeMedicalExamResults([result]);
+    },
+    [isMedicalCase, caseObject, mergeMedicalExamResults]
+  );
+
+  const runMedicalExamBundle = useCallback(() => {
+    if (!isMedicalCase || !caseObject) return;
+    const bundle = medicalExamCatalog.slice(0, 5);
+    if (!bundle.length) return;
+    setRunningMedicalExam(true);
+    const generated = bundle.map((exam) => runMedicalExam(exam, caseObject));
+    mergeMedicalExamResults(generated);
     window.setTimeout(() => setRunningMedicalExam(false), 180);
-  }, [isMedicalCase, caseObject, medicalExamCatalog]);
+  }, [isMedicalCase, caseObject, medicalExamCatalog, mergeMedicalExamResults]);
+
+  const runRiskWorkflow = useCallback((kind: RiskWorkflowKind) => {
+    if (!caseObject) return;
+    setRunningRiskWorkflow(kind);
+
+    const toList = (value: unknown) =>
+      Array.isArray(value)
+        ? value
+            .map((item) => String(item ?? "").trim())
+            .filter(Boolean)
+        : [];
+
+    const normalize = (items: string[], limit = 8) =>
+      Array.from(
+        new Set(
+          items
+            .map((item) => String(item ?? "").trim())
+            .filter(Boolean)
+            .map((item) => item.replace(/\s+/g, " "))
+        )
+      ).slice(0, limit);
+
+    const now = new Date().toISOString();
+
+    if (isMedicalCase) {
+      if (kind === "medical_alert_checklist") {
+        const hiddenExamIds = [
+          "vital_signs_targeted",
+          "cardiorespiratory_exam",
+          "perfusion_hydration",
+        ];
+        const generated = hiddenExamIds
+          .map((id) => getMedicalExamById(id))
+          .filter((exam): exam is NonNullable<typeof exam> => Boolean(exam))
+          .map((exam) => runMedicalExam(exam, caseObject));
+        mergeMedicalExamResults(generated);
+
+        const examAlerts = normalize(generated.flatMap((result) => result.red_flags));
+        const examFindings = normalize(
+          generated
+            .filter((result) => result.status !== "normal")
+            .flatMap((result) => result.findings)
+            .slice(0, 6)
+        );
+        const riskFactors = normalize(toList(caseObject?.safety?.risk_factors), 6);
+        const flags = normalize(
+          Array.isArray(lastMeta.flags)
+            ? lastMeta.flags
+                .map((f: any) => prettyFlag(String(f)))
+                .filter(Boolean)
+            : [],
+          6
+        );
+        const checklist = normalize([...examAlerts, ...riskFactors, ...flags, ...examFindings], 10);
+        const summary =
+          riskLevel === "Alto"
+            ? "Checklist ejecutado con múltiples señales de alarma. Prioriza escalamiento clínico inmediato."
+            : riskLevel === "Moderado"
+            ? "Checklist ejecutado con hallazgos de vigilancia estrecha y reevaluación frecuente."
+            : "Checklist ejecutado sin descompensación mayor en esta corrida educativa.";
+
+        const entry: RiskWorkflowEntry = {
+          id: makeSessionId("risk"),
+          kind,
+          title: "Checklist de signos de alarma",
+          summary,
+          items: checklist.length
+            ? checklist
+            : ["Sin señales críticas nuevas en esta corrida. Mantener monitorización clínica."],
+          caution:
+            "Uso educativo. Validar siempre con valoración clínica real, constantes vitales y protocolo institucional.",
+          created_at: now,
+        };
+        appendRiskWorkflow(entry);
+      }
+
+      if (kind === "medical_stabilization_plan") {
+        const plan =
+          riskLevel === "Alto"
+            ? [
+                "Activar protocolo de urgencia institucional y solicitar apoyo del equipo.",
+                "Asegurar ABC (vía aérea, ventilación y perfusión) con monitorización continua.",
+                "Reevaluar signos vitales seriados y perfusión cada 5-10 minutos.",
+                "Preparar ruta de derivación/traslado a área crítica según evolución.",
+              ]
+            : riskLevel === "Moderado"
+            ? [
+                "Monitorizar signos vitales y evolución sintomática con reevaluaciones frecuentes.",
+                "Completar exámenes iniciales orientativos y priorizar diferenciales de riesgo.",
+                "Corregir barreras de adherencia/medicación y reforzar educación de alarma.",
+                "Definir criterios claros de escalamiento si hay deterioro clínico.",
+              ]
+            : [
+                "Mantener vigilancia clínica y educación de signos de alarma para reconsulta.",
+                "Organizar seguimiento oportuno y adherencia terapéutica.",
+                "Registrar evolución y factores de riesgo en notas del caso simulado.",
+              ];
+        const entry: RiskWorkflowEntry = {
+          id: makeSessionId("risk"),
+          kind,
+          title: "Plan inicial de estabilización",
+          summary: "Plan orientativo generado según prioridad clínica actual y datos del caso activo.",
+          items: plan,
+          caution:
+            "Resultado orientativo de entrenamiento. No reemplaza juicio clínico ni guías institucionales.",
+          created_at: now,
+        };
+        appendRiskWorkflow(entry);
+      }
+    } else {
+      if (kind === "mental_cssrs") {
+        const hints = normalize(toList(caseObject?.safety?.cssrs_hint), 8);
+        const fallback = [
+          "Explorar ideación suicida actual (frecuencia, duración e intensidad).",
+          "Explorar plan, medios disponibles e intencionalidad.",
+          "Registrar intentos previos y factores precipitantes recientes.",
+          "Cuantificar factores protectores y red de apoyo inmediata.",
+        ];
+        const entry: RiskWorkflowEntry = {
+          id: makeSessionId("risk"),
+          kind,
+          title: "Mini C-SSRS orientativo",
+          summary:
+            riskLevel === "Alto"
+              ? "Tamizaje orientativo sugiere riesgo elevado. Prioriza seguridad y derivación urgente."
+              : "Tamizaje orientativo completado para estructurar la exploración de riesgo.",
+          items: hints.length ? hints : fallback,
+          caution:
+            "Instrumento educativo de entrenamiento. No sustituye valoración clínica de riesgo suicida real.",
+          created_at: now,
+        };
+        appendRiskWorkflow(entry);
+      }
+
+      if (kind === "mental_safety_plan") {
+        const protective = normalize(toList(caseObject?.safety?.protective_factors), 5);
+        const plan = normalize(
+          [
+            "Acordar señales de alerta personales y pasos de autocuidado inmediato.",
+            "Reducir acceso a medios letales y definir acompañamiento seguro.",
+            "Activar red de apoyo (familia/cuidador/contacto de confianza).",
+            "Establecer ruta de emergencia y seguimiento clínico cercano.",
+            ...protective.map((item) => `Fortalecer factor protector: ${item}`),
+          ],
+          8
+        );
+        const entry: RiskWorkflowEntry = {
+          id: makeSessionId("risk"),
+          kind,
+          title: "Plan de seguridad inicial",
+          summary:
+            "Plan educativo de seguridad generado para usar en cierre de sesión y notas clínicas simuladas.",
+          items: plan,
+          caution:
+            "Uso educativo. En riesgo real, activar protocolo local y servicios de emergencia correspondientes.",
+          created_at: now,
+        };
+        appendRiskWorkflow(entry);
+      }
+    }
+
+    window.setTimeout(() => setRunningRiskWorkflow(null), 180);
+  }, [
+    appendRiskWorkflow,
+    caseObject,
+    isMedicalCase,
+    lastMeta.flags,
+    mergeMedicalExamResults,
+    riskLevel,
+  ]);
 
   const sendMessage = useCallback(async (opts?: {
     message?: string;
@@ -2219,7 +2452,7 @@ export default function SimulatorPage() {
             {/* RIGHT PANEL */}
             <aside
               className={`min-h-0 flex-shrink-0 flex-col border-l border-white/10 bg-white/5 ${
-                rightPanelCollapsed ? "hidden" : "hidden w-[300px] md:flex xl:w-[330px]"
+                rightPanelCollapsed ? "hidden" : "hidden w-[360px] md:flex xl:w-[390px]"
               }`}
             >
               <div className="flex gap-1 overflow-x-auto border-b border-white/10 px-3">
@@ -2617,11 +2850,43 @@ export default function SimulatorPage() {
                         )}
                       </div>
                       <div className="mt-3 grid gap-2">
-                        <button className="w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white/80 hover:bg-black/40">
-                          {isMedicalCase ? "Checklist de signos de alarma (demo)" : "Aplicar Mini C-SSRS (demo)"}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            runRiskWorkflow(
+                              isMedicalCase ? "medical_alert_checklist" : "mental_cssrs"
+                            )
+                          }
+                          disabled={runningRiskWorkflow != null}
+                          className="w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white/80 hover:bg-black/40 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {runningRiskWorkflow ===
+                          (isMedicalCase ? "medical_alert_checklist" : "mental_cssrs")
+                            ? "Ejecutando..."
+                            : isMedicalCase
+                            ? "Checklist de signos de alarma"
+                            : "Aplicar Mini C-SSRS"}
                         </button>
-                        <button className="w-full rounded-xl bg-white px-3 py-2 text-sm font-semibold text-black">
-                          {isMedicalCase ? "Plan inicial de estabilización (demo)" : "Crear plan de seguridad (demo)"}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            runRiskWorkflow(
+                              isMedicalCase
+                                ? "medical_stabilization_plan"
+                                : "mental_safety_plan"
+                            )
+                          }
+                          disabled={runningRiskWorkflow != null}
+                          className="w-full rounded-xl bg-white px-3 py-2 text-sm font-semibold text-black disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {runningRiskWorkflow ===
+                          (isMedicalCase
+                            ? "medical_stabilization_plan"
+                            : "mental_safety_plan")
+                            ? "Construyendo plan..."
+                            : isMedicalCase
+                            ? "Plan inicial de estabilización"
+                            : "Crear plan de seguridad"}
                         </button>
                       </div>
                       {(asStrArray(caseObject?.safety?.risk_factors).length > 0 || asStrArray(caseObject?.safety?.protective_factors).length > 0) && (
@@ -2677,6 +2942,69 @@ export default function SimulatorPage() {
                           </>
                         )}
                       </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
+                          {isMedicalCase
+                            ? "Acciones de urgencia ejecutadas"
+                            : "Acciones de seguridad ejecutadas"}
+                        </div>
+                        {riskWorkflowHistory.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setRiskWorkflowHistory([])}
+                            className="rounded-lg border border-white/15 px-2 py-1 text-[11px] text-white/70 hover:bg-white/5"
+                          >
+                            Limpiar
+                          </button>
+                        )}
+                      </div>
+                      {riskWorkflowHistory.length === 0 ? (
+                        <div className="mt-2 text-xs text-white/55">
+                          No hay acciones ejecutadas aún. Ejecuta checklist o plan para registrar resultados.
+                        </div>
+                      ) : (
+                        <div className="mt-3 space-y-2">
+                          {riskWorkflowHistory.slice(0, 5).map((entry) => (
+                            <div
+                              key={entry.id}
+                              className="rounded-xl border border-white/10 bg-black/30 p-3"
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="text-sm font-semibold text-white">{entry.title}</div>
+                                <div className="text-[10px] text-white/45">
+                                  {new Date(entry.created_at).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </div>
+                              </div>
+                              <div className="mt-1 text-xs text-white/75">{entry.summary}</div>
+                              <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-white/70">
+                                {entry.items.slice(0, 4).map((item) => (
+                                  <li key={item}>{item}</li>
+                                ))}
+                              </ul>
+                              <div className="mt-2 text-[11px] text-white/55">{entry.caution}</div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  addNote(
+                                    `[${entry.title}] ${entry.summary} | ${entry.items
+                                      .slice(0, 3)
+                                      .join(" · ")}`
+                                  )
+                                }
+                                className="mt-2 rounded-lg border border-white/15 px-2 py-1 text-[11px] text-white/75 hover:bg-white/5"
+                              >
+                                Guardar en notas
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     <div className="rounded-2xl border border-white/10 bg-black/20 p-4">

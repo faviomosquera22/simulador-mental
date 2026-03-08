@@ -194,7 +194,7 @@ export default function Sidebar() {
         className={cn(
           "h-full min-h-0 rounded-3xl border border-white/10 bg-[#0F1117] shadow-[0_30px_120px_rgba(0,0,0,0.55)]",
           "flex min-h-0 flex-col overflow-hidden",
-          collapsed ? "w-[72px]" : "w-[240px]"
+          collapsed ? "w-[72px]" : "w-[276px]"
         )}
       >
         <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4">
