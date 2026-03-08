@@ -696,9 +696,9 @@ export default function CasesPage() {
 
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold">Biblioteca de casos</h1>
+            <h1 className="text-2xl font-semibold">Psyke · Biblioteca de casos</h1>
             <p className="mt-1 text-sm text-white/70">
-              Elige una temática y genera un caso ficticio para practicar entrevista.{" "}
+              Elige una temática y genera un caso ficticio para practicar entrevista en Psyke.{" "}
               <span className="text-white">No diagnostica</span>.
             </p>
           </div>
@@ -707,7 +707,7 @@ export default function CasesPage() {
             href="/"
             className="rounded-xl border border-white/15 px-4 py-2 text-sm hover:bg-white/5"
           >
-            Volver
+            Volver a Psyke
           </Link>
         </div>
 
@@ -1123,7 +1123,7 @@ export default function CasesPage() {
         )}
 
         <div className="mt-8 text-xs text-white/40">
-          Nota: los casos son ficticios. Si aparece contenido sensible, el sistema debe responder en modo educativo.
+          Psyke es una herramienta educativa. Los casos son ficticios. Si aparece contenido sensible, prioriza seguridad y sugiere ayuda profesional.
         </div>
           </div>
         </main>

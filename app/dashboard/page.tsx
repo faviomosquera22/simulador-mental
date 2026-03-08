@@ -204,7 +204,7 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2 text-sm text-white/70">
               <span className="font-semibold text-white">Dashboard</span>
               <span className="text-white/30">·</span>
-              <span className="text-white/55">Simulador clínico DSM-5 (educativo)</span>
+              <span className="text-white/55">Psyke · Simulador clínico (educativo)</span>
             </div>
 
             <div className="ml-auto flex items-center gap-2">
@@ -221,9 +221,9 @@ export default function DashboardPage() {
             <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-[#0F1117] to-[#1E2433] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.55)]">
               <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                  <div className="text-2xl font-semibold text-white">Entrenamiento clínico, con feedback</div>
+                  <div className="text-2xl font-semibold text-white">Psyke · Entrenamiento clínico, con feedback</div>
                   <div className="mt-2 max-w-[72ch] text-sm text-white/65">
-                    Genera casos ficticios, practica entrevista, explora MSE/DSM-5 y recibe sugerencias del Tutor IA.
+                    Genera casos ficticios, practica entrevista, explora MSE/DSM y recibe sugerencias del Tutor IA.
                     <span className="text-white/80"> No diagnostica.</span>
                   </div>
 
@@ -341,7 +341,7 @@ export default function DashboardPage() {
               </div>
             </section>
 
-            <div className="mt-6 text-xs text-white/45">Nota: herramienta educativa. Si aparece contenido sensible, prioriza seguridad y sugiere ayuda profesional.</div>
+            <div className="mt-6 text-xs text-white/45">Psyke es una herramienta educativa. Si aparece contenido sensible, prioriza seguridad y sugiere ayuda profesional.</div>
           </div>
         </main>
       </div>
