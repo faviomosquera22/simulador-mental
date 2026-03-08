@@ -315,6 +315,7 @@ export default function SimulatorPage() {
   const [eduExpanded, setEduExpanded] = useState(false);
   const [rightTab, setRightTab] = useState<"patient" | "mse" | "dsm" | "risk" | "scales" | "tests" | "batteries">("patient");
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
+  const [mobileRightOpen, setMobileRightOpen] = useState(false);
   const [mseOpen, setMseOpen] = useState<Record<string, boolean>>({});
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [cfgApproach, setCfgApproach] = useState<ApproachValue>("humanistic");
@@ -784,6 +785,12 @@ export default function SimulatorPage() {
     if (!pediatricCase) setTargetSpeaker("patient");
     else if (targetSpeaker === "both") setTargetSpeaker("patient");
   }, [caseObject, pediatricCase, targetSpeaker]);
+
+  useEffect(() => {
+    if (rightPanelCollapsed) {
+      setMobileRightOpen(false);
+    }
+  }, [rightPanelCollapsed]);
 
   useEffect(() => {
     try {
@@ -1984,9 +1991,9 @@ export default function SimulatorPage() {
   if (!caseObject) {
     return (
       <div className="min-h-screen bg-[#070A0F]">
-        <div className="mx-auto flex max-w-[1480px] gap-6 px-4 py-6">
+        <div className="mx-auto flex max-w-[1480px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
           <Sidebar />
-          <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl p-6 flex items-center justify-center">
+          <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 p-4 backdrop-blur-xl sm:p-6 flex items-center justify-center">
             <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-white/5 p-6">
               <h1 className="text-xl font-semibold">Psyke · No hay un caso activo</h1>
               <p className="mt-2 text-sm text-white/70">Vuelve a la biblioteca, genera un caso y presiona “Iniciar simulación”.</p>
@@ -2008,29 +2015,29 @@ export default function SimulatorPage() {
   // --- New Claude-style UI Layout ---
   return (
     <div className="h-dvh overflow-hidden bg-[#070A0F]">
-      <div className="mx-auto flex h-full max-w-[1480px] gap-6 px-4 py-4">
+      <div className="mx-auto flex h-full max-w-[1480px] gap-3 px-3 pb-3 pt-14 sm:gap-6 sm:px-4 sm:py-4 md:pt-4">
         <Sidebar />
 
         <main className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl">
           {/* TOPNAV */}
-          <header className="flex h-12 items-center gap-3 border-b border-white/10 bg-white/5 px-5">
-            <div className="flex items-center gap-2 text-sm text-white/70">
+          <header className="flex min-h-[56px] flex-wrap items-center gap-2 border-b border-white/10 bg-white/5 px-3 py-2 sm:px-5">
+            <div className="flex items-center gap-2 text-xs text-white/70 sm:text-sm">
               <span className="font-semibold text-white">Psyke</span>
               <span className="text-white/30">·</span>
-              <span className="text-white/60">Sesión</span>
-              <span className="text-white/30">›</span>
+              <span className="hidden text-white/60 sm:inline">Sesión</span>
+              <span className="hidden text-white/30 sm:inline">›</span>
               <span className="font-semibold text-white">Caso en curso</span>
             </div>
 
             {/* Approach badge */}
             <span
-              className="hidden sm:inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/70"
+              className="hidden lg:inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/70"
               title={isMedicalCase ? "Enfoque de entrevista clínica (educativo)" : "Enfoque psicoterapéutico (educativo)"}
             >
               Enfoque: {approachLabel}
             </span>
 
-            <div className="ml-auto hidden w-full max-w-[360px] items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-2 sm:flex">
+            <div className="ml-auto hidden w-full max-w-[360px] items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-2 xl:flex">
               <span className="text-xs text-white/50">Buscar</span>
               <input
                 className="w-full bg-transparent text-sm text-white/80 outline-none placeholder:text-white/35"
@@ -2038,32 +2045,43 @@ export default function SimulatorPage() {
               />
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
               {/* Cronómetro */}
               <div
-                className={`hidden sm:flex items-center gap-2 rounded-xl border px-3 py-2 text-sm ${
+                className={`flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-xs sm:px-3 sm:py-2 sm:text-sm ${
                   timeIsLow
                     ? "border-amber-400/30 bg-amber-400/10 text-amber-200"
                     : "border-white/15 bg-black/30 text-white/80"
                 }`}
                 title="Tiempo restante de la sesión"
               >
-                <span className="text-xs opacity-80">Tiempo</span>
+                <span className="hidden text-xs opacity-80 sm:inline">Tiempo</span>
                 <span className="font-semibold tabular-nums">{timeLabel}</span>
               </div>
 
               <button
                 type="button"
                 onClick={() => setSettingsOpen(true)}
-                className="rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5"
+                className="rounded-xl border border-white/15 px-2.5 py-1.5 text-xs hover:bg-white/5 sm:px-3 sm:py-2 sm:text-sm"
                 title="Configuraciones"
               >
                 Config
               </button>
               <button
                 type="button"
+                onClick={() => {
+                  setRightPanelCollapsed(false);
+                  setMobileRightOpen(true);
+                }}
+                className="rounded-xl border border-white/15 px-2.5 py-1.5 text-xs hover:bg-white/5 lg:hidden"
+                title="Abrir panel clínico"
+              >
+                Panel
+              </button>
+              <button
+                type="button"
                 onClick={() => setSummaryDebugOpen((v) => !v)}
-                className="hidden sm:inline-flex rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5"
+                className="hidden rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5 sm:inline-flex"
                 title="Ver/ocultar resumen vivo (debug)"
               >
                 Resumen
@@ -2071,19 +2089,19 @@ export default function SimulatorPage() {
               <button
                 type="button"
                 onClick={() => setRightPanelCollapsed((v) => !v)}
-                className="hidden md:inline-flex rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5"
+                className="hidden rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5 lg:inline-flex"
                 title={rightPanelCollapsed ? "Mostrar panel clínico" : "Expandir chat"}
               >
                 {rightPanelCollapsed ? "Mostrar panel clínico" : "Expandir chat"}
               </button>
 
-              <Link href={backHref} className="rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5">
+              <Link href={backHref} className="hidden rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5 sm:inline-flex">
                 Volver
               </Link>
 
               <Link
                 href={clinicalHref}
-                className="hidden rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5 sm:inline-flex"
+                className="hidden rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5 lg:inline-flex"
                 title={isMedicalCase ? "Abrir Biblioteca de patologías" : clinicalDxId ? `Abrir ficha: ${clinicalDxId}` : "Abrir Biblioteca clínica"}
               >
                 {libraryButtonLabel}
@@ -2091,7 +2109,7 @@ export default function SimulatorPage() {
 
               <button
                 onClick={() => finishSession("manual")}
-                className="rounded-xl bg-white px-3 py-2 text-sm text-black"
+                className="rounded-xl bg-white px-3 py-1.5 text-xs text-black sm:py-2 sm:text-sm"
               >
                 Finalizar
               </button>
@@ -2100,7 +2118,7 @@ export default function SimulatorPage() {
 
           {/* EDUCATIONAL PANEL */}
           <section className="border-b border-white/10 bg-white/5">
-            <div className="flex items-center gap-3 px-5 py-3">
+            <div className="flex items-center gap-3 px-3 py-3 sm:px-5">
               <button
                 onClick={() => setEduExpanded((v) => !v)}
                 className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-1.5 text-xs text-white/70 hover:bg-black/40"
@@ -2136,7 +2154,7 @@ export default function SimulatorPage() {
             </div>
 
             {eduExpanded && (
-              <div className="px-5 pb-4">
+              <div className="px-3 pb-4 sm:px-5">
                 <div className="flex flex-wrap items-start gap-3">
                   <div className="min-w-[260px] flex-1 rounded-2xl border border-white/10 bg-black/20 p-4">
                     <div className="text-xs text-white/50">{isMedicalCase ? "Valoración clínica (guía rápida)" : "DSM-5 (guía rápida)"}</div>
@@ -2189,11 +2207,11 @@ export default function SimulatorPage() {
           </section>
 
           {/* CONTENT AREA */}
-          <div className="flex min-h-0 flex-1">
+          <div className="relative flex min-h-0 flex-1">
             {/* CHAT PANEL */}
-            <section className={`flex min-h-0 min-w-0 flex-1 flex-col bg-black/10 ${rightPanelCollapsed ? "md:flex-[1_1_100%]" : ""}`}>
+            <section className={`flex min-h-0 min-w-0 flex-1 flex-col bg-black/10 ${rightPanelCollapsed ? "lg:flex-[1_1_100%]" : ""}`}>
               {/* Chat header */}
-              <div className="flex flex-wrap items-center gap-3 border-b border-white/10 bg-white/5 px-5 py-3">
+              <div className="flex flex-wrap items-center gap-3 border-b border-white/10 bg-white/5 px-3 py-3 sm:px-5">
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                   <div className="h-9 w-9 flex-shrink-0 rounded-full bg-gradient-to-br from-amber-400 to-red-500 text-center text-sm font-semibold leading-9 text-black">
                     {String(patientName).slice(0, 1).toUpperCase()}
@@ -2206,7 +2224,7 @@ export default function SimulatorPage() {
                   </div>
                 </div>
 
-                <div className="ml-auto hidden min-w-0 flex-1 flex-wrap items-center justify-end gap-2 md:flex">
+                <div className="ml-auto hidden min-w-0 flex-1 flex-wrap items-center justify-end gap-2 lg:flex">
                   <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/70">
                     Estado: {emotionLabel[lastMeta.state] ?? lastMeta.state}
                   </span>
@@ -2253,7 +2271,7 @@ export default function SimulatorPage() {
               </div>
 
               {/* Messages */}
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4">
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 sm:px-5">
                 {summaryDebugOpen && (
                   <div className="mb-4 rounded-2xl border border-white/10 bg-black/35 p-3">
                     <div className="text-xs text-white/50">Resumen vivo (debug)</div>
@@ -2311,7 +2329,7 @@ export default function SimulatorPage() {
                             </div>
                           )}
 
-                          <div className={`${rightPanelCollapsed ? "max-w-[92%]" : "max-w-[86%]"} ${isUser ? "text-right" : "text-left"}`}>
+                          <div className={`${rightPanelCollapsed ? "max-w-[92%] lg:max-w-[92%]" : "max-w-[92%] lg:max-w-[86%]"} ${isUser ? "text-right" : "text-left"}`}>
                             <div className={`mb-1 text-[10px] text-white/50 ${isUser ? "text-right" : "text-left"}`}>
                               {roleLabel}
                             </div>
@@ -2352,7 +2370,7 @@ export default function SimulatorPage() {
               </div>
 
               {/* Input area */}
-              <div className="border-t border-white/10 bg-white/5 px-5 py-3">
+              <div className="border-t border-white/10 bg-white/5 px-3 py-3 sm:px-5">
                 {pediatricCase && (
                   <div className="mb-3 rounded-2xl border border-white/10 bg-black/25 p-3">
                     <div className="text-xs text-white/55">Fuente dual (pediatría)</div>
@@ -2449,12 +2467,32 @@ export default function SimulatorPage() {
               </div>
             </section>
 
+            {mobileRightOpen && (
+              <button
+                type="button"
+                onClick={() => setMobileRightOpen(false)}
+                className="fixed inset-0 z-40 bg-black/65 lg:hidden"
+                aria-label="Cerrar panel clínico"
+              />
+            )}
+
             {/* RIGHT PANEL */}
             <aside
-              className={`min-h-0 flex-shrink-0 flex-col border-l border-white/10 bg-white/5 ${
-                rightPanelCollapsed ? "hidden" : "hidden w-[360px] md:flex xl:w-[390px]"
-              }`}
+              className={`fixed inset-y-0 right-0 z-50 flex w-[92vw] max-w-[430px] flex-col border-l border-white/10 bg-[#10131A] shadow-[-24px_0_60px_rgba(0,0,0,0.45)] transition-transform duration-200 lg:static lg:inset-auto lg:z-auto lg:w-[390px] lg:max-w-none lg:bg-white/5 lg:shadow-none ${
+                mobileRightOpen ? "translate-x-0" : "translate-x-full"
+              } ${rightPanelCollapsed ? "lg:hidden" : "lg:translate-x-0"}`}
             >
+              <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 lg:hidden">
+                <div className="text-xs font-semibold uppercase tracking-wider text-white/50">Panel clínico</div>
+                <button
+                  type="button"
+                  onClick={() => setMobileRightOpen(false)}
+                  className="rounded-lg border border-white/15 px-2 py-1 text-xs text-white/80"
+                >
+                  Cerrar
+                </button>
+              </div>
+
               <div className="flex gap-1 overflow-x-auto border-b border-white/10 px-3">
                 {(
                   [
@@ -2469,7 +2507,10 @@ export default function SimulatorPage() {
                 ).map(([key, label]) => (
                   <button
                     key={key}
-                    onClick={() => setRightTab(key)}
+                    onClick={() => {
+                      setRightTab(key);
+                      if (window.innerWidth < 1024) setMobileRightOpen(false);
+                    }}
                     className={`whitespace-nowrap border-b-2 px-3 py-3 text-xs font-semibold transition ${
                       rightTab === key ? "border-white text-white" : "border-transparent text-white/50 hover:text-white/80"
                     }`}

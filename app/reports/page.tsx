@@ -253,7 +253,7 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen bg-[#070A0F]">
-      <div className="mx-auto flex max-w-[1480px] gap-6 px-4 py-6">
+      <div className="mx-auto flex max-w-[1480px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
         <Sidebar />
 
         <main className="flex-1 overflow-hidden rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl">
