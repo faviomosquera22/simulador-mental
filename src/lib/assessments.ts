@@ -32,6 +32,27 @@ const YES_NO_WEIGHTED: AssessmentOption[] = [
   { id: "yes", label: "Sí", value: 2 },
 ];
 
+const NEWS_LIKERT_0_3: AssessmentOption[] = [
+  { id: "normal", label: "0 · Normal", value: 0 },
+  { id: "mild", label: "1 · Alteración leve", value: 1 },
+  { id: "moderate", label: "2 · Alteración moderada", value: 2 },
+  { id: "severe", label: "3 · Alteración severa", value: 3 },
+];
+
+const FUNCTION_0_3: AssessmentOption[] = [
+  { id: "dep_total", label: "0 · Dependencia alta", value: 0 },
+  { id: "dep_mod", label: "1 · Dependencia moderada", value: 1 },
+  { id: "dep_leve", label: "2 · Dependencia leve", value: 2 },
+  { id: "independent", label: "3 · Independiente", value: 3 },
+];
+
+const GCS_SIMPLIFIED_0_3: AssessmentOption[] = [
+  { id: "0", label: "0 · Muy alterado", value: 0 },
+  { id: "1", label: "1 · Alteración marcada", value: 1 },
+  { id: "2", label: "2 · Respuesta parcial", value: 2 },
+  { id: "3", label: "3 · Respuesta adecuada", value: 3 },
+];
+
 export const CLINICAL_SCALES: ScaleDefinition[] = [
   {
     id: "bdi_simplified",
@@ -161,6 +182,103 @@ export const CLINICAL_SCALES: ScaleDefinition[] = [
       },
     ],
     interpretation: [{ min: 0, max: 1, label: "Pendiente", meaning: "Escala no validada todavía." }],
+  },
+];
+
+export const MEDICAL_SCALES: ScaleDefinition[] = [
+  {
+    id: "qsofa_edu",
+    name: "qSOFA simplificado (educativo)",
+    short_name: "qSOFA-Edu",
+    description:
+      "Tamizaje rápido de riesgo de sepsis y deterioro clínico. Uso orientativo para entrenamiento.",
+    population: "Adultos",
+    suggested_age_range: "18+",
+    response_type: "yes_no",
+    educational_only: true,
+    items: [
+      { id: "qsofa_1", prompt: "Frecuencia respiratoria elevada (>=22/min) en valoración inicial.", options: YES_NO },
+      { id: "qsofa_2", prompt: "Alteración del estado mental respecto a su basal.", options: YES_NO },
+      { id: "qsofa_3", prompt: "Presión sistólica baja (<=100 mmHg) o perfusión inestable.", options: YES_NO },
+    ],
+    interpretation: [
+      { min: 0, max: 0, label: "Bajo", meaning: "Sin señal de alto riesgo inmediato por qSOFA." },
+      { min: 1, max: 1, label: "Vigilancia", meaning: "Requiere reevaluación clínica y seguimiento estrecho." },
+      { min: 2, max: 2, label: "Alto", meaning: "Riesgo elevado de deterioro clínico; priorizar escalamiento." },
+      { min: 3, max: 3, label: "Crítico", meaning: "Compromiso severo probable; activar respuesta urgente." },
+    ],
+  },
+  {
+    id: "news2_simplified_edu",
+    name: "NEWS2 simplificado (educativo)",
+    short_name: "NEWS2-S",
+    description:
+      "Escala orientativa de severidad fisiológica para priorización clínica y vigilancia.",
+    population: "Adultos y adulto mayor",
+    suggested_age_range: "18+",
+    response_type: "likert_0_3",
+    educational_only: true,
+    items: [
+      { id: "news_1", prompt: "Frecuencia respiratoria fuera de rango esperado.", options: NEWS_LIKERT_0_3 },
+      { id: "news_2", prompt: "Saturación de oxígeno disminuida.", options: NEWS_LIKERT_0_3 },
+      { id: "news_3", prompt: "Presión arterial con desviación clínicamente relevante.", options: NEWS_LIKERT_0_3 },
+      { id: "news_4", prompt: "Frecuencia cardiaca alterada.", options: NEWS_LIKERT_0_3 },
+      { id: "news_5", prompt: "Temperatura fuera de rango.", options: NEWS_LIKERT_0_3 },
+      { id: "news_6", prompt: "Nivel de conciencia alterado o cambio agudo neurológico.", options: NEWS_LIKERT_0_3 },
+    ],
+    interpretation: [
+      { min: 0, max: 4, label: "Bajo", meaning: "Continuar vigilancia clínica habitual." },
+      { min: 5, max: 8, label: "Moderado", meaning: "Aumentar monitorización y reevaluar frecuentemente." },
+      { min: 9, max: 12, label: "Alto", meaning: "Priorizar evaluación médica y plan de estabilización." },
+      { min: 13, max: 18, label: "Crítico", meaning: "Riesgo elevado de deterioro; activar respuesta urgente." },
+    ],
+  },
+  {
+    id: "obstetric_warning_brief",
+    name: "Alerta obstétrica breve (educativo)",
+    short_name: "Obs-Alert",
+    description:
+      "Tamizaje orientativo de signos de alarma materna para escenarios de embarazo/puerperio.",
+    population: "Gestantes y puérperas",
+    suggested_age_range: "12+",
+    response_type: "yes_no",
+    educational_only: true,
+    items: [
+      { id: "ob_1", prompt: "Cefalea intensa persistente y/o alteraciones visuales.", options: YES_NO },
+      { id: "ob_2", prompt: "Dolor epigástrico intenso o signos de hipertensión grave.", options: YES_NO },
+      { id: "ob_3", prompt: "Sangrado vaginal activo o dolor abdominal severo.", options: YES_NO },
+      { id: "ob_4", prompt: "Disnea marcada, edema súbito o deterioro respiratorio.", options: YES_NO },
+      { id: "ob_5", prompt: "Convulsión, confusión aguda o reducción importante de movimientos fetales.", options: YES_NO },
+    ],
+    interpretation: [
+      { min: 0, max: 1, label: "Bajo", meaning: "Sin alarma obstétrica relevante en tamizaje breve." },
+      { min: 2, max: 2, label: "Moderado", meaning: "Requiere valoración obstétrica oportuna." },
+      { min: 3, max: 4, label: "Alto", meaning: "Sospecha de complicación; priorizar atención inmediata." },
+      { min: 5, max: 5, label: "Crítico", meaning: "Emergencia obstétrica probable; activar protocolo urgente." },
+    ],
+  },
+  {
+    id: "pain_functional_edu",
+    name: "Dolor e impacto funcional (educativo)",
+    short_name: "Dolor-F",
+    description:
+      "Escala breve para integrar intensidad de dolor e impacto funcional en la entrevista clínica.",
+    population: "Población general",
+    suggested_age_range: "12+",
+    response_type: "likert_0_3",
+    educational_only: true,
+    items: [
+      { id: "pain_1", prompt: "Intensidad de dolor actual reportada por el paciente.", options: LIKERT_0_3 },
+      { id: "pain_2", prompt: "Impacto del dolor en movilidad y autocuidado.", options: LIKERT_0_3 },
+      { id: "pain_3", prompt: "Interferencia del dolor en sueño/descanso.", options: LIKERT_0_3 },
+      { id: "pain_4", prompt: "Impacto en actividad diaria/trabajo/escolaridad.", options: LIKERT_0_3 },
+    ],
+    interpretation: [
+      { min: 0, max: 3, label: "Leve", meaning: "Dolor e impacto funcional bajos en esta valoración." },
+      { min: 4, max: 7, label: "Moderado", meaning: "Dolor con interferencia clínica relevante." },
+      { min: 8, max: 10, label: "Alto", meaning: "Dolor con afectación funcional importante." },
+      { min: 11, max: 12, label: "Severo", meaning: "Compromiso alto; priorizar estabilización y reevaluación." },
+    ],
   },
 ];
 
@@ -343,12 +461,132 @@ export const MENTAL_TESTS: TestDefinition[] = [
   },
 ];
 
+export const MEDICAL_TESTS: TestDefinition[] = [
+  {
+    id: "barthel_brief_edu",
+    name: "Barthel breve (educativo)",
+    short_name: "Barthel-B",
+    description: "Tamizaje orientativo de independencia funcional en actividades básicas.",
+    kind: "screening",
+    applies_to: "adult",
+    response_type: "multiple_choice",
+    educational_only: true,
+    items: [
+      { id: "barthel_1", prompt: "Alimentación y deglución segura.", options: FUNCTION_0_3, domain: "funcionalidad" },
+      { id: "barthel_2", prompt: "Higiene personal y vestido.", options: FUNCTION_0_3, domain: "funcionalidad" },
+      { id: "barthel_3", prompt: "Transferencias cama/silla.", options: FUNCTION_0_3, domain: "movilidad" },
+      { id: "barthel_4", prompt: "Deambulación / uso de apoyo.", options: FUNCTION_0_3, domain: "movilidad" },
+      { id: "barthel_5", prompt: "Control de esfínteres.", options: FUNCTION_0_3, domain: "funcionalidad" },
+      { id: "barthel_6", prompt: "Uso de baño y autocuidado integral.", options: FUNCTION_0_3, domain: "funcionalidad" },
+    ],
+    interpretation: [
+      { min: 0, max: 5, label: "Dependencia alta", meaning: "Dependencia funcional importante." },
+      { min: 6, max: 10, label: "Dependencia moderada", meaning: "Dependencia funcional moderada." },
+      { min: 11, max: 15, label: "Dependencia leve", meaning: "Requiere apoyo parcial para ABVD." },
+      { min: 16, max: 18, label: "Independencia conservada", meaning: "Funcionalidad global relativamente preservada." },
+    ],
+    limitations: [
+      "Versión educativa abreviada.",
+      "Debe correlacionarse con evaluación funcional completa.",
+    ],
+  },
+  {
+    id: "glasgow_simplified_edu",
+    name: "Glasgow simplificado (educativo)",
+    short_name: "GCS-S",
+    description: "Explora nivel de conciencia de forma orientativa para priorización clínica.",
+    kind: "screening",
+    applies_to: "both",
+    response_type: "multiple_choice",
+    educational_only: true,
+    items: [
+      { id: "gcs_1", prompt: "Respuesta ocular.", options: GCS_SIMPLIFIED_0_3, domain: "neurológico" },
+      { id: "gcs_2", prompt: "Respuesta verbal.", options: GCS_SIMPLIFIED_0_3, domain: "neurológico" },
+      { id: "gcs_3", prompt: "Respuesta motora.", options: GCS_SIMPLIFIED_0_3, domain: "neurológico" },
+    ],
+    interpretation: [
+      { min: 0, max: 2, label: "Crítico", meaning: "Compromiso neurológico severo probable." },
+      { min: 3, max: 5, label: "Severo", meaning: "Alteración importante de conciencia." },
+      { min: 6, max: 7, label: "Moderado", meaning: "Alteración moderada; vigilar evolución clínica." },
+      { min: 8, max: 9, label: "Leve", meaning: "Compromiso leve o recuperación parcial." },
+    ],
+    limitations: [
+      "Versión simplificada no equivalente a Glasgow oficial.",
+      "Interpretar junto con examen neurológico completo.",
+    ],
+  },
+  {
+    id: "dehydration_pediatric_screen",
+    name: "Tamizaje de deshidratación pediátrica (educativo)",
+    short_name: "Deshid-Ped",
+    description: "Screening orientativo de deshidratación en población pediátrica.",
+    kind: "screening",
+    applies_to: "adolescent",
+    response_type: "yes_no",
+    educational_only: true,
+    items: [
+      { id: "dehyd_1", prompt: "Ingesta oral marcadamente disminuida.", options: YES_NO, domain: "hidratación" },
+      { id: "dehyd_2", prompt: "Diuresis disminuida o ausencia de micción prolongada.", options: YES_NO, domain: "hidratación" },
+      { id: "dehyd_3", prompt: "Mucosas secas / llanto sin lágrimas.", options: YES_NO, domain: "hidratación" },
+      { id: "dehyd_4", prompt: "Taquicardia o llenado capilar lento.", options: YES_NO, domain: "perfusión" },
+      { id: "dehyd_5", prompt: "Letargia o irritabilidad marcada.", options: YES_NO, domain: "estado general" },
+      { id: "dehyd_6", prompt: "Vómitos/diarrea persistentes con deterioro clínico.", options: YES_NO, domain: "síntomas" },
+    ],
+    interpretation: [
+      { min: 0, max: 1, label: "Leve", meaning: "Sin deshidratación clínicamente relevante en tamizaje breve." },
+      { min: 2, max: 3, label: "Moderada", meaning: "Posible deshidratación moderada; ampliar valoración." },
+      { min: 4, max: 6, label: "Severa", meaning: "Alta probabilidad de deshidratación severa; priorizar manejo." },
+    ],
+    limitations: [
+      "No reemplaza examen físico completo ni signos vitales.",
+      "Correlacionar con peso, perfusión y estado general.",
+    ],
+  },
+  {
+    id: "medication_adherence_brief",
+    name: "Adherencia terapéutica breve (educativo)",
+    short_name: "Adh-B",
+    description: "Evalúa barreras de adherencia y continuidad de tratamiento en seguimiento clínico.",
+    kind: "orientative_assessment",
+    applies_to: "adult",
+    response_type: "likert_0_3",
+    educational_only: true,
+    items: [
+      { id: "adh_1", prompt: "Olvida medicación indicada con frecuencia.", options: LIKERT_0_3, domain: "adherencia" },
+      { id: "adh_2", prompt: "Suspende tratamiento al sentirse mejor.", options: LIKERT_0_3, domain: "adherencia" },
+      { id: "adh_3", prompt: "Tiene dificultades de acceso/costo de medicamentos.", options: LIKERT_0_3, domain: "barreras" },
+      { id: "adh_4", prompt: "Comprende claramente su plan terapéutico.", options: LIKERT_0_3.map((o) => ({ ...o, value: 3 - o.value })), domain: "educación" },
+      { id: "adh_5", prompt: "Cuenta con apoyo para cumplir controles y tratamiento.", options: LIKERT_0_3.map((o) => ({ ...o, value: 3 - o.value })), domain: "red_apoyo" },
+    ],
+    interpretation: [
+      { min: 0, max: 4, label: "Adherencia adecuada", meaning: "Sin barreras relevantes en tamizaje breve." },
+      { min: 5, max: 9, label: "Riesgo moderado", meaning: "Existen barreras de adherencia a intervenir." },
+      { min: 10, max: 15, label: "Riesgo alto", meaning: "Baja adherencia probable con impacto clínico potencial." },
+    ],
+    limitations: [
+      "Instrumento educativo abreviado.",
+      "Puede estar influido por deseabilidad social.",
+    ],
+  },
+];
+
+const ALL_SCALES: ScaleDefinition[] = [...CLINICAL_SCALES, ...MEDICAL_SCALES];
+const ALL_TESTS: TestDefinition[] = [...MENTAL_TESTS, ...MEDICAL_TESTS];
+
+export function getScalesByDomain(domain: "mental" | "medical") {
+  return domain === "medical" ? MEDICAL_SCALES : CLINICAL_SCALES;
+}
+
+export function getTestsByDomain(domain: "mental" | "medical") {
+  return domain === "medical" ? MEDICAL_TESTS : MENTAL_TESTS;
+}
+
 export function getScaleById(id: string) {
-  return CLINICAL_SCALES.find((s) => s.id === id) ?? null;
+  return ALL_SCALES.find((s) => s.id === id) ?? null;
 }
 
 export function getTestById(id: string) {
-  return MENTAL_TESTS.find((t) => t.id === id) ?? null;
+  return ALL_TESTS.find((t) => t.id === id) ?? null;
 }
 
 export function resolveInterpretation(
@@ -420,4 +658,3 @@ export function scoreTest(definition: TestDefinition, answers: TestAnswer[]): Te
     educational_note: "Resultado orientativo para entrenamiento. No reemplaza diagnóstico ni juicio clínico.",
   };
 }
-

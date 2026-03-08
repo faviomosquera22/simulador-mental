@@ -218,41 +218,75 @@ function normalizeCaseSize(caseJson: any) {
 
 // (llmJSONWithFallback removed)
 
-function ensureSuggestedQuestions(caseJson: any) {
+function ensureSuggestedQuestions(caseJson: any, domain: "mental" | "medical" = "mental") {
   const sq = (caseJson?.suggested_questions ?? {}) as any;
 
-  const defaults = {
-    openers: [
-      "¿Qué es lo que te trajo hoy aquí?",
-      "¿Qué te gustaría trabajar en esta sesión?",
-      "Cuéntame qué ha sido lo más difícil últimamente.",
-      "¿Qué cambió recientemente que te hizo buscar ayuda?",
-    ],
-    symptoms: [
-      "¿Qué síntomas has notado y cómo han cambiado últimamente?",
-      "¿Qué pasa en tu cuerpo y en tu mente cuando te sientes así?",
-      "¿Con qué frecuencia te ocurre y cuánto dura?",
-      "¿Hay algo que lo empeore o lo alivie?",
-    ],
-    duration: [
-      "¿Desde cuándo exactamente empezaste a sentirte así?",
-      "¿Recuerdas cuándo fue la primera vez que te pasó?",
-      "En una línea de tiempo, ¿qué cambió antes de que esto empezara?",
-      "¿Ha sido continuo o viene por episodios?",
-    ],
-    function: [
-      "¿Cómo han afectado estos síntomas tu trabajo o tu vida diaria?",
-      "¿Qué cosas has dejado de hacer por sentirte así?",
-      "¿Cómo está tu rendimiento en estudio/trabajo y tus relaciones?",
-      "¿Qué áreas de tu vida se han visto más afectadas?",
-    ],
-    safety: [
-      "¿Has pensado en hacerte daño o en que sería mejor no estar aquí?",
-      "En los últimos días, ¿has tenido pensamientos de no querer vivir?",
-      "¿Has pensado en lastimarte o en suicidarte?",
-      "Si esos pensamientos aparecen, ¿qué tan intensos son y qué te detiene?",
-    ],
-  } as const;
+  const defaults =
+    domain === "medical"
+      ? {
+          openers: [
+            "¿Qué síntoma principal le preocupa hoy?",
+            "¿Desde cuándo inició este cuadro y cómo ha evolucionado?",
+            "¿Qué espera resolver en esta consulta?",
+            "¿Cuál ha sido el cambio más importante desde que empezó?",
+          ],
+          symptoms: [
+            "¿Qué síntomas presenta actualmente y con qué intensidad?",
+            "¿Hay fiebre, dolor, dificultad respiratoria o mareo?",
+            "¿Qué lo empeora o lo alivia?",
+            "¿Tiene síntomas acompañantes relevantes?",
+          ],
+          duration: [
+            "¿Hace cuántas horas o días inició el cuadro?",
+            "¿El síntoma ha sido continuo o por episodios?",
+            "¿Hubo un desencadenante claro antes del inicio?",
+            "¿Qué tratamiento ha usado antes de consultar?",
+          ],
+          function: [
+            "¿Cómo afecta esto su alimentación, sueño o actividad diaria?",
+            "¿Ha limitado su movilidad o autocuidado por los síntomas?",
+            "¿Ha faltado al trabajo/escuela por esta condición?",
+            "¿Cuenta con apoyo familiar para el cuidado?",
+          ],
+          safety: [
+            "¿Ha notado signos de alarma como desmayo, sangrado o dificultad respiratoria?",
+            "¿Ha tenido empeoramiento rápido en las últimas horas?",
+            "¿Presenta dolor intenso persistente o confusión?",
+            "¿Tiene acceso y adherencia al tratamiento indicado?",
+          ],
+        }
+      : {
+          openers: [
+            "¿Qué es lo que te trajo hoy aquí?",
+            "¿Qué te gustaría trabajar en esta sesión?",
+            "Cuéntame qué ha sido lo más difícil últimamente.",
+            "¿Qué cambió recientemente que te hizo buscar ayuda?",
+          ],
+          symptoms: [
+            "¿Qué síntomas has notado y cómo han cambiado últimamente?",
+            "¿Qué pasa en tu cuerpo y en tu mente cuando te sientes así?",
+            "¿Con qué frecuencia te ocurre y cuánto dura?",
+            "¿Hay algo que lo empeore o lo alivie?",
+          ],
+          duration: [
+            "¿Desde cuándo exactamente empezaste a sentirte así?",
+            "¿Recuerdas cuándo fue la primera vez que te pasó?",
+            "En una línea de tiempo, ¿qué cambió antes de que esto empezara?",
+            "¿Ha sido continuo o viene por episodios?",
+          ],
+          function: [
+            "¿Cómo han afectado estos síntomas tu trabajo o tu vida diaria?",
+            "¿Qué cosas has dejado de hacer por sentirte así?",
+            "¿Cómo está tu rendimiento en estudio/trabajo y tus relaciones?",
+            "¿Qué áreas de tu vida se han visto más afectadas?",
+          ],
+          safety: [
+            "¿Has pensado en hacerte daño o en que sería mejor no estar aquí?",
+            "En los últimos días, ¿has tenido pensamientos de no querer vivir?",
+            "¿Has pensado en lastimarte o en suicidarte?",
+            "Si esos pensamientos aparecen, ¿qué tan intensos son y qué te detiene?",
+          ],
+        };
 
   const toList = (value: any, fallback: string[]) => {
     const out = Array.isArray(value)
@@ -388,8 +422,10 @@ export async function POST(req: Request) {
       difficulty = 2,
       target_minutes = 20,
       age_group = "adult",
+      domain = "mental",
       case_seed,
     } = body ?? {};
+    const normalizedDomain = domain === "medical" ? "medical" : "mental";
     const normalizedAgeGroup =
       age_group === "child" || age_group === "adolescent" || age_group === "mixed" ? age_group : "adult";
     const isPediatric = normalizedAgeGroup === "child" || normalizedAgeGroup === "adolescent";
@@ -401,7 +437,87 @@ export async function POST(req: Request) {
     else if (FORCE_PROVIDER === "openrouter") provider = "openrouter";
     else if (FORCE_PROVIDER === "gemini") provider = "gemini";
 
-    const system = `
+    const system =
+      normalizedDomain === "medical"
+        ? `
+Eres un "Case Generator" para un simulador educativo de ENTREVISTAS CLÍNICAS EN MEDICINA Y ENFERMERÍA.
+Devuelve SOLO JSON válido (sin markdown, sin texto extra).
+
+Reglas duras:
+- Mantén todo COMPACTO: facts_bank máximo 26 hechos y cada hecho <= 240 caracteres.
+- Evita texto redundante. Prefiere listas cortas y frases breves.
+- No incluyas campos extra fuera del esquema.
+- Caso 100% ficticio, sin datos personales reales.
+- Enfocado en patologías médicas (adulto, pediatría, embarazo y adulto mayor).
+- NO diagnostiques ni sugieras tratamiento. Es entrenamiento de entrevista.
+- Idioma: ESPAÑOL (LatAm). Usa nombres ficticios latinoamericanos.
+
+El JSON debe incluir como mínimo:
+meta { title, difficulty, category, target_minutes, dsm_tag, cie11_code (opcional), risk_level (bajo|moderado|alto), age_group (adult|adolescent|child|mixed), pediatric_mode (boolean), companion_available (boolean), companion_role (opcional: madre|padre|tutor|cuidador|otro) },
+patient_profile {
+  display_name,
+  age,
+  sex,
+  occupation (string),
+  marital_status (string),
+  referral_source (string),
+  context (string)
+},
+companion_profile (opcional para pediatría) { display_name, relation, cooperativeness (low|medium|high), reliability (low|medium|high), narrative_style (brief|detailed|minimizing|anxious) },
+chief_complaint (string),
+brief_context (string),
+learning_objective (string),
+learning_objectives (array),
+areas (array: motivo, historia, sintomas, funcionamiento, antecedentes, riesgo, cierre),
+
+// Base del guion
+facts_bank (array de hechos atómicos),
+reveal_plan (obj),
+conversation_style (obj),
+truth_reveal (obj),
+
+// Para UI “Paciente” (panel derecho)
+background_chips (array de strings cortos; ej: "Sin tx previo", "Episodio previo (2020)", "Red apoyo: limitada", "Sin sustancias"),
+timeline (array de objetos { date_label, text, level (normal|neutral|warning) }),
+
+// Para UI de diagnóstico orientativo
+dsm {
+  primary { label, confidence (0-100), criteria (array de { id, text, status (yes|partial|no) }) },
+  differentials (array de strings)
+},
+
+// Para UI “Seguridad”
+safety {
+  risk_level (bajo|moderado|alto),
+  summary (string breve),
+  risk_factors (array),
+  protective_factors (array),
+  cssrs_hint (array de strings con ítems sugeridos)
+},
+
+// Para UI “MSE”
+mse_template (array de secciones { key, title, chips (array), default_selected (array de índices), note_prompt }),
+
+// Para “chips” del input y panel educativo
+suggested_questions {
+  openers (array),
+  symptoms (array),
+  duration (array),
+  function (array),
+  safety (array)
+}
+
+Además:
+- Puedes usar síntomas médicos y hallazgos clínicos plausibles (dolor, fiebre, disnea, etc.) con enfoque académico.
+- chief_complaint, brief_context y learning_objective deben venir llenos (no guiones, no vacíos).
+- dsm_tag debe ser una etiqueta corta de referencia clínica (ej: "SCA", "SEPSIS", "PREE", "EPOC").
+- timeline debe tener 4–6 eventos en orden (de pasado a hoy), con date_label tipo "2020", "Mar 2025", "Hoy".
+- suggested_questions debe tener frases listas para copiar/pegar (preguntas en segunda persona).
+- mse_template puede usarse como checklist clínico breve: estado general, respiratorio, cardiovascular, neurológico, dolor, perfusión, hidratación.
+- Si age_group es child/adolescent: adapta lenguaje y síntomas a población pediátrica y agrega companion_profile + companion_available=true.
+- En embarazo: incluye contexto materno-fetal y signos de alarma obstétrica.
+`
+        : `
 Eres un "Case Generator" para un simulador educativo de ENTREVISTAS EN SALUD MENTAL.
 Devuelve SOLO JSON válido (sin markdown, sin texto extra).
 
@@ -482,7 +598,10 @@ Además:
     const user = JSON.stringify(
       {
         instruction:
-          "Genera un caso clínico educativo de salud mental, compacto y utilizable en simulador.",
+          normalizedDomain === "medical"
+            ? "Genera un caso clínico educativo de medicina/enfermería, compacto y utilizable en simulador."
+            : "Genera un caso clínico educativo de salud mental, compacto y utilizable en simulador.",
+        domain: normalizedDomain,
         category,
         difficulty,
         target_minutes,
@@ -585,7 +704,9 @@ Además:
       }
     })();
 
-    const normalized = normalizeCaseSize(ensureSuggestedQuestions(json));
+    const normalized = normalizeCaseSize(ensureSuggestedQuestions(json, normalizedDomain));
+    normalized.meta = typeof normalized.meta === "object" && normalized.meta ? normalized.meta : {};
+    normalized.meta.domain = normalizedDomain;
     return NextResponse.json(normalized);
   } catch (e: any) {
     const msg = String(e?.message ?? "");

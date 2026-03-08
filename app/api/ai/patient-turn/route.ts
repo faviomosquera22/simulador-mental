@@ -372,6 +372,8 @@ export async function POST(req: Request) {
     const selfHarm = detectSelfHarm(userMessage);
 
     const approach = String((caseObject as any)?.meta?.approach ?? (caseObject as any)?.approach ?? "humanistic").toLowerCase();
+    const caseDomain: "medical" | "mental" =
+      String((caseObject as any)?.meta?.domain ?? "").toLowerCase() === "medical" ? "medical" : "mental";
     const pediatricMode = isPediatricCase(caseObject);
     const requestedSpeaker = normalizeSpeakerRole(targetSpeaker);
     const activeSpeaker: SpeakerRole = pediatricMode ? requestedSpeaker : "patient";
@@ -384,6 +386,9 @@ export async function POST(req: Request) {
     }
 
     function approachTutorStyle(a: string) {
+      if (caseDomain === "medical") {
+        return "Enfoque clínico médico/enfermería: guía al estudiante a precisar síntomas, cronología, signos de alarma, impacto funcional, antecedentes y seguridad.";
+      }
       // Estilo educativo: cómo orientar preguntas y feedback (no terapia real)
       switch (a) {
         case "cbt":
@@ -399,7 +404,8 @@ export async function POST(req: Request) {
 
     const system = `
 Eres el "Patient Actor" de un simulador educativo.
-Enfoque psicoterapéutico seleccionado (educativo): ${approachLabel(approach)}.
+Dominio del caso: ${caseDomain === "medical" ? "medicina/enfermería" : "salud mental"}.
+Enfoque seleccionado (educativo): ${approachLabel(approach)}.
 ${approachTutorStyle(approach)}
 Tu fuente de verdad es el caseSnapshot (facts_core + facts_focus + facts_bank). No inventes hechos fuera de esos facts.
 Revelación gradual: máximo 2 hechos nuevos por turno. Si no hay suficiente información, pide 1 pregunta aclaratoria.
@@ -416,6 +422,15 @@ Reglas pediátricas:
 - Si speaker_role="patient" y es niño, usa lenguaje simple y respuestas breves.
 - Si speaker_role="patient" y es adolescente, permite respuestas más elaboradas con resistencia variable.
 - Si source="both", elige UNA voz predominante para este turno e indica speaker_role correctamente.
+
+${caseDomain === "medical"
+  ? `Reglas de caso médico:
+- Prioriza descripción clínica concreta (síntomas, tiempo de evolución, severidad, factores agravantes/aliviantes).
+- Mantén coherencia con signos de alarma y nivel de urgencia del caso.
+- Puedes referir antecedentes médicos, medicación y barreras de adherencia si existen en facts.`
+  : `Reglas de salud mental:
+- Prioriza experiencia subjetiva, impacto funcional, factores precipitantes y protectores.
+- Mantén tono clínico-educativo, sin confirmar diagnósticos.`}
 
 Reglas para escalas/tests:
 - Si mode es "scale" o "test", NO hagas entrevista libre extensa: responde específicamente al ítem del instrumento.
@@ -452,6 +467,7 @@ emotion_intensity 0-100
     const user = JSON.stringify({
       // IMPORTANT: we send a compact snapshot instead of the full CaseObject to prevent prompt saturation.
       caseSnapshot,
+      domain: caseDomain,
       approach: approachLabel(approach),
       mode,
       targetSpeaker: activeSpeaker,

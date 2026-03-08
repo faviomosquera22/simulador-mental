@@ -165,7 +165,141 @@ export const CLINICAL_BATTERIES: BatteryDefinition[] = [
   },
 ];
 
-export function getBatteryById(id: string): BatteryDefinition | undefined {
-  return CLINICAL_BATTERIES.find((b) => b.id === id);
+export const MEDICAL_BATTERIES: BatteryDefinition[] = [
+  {
+    id: "adult_emergency_triage_med",
+    name: "Urgencias adulto: triage rápido",
+    description:
+      "Ruta breve de priorización clínica para pacientes adultos en contexto de urgencias.",
+    target_population: "Adultos",
+    suggested_age_range: "18+",
+    educational_only: true,
+    steps: [
+      {
+        id: "adult_emergency_qsofa",
+        mode: "scale",
+        instrument_id: "qsofa_edu",
+        label: "qSOFA simplificado",
+      },
+      {
+        id: "adult_emergency_news2",
+        mode: "scale",
+        instrument_id: "news2_simplified_edu",
+        label: "NEWS2 simplificado",
+      },
+      {
+        id: "adult_emergency_gcs",
+        mode: "test",
+        instrument_id: "glasgow_simplified_edu",
+        label: "Glasgow simplificado",
+      },
+      {
+        id: "adult_emergency_pain",
+        mode: "scale",
+        instrument_id: "pain_functional_edu",
+        label: "Dolor e impacto funcional",
+      },
+    ],
+    educational_note: "Secuencia orientativa para priorización inicial. No reemplaza protocolo institucional.",
+  },
+  {
+    id: "pregnancy_warning_med",
+    name: "Embarazo: alerta y seguridad clínica",
+    description:
+      "Batería orientativa para identificar signos de alarma obstétrica y deterioro clínico.",
+    target_population: "Gestantes / puérperas",
+    suggested_age_range: "12+",
+    educational_only: true,
+    steps: [
+      {
+        id: "pregnancy_warning_scale",
+        mode: "scale",
+        instrument_id: "obstetric_warning_brief",
+        label: "Alerta obstétrica breve",
+      },
+      {
+        id: "pregnancy_news2",
+        mode: "scale",
+        instrument_id: "news2_simplified_edu",
+        label: "NEWS2 simplificado",
+      },
+      {
+        id: "pregnancy_pain",
+        mode: "scale",
+        instrument_id: "pain_functional_edu",
+        label: "Dolor e impacto funcional",
+      },
+    ],
+    educational_note: "Interpretar con evaluación obstétrica integral y protocolo local.",
+  },
+  {
+    id: "pediatric_hydration_resp_med",
+    name: "Pediatría: hidratación y estado general",
+    description:
+      "Ruta breve para práctica de entrevista y detección de deterioro clínico en pediatría.",
+    target_population: "Niñez y adolescencia",
+    suggested_age_range: "5-17",
+    educational_only: true,
+    steps: [
+      {
+        id: "pediatric_dehydration",
+        mode: "test",
+        instrument_id: "dehydration_pediatric_screen",
+        label: "Deshidratación pediátrica",
+      },
+      {
+        id: "pediatric_pain",
+        mode: "scale",
+        instrument_id: "pain_functional_edu",
+        label: "Dolor e impacto funcional",
+      },
+      {
+        id: "pediatric_gcs",
+        mode: "test",
+        instrument_id: "glasgow_simplified_edu",
+        label: "Glasgow simplificado",
+      },
+    ],
+    educational_note: "Útil para escenarios con fuente dual (paciente + acompañante).",
+  },
+  {
+    id: "chronic_followup_med",
+    name: "Seguimiento crónico y funcionalidad",
+    description:
+      "Integra funcionalidad, adherencia terapéutica y severidad fisiológica orientativa.",
+    target_population: "Adulto y adulto mayor",
+    suggested_age_range: "40+",
+    educational_only: true,
+    steps: [
+      {
+        id: "chronic_barthel",
+        mode: "test",
+        instrument_id: "barthel_brief_edu",
+        label: "Barthel breve",
+      },
+      {
+        id: "chronic_adherence",
+        mode: "test",
+        instrument_id: "medication_adherence_brief",
+        label: "Adherencia terapéutica breve",
+      },
+      {
+        id: "chronic_news2",
+        mode: "scale",
+        instrument_id: "news2_simplified_edu",
+        label: "NEWS2 simplificado",
+      },
+    ],
+    educational_note: "Resultado orientativo para entrenamiento clínico; no diagnóstico.",
+  },
+];
+
+const ALL_BATTERIES: BatteryDefinition[] = [...CLINICAL_BATTERIES, ...MEDICAL_BATTERIES];
+
+export function getBatteriesByDomain(domain: "mental" | "medical"): BatteryDefinition[] {
+  return domain === "medical" ? MEDICAL_BATTERIES : CLINICAL_BATTERIES;
 }
 
+export function getBatteryById(id: string): BatteryDefinition | undefined {
+  return ALL_BATTERIES.find((b) => b.id === id);
+}

@@ -6,14 +6,14 @@ import Sidebar from "../../components/Sidebar";
 import { addSession, type EndReason } from "../../lib/history";
 import { getAuthFetchHeaders } from "@/src/lib/clientAuth";
 import {
-  CLINICAL_SCALES,
-  MENTAL_TESTS,
+  getScalesByDomain,
+  getTestsByDomain,
   getScaleById,
   getTestById,
   scoreScale,
   scoreTest,
 } from "@/src/lib/assessments";
-import { CLINICAL_BATTERIES, getBatteryById } from "@/src/lib/batteries";
+import { getBatteriesByDomain, getBatteryById } from "@/src/lib/batteries";
 import {
   deriveAgeGroup,
   isPediatricCase,
@@ -302,17 +302,17 @@ export default function SimulatorPage() {
   const [targetSpeaker, setTargetSpeaker] = useState<SpeakerRole>("patient");
 
   // Escalas clínicas
-  const [selectedScaleId, setSelectedScaleId] = useState<string>(CLINICAL_SCALES[0]?.id ?? "");
+  const [selectedScaleId, setSelectedScaleId] = useState<string>("");
   const [scaleSession, setScaleSession] = useState<ScaleSession | null>(null);
   const [lastScaleResult, setLastScaleResult] = useState<ReturnType<typeof scoreScale> | null>(null);
 
   // Tests mentales
-  const [selectedTestId, setSelectedTestId] = useState<string>(MENTAL_TESTS[0]?.id ?? "");
+  const [selectedTestId, setSelectedTestId] = useState<string>("");
   const [testSession, setTestSession] = useState<TestSession | null>(null);
   const [lastTestResult, setLastTestResult] = useState<ReturnType<typeof scoreTest> | null>(null);
 
   // Baterías clínicas
-  const [selectedBatteryId, setSelectedBatteryId] = useState<string>(CLINICAL_BATTERIES[0]?.id ?? "");
+  const [selectedBatteryId, setSelectedBatteryId] = useState<string>("");
   const [batterySession, setBatterySession] = useState<BatterySession | null>(null);
   const [lastBatterySession, setLastBatterySession] = useState<BatterySession | null>(null);
 
@@ -746,6 +746,11 @@ export default function SimulatorPage() {
   }, [caseObject]);
   const pediatricCase = useMemo(() => isPediatricCase(caseObject), [caseObject]);
   const caseAgeGroup = useMemo(() => deriveAgeGroup(caseObject), [caseObject]);
+  const caseDomain = useMemo<"mental" | "medical">(
+    () => (String(caseObject?.meta?.domain ?? "").toLowerCase() === "medical" ? "medical" : "mental"),
+    [caseObject]
+  );
+  const isMedicalCase = caseDomain === "medical";
 
   useEffect(() => {
     if (!caseObject) return;
@@ -800,8 +805,14 @@ export default function SimulatorPage() {
   }, [caseObject]);
 
   const clinicalHref = useMemo(() => {
+    if (isMedicalCase) return "/medical-pathologies";
     return clinicalDxId ? `/topics?dx=${encodeURIComponent(clinicalDxId)}` : "/topics";
-  }, [clinicalDxId]);
+  }, [clinicalDxId, isMedicalCase]);
+
+  const backHref = isMedicalCase ? "/medical-cases" : "/cases";
+  const libraryButtonLabel = isMedicalCase ? "Biblioteca de patologías" : "Biblioteca clínica";
+  const codeBadgeLabel = isMedicalCase ? "Código clínico" : "DSM/CIE";
+  const riskBadgeLabel = isMedicalCase ? "Urgencia" : "Riesgo";
 
   const lastMeta = useMemo(() => {
     try {
@@ -844,6 +855,39 @@ export default function SimulatorPage() {
   const selectedScale = useMemo(() => getScaleById(selectedScaleId), [selectedScaleId]);
   const selectedTest = useMemo(() => getTestById(selectedTestId), [selectedTestId]);
   const selectedBattery = useMemo(() => getBatteryById(selectedBatteryId), [selectedBatteryId]);
+  const scaleCatalog = useMemo(() => getScalesByDomain(caseDomain), [caseDomain]);
+  const testCatalog = useMemo(() => getTestsByDomain(caseDomain), [caseDomain]);
+  const batteryCatalog = useMemo(() => getBatteriesByDomain(caseDomain), [caseDomain]);
+
+  useEffect(() => {
+    if (!scaleCatalog.length) {
+      setSelectedScaleId("");
+      return;
+    }
+    if (!scaleCatalog.some((s) => s.id === selectedScaleId)) {
+      setSelectedScaleId(scaleCatalog[0].id);
+    }
+  }, [scaleCatalog, selectedScaleId]);
+
+  useEffect(() => {
+    if (!testCatalog.length) {
+      setSelectedTestId("");
+      return;
+    }
+    if (!testCatalog.some((t) => t.id === selectedTestId)) {
+      setSelectedTestId(testCatalog[0].id);
+    }
+  }, [testCatalog, selectedTestId]);
+
+  useEffect(() => {
+    if (!batteryCatalog.length) {
+      setSelectedBatteryId("");
+      return;
+    }
+    if (!batteryCatalog.some((b) => b.id === selectedBatteryId)) {
+      setSelectedBatteryId(batteryCatalog[0].id);
+    }
+  }, [batteryCatalog, selectedBatteryId]);
 
   const batteryViewSession = batterySession ?? lastBatterySession;
   const batteryViewDef = useMemo(
@@ -910,6 +954,41 @@ export default function SimulatorPage() {
       return uniq.slice(0, 4);
     };
 
+    if (isMedicalCase) {
+      return {
+        "Motivo y cronología": toList(sq.openers, [
+          "¿Cuál es el síntoma principal que más le preocupa hoy?",
+          "¿Desde cuándo comenzó este cuadro y cómo ha evolucionado?",
+          "¿Qué cambió antes de que iniciaran los síntomas?",
+          "¿Qué le motivó a consultar hoy específicamente?",
+        ]),
+        "Explorar síntomas": toList(sq.symptoms, [
+          "¿Qué síntomas presenta ahora y con qué intensidad?",
+          "¿Hay fiebre, dolor, dificultad respiratoria o mareo?",
+          "¿Qué empeora o alivia sus síntomas?",
+          "¿Se acompañan de náusea, vómito, sangrado o confusión?",
+        ]),
+        "⚠ Signos de alarma": toList(sq.safety, [
+          "¿Ha presentado desmayo, sangrado, dolor intenso o dificultad para respirar?",
+          "¿Ha notado empeoramiento rápido en las últimas horas?",
+          "¿Tiene confusión, somnolencia marcada o disminución de diuresis?",
+          "¿Ha requerido atención de urgencia reciente por este cuadro?",
+        ]),
+        "Antecedentes y medicación": toList(sq.duration, [
+          "¿Qué antecedentes médicos relevantes tiene?",
+          "¿Qué medicamentos usa actualmente y cuál fue la última dosis?",
+          "¿Tiene alergias medicamentosas conocidas?",
+          "¿Ha tenido episodios similares antes?",
+        ]),
+        "Impacto funcional": toList(sq.function, [
+          "¿Cómo afecta esto su movilidad, sueño y alimentación?",
+          "¿Ha limitado trabajo, estudio o autocuidado?",
+          "¿Cuenta con apoyo en casa para su cuidado actual?",
+          "¿Ha podido mantener hidratación y tratamiento indicados?",
+        ]),
+      } as Record<string, string[]>;
+    }
+
     return {
       "Pregunta abierta": toList(sq.openers, [
         "¿Qué es lo que te trajo hoy aquí?",
@@ -942,7 +1021,7 @@ export default function SimulatorPage() {
         "¿Qué áreas de tu vida se han visto más afectadas?",
       ]),
     } as Record<string, string[]>;
-  }, [caseObject]);
+  }, [caseObject, isMedicalCase]);
 
   function toggleMse(key: string) {
     setMseOpen((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -979,6 +1058,13 @@ export default function SimulatorPage() {
     return t ? t : fallback;
   }
 
+  function labelAppliesTo(value: string) {
+    const v = String(value ?? "").toLowerCase();
+    if (v === "both") return "Adulto y adolescente";
+    if (v === "adolescent") return "Adolescente";
+    return "Adulto";
+  }
+
   const timeLabel = useMemo(() => {
     if (remainingSec == null) return "--:--";
     const m = Math.floor(remainingSec / 60);
@@ -997,7 +1083,7 @@ export default function SimulatorPage() {
   }, [loading, remainingSec, timerReason]);
 
   const beginScaleSession = useCallback((scaleId: string, auto = false) => {
-    const definition = getScaleById(scaleId);
+    const definition = scaleCatalog.find((s) => s.id === scaleId) ?? getScaleById(scaleId);
     if (!definition) {
       setError("No se pudo iniciar la escala seleccionada.");
       return false;
@@ -1025,10 +1111,10 @@ export default function SimulatorPage() {
       options: definition.items[0]?.options ?? [],
     });
     return true;
-  }, []);
+  }, [scaleCatalog]);
 
   const beginTestSession = useCallback((testId: string, auto = false) => {
-    const definition = getTestById(testId);
+    const definition = testCatalog.find((t) => t.id === testId) ?? getTestById(testId);
     if (!definition) {
       setError("No se pudo iniciar el test seleccionado.");
       return false;
@@ -1056,7 +1142,7 @@ export default function SimulatorPage() {
       options: definition.items[0]?.options ?? [],
     });
     return true;
-  }, []);
+  }, [testCatalog]);
 
   const startScaleInChat = useCallback((auto = false) => {
     if (!selectedScaleId) return;
@@ -1526,7 +1612,7 @@ export default function SimulatorPage() {
   const askCurrentInstrumentItem = useCallback(async () => {
     if (!activeInstrumentContext) return;
     const lines = [
-      `${activeInstrumentContext.mode === "scale" ? "Escala clínica" : "Test mental"} ${activeInstrumentContext.instrument_name} · ítem ${activeInstrumentContext.item_index + 1}/${activeInstrumentContext.total_items}`,
+      `${activeInstrumentContext.mode === "scale" ? "Escala clínica" : "Test clínico"} ${activeInstrumentContext.instrument_name} · ítem ${activeInstrumentContext.item_index + 1}/${activeInstrumentContext.total_items}`,
       activeInstrumentContext.item_prompt,
       "Opciones codificadas para respuesta automática del paciente simulado.",
       "Responde como paciente simulado según el caso activo.",
@@ -1560,9 +1646,12 @@ export default function SimulatorPage() {
             <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-white/5 p-6">
               <h1 className="text-xl font-semibold">Psyke · No hay un caso activo</h1>
               <p className="mt-2 text-sm text-white/70">Vuelve a la biblioteca, genera un caso y presiona “Iniciar simulación”.</p>
-              <div className="mt-4">
-                <Link className="inline-flex items-center justify-center rounded-xl bg-white text-black px-4 py-2" href="/cases">
-                  Ir a Biblioteca de casos
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Link className="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2 text-black" href="/cases">
+                  Trastornos mentales
+                </Link>
+                <Link className="inline-flex items-center justify-center rounded-xl border border-white/15 px-4 py-2 text-white/85" href="/medical-cases">
+                  Patologías médicas
                 </Link>
               </div>
             </div>
@@ -1590,7 +1679,10 @@ export default function SimulatorPage() {
             </div>
 
             {/* Approach badge */}
-            <span className="hidden sm:inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/70" title="Enfoque psicoterapéutico (educativo)">
+            <span
+              className="hidden sm:inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/70"
+              title={isMedicalCase ? "Enfoque de entrevista clínica (educativo)" : "Enfoque psicoterapéutico (educativo)"}
+            >
               Enfoque: {approachLabel}
             </span>
 
@@ -1598,7 +1690,7 @@ export default function SimulatorPage() {
               <span className="text-xs text-white/50">Buscar</span>
               <input
                 className="w-full bg-transparent text-sm text-white/80 outline-none placeholder:text-white/35"
-                placeholder="Buscar en Biblioteca Clínica DSM-5…"
+                placeholder={isMedicalCase ? "Buscar en Biblioteca de patologías…" : "Buscar en Biblioteca Clínica DSM-5…"}
               />
             </div>
 
@@ -1641,16 +1733,16 @@ export default function SimulatorPage() {
                 {rightPanelCollapsed ? "Mostrar panel clínico" : "Expandir chat"}
               </button>
 
-              <Link href="/cases" className="rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5">
+              <Link href={backHref} className="rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5">
                 Volver
               </Link>
 
               <Link
                 href={clinicalHref}
                 className="hidden rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5 sm:inline-flex"
-                title={clinicalDxId ? `Abrir ficha: ${clinicalDxId}` : "Abrir Biblioteca clínica"}
+                title={isMedicalCase ? "Abrir Biblioteca de patologías" : clinicalDxId ? `Abrir ficha: ${clinicalDxId}` : "Abrir Biblioteca clínica"}
               >
-                Biblioteca clínica
+                {libraryButtonLabel}
               </Link>
 
               <button
@@ -1691,10 +1783,10 @@ export default function SimulatorPage() {
                       : "border-white/15 bg-black/30 text-white/70"
                   }`}
                 >
-                  Riesgo: {riskLevel}
+                  {riskBadgeLabel}: {riskLevel}
                 </span>
                 <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/70">
-                  {clinicalDxId ? `DSM/CIE: ${clinicalDxId}` : "DSM/CIE: —"}
+                  {clinicalDxId ? `${codeBadgeLabel}: ${clinicalDxId}` : `${codeBadgeLabel}: —`}
                 </span>
               </div>
             </div>
@@ -1703,21 +1795,41 @@ export default function SimulatorPage() {
               <div className="px-5 pb-4">
                 <div className="flex flex-wrap items-start gap-3">
                   <div className="min-w-[260px] flex-1 rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-xs text-white/50">DSM-5 (guía rápida)</div>
+                    <div className="text-xs text-white/50">{isMedicalCase ? "Valoración clínica (guía rápida)" : "DSM-5 (guía rápida)"}</div>
                     <div className="mt-1 text-sm font-semibold text-white">Estructura sugerida</div>
                     <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-white/75">
-                      <li>Apertura empática + motivo de consulta.</li>
-                      <li>Explora síntomas, duración e impacto funcional.</li>
-                      <li>Si hay señales de riesgo, prioriza seguridad.</li>
-                      <li>Cierra con resumen y plan.</li>
+                      {isMedicalCase ? (
+                        <>
+                          <li>Motivo de consulta + cronología del cuadro.</li>
+                          <li>Síntomas clave, severidad y factores de alarma.</li>
+                          <li>Antecedentes, medicación y barreras de adherencia.</li>
+                          <li>Cierre con priorización clínica y plan educativo.</li>
+                        </>
+                      ) : (
+                        <>
+                          <li>Apertura empática + motivo de consulta.</li>
+                          <li>Explora síntomas, duración e impacto funcional.</li>
+                          <li>Si hay señales de riesgo, prioriza seguridad.</li>
+                          <li>Cierra con resumen y plan.</li>
+                        </>
+                      )}
                     </ul>
                   </div>
 
                   <div className="w-full max-w-[340px] rounded-2xl border border-white/10 bg-black/20 p-4">
                     <div className="text-xs text-white/50">Tip del tutor IA</div>
                     <div className="mt-2 text-sm text-white/75">
-                      Antes de cerrar el MSE, pregunta por <span className="font-semibold text-white">impacto funcional</span> y
-                      una <span className="font-semibold text-white">pregunta de seguridad</span> si hay señales.
+                      {isMedicalCase ? (
+                        <>
+                          Antes de cerrar, confirma <span className="font-semibold text-white">signos de alarma</span>, estado funcional y
+                          plan de <span className="font-semibold text-white">seguimiento/derivación</span>.
+                        </>
+                      ) : (
+                        <>
+                          Antes de cerrar el MSE, pregunta por <span className="font-semibold text-white">impacto funcional</span> y
+                          una <span className="font-semibold text-white">pregunta de seguridad</span> si hay señales.
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -1725,7 +1837,7 @@ export default function SimulatorPage() {
                     href={clinicalHref}
                     className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black"
                   >
-                    Abrir Biblioteca clínica
+                    {isMedicalCase ? "Abrir Biblioteca de patologías" : "Abrir Biblioteca clínica"}
                   </Link>
                 </div>
               </div>
@@ -1773,7 +1885,7 @@ export default function SimulatorPage() {
                         : "border-white/15 bg-black/30 text-white/70"
                     }`}
                   >
-                    Riesgo: {riskLevel}
+                    {riskBadgeLabel}: {riskLevel}
                   </span>
 
                   {lastProvider && (
@@ -1789,9 +1901,9 @@ export default function SimulatorPage() {
                     type="button"
                     onClick={() => setRightTab("risk")}
                     className="rounded-xl border border-white/15 px-3 py-2 text-sm text-white/80 hover:bg-white/5"
-                    title="Abrir módulo de seguridad"
+                    title={isMedicalCase ? "Abrir módulo de urgencia y seguridad" : "Abrir módulo de seguridad"}
                   >
-                    Seguridad
+                    {isMedicalCase ? "Urgencia" : "Seguridad"}
                   </button>
                 </div>
               </div>
@@ -1942,7 +2054,7 @@ export default function SimulatorPage() {
 
                 <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-2">
                   {Object.keys(quickChipMap ?? {}).map((label) => {
-                    const isRisk = label.includes("Riesgo");
+                    const isRisk = label.includes("Riesgo") || label.toLowerCase().includes("alarma");
                     return (
                       <button
                         key={label}
@@ -2003,9 +2115,9 @@ export default function SimulatorPage() {
                 {(
                   [
                     ["patient", "Paciente"],
-                    ["mse", "MSE"],
-                    ["dsm", "DSM-5"],
-                    ["risk", "Seguridad"],
+                    ["mse", isMedicalCase ? "Examen" : "MSE"],
+                    ["dsm", isMedicalCase ? "Impresión" : "DSM-5"],
+                    ["risk", isMedicalCase ? "Urgencia" : "Seguridad"],
                     ["scales", "Escalas"],
                     ["tests", "Tests"],
                     ["batteries", "Baterías"],
@@ -2128,19 +2240,30 @@ export default function SimulatorPage() {
 
                 {rightTab === "mse" && (
                   <div className="space-y-2">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Examen Mental (MSE)</div>
+                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
+                      {isMedicalCase ? "Examen clínico orientado" : "Examen Mental (MSE)"}
+                    </div>
 
                     {(() => {
                       const tmpl = Array.isArray(caseObject?.mse_template) ? (caseObject.mse_template as any[]) : [];
-                      const fallback = [
-                        { key: "appearance", title: "Apariencia / Conducta", chips: ["Adecuada", "Descuidada", "Agitación", "Enlentecimiento"], note_prompt: "Nota clínica…" },
-                        { key: "speech", title: "Habla / Lenguaje", chips: ["Fluida", "Enlentecida", "Escasa", "Latencia ↑"], note_prompt: "Nota clínica…" },
-                        { key: "mood", title: "Ánimo / Afecto", chips: ["Deprimido", "Eutímico", "Ansioso", "Lábil", "Restringido"], note_prompt: "Nota clínica…" },
-                        { key: "thought", title: "Pensamiento", chips: ["Coherente", "Rumiación", "Desesperanza", "Lentificado"], note_prompt: "Nota clínica…" },
-                        { key: "perception", title: "Percepción", chips: ["Sin alteraciones", "Alucinaciones", "Ilusiones"], note_prompt: "Nota clínica…" },
-                        { key: "cognition", title: "Cognición", chips: ["Orientada", "Concentración ↓", "Memoria OK"], note_prompt: "Nota clínica…" },
-                        { key: "insight", title: "Insight / Juicio", chips: ["Conciencia parcial", "Niega enfermedad", "Juicio conservado"], note_prompt: "Nota clínica…" },
-                      ];
+                      const fallback = isMedicalCase
+                        ? [
+                            { key: "general", title: "Estado general", chips: ["Consciente", "Decaído", "Diaforético", "Compromiso moderado"], note_prompt: "Nota de estado general…" },
+                            { key: "resp", title: "Respiratorio", chips: ["Sin disnea", "Taquipnea", "Uso de accesorios", "SatO2 baja"], note_prompt: "Patrón respiratorio y oxigenación…" },
+                            { key: "cardio", title: "Cardiovascular", chips: ["Perfusión adecuada", "Taquicardia", "Hipotensión", "Llenado capilar lento"], note_prompt: "Estado hemodinámico/perfusión…" },
+                            { key: "neuro", title: "Neurológico", chips: ["Orientado", "Somnoliento", "Confuso", "Déficit focal"], note_prompt: "Estado neurológico breve…" },
+                            { key: "pain", title: "Dolor / confort", chips: ["Sin dolor", "Dolor leve", "Dolor moderado", "Dolor intenso"], note_prompt: "Intensidad e impacto funcional del dolor…" },
+                            { key: "hydration", title: "Hidratación / eliminación", chips: ["Hidratación conservada", "Mucosas secas", "Diuresis baja", "Náusea/vómito"], note_prompt: "Hidratación, diuresis y tolerancia oral…" },
+                          ]
+                        : [
+                            { key: "appearance", title: "Apariencia / Conducta", chips: ["Adecuada", "Descuidada", "Agitación", "Enlentecimiento"], note_prompt: "Nota clínica…" },
+                            { key: "speech", title: "Habla / Lenguaje", chips: ["Fluida", "Enlentecida", "Escasa", "Latencia ↑"], note_prompt: "Nota clínica…" },
+                            { key: "mood", title: "Ánimo / Afecto", chips: ["Deprimido", "Eutímico", "Ansioso", "Lábil", "Restringido"], note_prompt: "Nota clínica…" },
+                            { key: "thought", title: "Pensamiento", chips: ["Coherente", "Rumiación", "Desesperanza", "Lentificado"], note_prompt: "Nota clínica…" },
+                            { key: "perception", title: "Percepción", chips: ["Sin alteraciones", "Alucinaciones", "Ilusiones"], note_prompt: "Nota clínica…" },
+                            { key: "cognition", title: "Cognición", chips: ["Orientada", "Concentración ↓", "Memoria OK"], note_prompt: "Nota clínica…" },
+                            { key: "insight", title: "Insight / Juicio", chips: ["Conciencia parcial", "Niega enfermedad", "Juicio conservado"], note_prompt: "Nota clínica…" },
+                          ];
 
                       const sections = tmpl.length ? tmpl : fallback;
 
@@ -2182,21 +2305,26 @@ export default function SimulatorPage() {
                       onClick={() => setRightTab("risk")}
                       className="mt-3 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white/80 hover:bg-black/40"
                     >
-                      Ir a Seguridad
+                      {isMedicalCase ? "Ir a Urgencia y seguridad" : "Ir a Seguridad"}
                     </button>
                   </div>
                 )}
 
                 {rightTab === "dsm" && (
                   <div className="space-y-3">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">DSM-5</div>
+                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
+                      {isMedicalCase ? "Impresión clínica orientativa" : "DSM-5"}
+                    </div>
                     <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                       <div className="flex items-center justify-between">
-                        <div className="text-sm font-semibold text-white">{safeText(caseObject?.dsm?.primary?.label, "Hipótesis principal")}</div>
+                        <div className="text-sm font-semibold text-white">
+                          {safeText(caseObject?.dsm?.primary?.label, isMedicalCase ? "Problema clínico principal" : "Hipótesis principal")}
+                        </div>
                         <div className="text-xs text-white/60">{safeText(caseObject?.meta?.dsm_tag, "—")}</div>
                       </div>
                       <div className="mt-2 text-sm text-white/70">
-                        Confianza: <span className="font-semibold text-white">{safeText(caseObject?.dsm?.primary?.confidence, "—")}</span>
+                        {isMedicalCase ? "Prioridad clínica" : "Confianza"}:{" "}
+                        <span className="font-semibold text-white">{safeText(caseObject?.dsm?.primary?.confidence, "—")}</span>
                       </div>
 
                       {Array.isArray(caseObject?.dsm?.primary?.criteria) && caseObject.dsm.primary.criteria.length > 0 && (
@@ -2222,7 +2350,9 @@ export default function SimulatorPage() {
 
                       {asStrArray(caseObject?.dsm?.differentials).length > 0 && (
                         <>
-                          <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-white/40">Diferenciales</div>
+                          <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-white/40">
+                            {isMedicalCase ? "Diagnósticos diferenciales" : "Diferenciales"}
+                          </div>
                           <div className="mt-3 flex flex-wrap gap-2">
                             {asStrArray(caseObject?.dsm?.differentials).slice(0, 10).map((d, i) => (
                               <span key={i} className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">{d}</span>
@@ -2236,7 +2366,9 @@ export default function SimulatorPage() {
 
                 {rightTab === "risk" && (
                   <div className="space-y-3">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Seguridad</div>
+                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
+                      {isMedicalCase ? "Urgencia y seguridad" : "Seguridad"}
+                    </div>
                     <div
                       className={`rounded-2xl border p-4 ${
                         riskLevel === "Alto"
@@ -2249,25 +2381,34 @@ export default function SimulatorPage() {
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <div className="text-sm font-semibold text-white">Riesgo suicida</div>
+                        <div className="text-sm font-semibold text-white">
+                          {isMedicalCase ? "Prioridad clínica actual" : "Riesgo suicida"}
+                        </div>
                         <div className="text-xs text-white/70">{riskLevel}</div>
                       </div>
                       <div className="mt-2 text-sm text-white/70">
-                        {safeText(caseObject?.safety?.summary, "Si detectas señales, prioriza evaluación de riesgo y factores protectores (educativo).")}
+                        {safeText(
+                          caseObject?.safety?.summary,
+                          isMedicalCase
+                            ? "Si detectas deterioro, prioriza estabilización, reevaluación y escalamiento clínico (educativo)."
+                            : "Si detectas señales, prioriza evaluación de riesgo y factores protectores (educativo)."
+                        )}
                       </div>
                       <div className="mt-3 grid gap-2">
                         <button className="w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white/80 hover:bg-black/40">
-                          Aplicar Mini C-SSRS (demo)
+                          {isMedicalCase ? "Checklist de signos de alarma (demo)" : "Aplicar Mini C-SSRS (demo)"}
                         </button>
                         <button className="w-full rounded-xl bg-white px-3 py-2 text-sm font-semibold text-black">
-                          Crear plan de seguridad (demo)
+                          {isMedicalCase ? "Plan inicial de estabilización (demo)" : "Crear plan de seguridad (demo)"}
                         </button>
                       </div>
                       {(asStrArray(caseObject?.safety?.risk_factors).length > 0 || asStrArray(caseObject?.safety?.protective_factors).length > 0) && (
                         <div className="mt-4 grid gap-3">
                           {asStrArray(caseObject?.safety?.risk_factors).length > 0 && (
                             <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
-                              <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Factores de riesgo</div>
+                              <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
+                                {isMedicalCase ? "Factores agravantes" : "Factores de riesgo"}
+                              </div>
                               <div className="mt-2 flex flex-wrap gap-2">
                                 {asStrArray(caseObject?.safety?.risk_factors).slice(0, 10).map((x, i) => (
                                   <span key={i} className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">{x}</span>
@@ -2278,7 +2419,9 @@ export default function SimulatorPage() {
 
                           {asStrArray(caseObject?.safety?.protective_factors).length > 0 && (
                             <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
-                              <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Factores protectores</div>
+                              <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
+                                {isMedicalCase ? "Recursos protectores" : "Factores protectores"}
+                              </div>
                               <div className="mt-2 flex flex-wrap gap-2">
                                 {asStrArray(caseObject?.safety?.protective_factors).slice(0, 10).map((x, i) => (
                                   <span key={i} className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">{x}</span>
@@ -2289,7 +2432,9 @@ export default function SimulatorPage() {
 
                           {asStrArray(caseObject?.safety?.cssrs_hint).length > 0 && (
                             <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
-                              <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Mini C-SSRS sugerido</div>
+                              <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
+                                {isMedicalCase ? "Preguntas de seguridad sugeridas" : "Mini C-SSRS sugerido"}
+                              </div>
                               <div className="mt-2 flex flex-wrap gap-2">
                                 {asStrArray(caseObject?.safety?.cssrs_hint).slice(0, 10).map((x, i) => (
                                   <span key={i} className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">{x}</span>
@@ -2300,7 +2445,15 @@ export default function SimulatorPage() {
                         </div>
                       )}
                       <div className="mt-3 text-xs text-white/55">
-                        <span className="font-semibold">Si riesgo alto:</span> derivación a urgencias y no dejar sin acompañante.
+                        {isMedicalCase ? (
+                          <>
+                            <span className="font-semibold">Si urgencia alta:</span> activar protocolo institucional y derivación a urgencias.
+                          </>
+                        ) : (
+                          <>
+                            <span className="font-semibold">Si riesgo alto:</span> derivación a urgencias y no dejar sin acompañante.
+                          </>
+                        )}
                       </div>
                     </div>
 
@@ -2325,7 +2478,9 @@ export default function SimulatorPage() {
 
                 {rightTab === "scales" && (
                   <div className="space-y-3">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Escalas clínicas</div>
+                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
+                      {isMedicalCase ? "Escalas clínicas (patologías)" : "Escalas clínicas"}
+                    </div>
                     <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                       <label className="text-xs text-white/60">Selecciona escala</label>
                       <select
@@ -2333,7 +2488,7 @@ export default function SimulatorPage() {
                         onChange={(e) => setSelectedScaleId(e.target.value)}
                         className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
                       >
-                        {CLINICAL_SCALES.map((s) => (
+                        {scaleCatalog.map((s) => (
                           <option key={s.id} value={s.id}>
                             {s.short_name} · {s.name}
                           </option>
@@ -2449,7 +2604,9 @@ export default function SimulatorPage() {
 
                 {rightTab === "tests" && (
                   <div className="space-y-3">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Tests mentales</div>
+                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
+                      {isMedicalCase ? "Tests clínicos orientativos" : "Tests mentales"}
+                    </div>
                     <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                       <label className="text-xs text-white/60">Selecciona test</label>
                       <select
@@ -2457,7 +2614,7 @@ export default function SimulatorPage() {
                         onChange={(e) => setSelectedTestId(e.target.value)}
                         className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
                       >
-                        {MENTAL_TESTS.map((t) => (
+                        {testCatalog.map((t) => (
                           <option key={t.id} value={t.id}>
                             {t.short_name} · {t.name}
                           </option>
@@ -2466,7 +2623,7 @@ export default function SimulatorPage() {
                       {selectedTest && (
                         <div className="mt-3 text-xs text-white/60">
                           <div>Tipo: {selectedTest.kind === "screening" ? "Tamizaje" : "Evaluación orientativa"}</div>
-                          <div>Aplica a: {selectedTest.applies_to === "both" ? "Adulto y adolescente" : selectedTest.applies_to}</div>
+                          <div>Aplica a: {labelAppliesTo(selectedTest.applies_to)}</div>
                           <div className="mt-1 text-white/50">{selectedTest.description}</div>
                         </div>
                       )}
@@ -2573,7 +2730,9 @@ export default function SimulatorPage() {
 
                 {rightTab === "batteries" && (
                   <div className="space-y-3">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Baterías mentales</div>
+                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
+                      {isMedicalCase ? "Baterías clínicas de patologías" : "Baterías mentales"}
+                    </div>
 
                     <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                       <label className="text-xs text-white/60">Selecciona batería</label>
@@ -2582,7 +2741,7 @@ export default function SimulatorPage() {
                         onChange={(e) => setSelectedBatteryId(e.target.value)}
                         className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
                       >
-                        {CLINICAL_BATTERIES.map((battery) => (
+                        {batteryCatalog.map((battery) => (
                           <option key={battery.id} value={battery.id}>
                             {battery.name}
                           </option>
@@ -2799,26 +2958,37 @@ export default function SimulatorPage() {
                   </div>
 
                   <div className="mt-4" />
-                  <label className="block text-xs text-white/60">Enfoque psicoterapéutico (guía)</label>
+                  <label className="block text-xs text-white/60">
+                    {isMedicalCase ? "Enfoque de entrevista clínica (guía)" : "Enfoque psicoterapéutico (guía)"}
+                  </label>
                   <select
                     value={cfgApproach}
                     onChange={(e) => setCfgApproach(e.target.value as ApproachValue)}
                     className="mt-2 w-full rounded-xl bg-black/35 border border-white/10 px-3 py-2 text-sm text-white/85 outline-none focus:ring-2 focus:ring-white/20"
                   >
-                    <option value="humanistic">Humanístico</option>
-                    <option value="cbt">Cognitivo-conductual (TCC)</option>
-                    <option value="psychodynamic">Psicodinámico</option>
+                    <option value="humanistic">{isMedicalCase ? "Centrado en persona" : "Humanístico"}</option>
+                    <option value="cbt">{isMedicalCase ? "Estructurado por síntomas" : "Cognitivo-conductual (TCC)"}</option>
+                    <option value="psychodynamic">{isMedicalCase ? "Narrativa y antecedentes" : "Psicodinámico"}</option>
                     <option value="systemic">Sistémico / familiar</option>
                   </select>
 
                   <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white/70">
                     <div className="font-semibold text-white">¿Qué cambia?</div>
-                    <ul className="mt-2 list-disc space-y-1 pl-5">
-                      <li><span className="font-semibold text-white">Humanístico</span>: empatía, validación, reflejos, preguntas abiertas.</li>
-                      <li><span className="font-semibold text-white">TCC</span>: pensamiento–emoción–conducta, ejemplos concretos, activación/evitación.</li>
-                      <li><span className="font-semibold text-white">Psicodinámico</span>: patrones relacionales, significados, defensas (sin interpretar de más).</li>
-                      <li><span className="font-semibold text-white">Sistémico</span>: contexto, red de apoyo, roles y dinámica familiar.</li>
-                    </ul>
+                    {isMedicalCase ? (
+                      <ul className="mt-2 list-disc space-y-1 pl-5">
+                        <li><span className="font-semibold text-white">Centrado en persona</span>: empatía clínica y comunicación clara.</li>
+                        <li><span className="font-semibold text-white">Estructurado por síntomas</span>: cronología, severidad y signos de alarma.</li>
+                        <li><span className="font-semibold text-white">Narrativo/antecedentes</span>: contexto, comorbilidades y evolución.</li>
+                        <li><span className="font-semibold text-white">Sistémico</span>: red familiar/social y barreras de adherencia.</li>
+                      </ul>
+                    ) : (
+                      <ul className="mt-2 list-disc space-y-1 pl-5">
+                        <li><span className="font-semibold text-white">Humanístico</span>: empatía, validación, reflejos, preguntas abiertas.</li>
+                        <li><span className="font-semibold text-white">TCC</span>: pensamiento–emoción–conducta, ejemplos concretos, activación/evitación.</li>
+                        <li><span className="font-semibold text-white">Psicodinámico</span>: patrones relacionales, significados, defensas (sin interpretar de más).</li>
+                        <li><span className="font-semibold text-white">Sistémico</span>: contexto, red de apoyo, roles y dinámica familiar.</li>
+                      </ul>
+                    )}
                   </div>
                 </div>
 

@@ -51,6 +51,17 @@ const NAV: NavItem[] = [
     ),
   },
   {
+    label: "Biblioteca de patologías médicas",
+    href: "/medical-cases",
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M12 3v18" />
+        <path d="M3 12h18" />
+        <rect x="5" y="5" width="14" height="14" rx="3" />
+      </svg>
+    ),
+  },
+  {
     label: "CACES",
     href: "/caces",
     icon: (
@@ -62,7 +73,7 @@ const NAV: NavItem[] = [
     ),
   },
   {
-    label: "Biblioteca de casos",
+    label: "Biblioteca de trastornos mentales",
     href: "/cases",
     icon: (
       <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -232,7 +243,7 @@ export default function Sidebar() {
                     aria-current={active ? "page" : undefined}
                     title={
                       disabledCase
-                        ? "No hay caso en curso. Genera un caso primero en Biblioteca de casos."
+                        ? "No hay caso en curso. Genera un caso primero en Biblioteca de trastornos mentales."
                         : collapsed
                         ? item.label
                         : undefined
