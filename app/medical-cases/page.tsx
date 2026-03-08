@@ -16,6 +16,9 @@ type SexValue = "female" | "male" | "nonbinary" | "unspecified";
 type DifficultyValue = "beginner" | "intermediate" | "advanced";
 type ApproachValue = "humanistic" | "cbt" | "psychodynamic" | "systemic";
 type MedicalFilter = "all" | "adult" | "pediatric" | "pregnancy" | "older_adult";
+type ConfigStep = 1 | 2 | 3;
+type CareSettingValue = "outpatient" | "emergency" | "hospital" | "icu";
+type ClinicalFocusValue = "stabilization" | "differential" | "follow_up" | "education";
 
 function safeStr(v: unknown, fallback = ""): string {
   if (typeof v === "string") return v;
@@ -54,6 +57,32 @@ function prettyDifficulty(d: DifficultyValue) {
       return "Intermedio";
     default:
       return "Básico";
+  }
+}
+
+function prettyCareSetting(value: CareSettingValue) {
+  switch (value) {
+    case "emergency":
+      return "Emergencia";
+    case "hospital":
+      return "Hospitalización";
+    case "icu":
+      return "UCI / críticos";
+    default:
+      return "Consulta externa";
+  }
+}
+
+function prettyClinicalFocus(value: ClinicalFocusValue) {
+  switch (value) {
+    case "stabilization":
+      return "Estabilización inicial";
+    case "differential":
+      return "Diferenciales";
+    case "follow_up":
+      return "Seguimiento";
+    default:
+      return "Educación del paciente";
   }
 }
 
@@ -126,6 +155,7 @@ export default function MedicalCasesPage() {
 
   const [showConfig, setShowConfig] = useState(false);
   const [configModalTopOffset, setConfigModalTopOffset] = useState<number>(72);
+  const [configStep, setConfigStep] = useState<ConfigStep>(1);
 
   const [cfgName, setCfgName] = useState("Paciente");
   const [cfgSex, setCfgSex] = useState<SexValue>("unspecified");
@@ -135,6 +165,8 @@ export default function MedicalCasesPage() {
   const [cfgDifficulty, setCfgDifficulty] = useState<DifficultyValue>("intermediate");
   const [cfgTargetMinutes, setCfgTargetMinutes] = useState<number>(25);
   const [cfgApproach, setCfgApproach] = useState<ApproachValue>("systemic");
+  const [cfgCareSetting, setCfgCareSetting] = useState<CareSettingValue>("outpatient");
+  const [cfgClinicalFocus, setCfgClinicalFocus] = useState<ClinicalFocusValue>("stabilization");
   const [cfgTutorEnabled, setCfgTutorEnabled] = useState<boolean>(true);
   const [cfgChiefComplaint, setCfgChiefComplaint] = useState("");
   const [cfgLearningObjective, setCfgLearningObjective] = useState("");
@@ -178,11 +210,27 @@ export default function MedicalCasesPage() {
 
   function prefillConfigFromCase(nextCase: unknown) {
     const e = extractEssentials(nextCase);
+    const base = asRecord(nextCase) ?? {};
+    const meta = asRecord(base.meta) ?? {};
     setCfgName(e.name || "Paciente");
     setCfgSex(e.sex);
     setCfgAge(clampInt(Number(e.age), 1, 95));
     setCfgAgeGroup(e.age_group);
     setCfgContext(e.summary || selectedCard?.desc || "");
+    const careSettingRaw = String(meta.care_setting ?? "").toLowerCase();
+    const nextCareSetting: CareSettingValue =
+      careSettingRaw === "emergency" || careSettingRaw === "hospital" || careSettingRaw === "icu"
+        ? (careSettingRaw as CareSettingValue)
+        : selectedCard?.urgency === "alta"
+        ? "emergency"
+        : "outpatient";
+    setCfgCareSetting(nextCareSetting);
+    const focusRaw = String(meta.clinical_focus ?? "").toLowerCase();
+    const nextFocus: ClinicalFocusValue =
+      focusRaw === "differential" || focusRaw === "follow_up" || focusRaw === "education"
+        ? (focusRaw as ClinicalFocusValue)
+        : "stabilization";
+    setCfgClinicalFocus(nextFocus);
     setCfgChiefComplaint(e.chiefComplaint || `Consulta por ${selectedCard?.title?.toLowerCase() ?? "síntomas actuales"}.`);
     setCfgLearningObjective(
       e.learningObjective ||
@@ -210,6 +258,8 @@ export default function MedicalCasesPage() {
           age_group: cfgAgeGroup,
           difficulty: cfgDifficulty,
           target_minutes: cfgTargetMinutes,
+          care_setting: cfgCareSetting,
+          clinical_focus: cfgClinicalFocus,
           case_seed: pickMedicalSeedByCategory(selectedCard),
           language: "es",
         }),
@@ -226,6 +276,8 @@ export default function MedicalCasesPage() {
           category: selectedCategory,
           dsm_tag: safeStr((data as any)?.meta?.dsm_tag, selectedCard.dx_tag),
           dx_id: safeStr((data as any)?.meta?.dx_id, selectedCard.dx_id),
+          care_setting: cfgCareSetting,
+          clinical_focus: cfgClinicalFocus,
         },
       };
       setCaseObj(patched);
@@ -246,6 +298,7 @@ export default function MedicalCasesPage() {
   function openConfig(anchorEl?: HTMLElement) {
     if (!caseObj) return;
     prefillConfigFromCase(caseObj);
+    setConfigStep(1);
     if (typeof window !== "undefined") {
       const vh = window.innerHeight || 900;
       const anchorTop = anchorEl?.getBoundingClientRect().top ?? vh * 0.45;
@@ -283,11 +336,15 @@ export default function MedicalCasesPage() {
       dx_id: safeStr(meta.dx_id, selectedCard?.dx_id ?? selectedCategory),
       risk_level: caseRiskLevel,
       approach: cfgApproach,
+      care_setting: cfgCareSetting,
+      clinical_focus: cfgClinicalFocus,
       tutor_enabled: cfgTutorEnabled,
     };
 
     (next as any).age_group = cfgAgeGroup;
     (next as any).approach = cfgApproach;
+    (next as any).care_setting = cfgCareSetting;
+    (next as any).clinical_focus = cfgClinicalFocus;
     (next as any).tutor_enabled = cfgTutorEnabled;
     (next as any).dsm_tag = safeStr((next as any).dsm_tag, safeStr((next as any)?.meta?.dsm_tag, selectedCard?.dx_tag ?? "MED"));
     (next as any).dx_id = safeStr((next as any).dx_id, safeStr((next as any)?.meta?.dx_id, selectedCard?.dx_id ?? selectedCategory));
@@ -377,6 +434,98 @@ export default function MedicalCasesPage() {
               ))}
             </section>
 
+            <section className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-4">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <div className="text-sm text-white/60">Hub de generación de casos</div>
+                  <h2 className="mt-1 text-lg font-semibold">Configura y genera antes de iniciar entrevista</h2>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/75">
+                      Seleccionado: {selectedCard?.title ?? "—"}
+                    </span>
+                    <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/75">
+                      Área: {selectedCard?.area ?? "—"}
+                    </span>
+                    <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/75">
+                      Urgencia: {selectedCard?.urgency ?? "—"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-xs text-white/65">
+                  Banco visible por filtro: <span className="font-semibold text-white">{filteredCatalog.length}</span> / {MEDICAL_CASE_CATALOG.length}
+                </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-[1.3fr_1fr]">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  <div>
+                    <label className="text-[11px] text-white/55">Dificultad</label>
+                    <select
+                      value={cfgDifficulty}
+                      onChange={(e) => setCfgDifficulty(e.target.value as DifficultyValue)}
+                      className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs outline-none"
+                    >
+                      <option value="beginner">Básico</option>
+                      <option value="intermediate">Intermedio</option>
+                      <option value="advanced">Avanzado</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-white/55">Duración objetivo</label>
+                    <select
+                      value={cfgTargetMinutes}
+                      onChange={(e) => setCfgTargetMinutes(clampInt(Number(e.target.value), 5, 40))}
+                      className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs outline-none"
+                    >
+                      {[10, 15, 20, 25, 30, 35, 40].map((m) => (
+                        <option key={m} value={m}>
+                          {m} min
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-white/55">Escenario clínico</label>
+                    <select
+                      value={cfgCareSetting}
+                      onChange={(e) => setCfgCareSetting(e.target.value as CareSettingValue)}
+                      className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs outline-none"
+                    >
+                      <option value="outpatient">Consulta externa</option>
+                      <option value="emergency">Emergencia</option>
+                      <option value="hospital">Hospitalización</option>
+                      <option value="icu">UCI / críticos</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-end gap-2 lg:justify-end">
+                  <button
+                    onClick={goStart}
+                    disabled={!caseObj}
+                    className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-50"
+                  >
+                    Iniciar entrevista
+                  </button>
+                  <button
+                    onClick={(e) => openConfig(e.currentTarget)}
+                    disabled={!caseObj}
+                    className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/85 hover:bg-white/5 disabled:opacity-50"
+                  >
+                    Configurar caso
+                  </button>
+                  <button
+                    onClick={handleGenerate}
+                    disabled={loading}
+                    className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-2 text-sm text-cyan-100 disabled:opacity-60"
+                  >
+                    {loading ? "Generando caso..." : "Generar caso (IA)"}
+                  </button>
+                </div>
+              </div>
+            </section>
+
             <section className="mt-5 rounded-2xl border border-white/10 bg-[#0C111D]/80 p-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -450,44 +599,6 @@ export default function MedicalCasesPage() {
                     </button>
                   );
                 })}
-              </div>
-            </section>
-
-            <section className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/75">
-                  Seleccionado: {selectedCard?.title ?? "—"}
-                </span>
-                <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/75">
-                  Área: {selectedCard?.area ?? "—"}
-                </span>
-                <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/75">
-                  Urgencia: {selectedCard?.urgency ?? "—"}
-                </span>
-              </div>
-
-              <div className="mt-4 flex flex-wrap gap-3">
-                <button
-                  onClick={goStart}
-                  disabled={!caseObj}
-                  className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-50"
-                >
-                  Iniciar entrevista
-                </button>
-                <button
-                  onClick={(e) => openConfig(e.currentTarget)}
-                  disabled={!caseObj}
-                  className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/85 hover:bg-white/5 disabled:opacity-50"
-                >
-                  Configurar caso
-                </button>
-                <button
-                  onClick={handleGenerate}
-                  disabled={loading}
-                  className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-2 text-sm text-cyan-100 disabled:opacity-60"
-                >
-                  {loading ? "Generando caso..." : "Generar caso (IA)"}
-                </button>
               </div>
             </section>
 
@@ -571,13 +682,13 @@ export default function MedicalCasesPage() {
                 <div className="absolute inset-0 bg-black/70" onClick={() => setShowConfig(false)} />
                 <div className="relative h-full w-full overflow-y-auto px-2 py-3 sm:px-4 sm:py-4">
                   <div
-                    className="relative mx-auto mb-6 flex max-h-[calc(100dvh-20px)] w-full max-w-[980px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0A1020]/95 shadow-2xl backdrop-blur-xl sm:max-h-[calc(100dvh-32px)]"
+                    className="relative mx-auto mb-6 flex max-h-[calc(100dvh-20px)] w-full max-w-[1080px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0A1020]/95 shadow-2xl backdrop-blur-xl sm:max-h-[calc(100dvh-32px)]"
                     style={{ marginTop: configModalTopOffset }}
                   >
                     <div className="border-b border-white/10 px-4 py-4 sm:px-6 sm:py-5">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                          <div className="text-sm text-white/60">Configurar caso médico</div>
+                          <div className="text-sm text-white/60">Configurar caso de patologías</div>
                           <h3 className="mt-1 text-lg font-semibold">Ajusta el escenario antes de iniciar</h3>
                         </div>
                         <button
@@ -587,47 +698,68 @@ export default function MedicalCasesPage() {
                           Cerrar
                         </button>
                       </div>
+
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {([
+                          [1, "Perfil clínico"],
+                          [2, "Parámetros"],
+                          [3, "Objetivo y revisión"],
+                        ] as const).map(([step, label]) => (
+                          <button
+                            key={step}
+                            type="button"
+                            onClick={() => setConfigStep(step)}
+                            className={`rounded-full border px-3 py-1 text-xs ${
+                              configStep === step
+                                ? "border-cyan-300/40 bg-cyan-300/10 text-cyan-100"
+                                : "border-white/10 bg-black/20 text-white/65"
+                            }`}
+                          >
+                            {step}. {label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
-                      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                        <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                          <label className="text-xs text-white/60">Nombre</label>
-                          <input
-                            value={cfgName}
-                            onChange={(e) => setCfgName(e.target.value)}
-                            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
-                          />
+                      {configStep === 1 && (
+                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                          <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                            <label className="text-xs text-white/60">Nombre</label>
+                            <input
+                              value={cfgName}
+                              onChange={(e) => setCfgName(e.target.value)}
+                              className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                            />
 
-                          <div className="mt-3 grid grid-cols-2 gap-2">
-                            <div>
-                              <label className="text-xs text-white/60">Sexo</label>
-                              <select
-                                value={cfgSex}
-                                onChange={(e) => setCfgSex(e.target.value as SexValue)}
-                                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
-                              >
-                                <option value="unspecified">No especificado</option>
-                                <option value="female">Mujer</option>
-                                <option value="male">Hombre</option>
-                                <option value="nonbinary">No binario</option>
-                              </select>
+                            <div className="mt-3 grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="text-xs text-white/60">Sexo</label>
+                                <select
+                                  value={cfgSex}
+                                  onChange={(e) => setCfgSex(e.target.value as SexValue)}
+                                  className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                                >
+                                  <option value="unspecified">No especificado</option>
+                                  <option value="female">Mujer</option>
+                                  <option value="male">Hombre</option>
+                                  <option value="nonbinary">No binario</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="text-xs text-white/60">Edad</label>
+                                <input
+                                  type="number"
+                                  value={cfgAge}
+                                  min={1}
+                                  max={95}
+                                  onChange={(e) => setCfgAge(clampInt(Number(e.target.value), 1, 95))}
+                                  className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                                />
+                              </div>
                             </div>
-                            <div>
-                              <label className="text-xs text-white/60">Edad</label>
-                              <input
-                                type="number"
-                                value={cfgAge}
-                                min={1}
-                                max={95}
-                                onChange={(e) => setCfgAge(clampInt(Number(e.target.value), 1, 95))}
-                                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
-                              />
-                            </div>
-                          </div>
 
-                          <div className="mt-3 grid grid-cols-2 gap-2">
-                            <div>
+                            <div className="mt-3">
                               <label className="text-xs text-white/60">Grupo etario</label>
                               <select
                                 value={cfgAgeGroup}
@@ -640,114 +772,261 @@ export default function MedicalCasesPage() {
                                 <option value="mixed">Mixto</option>
                               </select>
                             </div>
-                            <div>
-                              <label className="text-xs text-white/60">Duración</label>
-                              <select
-                                value={cfgTargetMinutes}
-                                onChange={(e) => setCfgTargetMinutes(clampInt(Number(e.target.value), 5, 40))}
-                                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
-                              >
-                                {[10, 15, 20, 25, 30, 35, 40].map((m) => (
-                                  <option key={m} value={m}>
-                                    {m} min
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
+
+                            <label className="mt-3 block text-xs text-white/60">Contexto clínico breve</label>
+                            <textarea
+                              value={cfgContext}
+                              onChange={(e) => setCfgContext(e.target.value)}
+                              className="mt-1 min-h-[140px] w-full resize-none rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                            />
                           </div>
 
-                          <label className="mt-3 block text-xs text-white/60">Contexto clínico breve</label>
-                          <textarea
-                            value={cfgContext}
-                            onChange={(e) => setCfgContext(e.target.value)}
-                            className="mt-1 min-h-[120px] w-full resize-none rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
-                          />
-                        </div>
-
-                        <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <label className="text-xs text-white/60">Dificultad</label>
-                              <select
-                                value={cfgDifficulty}
-                                onChange={(e) => setCfgDifficulty(e.target.value as DifficultyValue)}
-                                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
-                              >
-                                <option value="beginner">Básico</option>
-                                <option value="intermediate">Intermedio</option>
-                                <option value="advanced">Avanzado</option>
-                              </select>
+                          <div className="space-y-3">
+                            <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                              <div className="text-sm font-semibold">Vista rápida clínica</div>
+                              <div className="mt-3 text-sm text-white/80">
+                                Patología: {selectedCard?.title ?? "—"}
+                              </div>
+                              <div className="mt-1 text-sm text-white/80">
+                                Perfil: {prettySex(cfgSex)} · {cfgAge} años · {cfgAgeGroup}
+                              </div>
+                              <div className="mt-1 text-sm text-white/80">
+                                Escenario: {prettyCareSetting(cfgCareSetting)}
+                              </div>
+                              <div className="mt-3 rounded-xl border border-white/10 bg-black/25 p-3 text-xs text-white/70">
+                                Ajusta identidad y contexto para que la narrativa del caso patológico sea coherente antes de definir parámetros asistenciales.
+                              </div>
                             </div>
-                            <div>
-                              <label className="text-xs text-white/60">Enfoque</label>
+
+                            <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                              <div className="text-xs uppercase tracking-wider text-white/55">Alerta docente</div>
+                              <div className="mt-2 text-xs text-white/75">
+                                Urgencia base del caso:{" "}
+                                <span className="font-semibold text-white">{selectedCard?.urgency ?? "—"}</span>
+                              </div>
+                              {isPediatricCase && (
+                                <div className="mt-2 rounded-xl border border-cyan-300/25 bg-cyan-300/10 p-2 text-xs text-cyan-100">
+                                  Caso pediátrico: prioriza lenguaje claro, cuidador y seguridad.
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {configStep === 2 && (
+                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                          <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="text-xs text-white/60">Dificultad</label>
+                                <select
+                                  value={cfgDifficulty}
+                                  onChange={(e) => setCfgDifficulty(e.target.value as DifficultyValue)}
+                                  className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                                >
+                                  <option value="beginner">Básico</option>
+                                  <option value="intermediate">Intermedio</option>
+                                  <option value="advanced">Avanzado</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="text-xs text-white/60">Duración (min)</label>
+                                <select
+                                  value={cfgTargetMinutes}
+                                  onChange={(e) => setCfgTargetMinutes(clampInt(Number(e.target.value), 5, 40))}
+                                  className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                                >
+                                  {[10, 15, 20, 25, 30, 35, 40].map((m) => (
+                                    <option key={m} value={m}>
+                                      {m} min
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+
+                            <div className="mt-3 grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="text-xs text-white/60">Escenario clínico</label>
+                                <select
+                                  value={cfgCareSetting}
+                                  onChange={(e) => setCfgCareSetting(e.target.value as CareSettingValue)}
+                                  className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                                >
+                                  <option value="outpatient">Consulta externa</option>
+                                  <option value="emergency">Emergencia</option>
+                                  <option value="hospital">Hospitalización</option>
+                                  <option value="icu">UCI / críticos</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="text-xs text-white/60">Foco formativo</label>
+                                <select
+                                  value={cfgClinicalFocus}
+                                  onChange={(e) => setCfgClinicalFocus(e.target.value as ClinicalFocusValue)}
+                                  className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                                >
+                                  <option value="stabilization">Estabilización inicial</option>
+                                  <option value="differential">Diferenciales</option>
+                                  <option value="follow_up">Seguimiento</option>
+                                  <option value="education">Educación del paciente</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <div className="mt-3">
+                              <label className="text-xs text-white/60">Enfoque de entrevista</label>
                               <select
                                 value={cfgApproach}
                                 onChange={(e) => setCfgApproach(e.target.value as ApproachValue)}
                                 className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
                               >
                                 <option value="systemic">Sistémico</option>
-                                <option value="cbt">TCC</option>
-                                <option value="humanistic">Humanístico</option>
-                                <option value="psychodynamic">Psicodinámico</option>
+                                <option value="cbt">Estructurado por síntomas</option>
+                                <option value="humanistic">Centrado en persona</option>
+                                <option value="psychodynamic">Narrativo/antecedentes</option>
                               </select>
                             </div>
                           </div>
 
-                          <label className="mt-3 block text-xs text-white/60">Motivo de consulta</label>
-                          <input
-                            value={cfgChiefComplaint}
-                            onChange={(e) => setCfgChiefComplaint(e.target.value)}
-                            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
-                          />
-
-                          <label className="mt-3 block text-xs text-white/60">Objetivo docente</label>
-                          <textarea
-                            value={cfgLearningObjective}
-                            onChange={(e) => setCfgLearningObjective(e.target.value)}
-                            className="mt-1 min-h-[120px] w-full resize-none rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
-                          />
-
-                          <div className="mt-3 flex items-center justify-between rounded-xl border border-white/10 bg-black/25 px-3 py-2">
-                            <div>
-                              <div className="text-sm font-medium">Tutor IA</div>
-                              <div className="text-xs text-white/60">Sugerencias durante la entrevista</div>
+                          <div className="space-y-3">
+                            <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                              <div className="flex items-center justify-between rounded-xl border border-white/10 bg-black/25 px-3 py-2">
+                                <div>
+                                  <div className="text-sm font-medium">Tutor IA</div>
+                                  <div className="text-xs text-white/60">Sugerencias durante la entrevista</div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setCfgTutorEnabled((v) => !v)}
+                                  className={`relative inline-flex h-7 w-12 items-center rounded-full border transition ${
+                                    cfgTutorEnabled ? "border-white/20 bg-white/85" : "border-white/15 bg-black/40"
+                                  }`}
+                                >
+                                  <span
+                                    className={`inline-block h-5 w-5 rounded-full bg-black transition ${
+                                      cfgTutorEnabled ? "translate-x-6" : "translate-x-1"
+                                    }`}
+                                  />
+                                </button>
+                              </div>
+                              <div className="mt-3 rounded-xl border border-white/10 bg-black/25 p-3 text-xs text-white/70">
+                                En esta etapa defines el entorno clínico y el tipo de razonamiento esperado para el simulacro.
+                              </div>
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => setCfgTutorEnabled((v) => !v)}
-                              className={`relative inline-flex h-7 w-12 items-center rounded-full border transition ${
-                                cfgTutorEnabled ? "border-white/20 bg-white/85" : "border-white/15 bg-black/40"
-                              }`}
-                            >
-                              <span
-                                className={`inline-block h-5 w-5 rounded-full bg-black transition ${
-                                  cfgTutorEnabled ? "translate-x-6" : "translate-x-1"
-                                }`}
-                              />
-                            </button>
+
+                            <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                              <div className="text-xs uppercase tracking-wider text-white/55">Resumen de parámetros</div>
+                              <div className="mt-2 text-xs text-white/75">
+                                Escenario: {prettyCareSetting(cfgCareSetting)}
+                              </div>
+                              <div className="mt-1 text-xs text-white/75">
+                                Foco: {prettyClinicalFocus(cfgClinicalFocus)}
+                              </div>
+                              <div className="mt-1 text-xs text-white/75">
+                                Dificultad: {prettyDifficulty(cfgDifficulty)} · {cfgTargetMinutes} min
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
+
+                      {configStep === 3 && (
+                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                          <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                            <label className="text-xs text-white/60">Motivo de consulta (1 línea)</label>
+                            <input
+                              value={cfgChiefComplaint}
+                              onChange={(e) => setCfgChiefComplaint(e.target.value)}
+                              className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                            />
+
+                            <label className="mt-3 block text-xs text-white/60">Objetivo docente</label>
+                            <textarea
+                              value={cfgLearningObjective}
+                              onChange={(e) => setCfgLearningObjective(e.target.value)}
+                              className="mt-1 min-h-[140px] w-full resize-none rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                            />
+                          </div>
+
+                          <div className="space-y-3">
+                            <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                              <div className="text-xs uppercase tracking-wider text-white/55">Validación rápida</div>
+                              <div className="mt-2 text-sm text-white/80">
+                                Riesgo orientativo:{" "}
+                                <span className={`rounded-full border px-2 py-0.5 text-xs ${riskBadgeClass}`}>
+                                  {caseRiskLevel}
+                                </span>
+                              </div>
+                              <div className="mt-2 text-xs text-white/75">
+                                Código clínico: {safeStr((caseObj as any)?.meta?.dsm_tag, selectedCard?.dx_tag ?? "MED")}
+                              </div>
+                              <div className="mt-1 text-xs text-white/75">
+                                Escenario final: {prettyCareSetting(cfgCareSetting)} · {prettyClinicalFocus(cfgClinicalFocus)}
+                              </div>
+                            </div>
+
+                            <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                              <div className="text-xs uppercase tracking-wider text-white/55">Checklist antes de iniciar</div>
+                              <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-white/75">
+                                <li>Motivo de consulta claro y concreto.</li>
+                                <li>Objetivo docente alineado al nivel de dificultad.</li>
+                                <li>Escenario clínico consistente con urgencia del caso.</li>
+                                <li>Tutor IA ajustado según preferencia de práctica.</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-end gap-2 border-t border-white/10 bg-black/25 px-4 py-3 sm:px-6 sm:py-4">
-                      <button
-                        type="button"
-                        onClick={saveConfig}
-                        className="rounded-xl border border-white/15 px-3 py-2 text-sm text-white/85 hover:bg-white/5"
-                      >
-                        Guardar cambios
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          saveConfig();
-                          window.setTimeout(() => goStart(), 50);
-                        }}
-                        className="rounded-xl bg-white px-3 py-2 text-sm font-medium text-black"
-                      >
-                        Guardar e iniciar
-                      </button>
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-black/25 px-4 py-3 sm:px-6 sm:py-4">
+                      <div className="text-xs text-white/60">Paso {configStep} de 3</div>
+
+                      <div className="flex flex-wrap gap-2">
+                        {configStep > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setConfigStep((s) => Math.max(1, s - 1) as ConfigStep)}
+                            className="rounded-xl border border-white/15 px-3 py-2 text-sm text-white/85 hover:bg-white/5"
+                          >
+                            Anterior
+                          </button>
+                        )}
+
+                        {configStep < 3 && (
+                          <button
+                            type="button"
+                            onClick={() => setConfigStep((s) => Math.min(3, s + 1) as ConfigStep)}
+                            className="rounded-xl border border-white/15 px-3 py-2 text-sm text-white/85 hover:bg-white/5"
+                          >
+                            Siguiente
+                          </button>
+                        )}
+
+                        {configStep === 3 && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={saveConfig}
+                              className="rounded-xl border border-white/15 px-3 py-2 text-sm text-white/85 hover:bg-white/5"
+                            >
+                              Guardar cambios
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                saveConfig();
+                                window.setTimeout(() => goStart(), 50);
+                              }}
+                              className="rounded-xl bg-white px-3 py-2 text-sm font-medium text-black"
+                            >
+                              Guardar e iniciar
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -759,4 +1038,3 @@ export default function MedicalCasesPage() {
     </div>
   );
 }
-
