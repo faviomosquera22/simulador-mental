@@ -4,21 +4,29 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import Sidebar from "../../components/Sidebar";
+import { getHistory, type SessionRecord } from "../../lib/history";
 
 type TranscriptTurn = { role: string; content: string };
 
 type StoredSession = {
-  id?: string;
-  createdAt?: string;
+  id: string;
+  caseId?: string;
+  caseTitle?: string;
+  patientName?: string;
   endedAt?: string;
   reason?: string;
-  caseTitle?: string;
-  category?: string;
-  difficulty?: string;
   targetMinutes?: number;
-  dsmTag?: string;
-  dxId?: string;
+  durationMin?: number;
   score?: number;
+  riskLevel: "Bajo" | "Moderado" | "Alto" | "—";
+  transcript?: TranscriptTurn[];
+};
+
+type RecommendationCard = {
+  priority: "Alta" | "Media" | "Baja";
+  title: string;
+  desc: string;
+  href: string;
 };
 
 function safeText(v: any, fallback = "—") {
@@ -72,11 +80,8 @@ function hasCaseInProgress(): boolean {
 function extractActiveCaseMeta(caseObj: any) {
   const meta = caseObj?.meta ?? {};
   const title = safeText(meta?.title ?? caseObj?.title ?? caseObj?.essentials?.title, "Caso");
-  const category = safeText(meta?.category, "—");
-  const difficulty = safeText(meta?.difficulty, "—");
   const targetMinutes = Number(meta?.target_minutes ?? caseObj?.config?.targetMinutes ?? caseObj?.timer?.minutes);
   const dsmTag = safeText(meta?.dsm_tag, "—");
-  const dxId = safeText(meta?.dx_id ?? caseObj?.dx_id, "—");
   const patientName = safeText(
     caseObj?.patient_profile?.display_name ?? caseObj?.patient?.name ?? caseObj?.patientName,
     "Paciente"
@@ -86,11 +91,8 @@ function extractActiveCaseMeta(caseObj: any) {
   return {
     title,
     patientName,
-    category,
-    difficulty,
     targetMinutes: Number.isFinite(targetMinutes) ? clampInt(targetMinutes, 5, 60) : undefined,
     dsmTag,
-    dxId,
     risk,
   };
 }
@@ -112,28 +114,70 @@ function computeSimpleScoreFromTranscript(transcript: TranscriptTurn[]) {
   return clampInt(score, 0, 100);
 }
 
+function deriveRiskLevelFromFlags(flags: string[] | undefined): "Bajo" | "Moderado" | "Alto" | "—" {
+  if (!Array.isArray(flags) || flags.length === 0) return "—";
+  const clean = flags.map((f) => String(f).toLowerCase());
+  const riskFlags = clean.filter((f) => f.includes("risk:"));
+  if (!riskFlags.length) return "Bajo";
+  if (riskFlags.some((f) => f.includes("self_harm") || f.includes("plan") || f.includes("intent") || f.includes("means"))) {
+    return "Alto";
+  }
+  if (riskFlags.length >= 2) return "Moderado";
+  return "Bajo";
+}
+
+function mapSessionRecord(s: SessionRecord): StoredSession {
+  const transcript = Array.isArray(s.transcript) ? (s.transcript as TranscriptTurn[]) : [];
+  return {
+    id: safeText(s.sessionId, String(Date.now())),
+    caseId: s.caseId,
+    caseTitle: s.caseTitle,
+    patientName: s.patientName,
+    endedAt: s.endedAt,
+    reason: s.endReason,
+    targetMinutes: s.targetMinutes,
+    durationMin: Number.isFinite(s.durationSec) ? clampInt(s.durationSec / 60, 1, 120) : undefined,
+    score: transcript.length ? computeSimpleScoreFromTranscript(transcript) : undefined,
+    riskLevel: deriveRiskLevelFromFlags(s.lastMeta?.flags),
+    transcript,
+  };
+}
+
 function readHistorySessions(): StoredSession[] {
+  const modern = getHistory();
+  if (modern.length) return modern.map(mapSessionRecord);
+
   const rawA = loadJSON("sessionHistory");
   const rawB = loadJSON("vita.sessionHistory");
   const raw = rawA ?? rawB;
 
-  const mapSession = (s: any, idx: number): StoredSession => ({
-    id: safeText(s?.id, String(idx)),
-    createdAt: s?.createdAt ?? s?.created_at ?? s?.startedAt,
-    endedAt: s?.endedAt ?? s?.ended_at,
-    reason: s?.reason ?? s?.end_reason ?? s?.endReason,
-    caseTitle: s?.caseTitle ?? s?.case_title ?? s?.case?.meta?.title,
-    category: s?.category ?? s?.case?.meta?.category,
-    difficulty: s?.difficulty ?? s?.case?.meta?.difficulty,
-    targetMinutes: s?.targetMinutes ?? s?.case?.meta?.target_minutes,
-    dsmTag: s?.dsmTag ?? s?.case?.meta?.dsm_tag,
-    dxId: s?.dxId ?? s?.case?.meta?.dx_id,
-    score: s?.score,
-  });
+  const mapLegacy = (s: any, idx: number): StoredSession => {
+    const transcript = Array.isArray(s?.transcript) ? (s.transcript as TranscriptTurn[]) : [];
+    return {
+      id: safeText(s?.id, String(idx)),
+      caseId: s?.caseId,
+      caseTitle: s?.caseTitle ?? s?.case_title,
+      patientName: s?.patientName,
+      endedAt: s?.endedAt ?? s?.ended_at ?? s?.createdAt,
+      reason: s?.reason ?? s?.end_reason,
+      targetMinutes: Number(s?.targetMinutes),
+      durationMin: Number.isFinite(Number(s?.durationSec)) ? clampInt(Number(s.durationSec) / 60, 1, 120) : undefined,
+      score: typeof s?.score === "number" ? clampInt(s.score, 0, 100) : transcript.length ? computeSimpleScoreFromTranscript(transcript) : undefined,
+      riskLevel: deriveRiskLevelFromFlags(Array.isArray(s?.lastMeta?.flags) ? s.lastMeta.flags : undefined),
+      transcript,
+    };
+  };
 
-  if (Array.isArray(raw)) return raw.map(mapSession);
-  if (raw && Array.isArray((raw as any).sessions)) return (raw as any).sessions.map(mapSession);
+  if (Array.isArray(raw)) return raw.map(mapLegacy);
+  if (raw && Array.isArray((raw as any).sessions)) return (raw as any).sessions.map(mapLegacy);
   return [];
+}
+
+function riskBadgeClass(level: StoredSession["riskLevel"]) {
+  if (level === "Alto") return "border-red-400/25 bg-red-400/10 text-red-100";
+  if (level === "Moderado") return "border-amber-400/25 bg-amber-400/10 text-amber-100";
+  if (level === "Bajo") return "border-emerald-400/25 bg-emerald-400/10 text-emerald-100";
+  return "border-white/15 bg-black/30 text-white/70";
 }
 
 export default function DashboardPage() {
@@ -148,7 +192,7 @@ export default function DashboardPage() {
       setHasActive(hasCaseInProgress());
       setActiveCase(loadJSON("activeCase"));
       const t = loadJSON("activeTranscript");
-      setActiveTranscript(Array.isArray(t) ? (t as any[]) : []);
+      setActiveTranscript(Array.isArray(t) ? (t as TranscriptTurn[]) : []);
       setEndedInfo(loadJSON("sessionEndedInfo"));
       setHistory(readHistorySessions());
     };
@@ -165,34 +209,77 @@ export default function DashboardPage() {
 
   const meta = useMemo(() => extractActiveCaseMeta(activeCase), [activeCase]);
 
-  const lastScore = useMemo(() => {
+  const activeScore = useMemo(() => {
     if (!activeTranscript.length) return undefined;
     return computeSimpleScoreFromTranscript(activeTranscript);
   }, [activeTranscript]);
 
-  const completedCount = useMemo(() => history.length, [history]);
+  const completedCount = history.length;
 
-  const avgTarget = useMemo(() => {
-    const mins = history
-      .map((h) => Number(h.targetMinutes))
+  const avgDuration = useMemo(() => {
+    const values = history
+      .map((h) => Number(h.durationMin ?? h.targetMinutes))
       .filter((n) => Number.isFinite(n) && n > 0) as number[];
-    if (!mins.length) return undefined;
-    const avg = mins.reduce((a, b) => a + b, 0) / mins.length;
-    return clampInt(avg, 5, 60);
+    if (!values.length) return undefined;
+    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+    return clampInt(avg, 1, 120);
   }, [history]);
+
+  const avgScore = useMemo(() => {
+    const values = history
+      .map((h) => Number(h.score))
+      .filter((n) => Number.isFinite(n)) as number[];
+    if (!values.length) return undefined;
+    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+    return clampInt(avg, 0, 100);
+  }, [history]);
+
+  const lastClosed = history[0];
+
+  const nextStep = useMemo(() => {
+    if (hasActive) return `Reanuda el caso activo: ${meta.title}.`;
+    if (!history.length) return "Empieza con tu primer caso para generar métricas y feedback.";
+    return "Genera un nuevo caso para consolidar seguridad, MSE y cierre clínico.";
+  }, [hasActive, history.length, meta.title]);
 
   const recommended = useMemo(() => {
-    const timeouts = history.filter((h) => (h.reason || "").toLowerCase().includes("timeout")).length;
-    const needSafety = history.length > 0 && history.length < 3;
-    return {
-      focus: needSafety ? "Seguridad" : timeouts >= 2 ? "Cierre y manejo del tiempo" : "MSE y diferenciales",
-      cards: [
-        { title: "Practicar Seguridad", desc: "Entrena tamizaje de riesgo y cierre seguro.", href: "/cases" },
-        { title: "Mejorar MSE", desc: "Completa cognición, insight/juicio y percepción.", href: "/cases" },
-        { title: "Diferenciales", desc: "Descarta bipolaridad/sustancias/causa médica.", href: "/cases" },
-      ],
-    };
-  }, [history]);
+    const hasHighRisk = history.some((h) => h.riskLevel === "Alto") || String(meta.risk).toLowerCase() === "alto";
+
+    const cards: RecommendationCard[] = hasHighRisk
+      ? [
+          { priority: "Alta", title: "Practicar seguridad", desc: "Enfoca tamizaje suicida, factores protectores y cierre seguro.", href: "/cases" },
+          { priority: "Media", title: "Fortalecer MSE", desc: "Completa cognición, juicio e insight en cada entrevista.", href: "/cases" },
+          { priority: "Baja", title: "Diferenciales", desc: "Explora bipolaridad, sustancias y causas orgánicas cuando aplique.", href: "/cases" },
+        ]
+      : [
+          { priority: "Alta", title: "Mejorar MSE", desc: "Haz un barrido completo y consistente del examen mental.", href: "/cases" },
+          { priority: "Media", title: "Diferenciales", desc: "Contrasta hipótesis clínicas antes del cierre de sesión.", href: "/cases" },
+          { priority: "Baja", title: "Practicar seguridad", desc: "Mantén tamizaje breve de riesgo en casos sensibles.", href: "/cases" },
+        ];
+
+    return { focus: cards[0].title, cards };
+  }, [history, meta.risk]);
+
+  const primaryAction = hasActive
+    ? { href: "/simulator", label: "Reanudar caso", helper: "Continuar entrevista en curso" }
+    : { href: "/cases", label: "Generar caso", helper: "Paso 1: crear un caso para empezar" };
+
+  const openSessionReport = (session: StoredSession) => {
+    try {
+      localStorage.setItem("activeTranscript", JSON.stringify(session.transcript ?? []));
+      localStorage.setItem(
+        "activeCase",
+        JSON.stringify({
+          id: session.caseId,
+          meta: { title: session.caseTitle },
+          patient_profile: { display_name: session.patientName ?? "Paciente" },
+        })
+      );
+    } catch {
+      // ignore
+    }
+    window.location.assign("/results");
+  };
 
   return (
     <div className="min-h-screen bg-[#070A0F]">
@@ -204,144 +291,167 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2 text-sm text-white/70">
               <span className="font-semibold text-white">Dashboard</span>
               <span className="text-white/30">·</span>
-              <span className="text-white/55">Psyke · Simulador clínico (educativo)</span>
+              <span className="text-white/55">Centro de control de entrenamiento</span>
             </div>
 
             <div className="ml-auto flex items-center gap-2">
-              <Link href="/cases" className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black">
-                + Generar caso
+              <Link href="/history" className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5">
+                Historial
               </Link>
-              <Link href="/topics" className="hidden rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5 sm:inline-flex">
-                Biblioteca clínica
+              <Link href="/cases" className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black">
+                + Nuevo caso
               </Link>
             </div>
           </header>
 
           <div className="overflow-y-auto px-5 py-6">
             <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-[#0F1117] to-[#1E2433] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.55)]">
-              <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
                 <div>
-                  <div className="text-2xl font-semibold text-white">Psyke · Entrenamiento clínico, con feedback</div>
-                  <div className="mt-2 max-w-[72ch] text-sm text-white/65">
-                    Genera casos ficticios, practica entrevista, explora MSE/DSM y recibe sugerencias del Tutor IA.
-                    <span className="text-white/80"> No diagnostica.</span>
-                  </div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-white/45">Qué hacer ahora</div>
+                  <div className="mt-2 text-2xl font-semibold text-white">{hasActive ? "Tienes un caso en curso" : "No hay caso activo"}</div>
+                  <div className="mt-2 max-w-[70ch] text-sm text-white/65">{nextStep}</div>
 
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    <Link href="/cases" className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black">
-                      Generar caso (IA)
+                  <div className="mt-5 flex flex-wrap items-center gap-2">
+                    <Link href={primaryAction.href} className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black">
+                      {primaryAction.label}
                     </Link>
-
-                    <Link
-                      href={hasActive ? "/simulator" : "/cases"}
-                      className="rounded-xl border border-white/15 bg-black/25 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
-                      title={hasActive ? "Continuar caso en curso" : "No hay caso en curso. Genera uno primero."}
-                    >
-                      {hasActive ? "Reanudar caso" : "Reanudar (no disponible)"}
-                    </Link>
-
                     <Link href="/reports" className="rounded-xl border border-white/15 bg-black/25 px-4 py-2 text-sm text-white/80 hover:bg-white/5">
                       Ver reporte
                     </Link>
+                    <Link href="/topics" className="rounded-xl border border-white/15 bg-black/25 px-4 py-2 text-sm text-white/80 hover:bg-white/5">
+                      Biblioteca clínica
+                    </Link>
                   </div>
+
+                  <div className="mt-3 text-xs text-white/55">{primaryAction.helper}</div>
                 </div>
 
-                <div className="grid w-full max-w-[520px] grid-cols-1 gap-3 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Caso en curso</div>
-                    <div className="mt-2 text-sm font-semibold text-white">{hasActive ? meta.title : "No hay caso activo"}</div>
-                    <div className="mt-1 text-sm text-white/60">{hasActive ? `Paciente: ${meta.patientName}` : "Genera un caso para empezar"}</div>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
-                        {hasActive ? `Dificultad: ${safeText(meta.difficulty)}` : "—"}
-                      </span>
-                      <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
-                        {hasActive ? `Duración: ${meta.targetMinutes ?? "—"} min` : "—"}
-                      </span>
-                      <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">
-                        {hasActive ? `DSM: ${safeText(meta.dsmTag)}` : "DSM: —"}
-                      </span>
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-white/45">Estado de sesión</div>
+                  <div className="mt-3 space-y-2 text-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-white/60">Caso</span>
+                      <span className="max-w-[210px] truncate text-white/85">{hasActive ? meta.title : "—"}</span>
                     </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Último cierre</div>
-                    <div className="mt-2 text-sm font-semibold text-white">{endedInfo?.ended_at ? formatDate(endedInfo.ended_at) : "—"}</div>
-                    <div className="mt-1 text-sm text-white/60">
-                      Motivo: <span className="text-white/80">{shortReason(endedInfo?.reason)}</span>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-white/60">Paciente</span>
+                      <span className="max-w-[210px] truncate text-white/85">{hasActive ? meta.patientName : "—"}</span>
                     </div>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">Mensajes: {activeTranscript.length || "—"}</span>
-                      <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">Score (aprox): {typeof lastScore === "number" ? lastScore : "—"}</span>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-white/60">DSM</span>
+                      <span className="text-white/85">{hasActive ? meta.dsmTag : "—"}</span>
                     </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4 sm:col-span-2">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Progreso</div>
-                    <div className="mt-2 grid grid-cols-2 gap-3">
-                      <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
-                        <div className="text-[10px] uppercase tracking-wider text-white/40">Sesiones</div>
-                        <div className="mt-1 text-lg font-semibold text-white">{completedCount}</div>
-                      </div>
-                      <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
-                        <div className="text-[10px] uppercase tracking-wider text-white/40">Promedio (objetivo)</div>
-                        <div className="mt-1 text-lg font-semibold text-white">{avgTarget ? `${avgTarget} min` : "—"}</div>
-                      </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-white/60">Último cierre</span>
+                      <span className="text-white/85">{formatDate(lastClosed?.endedAt ?? endedInfo?.ended_at)}</span>
                     </div>
-                    <div className="mt-3 text-sm text-white/60">Enfoque recomendado: <span className="text-white/85">{recommended.focus}</span></div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-white/60">Motivo cierre</span>
+                      <span className="text-white/85">{shortReason(lastClosed?.reason ?? endedInfo?.reason)}</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </section>
 
-            <section className="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-3">
-              {recommended.cards.map((c) => (
-                <Link key={c.title} href={c.href} className="rounded-3xl border border-white/10 bg-white/5 p-5 transition hover:bg-white/10">
-                  <div className="text-sm font-semibold text-white">✦ {c.title}</div>
-                  <div className="mt-2 text-sm text-white/65">{c.desc}</div>
-                  <div className="mt-4 inline-flex rounded-xl bg-white px-3 py-2 text-xs font-semibold text-black">Ir a casos →</div>
+            <section className="mt-5">
+              <div className="text-sm font-semibold text-white">Resumen rápido</div>
+              <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div className="text-xs uppercase tracking-wider text-white/45">Sesiones completadas</div>
+                  <div className="mt-1 text-2xl font-semibold text-white">{completedCount}</div>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div className="text-xs uppercase tracking-wider text-white/45">Duración promedio</div>
+                  <div className="mt-1 text-2xl font-semibold text-white">{avgDuration ? `${avgDuration} min` : "—"}</div>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div className="text-xs uppercase tracking-wider text-white/45">Puntaje</div>
+                  <div className="mt-1 text-2xl font-semibold text-white">{avgScore ?? activeScore ?? "—"}</div>
+                  <div className="text-xs text-white/55">{avgScore != null ? "Promedio de sesiones" : "Estimado de sesión activa"}</div>
+                </div>
+              </div>
+            </section>
+
+            <section className="mt-5">
+              <div className="text-sm font-semibold text-white">Entrenamiento recomendado</div>
+              <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-3">
+                <Link href={recommended.cards[0].href} className="rounded-3xl border border-white/15 bg-gradient-to-br from-white/10 to-black/20 p-5 hover:bg-white/15">
+                  <div className="inline-flex rounded-full border border-red-400/25 bg-red-400/10 px-2.5 py-1 text-[11px] font-semibold text-red-100">
+                    Prioridad {recommended.cards[0].priority}
+                  </div>
+                  <div className="mt-3 text-base font-semibold text-white">{recommended.cards[0].title}</div>
+                  <div className="mt-2 text-sm text-white/70">{recommended.cards[0].desc}</div>
+                  <div className="mt-4 inline-flex rounded-xl bg-white px-3 py-2 text-xs font-semibold text-black">Empezar</div>
                 </Link>
-              ))}
+
+                {recommended.cards.slice(1).map((c) => (
+                  <Link key={c.title} href={c.href} className="rounded-3xl border border-white/10 bg-white/5 p-5 hover:bg-white/10">
+                    <div className="inline-flex rounded-full border border-white/15 bg-black/25 px-2.5 py-1 text-[11px] font-semibold text-white/70">
+                      Prioridad {c.priority}
+                    </div>
+                    <div className="mt-3 text-sm font-semibold text-white">{c.title}</div>
+                    <div className="mt-2 text-sm text-white/65">{c.desc}</div>
+                    <div className="mt-4 inline-flex rounded-xl border border-white/15 bg-black/25 px-3 py-2 text-xs text-white/80">Ir a casos</div>
+                  </Link>
+                ))}
+              </div>
+              <div className="mt-2 text-xs text-white/50">Foco actual: {recommended.focus}</div>
             </section>
 
             <section className="mt-5 rounded-3xl border border-white/10 bg-white/5 p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <div className="text-base font-semibold text-white">Últimas sesiones</div>
-                  <div className="mt-1 text-sm text-white/60">Historial local (si está disponible)</div>
+                  <div className="mt-1 text-sm text-white/60">Vista resumida para revisar progreso rápido</div>
                 </div>
-                <Link href="/history" className="rounded-xl border border-white/15 bg-black/25 px-4 py-2 text-sm text-white/80 hover:bg-white/5">Ver todas</Link>
+                <Link href="/history" className="rounded-xl border border-white/15 bg-black/25 px-4 py-2 text-sm text-white/80 hover:bg-white/5">
+                  Ver todas
+                </Link>
               </div>
 
               <div className="mt-4 overflow-hidden rounded-2xl border border-white/10">
                 <div className="grid grid-cols-12 bg-black/25 px-4 py-2 text-xs font-semibold text-white/50">
-                  <div className="col-span-5">Caso</div>
-                  <div className="col-span-2">DSM</div>
-                  <div className="col-span-2">Dificultad</div>
-                  <div className="col-span-2">Cierre</div>
+                  <div className="col-span-4">Caso</div>
+                  <div className="col-span-3">Fecha cierre</div>
+                  <div className="col-span-2">Riesgo</div>
                   <div className="col-span-1 text-right">Score</div>
+                  <div className="col-span-2 text-right">Acción</div>
                 </div>
 
                 {(history.length ? history.slice(0, 6) : []).map((h) => (
                   <div key={h.id} className="grid grid-cols-12 border-t border-white/10 px-4 py-3 text-sm">
-                    <div className="col-span-5">
-                      <div className="font-semibold text-white">{safeText(h.caseTitle, "Sesión")}</div>
-                      <div className="text-xs text-white/50">{formatDate(h.endedAt ?? h.createdAt)}</div>
+                    <div className="col-span-4 min-w-0">
+                      <div className="truncate font-semibold text-white">{safeText(h.caseTitle, "Sesión")}</div>
+                      <div className="truncate text-xs text-white/50">{safeText(h.patientName, "Paciente")}</div>
                     </div>
-                    <div className="col-span-2 text-white/70">{safeText(h.dsmTag, "—")}</div>
-                    <div className="col-span-2 text-white/70">{safeText(h.difficulty, "—")}</div>
-                    <div className="col-span-2 text-white/70">{shortReason(h.reason)}</div>
-                    <div className="col-span-1 text-right text-white/80">{typeof h.score === "number" ? h.score : "—"}</div>
+                    <div className="col-span-3 text-white/70">{formatDate(h.endedAt)}</div>
+                    <div className="col-span-2">
+                      <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs ${riskBadgeClass(h.riskLevel)}`}>
+                        {h.riskLevel}
+                      </span>
+                    </div>
+                    <div className="col-span-1 text-right text-white/85">{typeof h.score === "number" ? h.score : "—"}</div>
+                    <div className="col-span-2 text-right">
+                      <button
+                        type="button"
+                        onClick={() => openSessionReport(h)}
+                        className="rounded-lg border border-white/15 bg-black/25 px-3 py-1.5 text-xs text-white/80 hover:bg-white/5"
+                      >
+                        Ver reporte
+                      </button>
+                    </div>
                   </div>
                 ))}
 
                 {!history.length && (
-                  <div className="px-4 py-4 text-sm text-white/60">Aún no hay sesiones guardadas. Completa un caso y finaliza para ver historial.</div>
+                  <div className="px-4 py-4 text-sm text-white/60">Aún no hay sesiones guardadas. Genera un caso y finalízalo para ver resultados aquí.</div>
                 )}
               </div>
             </section>
 
-            <div className="mt-6 text-xs text-white/45">Psyke es una herramienta educativa. Si aparece contenido sensible, prioriza seguridad y sugiere ayuda profesional.</div>
+            <div className="mt-6 text-xs text-white/45">Psyke es una herramienta educativa. No sustituye valoración clínica real.</div>
           </div>
         </main>
       </div>
