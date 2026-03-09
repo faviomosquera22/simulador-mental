@@ -5,7 +5,19 @@ import {
   requireAuthenticatedUser,
 } from "../../../../src/lib/serverGuards";
 
-// Optional: force provider (currently gemini-only)
+// === AI Providers (Gemini primary + Groq/OpenRouter fallbacks) ===
+// Groq (OpenAI-compatible)
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.1-8b-instant";
+
+// OpenRouter (OpenAI-compatible)
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "google/gemini-2.0-flash-exp:free";
+const OPENROUTER_SITE_URL = process.env.OPENROUTER_SITE_URL; // optional
+const OPENROUTER_APP_NAME = process.env.OPENROUTER_APP_NAME; // optional
+
+// Optional: force provider (useful for debugging / quota situations)
+// AI_PROVIDER=gemini | groq | openrouter
 const FORCE_PROVIDER = String(process.env.AI_PROVIDER ?? "").toLowerCase().trim();
 
 // === Output size controls (prevent huge cases that bloat prompts/UI) ===
@@ -307,6 +319,91 @@ function ensureSuggestedQuestions(caseJson: any, domain: "mental" | "medical" = 
 // (If GEMINI_MODEL is not set, we default to a currently supported model.)
 const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
+function extractJSON(text: string): any {
+  // Try direct parse first
+  try {
+    return JSON.parse(text);
+  } catch {
+    // Try to extract the first JSON object block
+    const start = text.indexOf("{");
+    const end = text.lastIndexOf("}");
+    if (start !== -1 && end !== -1 && end > start) {
+      const candidate = text.slice(start, end + 1);
+      return JSON.parse(candidate);
+    }
+    throw new Error("Could not parse JSON from model output");
+  }
+}
+
+async function openAICompatChatJSON(opts: {
+  url: string;
+  apiKey: string;
+  model: string;
+  temperature?: number;
+  messages: Array<{ role: "system" | "user" | "assistant"; content: string }>;
+  headers?: Record<string, string>;
+  timeoutMs?: number;
+}) {
+  const {
+    url,
+    apiKey,
+    model,
+    temperature = 0.7,
+    messages,
+    headers = {},
+    timeoutMs = 60_000,
+  } = opts;
+
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+        ...headers,
+      },
+      body: JSON.stringify({
+        model,
+        temperature,
+        stream: false,
+        messages,
+      }),
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      const txt = await res.text().catch(() => "");
+      const err: any = new Error(`openai_compat_http_${res.status}: ${txt}`);
+      err.status = res.status;
+      throw err;
+    }
+
+    const data = await res.json();
+    const content = String(data?.choices?.[0]?.message?.content ?? "");
+    try {
+      return extractJSON(content);
+    } catch {
+      const e: any = new Error("OpenAI-compatible provider returned non-JSON output");
+      e.raw_model_output = content;
+      throw e;
+    }
+  } catch (err: any) {
+    const name = String(err?.name ?? "");
+    const msg = String(err?.message ?? "");
+    if (name === "AbortError" || /aborted/i.test(msg)) {
+      const e = new Error("provider_timeout");
+      (e as any).name = "AbortError";
+      throw e;
+    }
+    throw err;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const auth = await requireAuthenticatedUser(req);
@@ -333,9 +430,12 @@ export async function POST(req: Request) {
       age_group === "child" || age_group === "adolescent" || age_group === "mixed" ? age_group : "adult";
     const isPediatric = normalizedAgeGroup === "child" || normalizedAgeGroup === "adolescent";
 
-    if (FORCE_PROVIDER && FORCE_PROVIDER !== "gemini") {
-      console.warn(`Ignoring AI_PROVIDER=${FORCE_PROVIDER}; this endpoint runs in gemini-only mode.`);
-    }
+    let provider: "gemini" | "groq" | "openrouter" = "gemini";
+
+    // Allow forcing provider via env (useful for debugging / quota situations)
+    if (FORCE_PROVIDER === "groq") provider = "groq";
+    else if (FORCE_PROVIDER === "openrouter") provider = "openrouter";
+    else if (FORCE_PROVIDER === "gemini") provider = "gemini";
 
     const system =
       normalizedDomain === "medical"
@@ -517,14 +617,101 @@ Además:
       2
     );
 
-    const json = await geminiChatJSON({
-      model: MODEL,
-      temperature: 0.6,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-    });
+    const callGemini = async () =>
+      geminiChatJSON({
+        model: MODEL,
+        temperature: 0.6,
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+      });
+
+    const callGroq = async () => {
+      if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY not set");
+      provider = "groq";
+      return await openAICompatChatJSON({
+        url: "https://api.groq.com/openai/v1/chat/completions",
+        apiKey: GROQ_API_KEY,
+        model: GROQ_MODEL,
+        temperature: 0.6,
+        messages: [
+          {
+            role: "system",
+            content: system + "\n\nRESPONDE SOLO CON JSON VÁLIDO. NO incluyas ningún texto fuera del JSON.",
+          },
+          { role: "user", content: user },
+        ],
+        timeoutMs: 45_000,
+      });
+    };
+
+    const callOpenRouter = async () => {
+      if (!OPENROUTER_API_KEY) throw new Error("OPENROUTER_API_KEY not set");
+      provider = "openrouter";
+      const extraHeaders: Record<string, string> = {};
+      if (OPENROUTER_SITE_URL) extraHeaders["HTTP-Referer"] = OPENROUTER_SITE_URL;
+      if (OPENROUTER_APP_NAME) extraHeaders["X-Title"] = OPENROUTER_APP_NAME;
+
+      return await openAICompatChatJSON({
+        url: "https://openrouter.ai/api/v1/chat/completions",
+        apiKey: OPENROUTER_API_KEY,
+        model: OPENROUTER_MODEL,
+        temperature: 0.6,
+        headers: extraHeaders,
+        messages: [
+          {
+            role: "system",
+            content: system + "\n\nRESPONDE SOLO CON JSON VÁLIDO. NO incluyas ningún texto fuera del JSON.",
+          },
+          { role: "user", content: user },
+        ],
+        timeoutMs: 60_000,
+      });
+    };
+
+    const json = await (async () => {
+      // 1) Forced provider paths
+      if (provider === "groq") return await callGroq();
+      if (provider === "openrouter") {
+        if (!OPENROUTER_API_KEY) {
+          console.warn("AI_PROVIDER=openrouter but OPENROUTER_API_KEY is missing; falling back to Gemini.");
+        } else {
+          return await callOpenRouter();
+        }
+      }
+
+      // 2) Gemini primary with fallbacks: Groq -> OpenRouter
+      try {
+        provider = "gemini";
+        return await callGemini();
+      } catch (e1: any) {
+        const msg1 = String(e1?.message ?? "");
+        const status1 = Number(e1?.status ?? e1?.statusCode ?? NaN);
+        console.warn("Gemini failed generating case, trying Groq fallback:", { status: status1, msg: msg1 });
+
+        try {
+          return await callGroq();
+        } catch (e2: any) {
+          const msg2 = String(e2?.message ?? "");
+          const status2 = Number(e2?.status ?? e2?.statusCode ?? NaN);
+          if (!OPENROUTER_API_KEY) {
+            console.warn("Groq failed generating case and OpenRouter is not configured:", { status: status2, msg: msg2 });
+            throw e2;
+          }
+          console.warn("Groq failed generating case, trying OpenRouter fallback:", { status: status2, msg: msg2 });
+
+          try {
+            return await callOpenRouter();
+          } catch (e3: any) {
+            const msg3 = String(e3?.message ?? "");
+            const status3 = Number(e3?.status ?? e3?.statusCode ?? NaN);
+            console.warn("OpenRouter failed generating case:", { status: status3, msg: msg3 });
+            throw e3;
+          }
+        }
+      }
+    })();
 
     const normalized = normalizeCaseSize(ensureSuggestedQuestions(json, normalizedDomain));
     normalized.meta = typeof normalized.meta === "object" && normalized.meta ? normalized.meta : {};
@@ -550,7 +737,7 @@ Además:
         {
           code: "RATE_LIMIT",
           detail:
-            "Se alcanzó un límite (429) en Gemini al generar el caso. Espera un momento y vuelve a intentarlo.",
+            "Se alcanzó un límite (429) al generar el caso. Se intentó fallback (Groq/OpenRouter) si están configurados. Si persiste, espera y reintenta o fuerza AI_PROVIDER=groq/openrouter.",
           retry_after_ms: 120000,
         },
         { status: 429 }
@@ -563,7 +750,7 @@ Además:
         detail: isJSONParse
           ? "El modelo devolvió texto que NO es JSON válido al generar el caso (Qwen a veces agrega texto extra). Intenta de nuevo o reduce la complejidad."
           : "No se pudo generar el caso. Intenta nuevamente.",
-        provider_hint: "gemini",
+        provider_hint: FORCE_PROVIDER || "auto",
         ...(dev && rawModel ? { raw_model_output: rawModel.slice(0, 2000) } : {}),
       },
       { status: 500 }
