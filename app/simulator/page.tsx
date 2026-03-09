@@ -307,7 +307,7 @@ export default function SimulatorPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastEmotionRaw, setLastEmotionRaw] = useState<string>("(sin datos)");
-  const [lastProvider, setLastProvider] = useState<"gemini" | "groq" | "openrouter" | null>(null);
+  const [lastProvider, setLastProvider] = useState<"cerebras" | "alibaba" | null>(null);
   const [rollingSummary, setRollingSummary] = useState<string>("");
   const [summaryDebugOpen, setSummaryDebugOpen] = useState(false);
 
@@ -709,7 +709,7 @@ export default function SimulatorPage() {
         try {
           const parsed = JSON.parse(raw);
           const p = String(parsed?.provider ?? "").toLowerCase();
-          setLastProvider(p === "gemini" || p === "groq" || p === "openrouter" ? (p as any) : null);
+          setLastProvider(p === "cerebras" || p === "alibaba" ? (p as any) : null);
         } catch {
           setLastProvider(null);
         }
@@ -1914,8 +1914,8 @@ export default function SimulatorPage() {
 
       const providerRaw = String(data?.provider ?? "").toLowerCase();
       const provider =
-        providerRaw === "gemini" || providerRaw === "groq" || providerRaw === "openrouter"
-          ? (providerRaw as "gemini" | "groq" | "openrouter")
+        providerRaw === "cerebras" || providerRaw === "alibaba"
+          ? (providerRaw as "cerebras" | "alibaba")
           : null;
       setLastProvider(provider);
 

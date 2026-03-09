@@ -14,22 +14,19 @@ import {
 } from "../../../../src/lib/serverGuards";
 import { deriveAgeGroup, isPediatricCase, normalizeSpeakerRole } from "../../../../src/lib/clinicalRuntime";
 
-// === AI Providers (Groq primary + OpenRouter fallback) ===
-// Groq (OpenAI-compatible)
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.1-8b-instant";
+// === AI Providers (Cerebras primary + Alibaba Cloud fallback) ===
+// Cerebras (OpenAI-compatible)
+const CEREBRAS_API_KEY = process.env.CEREBRAS_API_KEY;
+const CEREBRAS_BASE_URL = process.env.CEREBRAS_BASE_URL || "https://api.cerebras.ai/v1";
+const CEREBRAS_MODEL = process.env.CEREBRAS_MODEL || "llama-3.3-70b";
 
-// OpenRouter (OpenAI-compatible)
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const OPENROUTER_MODEL_RAW = process.env.OPENROUTER_MODEL || "meta-llama/llama-3.3-70b-instruct:free";
-const OPENROUTER_MODEL = /gemini/i.test(OPENROUTER_MODEL_RAW)
-  ? "meta-llama/llama-3.3-70b-instruct:free"
-  : OPENROUTER_MODEL_RAW;
-const OPENROUTER_SITE_URL = process.env.OPENROUTER_SITE_URL; // optional
-const OPENROUTER_APP_NAME = process.env.OPENROUTER_APP_NAME; // optional
+// Alibaba Cloud DashScope (OpenAI-compatible mode)
+const DASHSCOPE_API_KEY = process.env.DASHSCOPE_API_KEY;
+const DASHSCOPE_BASE_URL = process.env.DASHSCOPE_BASE_URL || "https://dashscope-intl.aliyuncs.com/compatible-mode/v1";
+const DASHSCOPE_MODEL = process.env.DASHSCOPE_MODEL || "qwen-plus";
 
 // Optional: force provider (useful for debugging / quota situations)
-// AI_PROVIDER=groq | openrouter (gemini deshabilitado temporalmente)
+// AI_PROVIDER=cerebras | alibaba (gemini/groq/openrouter deshabilitados temporalmente)
 const FORCE_PROVIDER = String(process.env.AI_PROVIDER ?? "").toLowerCase().trim();
 const RATE_LIMIT_WINDOW_MS = Number(process.env.AI_RATE_LIMIT_WINDOW_MS ?? 60_000);
 const RATE_LIMIT_PATIENT_TURN = Number(process.env.AI_RATE_LIMIT_PATIENT_TURN ?? 60);
@@ -337,6 +334,13 @@ async function openAICompatChatJSON(opts: {
   }
 }
 
+function buildChatCompletionsUrl(baseUrl: string) {
+  const clean = String(baseUrl ?? "").trim().replace(/\/+$/, "");
+  if (!clean) return "/chat/completions";
+  if (/\/chat\/completions$/i.test(clean)) return clean;
+  return `${clean}/chat/completions`;
+}
+
 export async function POST(req: Request) {
   try {
     const auth = await requireAuthenticatedUser(req);
@@ -493,24 +497,30 @@ emotion_intensity 0-100
           : "Responde como paciente consistente con el caso y con revelación gradual.",
     });
 
-    let provider: "groq" | "openrouter" = "groq";
+    let provider: "cerebras" | "alibaba" = "cerebras";
 
     // Allow forcing provider via env (useful for debugging / quota situations)
-    if (FORCE_PROVIDER === "openrouter") provider = "openrouter";
-    else if (FORCE_PROVIDER === "groq") provider = "groq";
-    else if (FORCE_PROVIDER === "gemini") {
-      console.warn("AI_PROVIDER=gemini ignored: Gemini is temporarily disabled. Using Groq/OpenRouter.");
+    if (FORCE_PROVIDER === "alibaba") provider = "alibaba";
+    else if (FORCE_PROVIDER === "cerebras") provider = "cerebras";
+    else if (
+      FORCE_PROVIDER === "gemini" ||
+      FORCE_PROVIDER === "groq" ||
+      FORCE_PROVIDER === "openrouter"
+    ) {
+      console.warn(
+        "AI_PROVIDER old value ignored. Active providers are Cerebras/Alibaba Cloud."
+      );
     }
 
     const out = (await (async () => {
-      // Helper to call Groq
-      const callGroq = async () => {
-        if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY not set");
-        provider = "groq";
+      // Helper to call Cerebras
+      const callCerebras = async () => {
+        if (!CEREBRAS_API_KEY) throw new Error("CEREBRAS_API_KEY not set");
+        provider = "cerebras";
         return await openAICompatChatJSON({
-          url: "https://api.groq.com/openai/v1/chat/completions",
-          apiKey: GROQ_API_KEY,
-          model: GROQ_MODEL,
+          url: buildChatCompletionsUrl(CEREBRAS_BASE_URL),
+          apiKey: CEREBRAS_API_KEY,
+          model: CEREBRAS_MODEL,
           temperature: 0.7,
           messages: [
             {
@@ -523,20 +533,15 @@ emotion_intensity 0-100
         });
       };
 
-      // Helper to call OpenRouter
-      const callOpenRouter = async () => {
-        if (!OPENROUTER_API_KEY) throw new Error("OPENROUTER_API_KEY not set");
-        provider = "openrouter";
-        const extraHeaders: Record<string, string> = {};
-        if (OPENROUTER_SITE_URL) extraHeaders["HTTP-Referer"] = OPENROUTER_SITE_URL;
-        if (OPENROUTER_APP_NAME) extraHeaders["X-Title"] = OPENROUTER_APP_NAME;
-
+      // Helper to call Alibaba Cloud DashScope
+      const callAlibaba = async () => {
+        if (!DASHSCOPE_API_KEY) throw new Error("DASHSCOPE_API_KEY not set");
+        provider = "alibaba";
         return await openAICompatChatJSON({
-          url: "https://openrouter.ai/api/v1/chat/completions",
-          apiKey: OPENROUTER_API_KEY,
-          model: OPENROUTER_MODEL,
+          url: buildChatCompletionsUrl(DASHSCOPE_BASE_URL),
+          apiKey: DASHSCOPE_API_KEY,
+          model: DASHSCOPE_MODEL,
           temperature: 0.7,
-          headers: extraHeaders,
           messages: [
             {
               role: "system",
@@ -549,41 +554,41 @@ emotion_intensity 0-100
       };
 
       // 1) Forced provider paths
-      if (provider === "groq") {
-        if (!GROQ_API_KEY) {
-          console.warn("AI_PROVIDER=groq but GROQ_API_KEY is missing; falling back.");
-          if (OPENROUTER_API_KEY) return await callOpenRouter();
-          throw new Error("No AI provider configured: missing GROQ_API_KEY and OPENROUTER_API_KEY.");
+      if (provider === "cerebras") {
+        if (!CEREBRAS_API_KEY) {
+          console.warn("AI_PROVIDER=cerebras but CEREBRAS_API_KEY is missing; falling back.");
+          if (DASHSCOPE_API_KEY) return await callAlibaba();
+          throw new Error("No AI provider configured: missing CEREBRAS_API_KEY and DASHSCOPE_API_KEY.");
         } else {
-          return await callGroq();
+          return await callCerebras();
         }
       }
-      if (provider === "openrouter") {
-        if (!OPENROUTER_API_KEY) {
-          console.warn("AI_PROVIDER=openrouter but OPENROUTER_API_KEY is missing; falling back to Groq.");
-          if (GROQ_API_KEY) return await callGroq();
-          throw new Error("No AI provider configured: missing OPENROUTER_API_KEY and GROQ_API_KEY.");
+      if (provider === "alibaba") {
+        if (!DASHSCOPE_API_KEY) {
+          console.warn("AI_PROVIDER=alibaba but DASHSCOPE_API_KEY is missing; falling back to Cerebras.");
+          if (CEREBRAS_API_KEY) return await callCerebras();
+          throw new Error("No AI provider configured: missing DASHSCOPE_API_KEY and CEREBRAS_API_KEY.");
         } else {
-          return await callOpenRouter();
+          return await callAlibaba();
         }
       }
 
-      // 2) Auto path: Groq primary with OpenRouter fallback
+      // 2) Auto path: Cerebras primary with Alibaba fallback
       try {
-        return await callGroq();
+        return await callCerebras();
       } catch (e1: any) {
         const msg1 = String(e1?.message ?? "");
         const status1 = Number(e1?.status ?? e1?.statusCode ?? NaN);
-        console.warn("Groq failed, trying OpenRouter fallback:", { status: status1, msg: msg1 });
+        console.warn("Cerebras failed, trying Alibaba fallback:", { status: status1, msg: msg1 });
 
-        if (!OPENROUTER_API_KEY) throw e1;
+        if (!DASHSCOPE_API_KEY) throw e1;
 
         try {
-          return await callOpenRouter();
+          return await callAlibaba();
         } catch (e2: any) {
           const msg2 = String(e2?.message ?? "");
           const status2 = Number(e2?.status ?? e2?.statusCode ?? NaN);
-          console.warn("OpenRouter failed:", { status: status2, msg: msg2 });
+          console.warn("Alibaba failed:", { status: status2, msg: msg2 });
           throw e2;
         }
       }
@@ -745,7 +750,7 @@ emotion_intensity 0-100
       {
         error: "patient_turn_failed",
         detail: isQuota
-          ? "El proveedor principal está limitado por cuota (429). Se intentó fallback (Groq/OpenRouter) si están configurados. Detalle: " + msg
+          ? "El proveedor principal está limitado por cuota (429). Se intentó fallback (Cerebras/Alibaba) si están configurados. Detalle: " + msg
           : isJSONParse
             ? "El modelo devolvió texto que NO es JSON válido (Qwen a veces agrega texto extra). Detalle: " + msg
             : msg,
