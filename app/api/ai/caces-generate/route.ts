@@ -6,7 +6,6 @@ import {
   buildCacesQuestionKey,
   dedupeCacesQuestions,
 } from "@/src/lib/caces";
-import { geminiChatJSON } from "@/src/lib/gemini";
 import { enforceRateLimit, requireAuthenticatedUser } from "@/src/lib/serverGuards";
 import type { CacesDifficulty, CacesOptionId, CacesQuestion, CacesQuestionType } from "@/src/lib/types";
 
@@ -14,12 +13,14 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.1-8b-instant";
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "google/gemini-2.0-flash-exp:free";
+const OPENROUTER_MODEL_RAW = process.env.OPENROUTER_MODEL || "meta-llama/llama-3.3-70b-instruct:free";
+const OPENROUTER_MODEL = /gemini/i.test(OPENROUTER_MODEL_RAW)
+  ? "meta-llama/llama-3.3-70b-instruct:free"
+  : OPENROUTER_MODEL_RAW;
 const OPENROUTER_SITE_URL = process.env.OPENROUTER_SITE_URL;
 const OPENROUTER_APP_NAME = process.env.OPENROUTER_APP_NAME;
 
 const FORCE_PROVIDER = String(process.env.AI_PROVIDER ?? "").toLowerCase().trim();
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
 const RATE_LIMIT_WINDOW_MS = Number(process.env.AI_RATE_LIMIT_WINDOW_MS ?? 60_000);
 const RATE_LIMIT_CACES_GENERATE = Number(process.env.AI_RATE_LIMIT_CACES_GENERATE ?? 12);
@@ -249,10 +250,12 @@ export async function POST(req: Request) {
       ? body.exclude_question_keys.map((k) => cleanText(k).slice(0, 240)).filter(Boolean).slice(-80)
       : [];
 
-    let provider: "gemini" | "groq" | "openrouter" = "gemini";
-    if (FORCE_PROVIDER === "groq") provider = "groq";
-    else if (FORCE_PROVIDER === "openrouter") provider = "openrouter";
-    else if (FORCE_PROVIDER === "gemini") provider = "gemini";
+    let provider: "groq" | "openrouter" = "groq";
+    if (FORCE_PROVIDER === "openrouter") provider = "openrouter";
+    else if (FORCE_PROVIDER === "groq") provider = "groq";
+    else if (FORCE_PROVIDER === "gemini") {
+      console.warn("AI_PROVIDER=gemini ignored: Gemini is temporarily disabled. Using Groq/OpenRouter.");
+    }
 
     const system = `
 Eres un generador de preguntas tipo CACES para entrenamiento académico de enfermería.
@@ -356,49 +359,31 @@ Reglas:
       });
     };
 
-    const callGemini = async () => {
-      provider = "gemini";
-      return geminiChatJSON({
-        model: MODEL,
-        temperature: 0.8,
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: user },
-        ],
-      });
-    };
-
     const rawJson = await (async () => {
       if (provider === "groq") {
         if (!GROQ_API_KEY) {
           console.warn("AI_PROVIDER=groq but GROQ_API_KEY is missing; falling back.");
           if (OPENROUTER_API_KEY) return callOpenRouter();
+          throw new Error("No AI provider configured: missing GROQ_API_KEY and OPENROUTER_API_KEY");
         } else {
           return callGroq();
         }
       }
       if (provider === "openrouter") {
         if (!OPENROUTER_API_KEY) {
-          console.warn("AI_PROVIDER=openrouter but OPENROUTER_API_KEY is missing; falling back to Gemini.");
+          console.warn("AI_PROVIDER=openrouter but OPENROUTER_API_KEY is missing; falling back to Groq.");
           if (GROQ_API_KEY) return callGroq();
+          throw new Error("No AI provider configured: missing OPENROUTER_API_KEY and GROQ_API_KEY");
         } else {
           return callOpenRouter();
         }
       }
 
       try {
-        return await callGemini();
-      } catch {
-        if (!GROQ_API_KEY) {
-          if (!OPENROUTER_API_KEY) throw new Error("No fallback provider configured");
-          return await callOpenRouter();
-        }
-        try {
-          return await callGroq();
-        } catch (groqErr: any) {
-          if (!OPENROUTER_API_KEY) throw groqErr;
-          return await callOpenRouter();
-        }
+        return await callGroq();
+      } catch (groqErr: any) {
+        if (!OPENROUTER_API_KEY) throw groqErr;
+        return await callOpenRouter();
       }
     })();
 

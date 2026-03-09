@@ -1,23 +1,25 @@
 import { NextResponse } from "next/server";
-import { geminiChatJSON } from "../../../../src/lib/gemini";
 import {
   enforceRateLimit,
   requireAuthenticatedUser,
 } from "../../../../src/lib/serverGuards";
 
-// === AI Providers (Gemini primary + Groq/OpenRouter fallbacks) ===
+// === AI Providers (Groq primary + OpenRouter fallback) ===
 // Groq (OpenAI-compatible)
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.1-8b-instant";
 
 // OpenRouter (OpenAI-compatible)
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "google/gemini-2.0-flash-exp:free";
+const OPENROUTER_MODEL_RAW = process.env.OPENROUTER_MODEL || "meta-llama/llama-3.3-70b-instruct:free";
+const OPENROUTER_MODEL = /gemini/i.test(OPENROUTER_MODEL_RAW)
+  ? "meta-llama/llama-3.3-70b-instruct:free"
+  : OPENROUTER_MODEL_RAW;
 const OPENROUTER_SITE_URL = process.env.OPENROUTER_SITE_URL; // optional
 const OPENROUTER_APP_NAME = process.env.OPENROUTER_APP_NAME; // optional
 
 // Optional: force provider (useful for debugging / quota situations)
-// AI_PROVIDER=gemini | groq | openrouter
+// AI_PROVIDER=groq | openrouter (gemini deshabilitado temporalmente)
 const FORCE_PROVIDER = String(process.env.AI_PROVIDER ?? "").toLowerCase().trim();
 
 // === Output size controls (prevent huge cases that bloat prompts/UI) ===
@@ -315,10 +317,6 @@ function ensureSuggestedQuestions(caseJson: any, domain: "mental" | "medical" = 
   return caseJson;
 }
 
-// Gemini model (override with env). Examples: gemini-2.0-flash, gemini-2.0-pro
-// (If GEMINI_MODEL is not set, we default to a currently supported model.)
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-
 function extractJSON(text: string): any {
   // Try direct parse first
   try {
@@ -430,12 +428,14 @@ export async function POST(req: Request) {
       age_group === "child" || age_group === "adolescent" || age_group === "mixed" ? age_group : "adult";
     const isPediatric = normalizedAgeGroup === "child" || normalizedAgeGroup === "adolescent";
 
-    let provider: "gemini" | "groq" | "openrouter" = "gemini";
+    let provider: "groq" | "openrouter" = "groq";
 
     // Allow forcing provider via env (useful for debugging / quota situations)
-    if (FORCE_PROVIDER === "groq") provider = "groq";
-    else if (FORCE_PROVIDER === "openrouter") provider = "openrouter";
-    else if (FORCE_PROVIDER === "gemini") provider = "gemini";
+    if (FORCE_PROVIDER === "openrouter") provider = "openrouter";
+    else if (FORCE_PROVIDER === "groq") provider = "groq";
+    else if (FORCE_PROVIDER === "gemini") {
+      console.warn("AI_PROVIDER=gemini ignored: Gemini is temporarily disabled. Using Groq/OpenRouter.");
+    }
 
     const system =
       normalizedDomain === "medical"
@@ -617,16 +617,6 @@ Además:
       2
     );
 
-    const callGemini = async () =>
-      geminiChatJSON({
-        model: MODEL,
-        temperature: 0.6,
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: user },
-        ],
-      });
-
     const callGroq = async () => {
       if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY not set");
       provider = "groq";
@@ -676,52 +666,38 @@ Además:
         if (!GROQ_API_KEY) {
           console.warn("AI_PROVIDER=groq but GROQ_API_KEY is missing; falling back.");
           if (OPENROUTER_API_KEY) return await callOpenRouter();
+          throw new Error("No AI provider configured: missing GROQ_API_KEY and OPENROUTER_API_KEY.");
         } else {
           return await callGroq();
         }
       }
       if (provider === "openrouter") {
         if (!OPENROUTER_API_KEY) {
-          console.warn("AI_PROVIDER=openrouter but OPENROUTER_API_KEY is missing; falling back to Gemini.");
+          console.warn("AI_PROVIDER=openrouter but OPENROUTER_API_KEY is missing; falling back to Groq.");
           if (GROQ_API_KEY) return await callGroq();
+          throw new Error("No AI provider configured: missing OPENROUTER_API_KEY and GROQ_API_KEY.");
         } else {
           return await callOpenRouter();
         }
       }
 
-      // 2) Gemini primary with fallbacks: Groq -> OpenRouter
+      // 2) Auto path: Groq primary with OpenRouter fallback
       try {
-        provider = "gemini";
-        return await callGemini();
+        return await callGroq();
       } catch (e1: any) {
         const msg1 = String(e1?.message ?? "");
         const status1 = Number(e1?.status ?? e1?.statusCode ?? NaN);
-        console.warn("Gemini failed generating case, trying Groq fallback:", { status: status1, msg: msg1 });
+        console.warn("Groq failed generating case, trying OpenRouter fallback:", { status: status1, msg: msg1 });
 
-        if (!GROQ_API_KEY) {
-          if (!OPENROUTER_API_KEY) throw e1;
-          return await callOpenRouter();
-        }
+        if (!OPENROUTER_API_KEY) throw e1;
 
         try {
-          return await callGroq();
+          return await callOpenRouter();
         } catch (e2: any) {
           const msg2 = String(e2?.message ?? "");
           const status2 = Number(e2?.status ?? e2?.statusCode ?? NaN);
-          if (!OPENROUTER_API_KEY) {
-            console.warn("Groq failed generating case and OpenRouter is not configured:", { status: status2, msg: msg2 });
-            throw e2;
-          }
-          console.warn("Groq failed generating case, trying OpenRouter fallback:", { status: status2, msg: msg2 });
-
-          try {
-            return await callOpenRouter();
-          } catch (e3: any) {
-            const msg3 = String(e3?.message ?? "");
-            const status3 = Number(e3?.status ?? e3?.statusCode ?? NaN);
-            console.warn("OpenRouter failed generating case:", { status: status3, msg: msg3 });
-            throw e3;
-          }
+          console.warn("OpenRouter failed generating case:", { status: status2, msg: msg2 });
+          throw e2;
         }
       }
     })();
