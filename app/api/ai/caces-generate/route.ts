@@ -369,10 +369,18 @@ Reglas:
     };
 
     const rawJson = await (async () => {
-      if (provider === "groq") return callGroq();
+      if (provider === "groq") {
+        if (!GROQ_API_KEY) {
+          console.warn("AI_PROVIDER=groq but GROQ_API_KEY is missing; falling back.");
+          if (OPENROUTER_API_KEY) return callOpenRouter();
+        } else {
+          return callGroq();
+        }
+      }
       if (provider === "openrouter") {
         if (!OPENROUTER_API_KEY) {
           console.warn("AI_PROVIDER=openrouter but OPENROUTER_API_KEY is missing; falling back to Gemini.");
+          if (GROQ_API_KEY) return callGroq();
         } else {
           return callOpenRouter();
         }
@@ -381,6 +389,10 @@ Reglas:
       try {
         return await callGemini();
       } catch {
+        if (!GROQ_API_KEY) {
+          if (!OPENROUTER_API_KEY) throw new Error("No fallback provider configured");
+          return await callOpenRouter();
+        }
         try {
           return await callGroq();
         } catch (groqErr: any) {

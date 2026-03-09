@@ -548,10 +548,18 @@ emotion_intensity 0-100
       };
 
       // 1) Forced provider paths
-      if (provider === "groq") return await callGroq();
+      if (provider === "groq") {
+        if (!GROQ_API_KEY) {
+          console.warn("AI_PROVIDER=groq but GROQ_API_KEY is missing; falling back.");
+          if (OPENROUTER_API_KEY) return await callOpenRouter();
+        } else {
+          return await callGroq();
+        }
+      }
       if (provider === "openrouter") {
         if (!OPENROUTER_API_KEY) {
           console.warn("AI_PROVIDER=openrouter but OPENROUTER_API_KEY is missing; falling back to Gemini.");
+          if (GROQ_API_KEY) return await callGroq();
         } else {
           return await callOpenRouter();
         }
@@ -572,6 +580,11 @@ emotion_intensity 0-100
         const msg1 = String(e1?.message ?? "");
         const status1 = Number(e1?.status ?? e1?.statusCode ?? NaN);
         console.warn("Gemini failed, trying Groq fallback:", { status: status1, msg: msg1 });
+
+        if (!GROQ_API_KEY) {
+          if (!OPENROUTER_API_KEY) throw e1;
+          return await callOpenRouter();
+        }
 
         try {
           return await callGroq();
