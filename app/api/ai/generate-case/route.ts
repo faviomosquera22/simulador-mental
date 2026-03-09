@@ -674,7 +674,13 @@ Además:
     const json = await (async () => {
       // 1) Forced provider paths
       if (provider === "groq") return await callGroq();
-      if (provider === "openrouter") return await callOpenRouter();
+      if (provider === "openrouter") {
+        if (!OPENROUTER_API_KEY) {
+          console.warn("AI_PROVIDER=openrouter but OPENROUTER_API_KEY is missing; falling back to Gemini.");
+        } else {
+          return await callOpenRouter();
+        }
+      }
 
       // 2) Gemini primary with fallbacks: Groq -> OpenRouter
       try {
@@ -690,6 +696,10 @@ Además:
         } catch (e2: any) {
           const msg2 = String(e2?.message ?? "");
           const status2 = Number(e2?.status ?? e2?.statusCode ?? NaN);
+          if (!OPENROUTER_API_KEY) {
+            console.warn("Groq failed generating case and OpenRouter is not configured:", { status: status2, msg: msg2 });
+            throw e2;
+          }
           console.warn("Groq failed generating case, trying OpenRouter fallback:", { status: status2, msg: msg2 });
 
           try {

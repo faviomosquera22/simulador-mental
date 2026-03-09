@@ -370,14 +370,21 @@ Reglas:
 
     const rawJson = await (async () => {
       if (provider === "groq") return callGroq();
-      if (provider === "openrouter") return callOpenRouter();
+      if (provider === "openrouter") {
+        if (!OPENROUTER_API_KEY) {
+          console.warn("AI_PROVIDER=openrouter but OPENROUTER_API_KEY is missing; falling back to Gemini.");
+        } else {
+          return callOpenRouter();
+        }
+      }
 
       try {
         return await callGemini();
       } catch {
         try {
           return await callGroq();
-        } catch {
+        } catch (groqErr: any) {
+          if (!OPENROUTER_API_KEY) throw groqErr;
           return await callOpenRouter();
         }
       }
