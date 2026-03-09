@@ -1251,10 +1251,561 @@ const CACES_CORE_QUESTION_BANK: CacesQuestion[] = [
     difficulty: "alta",
     tags: ["ginecologia", "violencia_sexual", "enfoque_derechos"],
   },
+  {
+    id: "caces-vac-001",
+    component: "Cuidado familiar, comunitario e intercultural",
+    subcomponent: "Inmunizaciones",
+    topic: "Inicio de esquema en lactante",
+    category: "Cuidado familiar, comunitario e intercultural",
+    type: "caso_clinico",
+    question: "Lactante de 2 meses acude a control y solo recibió vacunas del nacimiento. Está afebril y sin contraindicaciones reales. ¿Cuál es la conducta correcta en esta visita?",
+    options: options(
+      option("A", "Iniciar esquema correspondiente a su edad en la misma consulta, registrar dosis y agendar próximas aplicaciones.", "Evita oportunidades perdidas y asegura continuidad del esquema."),
+      option("B", "Esperar al siguiente mes para aplicar varias vacunas juntas.", "Retrasa la protección sin justificación clínica."),
+      option("C", "Repetir únicamente vacunas del nacimiento para reiniciar el calendario.", "No corresponde repetir de forma indiscriminada las dosis neonatales."),
+      option("D", "Posponer inmunización hasta que inicie alimentación complementaria.", "La alimentación complementaria no es requisito para vacunar a los 2 meses.")
+    ),
+    correctAnswer: "A",
+    explanation: "En ausencia de contraindicaciones reales, se debe aplicar en la misma visita las vacunas indicadas para la edad y dejar plan de seguimiento.",
+    difficulty: "basica",
+    tags: ["vacunacion", "esquema_vacunal", "lactante", "caso_clinico"],
+  },
+  {
+    id: "caces-vac-002",
+    component: "Cuidado familiar, comunitario e intercultural",
+    subcomponent: "Inmunizaciones",
+    topic: "Esquema atrasado en niño",
+    category: "Cuidado familiar, comunitario e intercultural",
+    type: "caso_clinico",
+    question: "Niño de 3 años llega con carné incompleto y atraso de varias dosis. ¿Qué principio guía la recuperación del esquema?",
+    options: options(
+      option("A", "Reiniciar todas las series desde cero para evitar errores.", "No se reinician series completas por atraso; se completan dosis faltantes."),
+      option("B", "Aplicar solo una vacuna por visita para disminuir molestias.", "Puede prolongar retrasos y mantener riesgo prevenible."),
+      option("C", "Completar dosis faltantes según esquema de rescate e intervalos mínimos, sin reiniciar series válidas.", "Es el enfoque técnico correcto para recuperar cobertura."),
+      option("D", "Esperar a que cumpla 5 años para unificar refuerzos.", "Demora innecesariamente la protección del niño.")
+    ),
+    correctAnswer: "C",
+    explanation: "Ante esquemas atrasados, se realiza recuperación con intervalos mínimos y se completan dosis pendientes, respetando las ya válidas.",
+    difficulty: "intermedia",
+    tags: ["vacunacion", "esquema_atrasado", "pediatria", "caso_clinico"],
+  },
+  {
+    id: "caces-vac-003",
+    component: "Mujer, recién nacido, niño y adolescente",
+    subcomponent: "Control prenatal",
+    topic: "Vacunación durante el embarazo",
+    category: "Mujer, recién nacido, niño y adolescente",
+    type: "caso_clinico",
+    question: "Gestante de 28 semanas, sin registro de vacunas en el embarazo actual, consulta en control prenatal. ¿Qué acción de enfermería es más adecuada?",
+    options: options(
+      option("A", "Verificar antecedentes, aplicar vacunas recomendadas en gestación según normativa vigente y educar sobre su beneficio materno-neonatal.", "Integra seguridad, prevención y educación basada en riesgo-beneficio."),
+      option("B", "Diferir toda vacunación al posparto para evitar eventos adversos.", "Posponer sin criterio reduce protección en etapa de riesgo."),
+      option("C", "Aplicar solo vitaminas y dejar vacunas para consulta médica posterior.", "No aprovecha la oportunidad preventiva durante control prenatal."),
+      option("D", "Vacunar únicamente si la paciente presenta fiebre o infección activa.", "La fiebre no es indicación para vacunar; incluso puede ser motivo de diferimiento temporal.")
+    ),
+    correctAnswer: "A",
+    explanation: "La gestación requiere revisión activa del estado vacunal y aplicación oportuna de vacunas recomendadas por normativa para proteger madre y recién nacido.",
+    difficulty: "intermedia",
+    tags: ["vacunacion", "gestacion", "prenatal", "caso_clinico"],
+  },
+  {
+    id: "caces-vac-004",
+    component: "Mujer, recién nacido, niño y adolescente",
+    subcomponent: "Salud del adolescente",
+    topic: "Refuerzos en adolescencia",
+    category: "Mujer, recién nacido, niño y adolescente",
+    type: "caso_clinico",
+    question: "Adolescente de 11 años acude para certificación escolar y su carné no registra refuerzos recientes. ¿Cuál es la intervención correcta?",
+    options: options(
+      option("A", "Emitir certificado temporal y citar en seis meses para revisar vacunas.", "Mantiene susceptibilidad y retrasa acciones preventivas."),
+      option("B", "Aplicar dosis de refuerzo y vacunas indicadas para su edad según esquema nacional, con registro y cita de seguimiento.", "Alinea prevención escolar con recuperación oportuna del esquema."),
+      option("C", "Indicar que ya no requiere vacunas por haber completado infancia temprana.", "En adolescencia existen refuerzos y vacunas específicas por edad."),
+      option("D", "Vacunar solo si presenta comorbilidad documentada.", "La vacunación del adolescente no depende solo de comorbilidades.")
+    ),
+    correctAnswer: "B",
+    explanation: "En adolescencia se deben verificar y actualizar refuerzos o vacunas indicadas por edad, asegurando registro y continuidad.",
+    difficulty: "intermedia",
+    tags: ["vacunacion", "adolescente", "refuerzos", "caso_clinico"],
+  },
+  {
+    id: "caces-vac-005",
+    component: "Cuidados críticos y urgencias",
+    subcomponent: "Profilaxis postexposición",
+    topic: "Profilaxis antitetánica",
+    category: "Cuidados críticos y urgencias",
+    type: "caso_clinico",
+    question: "Paciente con herida contaminada por metal y antecedente vacunal antitetánico incierto. ¿Qué decisión es clínicamente correcta?",
+    options: options(
+      option("A", "Indicar solo curación local porque la herida fue reciente.", "La limpieza local no sustituye la profilaxis específica."),
+      option("B", "Administrar antibiótico profiláctico y omitir valoración vacunal.", "No reemplaza la prevención específica de tétanos."),
+      option("C", "Valorar tipo de herida y antecedente para indicar vacuna antitetánica y, si corresponde, inmunoglobulina según protocolo.", "Es la conducta basada en riesgo y estado de inmunización."),
+      option("D", "Esperar signos de infección antes de decidir inmunización.", "La profilaxis es preventiva y no debe diferirse hasta aparición de síntomas.")
+    ),
+    correctAnswer: "C",
+    explanation: "La profilaxis antitetánica se define por riesgo de la herida y estado vacunal: puede requerir vacuna y/o inmunoglobulina de forma oportuna.",
+    difficulty: "alta",
+    tags: ["vacunacion", "tetanos", "urgencias", "caso_clinico"],
+  },
 ];
+
+type ExtraClinicalCaseTheme = {
+  category: string;
+  component: string;
+  subcomponent: string;
+  topic: string;
+  scenario: string;
+  primaryAction: string;
+  primaryWrongs: [string, string, string];
+  followupAction: string;
+  explanation: string;
+  difficulty: CacesDifficulty;
+  tags: string[];
+};
+
+function buildExtraClinicalCaseOptions(args: {
+  correctLetter: CacesOptionId;
+  correctText: string;
+  wrongs: [string, string, string];
+  correctRationale: string;
+}) {
+  const letters: CacesOptionId[] = ["A", "B", "C", "D"];
+  const wrongQueue = [...args.wrongs];
+  const mapped = letters.map((letter) => {
+    if (letter === args.correctLetter) {
+      return option(letter, args.correctText, args.correctRationale);
+    }
+    const wrongText = String(wrongQueue.shift() ?? "Alternativa incompleta.");
+    return option(
+      letter,
+      wrongText,
+      "No prioriza seguridad clínica, continuidad del cuidado y toma de decisiones basada en valoración."
+    );
+  }) as [
+    CacesQuestionOption,
+    CacesQuestionOption,
+    CacesQuestionOption,
+    CacesQuestionOption,
+  ];
+
+  return options(mapped[0], mapped[1], mapped[2], mapped[3]);
+}
+
+function followupDifficulty(level: CacesDifficulty): CacesDifficulty {
+  if (level === "basica") return "intermedia";
+  return level;
+}
+
+const EXTRA_CLINICAL_FOLLOWUP_WRONGS: [string, string, string] = [
+  "Cerrar la atención sin documentar la intervención en carné o registro clínico.",
+  "Diferir la reevaluación para la próxima consulta sin fecha definida.",
+  "Limitarse a una recomendación general sin verificar comprensión del paciente o cuidador.",
+];
+
+const EXTRA_CLINICAL_CASE_THEMES: ExtraClinicalCaseTheme[] = [
+  {
+    category: "Cuidado familiar, comunitario e intercultural",
+    component: "Cuidado familiar, comunitario e intercultural",
+    subcomponent: "Inmunizaciones",
+    topic: "Inicio oportuno del esquema infantil",
+    scenario:
+      "Lactante de 2 meses llega con carné incompleto y se encuentra clínicamente estable, sin contraindicaciones reales",
+    primaryAction:
+      "Aplicar vacunas indicadas para su edad en la misma visita, registrar dosis y agendar control.",
+    primaryWrongs: [
+      "Diferir inmunización por ansiedad de los cuidadores sin brindar consejería.",
+      "Reiniciar todo el esquema desde cero ignorando dosis válidas.",
+      "Esperar nueva cita sin intervención para reducir número de inyecciones.",
+    ],
+    followupAction:
+      "Educar a cuidadores sobre eventos esperables, signos de alarma y fecha exacta de próxima dosis.",
+    explanation:
+      "Aprovechar cada contacto reduce oportunidades perdidas y mejora cobertura efectiva en lactantes.",
+    difficulty: "basica",
+    tags: ["vacunacion", "lactante", "esquema_vacunal"],
+  },
+  {
+    category: "Cuidado familiar, comunitario e intercultural",
+    component: "Cuidado familiar, comunitario e intercultural",
+    subcomponent: "Inmunizaciones",
+    topic: "Recuperación de esquema atrasado en preescolar",
+    scenario:
+      "Niño de 4 años acude con varias dosis pendientes y carné parcialmente actualizado",
+    primaryAction:
+      "Planificar recuperación con intervalos mínimos según normativa vigente, completando dosis faltantes sin reiniciar series válidas.",
+    primaryWrongs: [
+      "Iniciar nuevamente todas las series para simplificar el control.",
+      "Aplicar una sola dosis y suspender el resto hasta el siguiente año lectivo.",
+      "Posponer vacunación hasta disponer de un nuevo carné impreso.",
+    ],
+    followupAction:
+      "Entregar plan escrito de recuperación con fechas concretas y verificar comprensión del cuidador.",
+    explanation:
+      "El esquema atrasado se recupera completando dosis pendientes con intervalos mínimos y seguimiento activo.",
+    difficulty: "intermedia",
+    tags: ["vacunacion", "esquema_atrasado", "preescolar"],
+  },
+  {
+    category: "Mujer, recién nacido, niño y adolescente",
+    component: "Mujer, recién nacido, niño y adolescente",
+    subcomponent: "Control prenatal",
+    topic: "Vacunación recomendada en gestación",
+    scenario:
+      "Gestante de 29 semanas acude a control prenatal sin registro vacunal del embarazo actual",
+    primaryAction:
+      "Verificar antecedentes, aplicar vacunas recomendadas en gestación según normativa vigente y registrar en control prenatal.",
+    primaryWrongs: [
+      "Posponer toda vacuna hasta el puerperio por precaución general.",
+      "Esperar únicamente indicación en hospital para cualquier inmunización.",
+      "Aplicar solo suplementación y omitir consejería preventiva.",
+    ],
+    followupAction:
+      "Reforzar educación sobre beneficio materno-neonatal y coordinar siguiente control con revisión del estado vacunal.",
+    explanation:
+      "La vacunación oportuna durante gestación reduce riesgo de enfermedad prevenible en madre y recién nacido.",
+    difficulty: "intermedia",
+    tags: ["vacunacion", "gestacion", "prenatal"],
+  },
+  {
+    category: "Procesos y gestión del cuidado",
+    component: "Procesos y gestión del cuidado",
+    subcomponent: "Salud ocupacional",
+    topic: "Vacunación del personal sanitario",
+    scenario:
+      "Profesional de nuevo ingreso en hospital no presenta evidencia documental de esquema ocupacional completo",
+    primaryAction:
+      "Evaluar riesgo laboral, iniciar o completar vacunas ocupacionales según protocolo y registrar en salud ocupacional.",
+    primaryWrongs: [
+      "Permitir atención directa sin revisar estado vacunal por falta de tiempo.",
+      "Asumir inmunidad previa por antecedente verbal del profesional.",
+      "Posponer la evaluación vacunal hasta la primera exposición biológica.",
+    ],
+    followupAction:
+      "Programar controles para completar dosis pendientes y verificar seroconversión cuando esté indicada.",
+    explanation:
+      "En personal sanitario, el control vacunal temprano protege al equipo y disminuye riesgo de transmisión nosocomial.",
+    difficulty: "intermedia",
+    tags: ["vacunacion", "salud_ocupacional", "bioseguridad"],
+  },
+  {
+    category: "Pediatría y neonatología",
+    component: "Pediatría y neonatología",
+    subcomponent: "Urgencias respiratorias",
+    topic: "Crisis asmática pediátrica",
+    scenario:
+      "Niño de 7 años con sibilancias, uso de músculos accesorios y saturación de 91% en urgencias",
+    primaryAction:
+      "Iniciar manejo respiratorio inmediato con oxigenoterapia según necesidad, broncodilatador de rescate y monitorización continua.",
+    primaryWrongs: [
+      "Mantener al paciente en sala de espera hasta nueva ronda médica.",
+      "Administrar antitusivo y diferir tratamiento broncodilatador.",
+      "Suspender monitorización para disminuir ansiedad del niño.",
+    ],
+    followupAction:
+      "Reevaluar respuesta clínica tras cada intervención, documentar saturación y ajustar plan terapéutico.",
+    explanation:
+      "La crisis asmática requiere intervención rápida y reevaluación seriada para prevenir deterioro respiratorio.",
+    difficulty: "alta",
+    tags: ["patologia", "asma", "pediatria", "urgencias"],
+  },
+  {
+    category: "Adulto y adulto mayor",
+    component: "Adulto y adulto mayor",
+    subcomponent: "Emergencias metabólicas",
+    topic: "Hipoglucemia severa en adulto",
+    scenario:
+      "Paciente diabético en tratamiento con insulina llega confuso, diaforético y con glucosa capilar críticamente baja",
+    primaryAction:
+      "Corregir hipoglucemia de forma inmediata según protocolo, monitorizar respuesta y buscar causa desencadenante.",
+    primaryWrongs: [
+      "Esperar resultados de laboratorio confirmatorios antes de intervenir.",
+      "Ofrecer solo hidratación oral aunque exista alteración del estado mental.",
+      "Suspender vigilancia al mejorar parcialmente los síntomas.",
+    ],
+    followupAction:
+      "Coordinar ajuste terapéutico, educación sobre prevención de recurrencias y control cercano posterior al evento.",
+    explanation:
+      "La hipoglucemia severa es una urgencia tiempo-dependiente; el manejo oportuno reduce daño neurológico.",
+    difficulty: "intermedia",
+    tags: ["patologia", "diabetes", "hipoglucemia", "adulto"],
+  },
+  {
+    category: "Adulto y adulto mayor",
+    component: "Adulto y adulto mayor",
+    subcomponent: "Emergencias metabólicas",
+    topic: "Cetoacidosis diabética",
+    scenario:
+      "Adulto con diabetes consulta por poliuria, vómito, dolor abdominal y respiración profunda",
+    primaryAction:
+      "Activar manejo de emergencia metabólica con hidratación, monitorización estrecha y coordinación médica inmediata.",
+    primaryWrongs: [
+      "Indicar control ambulatorio con rehidratación oral exclusiva.",
+      "Administrar antiemético y diferir valoración metabólica integral.",
+      "Suspender monitorización por aparente estabilidad hemodinámica inicial.",
+    ],
+    followupAction:
+      "Controlar parámetros clínicos y metabólicos de forma seriada para ajustar tratamiento y prevenir complicaciones.",
+    explanation:
+      "La cetoacidosis diabética requiere abordaje protocolizado y seguimiento estrecho por riesgo de descompensación rápida.",
+    difficulty: "alta",
+    tags: ["patologia", "diabetes", "cetoacidosis", "urgencias"],
+  },
+  {
+    category: "Adulto y adulto mayor",
+    component: "Adulto y adulto mayor",
+    subcomponent: "Cardiología clínica",
+    topic: "Insuficiencia cardiaca aguda",
+    scenario:
+      "Paciente mayor presenta disnea progresiva, ortopnea y edema con signos de congestión",
+    primaryAction:
+      "Priorizar valoración cardiorrespiratoria, monitorizar estado hemodinámico y activar manejo protocolizado de descompensación.",
+    primaryWrongs: [
+      "Atribuir disnea a ansiedad sin evaluación objetiva inicial.",
+      "Indicar deambulación inmediata sin estabilización clínica.",
+      "Posponer intervención hasta completar todos los exámenes diferidos.",
+    ],
+    followupAction:
+      "Registrar balance hídrico, reevaluar respuesta al tratamiento y reforzar educación para autocuidado al alta.",
+    explanation:
+      "La insuficiencia cardiaca descompensada requiere intervención temprana y seguimiento para reducir recaídas.",
+    difficulty: "alta",
+    tags: ["patologia", "insuficiencia_cardiaca", "adulto_mayor"],
+  },
+  {
+    category: "Cuidados críticos y urgencias",
+    component: "Cuidados críticos y urgencias",
+    subcomponent: "Dolor torácico agudo",
+    topic: "Síndrome coronario agudo",
+    scenario:
+      "Adulto con dolor torácico opresivo irradiado, diaforesis y náuseas de inicio súbito",
+    primaryAction:
+      "Activar ruta de dolor torácico, monitorizar continuamente y priorizar atención de urgencia tiempo-dependiente.",
+    primaryWrongs: [
+      "Posponer valoración hasta que el dolor disminuya espontáneamente.",
+      "Administrar analgésico aislado y otorgar alta precoz.",
+      "Esperar resultados tardíos sin mantener monitorización activa.",
+    ],
+    followupAction:
+      "Mantener vigilancia de signos de alarma, documentar cronología clínica y coordinar continuidad del manejo.",
+    explanation:
+      "En síndrome coronario, la rapidez diagnóstica y terapéutica impacta en pronóstico y supervivencia.",
+    difficulty: "alta",
+    tags: ["patologia", "sindrome_coronario", "urgencias"],
+  },
+  {
+    category: "Cuidados críticos y urgencias",
+    component: "Cuidados críticos y urgencias",
+    subcomponent: "Neurología de urgencia",
+    topic: "Sospecha de evento cerebrovascular",
+    scenario:
+      "Paciente con inicio brusco de hemiparesia, desviación de comisura y dificultad para hablar",
+    primaryAction:
+      "Activar código neurológico, registrar hora de inicio y priorizar evaluación urgente para terapia tiempo-dependiente.",
+    primaryWrongs: [
+      "Esperar evolución clínica por varias horas antes de derivar.",
+      "Iniciar alimentación oral pese a déficit neurológico agudo.",
+      "Limitar intervención a control de signos vitales sin ruta específica.",
+    ],
+    followupAction:
+      "Monitorear estado neurológico seriado, prevenir aspiración y asegurar trazabilidad del proceso asistencial.",
+    explanation:
+      "En evento cerebrovascular, la identificación y activación precoz de ruta mejora posibilidades terapéuticas.",
+    difficulty: "alta",
+    tags: ["patologia", "acv", "neurologia", "urgencias"],
+  },
+  {
+    category: "Pediatría y neonatología",
+    component: "Pediatría y neonatología",
+    subcomponent: "Infecciones respiratorias",
+    topic: "Neumonía con hipoxemia",
+    scenario:
+      "Lactante con fiebre, taquipnea, tirajes y saturación disminuida en sala de emergencia",
+    primaryAction:
+      "Priorizar soporte respiratorio, valoración de gravedad y coordinación inmediata para manejo intrahospitalario.",
+    primaryWrongs: [
+      "Indicar manejo domiciliario sin reevaluación de oxigenación.",
+      "Retrasar intervención hasta confirmar etiología microbiológica definitiva.",
+      "Suspender vigilancia al mejorar temporalmente la fiebre.",
+    ],
+    followupAction:
+      "Reevaluar signos respiratorios, tolerancia al tratamiento y respuesta clínica en intervalos cortos.",
+    explanation:
+      "La neumonía con compromiso respiratorio en pediatría requiere manejo oportuno y vigilancia continua.",
+    difficulty: "intermedia",
+    tags: ["patologia", "neumonia", "pediatria", "hipoxemia"],
+  },
+  {
+    category: "Cuidados críticos y urgencias",
+    component: "Cuidados críticos y urgencias",
+    subcomponent: "Sepsis y choque",
+    topic: "Sepsis de origen urinario",
+    scenario:
+      "Adulto mayor con fiebre, hipotensión, taquicardia y foco urinario probable",
+    primaryAction:
+      "Iniciar protocolo de sepsis con valoración hemodinámica, obtención de estudios iniciales y tratamiento oportuno.",
+    primaryWrongs: [
+      "Esperar estabilidad espontánea antes de activar protocolo.",
+      "Tratar solo la fiebre sin evaluar perfusión sistémica.",
+      "Diferir la intervención hasta completar exámenes de control tardíos.",
+    ],
+    followupAction:
+      "Monitorizar respuesta hemodinámica y perfusión, documentando cambios para ajuste terapéutico continuo.",
+    explanation:
+      "La sepsis requiere respuesta temprana estructurada para reducir progresión a choque y falla orgánica.",
+    difficulty: "alta",
+    tags: ["patologia", "sepsis", "adulto_mayor", "urgencias"],
+  },
+  {
+    category: "Pediatría y neonatología",
+    component: "Pediatría y neonatología",
+    subcomponent: "Emergencias gastrointestinales",
+    topic: "Deshidratación por diarrea aguda",
+    scenario:
+      "Niño de 2 años con diarrea, vómito, mucosas secas y llenado capilar enlentecido",
+    primaryAction:
+      "Clasificar gravedad de deshidratación e iniciar reposición hídrica según protocolo con vigilancia clínica estrecha.",
+    primaryWrongs: [
+      "Indicar ayuno prolongado y observación domiciliaria sin seguimiento.",
+      "Usar solo medicación sintomática sin plan de hidratación estructurado.",
+      "Suspender reevaluación después de la primera intervención.",
+    ],
+    followupAction:
+      "Controlar signos de hidratación periódicamente y educar al cuidador en señales de alarma.",
+    explanation:
+      "La deshidratación pediátrica exige clasificación temprana, reposición adecuada y reevaluación frecuente.",
+    difficulty: "intermedia",
+    tags: ["patologia", "deshidratacion", "pediatria", "gastrointestinal"],
+  },
+  {
+    category: "Cuidados críticos y urgencias",
+    component: "Cuidados críticos y urgencias",
+    subcomponent: "Enfermedades infecciosas",
+    topic: "Dengue con signos de alarma",
+    scenario:
+      "Paciente con fiebre, dolor abdominal persistente, vómitos y tendencia al sangrado mucoso",
+    primaryAction:
+      "Clasificar riesgo clínico, iniciar vigilancia estrecha y activar manejo protocolizado para signos de alarma.",
+    primaryWrongs: [
+      "Otorgar alta con recomendaciones generales sin reevaluación temprana.",
+      "Priorizar solo control del dolor sin valoración hemodinámica.",
+      "Esperar confirmación tardía para definir conducta inicial.",
+    ],
+    followupAction:
+      "Monitorear signos vitales, diuresis y evolución clínica para detectar deterioro oportunamente.",
+    explanation:
+      "Los signos de alarma en dengue obligan a vigilancia activa para prevenir complicaciones graves.",
+    difficulty: "alta",
+    tags: ["patologia", "dengue", "infecciosas", "urgencias"],
+  },
+  {
+    category: "Salud mental y entrevista clínica",
+    component: "Salud mental y entrevista clínica",
+    subcomponent: "Evaluación de riesgo",
+    topic: "Depresión con riesgo suicida",
+    scenario:
+      "Paciente con ánimo deprimido refiere desesperanza, aislamiento y pensamientos de muerte",
+    primaryAction:
+      "Realizar evaluación estructurada de riesgo suicida, asegurar contención y activar ruta institucional de seguridad.",
+    primaryWrongs: [
+      "Posponer la valoración específica para próxima consulta programada.",
+      "Minimizar verbalizaciones por ausencia de intento previo conocido.",
+      "Mantener entrevista sin explorar red de apoyo ni plan de seguridad.",
+    ],
+    followupAction:
+      "Documentar hallazgos de riesgo, coordinar seguimiento estrecho y reforzar acceso a apoyo inmediato.",
+    explanation:
+      "En riesgo suicida, la priorización de seguridad y el seguimiento cercano son fundamentales.",
+    difficulty: "alta",
+    tags: ["patologia", "depresion", "riesgo_suicida", "salud_mental"],
+  },
+];
+
+const CACES_EXTRA_CLINICAL_CASE_BANK: CacesQuestion[] = (() => {
+  const out: CacesQuestion[] = [];
+  const answerPattern: CacesOptionId[] = ["A", "B", "C", "D"];
+  let sequence = 6;
+
+  for (let i = 0; i < EXTRA_CLINICAL_CASE_THEMES.length; i++) {
+    const theme = EXTRA_CLINICAL_CASE_THEMES[i];
+    const firstCorrect = answerPattern[(i * 3) % answerPattern.length];
+    const secondCorrect = answerPattern[(i * 3 + 1) % answerPattern.length];
+    const thirdCorrect = answerPattern[(i * 3 + 2) % answerPattern.length];
+    const tags = [...new Set([...theme.tags, "caso_clinico", "banco_extra"])];
+
+    const q1Options = buildExtraClinicalCaseOptions({
+      correctLetter: firstCorrect,
+      correctText: theme.primaryAction,
+      wrongs: theme.primaryWrongs,
+      correctRationale: theme.explanation,
+    });
+    out.push({
+      id: `caces-case-${String(sequence).padStart(3, "0")}`,
+      component: theme.component,
+      subcomponent: theme.subcomponent,
+      topic: theme.topic,
+      category: theme.category,
+      type: "caso_clinico",
+      question: `${theme.scenario}. ¿Cuál es la conducta prioritaria de enfermería?`,
+      options: q1Options,
+      correctAnswer: firstCorrect,
+      explanation: theme.explanation,
+      difficulty: theme.difficulty,
+      tags,
+    });
+    sequence += 1;
+
+    const q2Options = buildExtraClinicalCaseOptions({
+      correctLetter: secondCorrect,
+      correctText: theme.primaryAction,
+      wrongs: theme.primaryWrongs,
+      correctRationale: theme.explanation,
+    });
+    out.push({
+      id: `caces-case-${String(sequence).padStart(3, "0")}`,
+      component: theme.component,
+      subcomponent: theme.subcomponent,
+      topic: `${theme.topic} - decisión inicial`,
+      category: theme.category,
+      type: "caso_clinico",
+      question: `${theme.scenario}. Con base en la valoración inicial, ¿qué decisión clínica es la más adecuada?`,
+      options: q2Options,
+      correctAnswer: secondCorrect,
+      explanation: theme.explanation,
+      difficulty: followupDifficulty(theme.difficulty),
+      tags: [...tags, "decision_clinica"],
+    });
+    sequence += 1;
+
+    const q3Options = buildExtraClinicalCaseOptions({
+      correctLetter: thirdCorrect,
+      correctText: theme.followupAction,
+      wrongs: EXTRA_CLINICAL_FOLLOWUP_WRONGS,
+      correctRationale:
+        "La continuidad segura del cuidado requiere registro, reevaluación y educación del paciente o cuidador.",
+    });
+    out.push({
+      id: `caces-case-${String(sequence).padStart(3, "0")}`,
+      component: theme.component,
+      subcomponent: theme.subcomponent,
+      topic: `${theme.topic} - seguimiento`,
+      category: theme.category,
+      type: "caso_clinico",
+      question: `${theme.scenario}. Después de estabilizar al paciente, ¿qué acción fortalece la seguridad del seguimiento?`,
+      options: q3Options,
+      correctAnswer: thirdCorrect,
+      explanation:
+        "El seguimiento documentado y la educación clara reducen eventos adversos y mejoran adherencia al plan terapéutico.",
+      difficulty: followupDifficulty(theme.difficulty),
+      tags: [...tags, "seguimiento"],
+    });
+    sequence += 1;
+  }
+
+  return out;
+})();
 
 export const CACES_QUESTION_BANK: CacesQuestion[] = [
   ...CACES_CORE_QUESTION_BANK,
+  ...CACES_EXTRA_CLINICAL_CASE_BANK,
   ...CACES_EXPANDED_QUESTION_BANK,
 ].map(alignQuestionToEhepManual);
 
