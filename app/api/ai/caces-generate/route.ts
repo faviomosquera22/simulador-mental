@@ -10,14 +10,6 @@ import { geminiChatJSON } from "@/src/lib/gemini";
 import { enforceRateLimit, requireAuthenticatedUser } from "@/src/lib/serverGuards";
 import type { CacesDifficulty, CacesOptionId, CacesQuestion, CacesQuestionType } from "@/src/lib/types";
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.1-8b-instant";
-
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "google/gemini-2.0-flash-exp:free";
-const OPENROUTER_SITE_URL = process.env.OPENROUTER_SITE_URL;
-const OPENROUTER_APP_NAME = process.env.OPENROUTER_APP_NAME;
-
 const FORCE_PROVIDER = String(process.env.AI_PROVIDER ?? "").toLowerCase().trim();
 const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
@@ -58,73 +50,6 @@ type CacesGenerateLLMResponse = {
     tags?: string[];
   }>;
 };
-
-function extractJSON(text: string): any {
-  try {
-    return JSON.parse(text);
-  } catch {
-    const start = text.indexOf("{");
-    const end = text.lastIndexOf("}");
-    if (start !== -1 && end !== -1 && end > start) {
-      return JSON.parse(text.slice(start, end + 1));
-    }
-    throw new Error("Could not parse JSON from model output");
-  }
-}
-
-async function openAICompatChatJSON(opts: {
-  url: string;
-  apiKey: string;
-  model: string;
-  temperature?: number;
-  messages: Array<{ role: "system" | "user" | "assistant"; content: string }>;
-  headers?: Record<string, string>;
-  timeoutMs?: number;
-}) {
-  const {
-    url,
-    apiKey,
-    model,
-    temperature = 0.7,
-    messages,
-    headers = {},
-    timeoutMs = 60_000,
-  } = opts;
-
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-        ...headers,
-      },
-      body: JSON.stringify({
-        model,
-        temperature,
-        stream: false,
-        messages,
-      }),
-      signal: controller.signal,
-    });
-
-    if (!res.ok) {
-      const txt = await res.text().catch(() => "");
-      const err: any = new Error(`openai_compat_http_${res.status}: ${txt}`);
-      err.status = res.status;
-      throw err;
-    }
-
-    const data = await res.json();
-    const content = String(data?.choices?.[0]?.message?.content ?? "");
-    return extractJSON(content);
-  } finally {
-    clearTimeout(t);
-  }
-}
 
 function cleanText(value: unknown, fallback = "") {
   const v = String(value ?? "").trim();
@@ -249,10 +174,10 @@ export async function POST(req: Request) {
       ? body.exclude_question_keys.map((k) => cleanText(k).slice(0, 240)).filter(Boolean).slice(-80)
       : [];
 
-    let provider: "gemini" | "groq" | "openrouter" = "gemini";
-    if (FORCE_PROVIDER === "groq") provider = "groq";
-    else if (FORCE_PROVIDER === "openrouter") provider = "openrouter";
-    else if (FORCE_PROVIDER === "gemini") provider = "gemini";
+    const provider = "gemini" as const;
+    if (FORCE_PROVIDER && FORCE_PROVIDER !== "gemini") {
+      console.warn(`Ignoring AI_PROVIDER=${FORCE_PROVIDER}; this endpoint runs in gemini-only mode.`);
+    }
 
     const system = `
 Eres un generador de preguntas tipo CACES para entrenamiento académico de enfermería.
@@ -313,82 +238,14 @@ Reglas:
       2
     );
 
-    const callGroq = async () => {
-      if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY not set");
-      provider = "groq";
-      return openAICompatChatJSON({
-        url: "https://api.groq.com/openai/v1/chat/completions",
-        apiKey: GROQ_API_KEY,
-        model: GROQ_MODEL,
-        temperature: 0.8,
-        timeoutMs: 45_000,
-        messages: [
-          {
-            role: "system",
-            content: `${system}\nRESPONDE SOLO CON JSON VÁLIDO.`,
-          },
-          { role: "user", content: user },
-        ],
-      });
-    };
-
-    const callOpenRouter = async () => {
-      if (!OPENROUTER_API_KEY) throw new Error("OPENROUTER_API_KEY not set");
-      provider = "openrouter";
-      const extraHeaders: Record<string, string> = {};
-      if (OPENROUTER_SITE_URL) extraHeaders["HTTP-Referer"] = OPENROUTER_SITE_URL;
-      if (OPENROUTER_APP_NAME) extraHeaders["X-Title"] = OPENROUTER_APP_NAME;
-
-      return openAICompatChatJSON({
-        url: "https://openrouter.ai/api/v1/chat/completions",
-        apiKey: OPENROUTER_API_KEY,
-        model: OPENROUTER_MODEL,
-        temperature: 0.8,
-        timeoutMs: 60_000,
-        headers: extraHeaders,
-        messages: [
-          {
-            role: "system",
-            content: `${system}\nRESPONDE SOLO CON JSON VÁLIDO.`,
-          },
-          { role: "user", content: user },
-        ],
-      });
-    };
-
-    const callGemini = async () => {
-      provider = "gemini";
-      return geminiChatJSON({
-        model: MODEL,
-        temperature: 0.8,
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: user },
-        ],
-      });
-    };
-
-    const rawJson = await (async () => {
-      if (provider === "groq") return callGroq();
-      if (provider === "openrouter") {
-        if (!OPENROUTER_API_KEY) {
-          console.warn("AI_PROVIDER=openrouter but OPENROUTER_API_KEY is missing; falling back to Gemini.");
-        } else {
-          return callOpenRouter();
-        }
-      }
-
-      try {
-        return await callGemini();
-      } catch {
-        try {
-          return await callGroq();
-        } catch (groqErr: any) {
-          if (!OPENROUTER_API_KEY) throw groqErr;
-          return await callOpenRouter();
-        }
-      }
-    })();
+    const rawJson = await geminiChatJSON({
+      model: MODEL,
+      temperature: 0.8,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+    });
 
     const generated = sanitizeGeneratedQuestions({
       raw: rawJson as CacesGenerateLLMResponse,

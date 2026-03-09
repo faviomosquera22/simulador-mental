@@ -15,19 +15,7 @@ import {
 } from "../../../../src/lib/serverGuards";
 import { deriveAgeGroup, isPediatricCase, normalizeSpeakerRole } from "../../../../src/lib/clinicalRuntime";
 
-// === AI Providers (Gemini primary + Groq/OpenRouter fallbacks) ===
-// Groq (OpenAI-compatible)
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.1-8b-instant";
-
-// OpenRouter (OpenAI-compatible)
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "google/gemini-2.0-flash-exp:free";
-const OPENROUTER_SITE_URL = process.env.OPENROUTER_SITE_URL; // optional
-const OPENROUTER_APP_NAME = process.env.OPENROUTER_APP_NAME; // optional
-
-// Optional: force provider (useful for debugging / quota situations)
-// AI_PROVIDER=gemini | groq | openrouter
+// Optional: force provider (currently gemini-only)
 const FORCE_PROVIDER = String(process.env.AI_PROVIDER ?? "").toLowerCase().trim();
 const RATE_LIMIT_WINDOW_MS = Number(process.env.AI_RATE_LIMIT_WINDOW_MS ?? 60_000);
 const RATE_LIMIT_PATIENT_TURN = Number(process.env.AI_RATE_LIMIT_PATIENT_TURN ?? 60);
@@ -251,92 +239,6 @@ function updateRollingSummary(opts: {
 }
 
 
-function extractJSON(text: string): any {
-  // Try direct parse first
-  try {
-    return JSON.parse(text);
-  } catch {
-    // Try to extract the first JSON object block
-    const start = text.indexOf("{");
-    const end = text.lastIndexOf("}");
-    if (start !== -1 && end !== -1 && end > start) {
-      const candidate = text.slice(start, end + 1);
-      return JSON.parse(candidate);
-    }
-    throw new Error("Could not parse JSON from model output");
-  }
-}
-
-
-async function openAICompatChatJSON(opts: {
-  url: string;
-  apiKey: string;
-  model: string;
-  temperature?: number;
-  messages: Array<{ role: "system" | "user" | "assistant"; content: string }>;
-  headers?: Record<string, string>;
-  timeoutMs?: number;
-}) {
-  const {
-    url,
-    apiKey,
-    model,
-    temperature = 0.7,
-    messages,
-    headers = {},
-    timeoutMs = 60_000,
-  } = opts;
-
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-        ...headers,
-      },
-      body: JSON.stringify({
-        model,
-        temperature,
-        stream: false,
-        messages,
-      }),
-      signal: controller.signal,
-    });
-
-    if (!res.ok) {
-      const txt = await res.text().catch(() => "");
-      const err: any = new Error(`openai_compat_http_${res.status}: ${txt}`);
-      err.status = res.status;
-      throw err;
-    }
-
-    const data = await res.json();
-    const content = String(data?.choices?.[0]?.message?.content ?? "");
-    try {
-      return extractJSON(content);
-    } catch {
-      const e: any = new Error("OpenAI-compatible provider returned non-JSON output");
-      e.raw_model_output = content;
-      throw e;
-    }
-  } catch (err: any) {
-    const name = String(err?.name ?? "");
-    const msg = String(err?.message ?? "");
-    if (name === "AbortError" || /aborted/i.test(msg)) {
-      const e = new Error("provider_timeout");
-      (e as any).name = "AbortError";
-      throw e;
-    }
-    throw err;
-  } finally {
-    clearTimeout(t);
-  }
-}
-
 const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
 export async function POST(req: Request) {
@@ -495,107 +397,19 @@ emotion_intensity 0-100
           : "Responde como paciente consistente con el caso y con revelación gradual.",
     });
 
-    let provider: "gemini" | "groq" | "openrouter" = "gemini";
+    const provider = "gemini" as const;
+    if (FORCE_PROVIDER && FORCE_PROVIDER !== "gemini") {
+      console.warn(`Ignoring AI_PROVIDER=${FORCE_PROVIDER}; this endpoint runs in gemini-only mode.`);
+    }
 
-    // Allow forcing provider via env (useful for debugging / quota situations)
-    if (FORCE_PROVIDER === "groq") provider = "groq";
-    else if (FORCE_PROVIDER === "openrouter") provider = "openrouter";
-    else if (FORCE_PROVIDER === "gemini") provider = "gemini";
-
-    const out = (await (async () => {
-      // Helper to call Groq
-      const callGroq = async () => {
-        if (!GROQ_API_KEY) throw new Error("GROQ_API_KEY not set");
-        provider = "groq";
-        return await openAICompatChatJSON({
-          url: "https://api.groq.com/openai/v1/chat/completions",
-          apiKey: GROQ_API_KEY,
-          model: GROQ_MODEL,
-          temperature: 0.7,
-          messages: [
-            {
-              role: "system",
-              content: system + "\n\nRESPONDE SOLO CON JSON VÁLIDO. NO incluyas ningún texto fuera del JSON.",
-            },
-            { role: "user", content: user },
-          ],
-          timeoutMs: 45_000,
-        });
-      };
-
-      // Helper to call OpenRouter
-      const callOpenRouter = async () => {
-        if (!OPENROUTER_API_KEY) throw new Error("OPENROUTER_API_KEY not set");
-        provider = "openrouter";
-        const extraHeaders: Record<string, string> = {};
-        if (OPENROUTER_SITE_URL) extraHeaders["HTTP-Referer"] = OPENROUTER_SITE_URL;
-        if (OPENROUTER_APP_NAME) extraHeaders["X-Title"] = OPENROUTER_APP_NAME;
-
-        return await openAICompatChatJSON({
-          url: "https://openrouter.ai/api/v1/chat/completions",
-          apiKey: OPENROUTER_API_KEY,
-          model: OPENROUTER_MODEL,
-          temperature: 0.7,
-          headers: extraHeaders,
-          messages: [
-            {
-              role: "system",
-              content: system + "\n\nRESPONDE SOLO CON JSON VÁLIDO. NO incluyas ningún texto fuera del JSON.",
-            },
-            { role: "user", content: user },
-          ],
-          timeoutMs: 60_000,
-        });
-      };
-
-      // 1) Forced provider paths
-      if (provider === "groq") return await callGroq();
-      if (provider === "openrouter") {
-        if (!OPENROUTER_API_KEY) {
-          console.warn("AI_PROVIDER=openrouter but OPENROUTER_API_KEY is missing; falling back to Gemini.");
-        } else {
-          return await callOpenRouter();
-        }
-      }
-
-      // 2) Gemini primary with fallbacks: Groq -> OpenRouter
-      try {
-        provider = "gemini";
-        return await geminiChatJSON({
-          model: MODEL,
-          temperature: 0.7,
-          messages: [
-            { role: "system", content: system },
-            { role: "user", content: user },
-          ],
-        });
-      } catch (e1: any) {
-        const msg1 = String(e1?.message ?? "");
-        const status1 = Number(e1?.status ?? e1?.statusCode ?? NaN);
-        console.warn("Gemini failed, trying Groq fallback:", { status: status1, msg: msg1 });
-
-        try {
-          return await callGroq();
-        } catch (e2: any) {
-          const msg2 = String(e2?.message ?? "");
-          const status2 = Number(e2?.status ?? e2?.statusCode ?? NaN);
-          if (!OPENROUTER_API_KEY) {
-            console.warn("Groq failed and OpenRouter is not configured:", { status: status2, msg: msg2 });
-            throw e2;
-          }
-          console.warn("Groq failed, trying OpenRouter fallback:", { status: status2, msg: msg2 });
-
-          try {
-            return await callOpenRouter();
-          } catch (e3: any) {
-            const msg3 = String(e3?.message ?? "");
-            const status3 = Number(e3?.status ?? e3?.statusCode ?? NaN);
-            console.warn("OpenRouter failed:", { status: status3, msg: msg3 });
-            throw e3;
-          }
-        }
-      }
-    })()) as PatientTurnOutput;
+    const out = (await geminiChatJSON({
+      model: MODEL,
+      temperature: 0.7,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+    })) as PatientTurnOutput;
 
     // Attach provider for debugging/telemetry
     (out as any).provider = provider;
@@ -753,11 +567,11 @@ emotion_intensity 0-100
       {
         error: "patient_turn_failed",
         detail: isQuota
-          ? "El proveedor principal está limitado por cuota (429). Se intentó fallback (Groq/OpenRouter) si están configurados. Detalle: " + msg
+          ? "Gemini está limitado por cuota (429). Espera y reintenta. Detalle: " + msg
           : isJSONParse
             ? "El modelo devolvió texto que NO es JSON válido (Qwen a veces agrega texto extra). Detalle: " + msg
             : msg,
-        provider_hint: FORCE_PROVIDER || "auto",
+        provider_hint: "gemini",
         ...(dev && rawModel ? { raw_model_output: rawModel.slice(0, 2000) } : {}),
       },
       { status: 500 }
