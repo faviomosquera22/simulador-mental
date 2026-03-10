@@ -1804,10 +1804,158 @@ const CACES_EXTRA_CLINICAL_CASE_BANK: CacesQuestion[] = (() => {
   return out;
 })();
 
+const SUPPLEMENT_CASE_TARGET = 50;
+const SUPPLEMENT_DIRECT_PER_CASE = 4;
+
+const SUPPLEMENT_DIRECT_STEM_BUILDERS: Array<(seed: CacesQuestion) => string> = [
+  (seed) =>
+    `En ${String(seed.topic).toLowerCase()}, ¿cuál alternativa refleja mejor una decisión segura de enfermería?`,
+  (seed) =>
+    `Respecto a ${String(seed.topic).toLowerCase()}, identifica la intervención más coherente con la valoración clínica integral.`,
+  (seed) =>
+    `¿Qué conducta prioriza seguridad y continuidad del cuidado al abordar ${String(seed.topic).toLowerCase()}?`,
+  (seed) =>
+    `En protocolos de ${String(seed.subcomponent).toLowerCase()}, ¿qué opción es técnicamente más adecuada para ${String(seed.topic).toLowerCase()}?`,
+];
+
+const SUPPLEMENT_DIFFICULTY_ORDER: CacesDifficulty[] = ["basica", "intermedia", "alta"];
+
+function cloneQuestionOptions(optionsInput: CacesQuestion["options"]): CacesQuestion["options"] {
+  return optionsInput.map((opt) => ({ ...opt })) as CacesQuestion["options"];
+}
+
+function rotateSupplementDifficulty(base: CacesDifficulty, step: number): CacesDifficulty {
+  const idx = SUPPLEMENT_DIFFICULTY_ORDER.indexOf(base);
+  const safeIdx = idx >= 0 ? idx : 1;
+  const next = Math.max(0, Math.min(2, safeIdx + step));
+  return SUPPLEMENT_DIFFICULTY_ORDER[next];
+}
+
+function toSupplementScenario(rawStem: string, topic: string) {
+  let out = String(rawStem ?? "").trim();
+  out = out
+    .replace(/^caso clínico:\s*/i, "")
+    .replace(/^mini caso:\s*/i, "")
+    .replace(/^en relación con\s*/i, "");
+  out = out.replace(/¿[^?]*\?\s*$/u, "").replace(/\?\s*$/u, "").trim();
+  out = out.replace(/[.]+$/u, "").trim();
+  if (out.length < 24) {
+    out = `Paciente en contexto de ${String(topic).toLowerCase()}`;
+  }
+  return out;
+}
+
+function pickSupplementCaseSeeds(source: CacesQuestion[], target: number) {
+  const caseCandidates = source.filter((q) => q.type === "caso_clinico");
+  const grouped = new Map<string, CacesQuestion[]>();
+
+  for (const question of caseCandidates) {
+    const current = grouped.get(question.category) ?? [];
+    current.push(question);
+    grouped.set(question.category, current);
+  }
+
+  for (const [category, rows] of grouped) {
+    grouped.set(
+      category,
+      [...rows].sort((a, b) => a.id.localeCompare(b.id, "es", { sensitivity: "base" }))
+    );
+  }
+
+  const categories = [...grouped.keys()].sort((a, b) =>
+    a.localeCompare(b, "es", { sensitivity: "base" })
+  );
+  const picked: CacesQuestion[] = [];
+  const pickedIds = new Set<string>();
+  let keepPicking = true;
+
+  while (picked.length < target && keepPicking) {
+    keepPicking = false;
+    for (const category of categories) {
+      const bucket = grouped.get(category);
+      if (!bucket || bucket.length === 0) continue;
+      const next = bucket.shift();
+      if (!next || pickedIds.has(next.id)) continue;
+      picked.push(next);
+      pickedIds.add(next.id);
+      keepPicking = true;
+      if (picked.length >= target) break;
+    }
+  }
+
+  if (picked.length < target) {
+    const fallback = source.filter((q) => !pickedIds.has(q.id));
+    for (const question of fallback) {
+      picked.push(question);
+      pickedIds.add(question.id);
+      if (picked.length >= target) break;
+    }
+  }
+
+  return picked.slice(0, target);
+}
+
+const CACES_SUPPLEMENTAL_BANK: CacesQuestion[] = (() => {
+  const source = dedupeCacesQuestions([
+    ...CACES_CORE_QUESTION_BANK,
+    ...CACES_EXTRA_CLINICAL_CASE_BANK,
+    ...CACES_EXPANDED_QUESTION_BANK,
+  ]);
+  const seeds = pickSupplementCaseSeeds(source, SUPPLEMENT_CASE_TARGET);
+  const out: CacesQuestion[] = [];
+
+  for (let i = 0; i < seeds.length; i++) {
+    const seed = seeds[i];
+    const serial = i + 1;
+    const scenario = toSupplementScenario(seed.question, seed.topic);
+    const baseTags = [...new Set([...(seed.tags ?? []), "suplemento_2026"])];
+    const caseOptions = cloneQuestionOptions(seed.options);
+
+    out.push({
+      id: `caces-sup-case-${String(serial).padStart(3, "0")}`,
+      component: seed.component,
+      subcomponent: seed.subcomponent,
+      topic: `${seed.topic} - caso complementario`,
+      category: seed.category,
+      type: "caso_clinico",
+      question: `Caso clínico complementario ${serial}: ${scenario}. ¿Cuál es la conducta inicial más adecuada de enfermería?`,
+      options: caseOptions,
+      correctAnswer: seed.correctAnswer,
+      explanation: seed.explanation,
+      difficulty: seed.difficulty,
+      tags: [...baseTags, "caso_clinico", "suplemento_case"],
+    });
+
+    for (let templateIdx = 0; templateIdx < SUPPLEMENT_DIRECT_PER_CASE; templateIdx++) {
+      const stemBuilder =
+        SUPPLEMENT_DIRECT_STEM_BUILDERS[templateIdx % SUPPLEMENT_DIRECT_STEM_BUILDERS.length];
+      const directOptions = cloneQuestionOptions(seed.options);
+      const step = templateIdx === 2 ? 1 : 0;
+      out.push({
+        id: `caces-sup-dir-${String(i * SUPPLEMENT_DIRECT_PER_CASE + templateIdx + 1).padStart(3, "0")}`,
+        component: seed.component,
+        subcomponent: seed.subcomponent,
+        topic: `${seed.topic} - práctica adicional ${templateIdx + 1}`,
+        category: seed.category,
+        type: "directa",
+        question: stemBuilder(seed),
+        options: directOptions,
+        correctAnswer: seed.correctAnswer,
+        explanation: `${seed.explanation} La opción correcta se mantiene por coherencia con seguridad del paciente y razonamiento clínico.`,
+        difficulty: rotateSupplementDifficulty(seed.difficulty, step),
+        tags: [...baseTags, "directa", "suplemento_directa"],
+      });
+    }
+  }
+
+  return out;
+})();
+
 export const CACES_QUESTION_BANK: CacesQuestion[] = [
   ...CACES_CORE_QUESTION_BANK,
   ...CACES_EXTRA_CLINICAL_CASE_BANK,
   ...CACES_EXPANDED_QUESTION_BANK,
+  ...CACES_SUPPLEMENTAL_BANK,
 ].map(alignQuestionToEhepManual);
 
 export function normalizeCacesText(value: string) {

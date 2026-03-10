@@ -6,18 +6,9 @@ import {
   buildCacesQuestionKey,
   dedupeCacesQuestions,
 } from "@/src/lib/caces";
+import { generateJsonWithGeminiFallback } from "@/src/lib/ai/geminiFallback";
 import { enforceRateLimit, requireAuthenticatedUser } from "@/src/lib/serverGuards";
 import type { CacesDifficulty, CacesOptionId, CacesQuestion, CacesQuestionType } from "@/src/lib/types";
-
-const CEREBRAS_API_KEY = process.env.CEREBRAS_API_KEY;
-const CEREBRAS_BASE_URL = process.env.CEREBRAS_BASE_URL || "https://api.cerebras.ai/v1";
-const CEREBRAS_MODEL = process.env.CEREBRAS_MODEL || "llama-3.3-70b";
-
-const DASHSCOPE_API_KEY = process.env.DASHSCOPE_API_KEY;
-const DASHSCOPE_BASE_URL = process.env.DASHSCOPE_BASE_URL || "https://dashscope-intl.aliyuncs.com/compatible-mode/v1";
-const DASHSCOPE_MODEL = process.env.DASHSCOPE_MODEL || "qwen-plus";
-
-const FORCE_PROVIDER = String(process.env.AI_PROVIDER ?? "").toLowerCase().trim();
 
 const RATE_LIMIT_WINDOW_MS = Number(process.env.AI_RATE_LIMIT_WINDOW_MS ?? 60_000);
 const RATE_LIMIT_CACES_GENERATE = Number(process.env.AI_RATE_LIMIT_CACES_GENERATE ?? 12);
@@ -57,80 +48,6 @@ type CacesGenerateLLMResponse = {
     tags?: string[];
   }>;
 };
-
-function extractJSON(text: string): any {
-  try {
-    return JSON.parse(text);
-  } catch {
-    const start = text.indexOf("{");
-    const end = text.lastIndexOf("}");
-    if (start !== -1 && end !== -1 && end > start) {
-      return JSON.parse(text.slice(start, end + 1));
-    }
-    throw new Error("Could not parse JSON from model output");
-  }
-}
-
-async function openAICompatChatJSON(opts: {
-  url: string;
-  apiKey: string;
-  model: string;
-  temperature?: number;
-  messages: Array<{ role: "system" | "user" | "assistant"; content: string }>;
-  headers?: Record<string, string>;
-  timeoutMs?: number;
-}) {
-  const {
-    url,
-    apiKey,
-    model,
-    temperature = 0.7,
-    messages,
-    headers = {},
-    timeoutMs = 60_000,
-  } = opts;
-
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-        ...headers,
-      },
-      body: JSON.stringify({
-        model,
-        temperature,
-        stream: false,
-        messages,
-      }),
-      signal: controller.signal,
-    });
-
-    if (!res.ok) {
-      const txt = await res.text().catch(() => "");
-      const err: any = new Error(`openai_compat_http_${res.status}: ${txt}`);
-      err.status = res.status;
-      throw err;
-    }
-
-    const data = await res.json();
-    const content = String(data?.choices?.[0]?.message?.content ?? "");
-    return extractJSON(content);
-  } finally {
-    clearTimeout(t);
-  }
-}
-
-function buildChatCompletionsUrl(baseUrl: string) {
-  const clean = String(baseUrl ?? "").trim().replace(/\/+$/, "");
-  if (!clean) return "/chat/completions";
-  if (/\/chat\/completions$/i.test(clean)) return clean;
-  return `${clean}/chat/completions`;
-}
 
 function cleanText(value: unknown, fallback = "") {
   const v = String(value ?? "").trim();
@@ -333,16 +250,7 @@ export async function POST(req: Request) {
       ? body.exclude_question_keys.map((k) => cleanText(k).slice(0, 240)).filter(Boolean).slice(-80)
       : [];
 
-    let provider: "cerebras" | "alibaba" = "cerebras";
-    if (FORCE_PROVIDER === "alibaba") provider = "alibaba";
-    else if (FORCE_PROVIDER === "cerebras") provider = "cerebras";
-    else if (
-      FORCE_PROVIDER === "gemini" ||
-      FORCE_PROVIDER === "groq" ||
-      FORCE_PROVIDER === "openrouter"
-    ) {
-      console.warn("AI_PROVIDER old value ignored. Active providers are Cerebras/Alibaba Cloud.");
-    }
+    const provider = "gemini";
 
     const system = `
 Eres un generador de preguntas tipo CACES para entrenamiento académico de enfermería.
@@ -407,74 +315,23 @@ Reglas:
       2
     );
 
-    const callCerebras = async () => {
-      if (!CEREBRAS_API_KEY) throw new Error("CEREBRAS_API_KEY not set");
-      provider = "cerebras";
-      return openAICompatChatJSON({
-        url: buildChatCompletionsUrl(CEREBRAS_BASE_URL),
-        apiKey: CEREBRAS_API_KEY,
-        model: CEREBRAS_MODEL,
+    const llm = await generateJsonWithGeminiFallback<CacesGenerateLLMResponse>({
+      messages: [
+        {
+          role: "system",
+          content: `${system}\nRESPONDE SOLO CON JSON VÁLIDO.`,
+        },
+        { role: "user", content: user },
+      ],
+      generationConfig: {
         temperature: 0.8,
-        timeoutMs: 45_000,
-        messages: [
-          {
-            role: "system",
-            content: `${system}\nRESPONDE SOLO CON JSON VÁLIDO.`,
-          },
-          { role: "user", content: user },
-        ],
-      });
-    };
-
-    const callAlibaba = async () => {
-      if (!DASHSCOPE_API_KEY) throw new Error("DASHSCOPE_API_KEY not set");
-      provider = "alibaba";
-      return openAICompatChatJSON({
-        url: buildChatCompletionsUrl(DASHSCOPE_BASE_URL),
-        apiKey: DASHSCOPE_API_KEY,
-        model: DASHSCOPE_MODEL,
-        temperature: 0.8,
-        timeoutMs: 60_000,
-        messages: [
-          {
-            role: "system",
-            content: `${system}\nRESPONDE SOLO CON JSON VÁLIDO.`,
-          },
-          { role: "user", content: user },
-        ],
-      });
-    };
-
-    const rawJson = await (async () => {
-      if (provider === "cerebras") {
-        if (!CEREBRAS_API_KEY) {
-          console.warn("AI_PROVIDER=cerebras but CEREBRAS_API_KEY is missing; falling back.");
-          if (DASHSCOPE_API_KEY) return callAlibaba();
-          throw new Error("No AI provider configured: missing CEREBRAS_API_KEY and DASHSCOPE_API_KEY");
-        } else {
-          return callCerebras();
-        }
-      }
-      if (provider === "alibaba") {
-        if (!DASHSCOPE_API_KEY) {
-          console.warn("AI_PROVIDER=alibaba but DASHSCOPE_API_KEY is missing; falling back to Cerebras.");
-          if (CEREBRAS_API_KEY) return callCerebras();
-          throw new Error("No AI provider configured: missing DASHSCOPE_API_KEY and CEREBRAS_API_KEY");
-        } else {
-          return callAlibaba();
-        }
-      }
-
-      try {
-        return await callCerebras();
-      } catch (cerebrasErr: any) {
-        if (!DASHSCOPE_API_KEY) throw cerebrasErr;
-        return await callAlibaba();
-      }
-    })();
+        responseMimeType: "application/json",
+      },
+      timeoutMs: 60_000,
+    });
 
     const generated = sanitizeGeneratedQuestions({
-      raw: rawJson as CacesGenerateLLMResponse,
+      raw: llm.output,
       fallbackCategory: requestedCategories[0] || filters?.category,
       fallbackComponent: filters?.component || requestedCategories[0] || filters?.category || "General",
       fallbackSubcomponent: filters?.subcomponent || "General",
@@ -492,19 +349,44 @@ Reglas:
     return NextResponse.json({
       questions: deduped.slice(0, count),
       provider,
+      modelUsed: llm.modelUsed,
+      fallbackUsed: llm.fallbackUsed,
+      attempts: llm.attempts,
       requested: count,
       generated: deduped.slice(0, count).length,
       educational_note: "Contenido de uso educativo; no corresponde a reactivos oficiales.",
     });
   } catch (e: any) {
-    const status = Number(e?.status ?? NaN);
-    if (status === 429) {
+    const status = Number(
+      e?.status ??
+      e?.attempts?.[Array.isArray(e?.attempts) ? e.attempts.length - 1 : 0]?.status ??
+      NaN
+    );
+    const msg = String(e?.message ?? "");
+
+    const isRateLimited =
+      status === 429 ||
+      /\b429\b/.test(msg) ||
+      /rate limit|quota|too many requests|resource_exhausted/i.test(msg);
+    if (isRateLimited) {
       return NextResponse.json(
         {
           code: "RATE_LIMIT",
           detail: "Límite alcanzado al generar preguntas CACES con IA. Intenta de nuevo en breve.",
+          attempts: Array.isArray(e?.attempts) ? e.attempts : undefined,
         },
         { status: 429 }
+      );
+    }
+
+    if (/gemini_all_models_failed/i.test(msg)) {
+      return NextResponse.json(
+        {
+          code: "GEMINI_ALL_MODELS_FAILED",
+          detail: "Todos los modelos Gemini configurados fallaron temporalmente.",
+          attempts: Array.isArray(e?.attempts) ? e.attempts : undefined,
+        },
+        { status: 503 }
       );
     }
 
@@ -512,6 +394,7 @@ Reglas:
       {
         code: "CACES_GENERATION_FAILED",
         detail: String(e?.message ?? "No se pudo generar preguntas con IA."),
+        attempts: Array.isArray(e?.attempts) ? e.attempts : undefined,
       },
       { status: 500 }
     );

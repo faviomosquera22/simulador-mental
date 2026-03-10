@@ -1,23 +1,9 @@
 import { NextResponse } from "next/server";
+import { generateJsonWithGeminiFallback } from "../../../../src/lib/ai/geminiFallback";
 import {
   enforceRateLimit,
   requireAuthenticatedUser,
 } from "../../../../src/lib/serverGuards";
-
-// === AI Providers (Cerebras primary + Alibaba Cloud fallback) ===
-// Cerebras (OpenAI-compatible)
-const CEREBRAS_API_KEY = process.env.CEREBRAS_API_KEY;
-const CEREBRAS_BASE_URL = process.env.CEREBRAS_BASE_URL || "https://api.cerebras.ai/v1";
-const CEREBRAS_MODEL = process.env.CEREBRAS_MODEL || "llama-3.3-70b";
-
-// Alibaba Cloud DashScope (OpenAI-compatible mode)
-const DASHSCOPE_API_KEY = process.env.DASHSCOPE_API_KEY;
-const DASHSCOPE_BASE_URL = process.env.DASHSCOPE_BASE_URL || "https://dashscope-intl.aliyuncs.com/compatible-mode/v1";
-const DASHSCOPE_MODEL = process.env.DASHSCOPE_MODEL || "qwen-plus";
-
-// Optional: force provider (useful for debugging / quota situations)
-// AI_PROVIDER=cerebras | alibaba (gemini/groq/openrouter deshabilitados temporalmente)
-const FORCE_PROVIDER = String(process.env.AI_PROVIDER ?? "").toLowerCase().trim();
 
 // === Output size controls (prevent huge cases that bloat prompts/UI) ===
 const MAX_FACTS = Number(process.env.AI_CASE_MAX_FACTS ?? 26);
@@ -314,98 +300,6 @@ function ensureSuggestedQuestions(caseJson: any, domain: "mental" | "medical" = 
   return caseJson;
 }
 
-function extractJSON(text: string): any {
-  // Try direct parse first
-  try {
-    return JSON.parse(text);
-  } catch {
-    // Try to extract the first JSON object block
-    const start = text.indexOf("{");
-    const end = text.lastIndexOf("}");
-    if (start !== -1 && end !== -1 && end > start) {
-      const candidate = text.slice(start, end + 1);
-      return JSON.parse(candidate);
-    }
-    throw new Error("Could not parse JSON from model output");
-  }
-}
-
-async function openAICompatChatJSON(opts: {
-  url: string;
-  apiKey: string;
-  model: string;
-  temperature?: number;
-  messages: Array<{ role: "system" | "user" | "assistant"; content: string }>;
-  headers?: Record<string, string>;
-  timeoutMs?: number;
-}) {
-  const {
-    url,
-    apiKey,
-    model,
-    temperature = 0.7,
-    messages,
-    headers = {},
-    timeoutMs = 60_000,
-  } = opts;
-
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-        ...headers,
-      },
-      body: JSON.stringify({
-        model,
-        temperature,
-        stream: false,
-        messages,
-      }),
-      signal: controller.signal,
-    });
-
-    if (!res.ok) {
-      const txt = await res.text().catch(() => "");
-      const err: any = new Error(`openai_compat_http_${res.status}: ${txt}`);
-      err.status = res.status;
-      throw err;
-    }
-
-    const data = await res.json();
-    const content = String(data?.choices?.[0]?.message?.content ?? "");
-    try {
-      return extractJSON(content);
-    } catch {
-      const e: any = new Error("OpenAI-compatible provider returned non-JSON output");
-      e.raw_model_output = content;
-      throw e;
-    }
-  } catch (err: any) {
-    const name = String(err?.name ?? "");
-    const msg = String(err?.message ?? "");
-    if (name === "AbortError" || /aborted/i.test(msg)) {
-      const e = new Error("provider_timeout");
-      (e as any).name = "AbortError";
-      throw e;
-    }
-    throw err;
-  } finally {
-    clearTimeout(t);
-  }
-}
-
-function buildChatCompletionsUrl(baseUrl: string) {
-  const clean = String(baseUrl ?? "").trim().replace(/\/+$/, "");
-  if (!clean) return "/chat/completions";
-  if (/\/chat\/completions$/i.test(clean)) return clean;
-  return `${clean}/chat/completions`;
-}
-
 export async function POST(req: Request) {
   try {
     const auth = await requireAuthenticatedUser(req);
@@ -431,21 +325,6 @@ export async function POST(req: Request) {
     const normalizedAgeGroup =
       age_group === "child" || age_group === "adolescent" || age_group === "mixed" ? age_group : "adult";
     const isPediatric = normalizedAgeGroup === "child" || normalizedAgeGroup === "adolescent";
-
-    let provider: "cerebras" | "alibaba" = "cerebras";
-
-    // Allow forcing provider via env (useful for debugging / quota situations)
-    if (FORCE_PROVIDER === "alibaba") provider = "alibaba";
-    else if (FORCE_PROVIDER === "cerebras") provider = "cerebras";
-    else if (
-      FORCE_PROVIDER === "gemini" ||
-      FORCE_PROVIDER === "groq" ||
-      FORCE_PROVIDER === "openrouter"
-    ) {
-      console.warn(
-        "AI_PROVIDER old value ignored. Active providers are Cerebras/Alibaba Cloud."
-      );
-    }
 
     const system =
       normalizedDomain === "medical"
@@ -627,97 +506,43 @@ Además:
       2
     );
 
-    const callCerebras = async () => {
-      if (!CEREBRAS_API_KEY) throw new Error("CEREBRAS_API_KEY not set");
-      provider = "cerebras";
-      return await openAICompatChatJSON({
-        url: buildChatCompletionsUrl(CEREBRAS_BASE_URL),
-        apiKey: CEREBRAS_API_KEY,
-        model: CEREBRAS_MODEL,
+    const llm = await generateJsonWithGeminiFallback<any>({
+      messages: [
+        {
+          role: "system",
+          content: system + "\n\nRESPONDE SOLO CON JSON VÁLIDO. NO incluyas ningún texto fuera del JSON.",
+        },
+        { role: "user", content: user },
+      ],
+      generationConfig: {
         temperature: 0.6,
-        messages: [
-          {
-            role: "system",
-            content: system + "\n\nRESPONDE SOLO CON JSON VÁLIDO. NO incluyas ningún texto fuera del JSON.",
-          },
-          { role: "user", content: user },
-        ],
-        timeoutMs: 45_000,
-      });
-    };
-
-    const callAlibaba = async () => {
-      if (!DASHSCOPE_API_KEY) throw new Error("DASHSCOPE_API_KEY not set");
-      provider = "alibaba";
-      return await openAICompatChatJSON({
-        url: buildChatCompletionsUrl(DASHSCOPE_BASE_URL),
-        apiKey: DASHSCOPE_API_KEY,
-        model: DASHSCOPE_MODEL,
-        temperature: 0.6,
-        messages: [
-          {
-            role: "system",
-            content: system + "\n\nRESPONDE SOLO CON JSON VÁLIDO. NO incluyas ningún texto fuera del JSON.",
-          },
-          { role: "user", content: user },
-        ],
-        timeoutMs: 60_000,
-      });
-    };
-
-    const json = await (async () => {
-      // 1) Forced provider paths
-      if (provider === "cerebras") {
-        if (!CEREBRAS_API_KEY) {
-          console.warn("AI_PROVIDER=cerebras but CEREBRAS_API_KEY is missing; falling back.");
-          if (DASHSCOPE_API_KEY) return await callAlibaba();
-          throw new Error("No AI provider configured: missing CEREBRAS_API_KEY and DASHSCOPE_API_KEY.");
-        } else {
-          return await callCerebras();
-        }
-      }
-      if (provider === "alibaba") {
-        if (!DASHSCOPE_API_KEY) {
-          console.warn("AI_PROVIDER=alibaba but DASHSCOPE_API_KEY is missing; falling back to Cerebras.");
-          if (CEREBRAS_API_KEY) return await callCerebras();
-          throw new Error("No AI provider configured: missing DASHSCOPE_API_KEY and CEREBRAS_API_KEY.");
-        } else {
-          return await callAlibaba();
-        }
-      }
-
-      // 2) Auto path: Cerebras primary with Alibaba fallback
-      try {
-        return await callCerebras();
-      } catch (e1: any) {
-        const msg1 = String(e1?.message ?? "");
-        const status1 = Number(e1?.status ?? e1?.statusCode ?? NaN);
-        console.warn("Cerebras failed generating case, trying Alibaba fallback:", { status: status1, msg: msg1 });
-
-        if (!DASHSCOPE_API_KEY) throw e1;
-
-        try {
-          return await callAlibaba();
-        } catch (e2: any) {
-          const msg2 = String(e2?.message ?? "");
-          const status2 = Number(e2?.status ?? e2?.statusCode ?? NaN);
-          console.warn("Alibaba failed generating case:", { status: status2, msg: msg2 });
-          throw e2;
-        }
-      }
-    })();
+        responseMimeType: "application/json",
+      },
+      timeoutMs: 60_000,
+    });
+    const json = llm.output;
 
     const normalized = normalizeCaseSize(ensureSuggestedQuestions(json, normalizedDomain));
     normalized.meta = typeof normalized.meta === "object" && normalized.meta ? normalized.meta : {};
     normalized.meta.domain = normalizedDomain;
+    normalized.meta.ai = {
+      provider: "gemini",
+      modelUsed: llm.modelUsed,
+      fallbackUsed: llm.fallbackUsed,
+      attempts: llm.attempts,
+    };
     return NextResponse.json(normalized);
   } catch (e: any) {
     const msg = String(e?.message ?? "");
-    const status = Number(e?.status ?? e?.response?.status ?? e?.cause?.status);
+    const status = Number(
+      e?.status ??
+      e?.attempts?.[Array.isArray(e?.attempts) ? e.attempts.length - 1 : 0]?.status ??
+      e?.response?.status ??
+      e?.cause?.status ??
+      NaN
+    );
 
-    const isJSONParse = /non-JSON output|Could not parse JSON|Unexpected token|JSON/i.test(msg);
-    const rawModel = String((e as any)?.raw_model_output ?? "");
-    const dev = process.env.NODE_ENV !== "production";
+    const isJSONParse = /non-JSON output|Could not parse JSON|Unexpected token|JSON|gemini_no_json_returned|INVALID_RESPONSE/i.test(msg);
 
     const is429 =
       status === 429 ||
@@ -731,10 +556,22 @@ Además:
         {
           code: "RATE_LIMIT",
           detail:
-            "Se alcanzó un límite (429) al generar el caso. Se intentó fallback (Cerebras/Alibaba) si están configurados. Si persiste, espera y reintenta o fuerza AI_PROVIDER=cerebras/alibaba.",
+            "Se alcanzó un límite (429) al generar el caso con IA. Espera un momento e intenta nuevamente.",
           retry_after_ms: 120000,
+          attempts: Array.isArray(e?.attempts) ? e.attempts : undefined,
         },
         { status: 429 }
+      );
+    }
+
+    if (/gemini_all_models_failed/i.test(msg)) {
+      return NextResponse.json(
+        {
+          code: "GEMINI_ALL_MODELS_FAILED",
+          detail: "Todos los modelos Gemini configurados fallaron temporalmente.",
+          attempts: Array.isArray(e?.attempts) ? e.attempts : undefined,
+        },
+        { status: 503 }
       );
     }
 
@@ -742,10 +579,10 @@ Además:
       {
         code: "GENERATE_CASE_FAILED",
         detail: isJSONParse
-          ? "El modelo devolvió texto que NO es JSON válido al generar el caso (Qwen a veces agrega texto extra). Intenta de nuevo o reduce la complejidad."
+          ? "El modelo devolvió texto que NO es JSON válido al generar el caso. Intenta de nuevo o reduce la complejidad."
           : "No se pudo generar el caso. Intenta nuevamente.",
-        provider_hint: FORCE_PROVIDER || "auto",
-        ...(dev && rawModel ? { raw_model_output: rawModel.slice(0, 2000) } : {}),
+        provider_hint: "gemini",
+        attempts: Array.isArray(e?.attempts) ? e.attempts : undefined,
       },
       { status: 500 }
     );

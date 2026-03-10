@@ -100,7 +100,6 @@ export default function SimulatorCacesPage() {
   const [feedbackMode, setFeedbackMode] = useState<CacesFeedbackMode>("inmediata");
   const [timerEnabled, setTimerEnabled] = useState(true);
   const [minutesPerQuestion, setMinutesPerQuestion] = useState<1 | 2>(2);
-  const [mixCategories, setMixCategories] = useState(false);
   const [saveResult, setSaveResult] = useState(true);
   const [enableAIDynamicBank, setEnableAIDynamicBank] = useState(true);
   const [generatedQuestions, setGeneratedQuestions] = useState<CacesQuestion[]>([]);
@@ -135,12 +134,11 @@ export default function SimulatorCacesPage() {
   }, []);
 
   const questionCountByMode = useMemo(() => deriveQuestionCountByMode(mode), [mode]);
-  const effectiveMixCategories = mixCategories || selectedCategories.length > 1;
+  const effectiveMixCategories = selectedCategories.length > 1;
   const effectiveCategories = useMemo(() => {
     if (selectedCategories.length > 0) return selectedCategories;
-    if (mixCategories) return [...CACES_CATEGORIES];
     return [] as string[];
-  }, [selectedCategories, mixCategories]);
+  }, [selectedCategories]);
   const allCategoriesSelected = effectiveCategories.length === CACES_CATEGORIES.length;
   const effectiveCategory = effectiveCategories.length === 1 ? effectiveCategories[0] : undefined;
 
@@ -148,7 +146,7 @@ export default function SimulatorCacesPage() {
     setSelectedComponent("");
     setSelectedSubcomponent("");
     setSelectedTopic("");
-  }, [selectedCategories, mixCategories]);
+  }, [selectedCategories]);
 
   useEffect(() => {
     setSelectedSubcomponent("");
@@ -1030,16 +1028,6 @@ export default function SimulatorCacesPage() {
                             <label className="flex items-center gap-2 text-white/80">
                               <input
                                 type="checkbox"
-                                checked={effectiveMixCategories}
-                                disabled={selectedCategories.length > 1}
-                                onChange={(e) => setMixCategories(e.target.checked)}
-                              />
-                              Mezclar categorías (con reparto equitativo)
-                              {selectedCategories.length > 1 ? " (activo por selección múltiple)" : ""}
-                            </label>
-                            <label className="flex items-center gap-2 text-white/80">
-                              <input
-                                type="checkbox"
                                 checked={saveResult}
                                 onChange={(e) => setSaveResult(e.target.checked)}
                               />
@@ -1141,7 +1129,6 @@ export default function SimulatorCacesPage() {
                             setFeedbackMode("inmediata");
                             setTimerEnabled(true);
                             setMinutesPerQuestion(2);
-                            setMixCategories(false);
                             setSaveResult(true);
                             setEnableAIDynamicBank(true);
                             setConfigError(null);
