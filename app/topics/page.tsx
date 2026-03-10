@@ -80,6 +80,8 @@ type UnifiedLibraryItem = {
   typical: string;
   comorbidities: string[];
   scales: string[];
+  codeSystem?: string;
+  code?: string;
   source: ClinicalDx | MedicalPathology;
 };
 
@@ -121,6 +123,8 @@ export default function TopicsPage() {
       typical: dx.quick.typical,
       comorbidities: dx.meta.comorbidities,
       scales: dx.meta.recommendedScales,
+      codeSystem: "DSM-5",
+      code: dx.id.toUpperCase(),
       source: dx,
     }));
 
@@ -144,6 +148,8 @@ export default function TopicsPage() {
       typical: item.clinical_clues.join(", "),
       comorbidities: item.red_flags,
       scales: item.diagnostic_support,
+      codeSystem: item.codeSystem,
+      code: item.code,
       source: item,
     }));
 
@@ -173,6 +179,8 @@ export default function TopicsPage() {
         ...item.keywords,
         ...item.comorbidities,
         ...item.scales,
+        item.codeSystem ?? "",
+        item.code ?? "",
       ]
         .join(" ")
         .toLowerCase();
@@ -449,6 +457,11 @@ export default function TopicsPage() {
                         </span>
                       </div>
                       <div className="mt-1 text-sm font-semibold text-white">{d.name}</div>
+                      {!!d.code && (
+                        <div className="mt-1 text-[10px] text-white/55">
+                          {d.codeSystem}: {d.code}
+                        </div>
+                      )}
                       <div className="mt-1 line-clamp-2 text-xs text-white/65">
                         {d.definition}
                       </div>
@@ -487,6 +500,11 @@ export default function TopicsPage() {
                         <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/75">
                           {active.ageBands.join(" · ")}
                         </span>
+                        {!!active.code && (
+                          <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs text-cyan-100">
+                            {active.codeSystem}: {active.code}
+                          </span>
+                        )}
                       </div>
                     </div>
 

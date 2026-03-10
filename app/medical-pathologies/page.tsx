@@ -30,6 +30,8 @@ export default function MedicalPathologiesPage() {
       if (!q) return true;
       const text = [
         item.name,
+        item.codeSystem,
+        item.code,
         item.area,
         item.summary,
         ...item.clinical_clues,
@@ -171,7 +173,12 @@ export default function MedicalPathologiesPage() {
                           {item.urgency}
                         </span>
                       </div>
-                      <div className="mt-1 text-xs text-white/65">{item.area}</div>
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-white/65">
+                        <span>{item.area}</span>
+                        <span className="rounded-full border border-white/15 bg-black/30 px-2 py-0.5 text-[10px] text-white/75">
+                          {item.codeSystem}: {item.code}
+                        </span>
+                      </div>
                     </button>
                   );
                 })}
@@ -191,6 +198,9 @@ export default function MedicalPathologiesPage() {
                   <div>
                     <div className="text-xs uppercase tracking-wider text-white/45">{active.area}</div>
                     <h2 className="mt-1 text-2xl font-semibold text-white">{active.name}</h2>
+                    <div className="mt-2 inline-flex items-center rounded-full border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs text-cyan-100">
+                      {active.codeSystem}: {active.code}
+                    </div>
                     <p className="mt-2 text-sm text-white/75">{active.summary}</p>
                   </div>
 

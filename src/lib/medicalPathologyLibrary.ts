@@ -1,3 +1,5 @@
+import { MEDICAL_CASE_CATALOG, type MedicalCaseArea } from "./medicalCaseCatalog";
+
 export type MedicalArea =
   | "Cardiovascular"
   | "Respiratorio"
@@ -8,20 +10,29 @@ export type MedicalArea =
   | "Gastrointestinal"
   | "Gineco-obstétrico"
   | "Pediatría"
+  | "Geriátrico"
   | "Urgencias y críticos";
 
 export type MedicalUrgency = "baja" | "media" | "alta";
+export type MedicalCodeSystem = "CIE-10" | "DSM-5";
 
 export type MedicalPathology = {
   id: string;
   name: string;
   area: MedicalArea;
   urgency: MedicalUrgency;
+  codeSystem: MedicalCodeSystem;
+  code: string;
   summary: string;
   clinical_clues: string[];
   red_flags: string[];
   nursing_priorities: string[];
   diagnostic_support: string[];
+};
+
+type MedicalPathologySeed = Omit<MedicalPathology, "codeSystem" | "code"> & {
+  codeSystem?: MedicalCodeSystem;
+  code?: string;
 };
 
 export const MEDICAL_AREAS: MedicalArea[] = [
@@ -34,10 +45,11 @@ export const MEDICAL_AREAS: MedicalArea[] = [
   "Gastrointestinal",
   "Gineco-obstétrico",
   "Pediatría",
+  "Geriátrico",
   "Urgencias y críticos",
 ];
 
-const EXTRA_MEDICAL_PATHOLOGY_LIBRARY: MedicalPathology[] = [
+const EXTRA_MEDICAL_PATHOLOGY_LIBRARY: MedicalPathologySeed[] = [
   {
     id: "fibrilacion-auricular",
     name: "Fibrilación auricular",
@@ -601,9 +613,7 @@ const EXTRA_MEDICAL_PATHOLOGY_LIBRARY: MedicalPathology[] = [
   },
 ];
 
-export const MEDICAL_PATHOLOGY_LIBRARY: MedicalPathology[] = [];
-
-const BASE_MEDICAL_PATHOLOGY_LIBRARY: MedicalPathology[] = [
+const BASE_MEDICAL_PATHOLOGY_LIBRARY: MedicalPathologySeed[] = [
   {
     id: "hta",
     name: "Hipertensión arterial",
@@ -859,7 +869,496 @@ const BASE_MEDICAL_PATHOLOGY_LIBRARY: MedicalPathology[] = [
   },
 ];
 
-MEDICAL_PATHOLOGY_LIBRARY.push(
-  ...BASE_MEDICAL_PATHOLOGY_LIBRARY,
-  ...EXTRA_MEDICAL_PATHOLOGY_LIBRARY
-);
+const TARGET_MEDICAL_PATHOLOGY_COUNT = 200;
+
+const CASE_AREA_TO_MEDICAL_AREA: Record<MedicalCaseArea, MedicalArea> = {
+  Cardiovascular: "Cardiovascular",
+  Respiratorio: "Respiratorio",
+  "Neurológico": "Neurológico",
+  "Endocrino-metabólico": "Endocrino-metabólico",
+  "Renal-urinario": "Renal",
+  Infeccioso: "Infeccioso",
+  Gastrointestinal: "Gastrointestinal",
+  "Gineco-obstétrico": "Gineco-obstétrico",
+  "Pediátrico": "Pediatría",
+  "Geriátrico": "Geriátrico",
+  "Críticos y urgencias": "Urgencias y críticos",
+};
+
+type AreaTemplate = {
+  summaryTail: string;
+  clues: string[];
+  redFlags: string[];
+  priorities: string[];
+  diagnostics: string[];
+};
+
+const TEMPLATE_BY_AREA: Record<MedicalArea, AreaTemplate> = {
+  Cardiovascular: {
+    summaryTail: "Cuadro cardiovascular que requiere valoración clínica y estratificación de riesgo.",
+    clues: ["dolor torácico", "disnea", "palpitaciones", "fatiga de esfuerzo"],
+    redFlags: ["hipotensión", "síncope", "isquemia aguda", "deterioro hemodinámico"],
+    priorities: ["monitor cardíaco", "evaluar perfusión", "control hemodinámico", "escalamiento oportuno"],
+    diagnostics: ["ECG", "troponinas", "ecocardiograma", "laboratorio básico"],
+  },
+  Respiratorio: {
+    summaryTail: "Compromiso respiratorio con potencial deterioro ventilatorio y de oxigenación.",
+    clues: ["disnea", "taquipnea", "tos", "desaturación"],
+    redFlags: ["hipoxemia persistente", "fatiga respiratoria", "cianosis", "alteración de conciencia"],
+    priorities: ["oxigenoterapia titulada", "vigilancia respiratoria", "control gasométrico", "alerta temprana de deterioro"],
+    diagnostics: ["oximetría continua", "gasometría", "radiografía de tórax", "TAC según sospecha"],
+  },
+  "Neurológico": {
+    summaryTail: "Síndrome neurológico que exige evaluación focal, temporalidad y riesgo de complicaciones.",
+    clues: ["déficit focal", "cefalea", "alteración del sensorio", "convulsiones"],
+    redFlags: ["deterioro neurológico rápido", "compromiso de conciencia", "inestabilidad autonómica", "déficit progresivo"],
+    priorities: ["valoración neurológica seriada", "protección de vía aérea si precisa", "control hemodinámico", "escalamiento neurocrítico"],
+    diagnostics: ["TAC/RM cerebral", "glucosa y electrolitos", "EEG/LCR según caso", "monitorización clínica frecuente"],
+  },
+  "Endocrino-metabólico": {
+    summaryTail: "Desorden metabólico/hormonal con impacto sistémico y necesidad de corrección dirigida.",
+    clues: ["alteración glucémica", "síntomas constitucionales", "debilidad", "trastorno hidroelectrolítico"],
+    redFlags: ["compromiso neurológico", "arritmias", "deshidratación severa", "acidosis"],
+    priorities: ["corrección metabólica protocolizada", "monitorización de electrolitos", "vigilancia hemodinámica", "educación para prevenir recurrencias"],
+    diagnostics: ["perfil metabólico", "gasometría", "hormonas según sospecha", "monitor seriado de parámetros clave"],
+  },
+  Renal: {
+    summaryTail: "Condición renal/urinaria con riesgo de deterioro de función y complicaciones sistémicas.",
+    clues: ["alteración de diuresis", "dolor lumbar", "edema", "cambios en creatinina"],
+    redFlags: ["anuria", "hiperkalemia", "sepsis urinaria", "sobrecarga hídrica severa"],
+    priorities: ["monitor de diuresis", "control de volemia", "detección de complicaciones", "coordinación con nefrología/urología"],
+    diagnostics: ["creatinina y electrolitos", "uroanálisis/urocultivo", "ecografía renal", "gasometría según gravedad"],
+  },
+  Infeccioso: {
+    summaryTail: "Proceso infeccioso que requiere identificación del foco y control temprano de progresión.",
+    clues: ["fiebre", "taquicardia", "respuesta inflamatoria", "deterioro funcional"],
+    redFlags: ["sepsis", "hipotensión", "falla orgánica", "compromiso respiratorio o neurológico"],
+    priorities: ["detección y control de foco", "antibioticoterapia/antimicrobianos oportunos", "monitor de sepsis", "medidas de aislamiento cuando aplica"],
+    diagnostics: ["hemograma y PCR", "cultivos dirigidos", "lactato", "imágenes según foco"],
+  },
+  Gastrointestinal: {
+    summaryTail: "Patología digestiva con posible progresión a compromiso hemodinámico o peritoneal.",
+    clues: ["dolor abdominal", "náusea/vómito", "alteración del tránsito", "intolerancia oral"],
+    redFlags: ["peritonismo", "sangrado digestivo", "inestabilidad hemodinámica", "sepsis abdominal"],
+    priorities: ["reposo digestivo según indicación", "control del dolor", "balance hídrico", "vigilancia de complicaciones"],
+    diagnostics: ["laboratorio metabólico", "ecografía/TAC abdominal", "hemograma", "endoscopia según cuadro"],
+  },
+  "Gineco-obstétrico": {
+    summaryTail: "Evento gineco-obstétrico con enfoque en seguridad materna y, cuando aplica, bienestar fetal.",
+    clues: ["dolor pélvico", "sangrado vaginal", "síntomas sistémicos", "cambios obstétricos"],
+    redFlags: ["hemorragia activa", "hipotensión", "compromiso fetal", "sepsis obstétrica"],
+    priorities: ["monitor materno-fetal", "cuantificar sangrado/estado clínico", "escalamiento obstétrico temprano", "acompañamiento y educación"],
+    diagnostics: ["ecografía obstétrica/pélvica", "hemograma y coagulación", "grupo y factor", "marcadores de severidad"],
+  },
+  "Pediatría": {
+    summaryTail: "Patología pediátrica con necesidad de valoración por edad, hidratación y riesgo respiratorio/infeccioso.",
+    clues: ["fiebre", "cambios conductuales", "intolerancia oral", "compromiso respiratorio o gastrointestinal"],
+    redFlags: ["deshidratación severa", "hipoxemia", "letargia", "sepsis pediátrica"],
+    priorities: ["monitor pediátrico según edad", "soporte hídrico-respiratorio", "educación a cuidadores", "detección temprana de deterioro"],
+    diagnostics: ["evaluación clínica pediátrica", "oximetría", "laboratorios dirigidos", "imagen según sospecha"],
+  },
+  "Geriátrico": {
+    summaryTail: "Síndrome geriátrico con impacto funcional y alto riesgo de complicaciones por fragilidad.",
+    clues: ["deterioro funcional", "cambios cognitivos", "caídas", "síntomas inespecíficos"],
+    redFlags: ["delirium", "pérdida súbita de autonomía", "infección grave", "descompensación multiorgánica"],
+    priorities: ["valoración geriátrica integral", "prevención de iatrogenia", "plan de seguridad y movilidad", "coordinación con red de apoyo"],
+    diagnostics: ["tamizaje funcional/cognitivo", "laboratorio básico", "evaluación de comorbilidades", "revisión de medicación"],
+  },
+  "Urgencias y críticos": {
+    summaryTail: "Emergencia clínica que exige estabilización inmediata y priorización ABCDE.",
+    clues: ["inestabilidad hemodinámica", "compromiso respiratorio", "dolor intenso", "alteración del estado mental"],
+    redFlags: ["choque", "falla multiorgánica", "deterioro rápido", "paro inminente"],
+    priorities: ["ABC y reanimación inicial", "monitorización continua", "control de causa reversible", "escalamiento a unidad crítica"],
+    diagnostics: ["gasometría y lactato", "monitor ECG", "POCUS/TAC según contexto", "laboratorio urgente"],
+  },
+};
+
+type GeneratedBlueprint = {
+  name: string;
+  area: MedicalArea;
+  urgency: MedicalUrgency;
+  code: string;
+  codeSystem?: MedicalCodeSystem;
+};
+
+const SUPPLEMENTAL_PATHOLOGY_BLUEPRINTS: GeneratedBlueprint[] = [
+  { name: "Disección aórtica aguda", area: "Cardiovascular", urgency: "alta", code: "I71.0" },
+  { name: "Miocardiopatía dilatada", area: "Cardiovascular", urgency: "media", code: "I42.0" },
+  { name: "Miocardiopatía hipertrófica", area: "Cardiovascular", urgency: "media", code: "I42.2" },
+  { name: "Taponamiento cardiaco", area: "Cardiovascular", urgency: "alta", code: "I31.4" },
+  { name: "Síndrome de QT largo", area: "Cardiovascular", urgency: "media", code: "I45.8" },
+  { name: "Tromboembolismo arterial periférico agudo", area: "Cardiovascular", urgency: "alta", code: "I74.9" },
+  { name: "Fibrosis pulmonar idiopática", area: "Respiratorio", urgency: "media", code: "J84.1" },
+  { name: "Neumonitis por hipersensibilidad", area: "Respiratorio", urgency: "media", code: "J67.9" },
+  { name: "Derrame pleural maligno", area: "Respiratorio", urgency: "media", code: "J91" },
+  { name: "Bronquiectasias infectadas", area: "Respiratorio", urgency: "media", code: "J47" },
+  { name: "Hemoptisis moderada-severa", area: "Respiratorio", urgency: "alta", code: "R04.2" },
+  { name: "Esclerosis múltiple en brote", area: "Neurológico", urgency: "media", code: "G35" },
+  { name: "Crisis miasténica", area: "Neurológico", urgency: "alta", code: "G70.0" },
+  { name: "Síndrome de Guillain-Barré", area: "Neurológico", urgency: "alta", code: "G61.0" },
+  { name: "Hematoma subdural agudo", area: "Neurológico", urgency: "alta", code: "S06.5" },
+  { name: "Hematoma epidural", area: "Neurológico", urgency: "alta", code: "S06.4" },
+  { name: "Parkinson descompensado", area: "Neurológico", urgency: "media", code: "G20" },
+  { name: "Hipercalcemia severa", area: "Endocrino-metabólico", urgency: "alta", code: "E83.52" },
+  { name: "Hipocalcemia sintomática", area: "Endocrino-metabólico", urgency: "media", code: "E83.51" },
+  { name: "Hipertrigliceridemia severa", area: "Endocrino-metabólico", urgency: "media", code: "E78.1" },
+  { name: "Síndrome de realimentación", area: "Endocrino-metabólico", urgency: "alta", code: "E87.8" },
+  { name: "Cetoacidosis alcohólica", area: "Endocrino-metabólico", urgency: "alta", code: "E87.2" },
+  { name: "Acidosis tubular renal", area: "Renal", urgency: "media", code: "N25.8" },
+  { name: "Nefritis intersticial aguda", area: "Renal", urgency: "media", code: "N10" },
+  { name: "Rabdomiólisis con lesión renal", area: "Renal", urgency: "alta", code: "M62.82" },
+  { name: "Uropatía obstructiva bilateral", area: "Renal", urgency: "alta", code: "N13.9" },
+  { name: "Síndrome urémico hemolítico", area: "Renal", urgency: "alta", code: "D59.3" },
+  { name: "Endometritis aguda", area: "Infeccioso", urgency: "media", code: "N71.0" },
+  { name: "Osteomielitis aguda", area: "Infeccioso", urgency: "media", code: "M86.1" },
+  { name: "Fascitis necrotizante", area: "Infeccioso", urgency: "alta", code: "M72.6" },
+  { name: "Malaria grave", area: "Infeccioso", urgency: "alta", code: "B50.9" },
+  { name: "Leptospirosis severa", area: "Infeccioso", urgency: "alta", code: "A27.9" },
+  { name: "Meningoencefalitis tuberculosa", area: "Infeccioso", urgency: "alta", code: "A17.0" },
+  { name: "Colangitis aguda", area: "Gastrointestinal", urgency: "alta", code: "K83.0" },
+  { name: "Isquemia mesentérica aguda", area: "Gastrointestinal", urgency: "alta", code: "K55.0" },
+  { name: "Diverticulitis complicada", area: "Gastrointestinal", urgency: "media", code: "K57.2" },
+  { name: "Colitis ulcerosa en brote grave", area: "Gastrointestinal", urgency: "alta", code: "K51.9" },
+  { name: "Enfermedad de Crohn activa", area: "Gastrointestinal", urgency: "media", code: "K50.9" },
+  { name: "Hepatitis fulminante", area: "Gastrointestinal", urgency: "alta", code: "K72.0" },
+  { name: "Síndrome HELLP", area: "Gineco-obstétrico", urgency: "alta", code: "O14.2" },
+  { name: "Corioamnionitis", area: "Gineco-obstétrico", urgency: "alta", code: "O41.1" },
+  { name: "Endometriosis profunda sintomática", area: "Gineco-obstétrico", urgency: "media", code: "N80.8" },
+  { name: "Enfermedad inflamatoria pélvica", area: "Gineco-obstétrico", urgency: "media", code: "N73.9" },
+  { name: "Mastitis puerperal", area: "Gineco-obstétrico", urgency: "media", code: "O91.2" },
+  { name: "Enterocolitis necrosante neonatal", area: "Pediatría", urgency: "alta", code: "P77" },
+  { name: "Laringomalacia sintomática", area: "Pediatría", urgency: "media", code: "Q31.5" },
+  { name: "Coqueluche pediátrica", area: "Pediatría", urgency: "media", code: "A37.9" },
+  { name: "Síndrome nefrótico pediátrico", area: "Pediatría", urgency: "media", code: "N04.9" },
+  { name: "Síndrome compartimental agudo", area: "Urgencias y críticos", urgency: "alta", code: "T79.A" },
+  { name: "Hipotermia accidental severa", area: "Urgencias y críticos", urgency: "alta", code: "T68" },
+  { name: "Golpe de calor clásico", area: "Urgencias y críticos", urgency: "alta", code: "T67.0" },
+  { name: "Ahogamiento no fatal", area: "Urgencias y críticos", urgency: "alta", code: "T75.1" },
+];
+
+const DEFAULT_CODE_BY_AREA: Record<MedicalArea, string> = {
+  Cardiovascular: "I51.9",
+  Respiratorio: "J98.9",
+  "Neurológico": "G98",
+  "Endocrino-metabólico": "E88.9",
+  Renal: "N28.9",
+  Infeccioso: "B99",
+  Gastrointestinal: "K92.9",
+  "Gineco-obstétrico": "O99.9",
+  "Pediatría": "P29.9",
+  "Geriátrico": "R69",
+  "Urgencias y críticos": "R57.9",
+};
+
+const ICD10_RULES: Array<{ pattern: RegExp; code: string }> = [
+  { pattern: /crisis hipertensiva/, code: "I16.9" },
+  { pattern: /hipertension arterial|(^|[^a-z])hta([^a-z]|$)/, code: "I10" },
+  { pattern: /sindrome coronario agudo|infarto/, code: "I21.9" },
+  { pattern: /insuficiencia cardiaca|edema agudo de pulmon/, code: "I50.9" },
+  { pattern: /fibrilacion auricular/, code: "I48.9" },
+  { pattern: /arritmia supraventricular/, code: "I47.1" },
+  { pattern: /endocarditis/, code: "I33.0" },
+  { pattern: /miocarditis/, code: "I40.9" },
+  { pattern: /pericarditis/, code: "I30.9" },
+  { pattern: /diseccion aortica/, code: "I71.0" },
+  { pattern: /taponamiento cardiaco/, code: "I31.4" },
+  { pattern: /miocardiopatia dilatada/, code: "I42.0" },
+  { pattern: /miocardiopatia hipertrofica/, code: "I42.2" },
+  { pattern: /qt largo/, code: "I45.8" },
+  { pattern: /valvulopatia aortica/, code: "I35.0" },
+  { pattern: /trombosis venosa profunda/, code: "I82.4" },
+  { pattern: /embolia pulmonar|tromboembolismo pulmonar/, code: "I26.9" },
+  { pattern: /tromboembolismo arterial periferico/, code: "I74.9" },
+  { pattern: /shock cardiogenico/, code: "R57.0" },
+  { pattern: /insuficiencia respiratoria aguda/, code: "J96.0" },
+  { pattern: /sdra|distres respiratorio agudo/, code: "J80" },
+  { pattern: /neumotorax/, code: "J93.9" },
+  { pattern: /derrame pleural maligno/, code: "J91" },
+  { pattern: /derrame pleural/, code: "J90" },
+  { pattern: /tuberculosis pulmonar/, code: "A15.0" },
+  { pattern: /asma|crisis asmatica pediatrica/, code: "J45.9" },
+  { pattern: /estatus asmatico|estado de mal asmatico|exacerbacion asmatica grave/, code: "J46" },
+  { pattern: /epoc/, code: "J44.9" },
+  { pattern: /neumonia/, code: "J18.9" },
+  { pattern: /apnea obstructiva del sueno/, code: "G47.3" },
+  { pattern: /bronquiectasias/, code: "J47" },
+  { pattern: /fibrosis pulmonar/, code: "J84.1" },
+  { pattern: /neumonitis por hipersensibilidad/, code: "J67.9" },
+  { pattern: /hemoptisis/, code: "R04.2" },
+  { pattern: /crup|laringotraqueitis/, code: "J05.0" },
+  { pattern: /bronquiolitis/, code: "J21.9" },
+  { pattern: /acv hemorragico/, code: "I61.9" },
+  { pattern: /acv|accidente cerebrovascular|ictus/, code: "I63.9" },
+  { pattern: /hemorragia subaracnoidea/, code: "I60.9" },
+  { pattern: /hematoma subdural/, code: "S06.5" },
+  { pattern: /hematoma epidural/, code: "S06.4" },
+  { pattern: /trauma craneoencefalico|traumatismo craneoencefalico/, code: "S06.9" },
+  { pattern: /epilepsia/, code: "G40.9" },
+  { pattern: /estatus epileptico/, code: "G41.9" },
+  { pattern: /convulsion febril/, code: "R56.0" },
+  { pattern: /meningoencefalitis tuberculosa/, code: "A17.0" },
+  { pattern: /meningitis/, code: "G00.9" },
+  { pattern: /encefalitis/, code: "G04.9" },
+  { pattern: /delirium|sindrome confusional/, code: "F05" },
+  { pattern: /migra/, code: "G43.9" },
+  { pattern: /neuropatia periferica diabetica/, code: "E11.4" },
+  { pattern: /esclerosis multiple/, code: "G35" },
+  { pattern: /miasten/, code: "G70.0" },
+  { pattern: /guillain/, code: "G61.0" },
+  { pattern: /parkinson/, code: "G20" },
+  { pattern: /demencia tipo alzheimer|alzheimer/, code: "G30.9" },
+  { pattern: /demencia vascular/, code: "F01.9" },
+  { pattern: /caidas recurrentes/, code: "R29.6" },
+  { pattern: /diabetes mellitus tipo 2|(^|[^a-z])dm2([^a-z]|$)/, code: "E11.9" },
+  { pattern: /cetoacidosis diabetica|(^|[^a-z])cetoacidosis([^a-z]|$)/, code: "E10.1" },
+  { pattern: /estado hiperosmolar/, code: "E11.0" },
+  { pattern: /hipotiroidismo/, code: "E03.9" },
+  { pattern: /hipertiroidismo/, code: "E05.9" },
+  { pattern: /tormenta tiroidea/, code: "E05.5" },
+  { pattern: /insuficiencia suprarrenal/, code: "E27.2" },
+  { pattern: /hipoglucemia severa/, code: "E16.2" },
+  { pattern: /hiponatremia/, code: "E87.1" },
+  { pattern: /hiperpotasemia/, code: "E87.5" },
+  { pattern: /hipercalcemia/, code: "E83.52" },
+  { pattern: /hipocalcemia/, code: "E83.51" },
+  { pattern: /hipertrigliceridemia/, code: "E78.1" },
+  { pattern: /sindrome metabolico/, code: "E88.81" },
+  { pattern: /obesidad/, code: "E66.9" },
+  { pattern: /diabetes gestacional/, code: "O24.4" },
+  { pattern: /realimentacion/, code: "E87.8" },
+  { pattern: /cetoacidosis alcoholica/, code: "E87.2" },
+  { pattern: /lesion renal aguda|(^|[^a-z])ira([^a-z]|$)/, code: "N17.9" },
+  { pattern: /enfermedad renal cronica|(^|[^a-z])erc([^a-z]|$)/, code: "N18.9" },
+  { pattern: /pielonefritis/, code: "N10" },
+  { pattern: /litiasis renal/, code: "N20.0" },
+  { pattern: /glomerulonefritis/, code: "N00.9" },
+  { pattern: /sindrome nefrotico/, code: "N04.9" },
+  { pattern: /retencion urinaria aguda/, code: "R33" },
+  { pattern: /sepsis urinaria/, code: "A41.9" },
+  { pattern: /hematuria macroscopic|hematuria macroscopica/, code: "R31.0" },
+  { pattern: /incontinencia urinaria/, code: "R32" },
+  { pattern: /hiperplasia prostatica/, code: "N40.1" },
+  { pattern: /acidosis tubular renal/, code: "N25.8" },
+  { pattern: /nefritis intersticial/, code: "N10" },
+  { pattern: /uropatia obstructiva/, code: "N13.9" },
+  { pattern: /rabdomiolisis/, code: "M62.82" },
+  { pattern: /sindrome uremico hemolitico/, code: "D59.3" },
+  { pattern: /sepsis neonatal/, code: "P36.9" },
+  { pattern: /shock septico/, code: "R65.2" },
+  { pattern: /sepsis/, code: "A41.9" },
+  { pattern: /dengue/, code: "A97.9" },
+  { pattern: /chikungunya/, code: "A92.0" },
+  { pattern: /influenza/, code: "J10.1" },
+  { pattern: /covid/, code: "U07.1" },
+  { pattern: /celulitis/, code: "L03.9" },
+  { pattern: /infeccion de piel y tejidos blandos/, code: "L08.9" },
+  { pattern: /fiebre de origen desconocido/, code: "R50.9" },
+  { pattern: /neutropenia febril/, code: "D70.9" },
+  { pattern: /vih/, code: "B24" },
+  { pattern: /infeccion intraabdominal|sepsis de foco abdominal|peritonitis secundaria/, code: "K65.9" },
+  { pattern: /hepatitis fulminante/, code: "K72.0" },
+  { pattern: /hepatitis aguda/, code: "B17.9" },
+  { pattern: /endometritis/, code: "N71.0" },
+  { pattern: /osteomielitis/, code: "M86.1" },
+  { pattern: /fascitis necrotizante/, code: "M72.6" },
+  { pattern: /malaria/, code: "B50.9" },
+  { pattern: /leptospirosis/, code: "A27.9" },
+  { pattern: /coqueluche/, code: "A37.9" },
+  { pattern: /gastroenteritis|diarrea aguda pediatrica/, code: "A09" },
+  { pattern: /apendicitis/, code: "K35.9" },
+  { pattern: /pancreatitis/, code: "K85.9" },
+  { pattern: /colecistitis/, code: "K81.0" },
+  { pattern: /hemorragia digestiva alta|hemorragia digestiva baja/, code: "K92.2" },
+  { pattern: /obstruccion intestinal/, code: "K56.6" },
+  { pattern: /cirrosis/, code: "K74.6" },
+  { pattern: /colangitis/, code: "K83.0" },
+  { pattern: /isquemia mesenterica/, code: "K55.0" },
+  { pattern: /diverticulitis/, code: "K57.2" },
+  { pattern: /colitis ulcerosa/, code: "K51.9" },
+  { pattern: /crohn/, code: "K50.9" },
+  { pattern: /malnutricion pediatrica/, code: "E46" },
+  { pattern: /dolor cronico osteoarticular/, code: "M25.5" },
+  { pattern: /embarazo ectopico/, code: "O00.9" },
+  { pattern: /amenaza de aborto/, code: "O20.0" },
+  { pattern: /aborto incompleto/, code: "O03.4" },
+  { pattern: /preeclampsia/, code: "O14.9" },
+  { pattern: /eclampsia/, code: "O15.9" },
+  { pattern: /sindrome hellp/, code: "O14.2" },
+  { pattern: /hemorragia posparto/, code: "O72.1" },
+  { pattern: /amenaza de parto pretermino|trabajo de parto pretermino/, code: "O60.0" },
+  { pattern: /ruptura prematura de membranas/, code: "O42.9" },
+  { pattern: /placenta previa/, code: "O44.1" },
+  { pattern: /desprendimiento prematuro de placenta/, code: "O45.9" },
+  { pattern: /infeccion puerperal|sepsis puerperal/, code: "O85" },
+  { pattern: /infeccion urinaria en embarazo/, code: "O23.4" },
+  { pattern: /corioamnionitis/, code: "O41.1" },
+  { pattern: /endometriosis/, code: "N80.9" },
+  { pattern: /enfermedad inflamatoria pelvica/, code: "N73.9" },
+  { pattern: /mastitis puerperal/, code: "O91.2" },
+  { pattern: /enterocolitis necrosante/, code: "P77" },
+  { pattern: /ictericia neonatal/, code: "P59.9" },
+  { pattern: /otitis media aguda/, code: "H66.9" },
+  { pattern: /faringoamigdalitis/, code: "J03.9" },
+  { pattern: /anemia ferropenica pediatrica/, code: "D50.9" },
+  { pattern: /sindrome nefrotico pediatrico/, code: "N04.9" },
+  { pattern: /laringomalacia/, code: "Q31.5" },
+  { pattern: /anafilaxia/, code: "T78.2" },
+  { pattern: /paro cardiorrespiratorio|reanimacion post paro|post-rce/, code: "I46.9" },
+  { pattern: /sangrado masivo/, code: "R58" },
+  { pattern: /intoxicacion aguda por farmacos|intoxicacion aguda/, code: "T50.9" },
+  { pattern: /quemaduras/, code: "T30.0" },
+  { pattern: /politrauma/, code: "T07" },
+  { pattern: /trauma toracico/, code: "S29.9" },
+  { pattern: /shock hipovolemico/, code: "R57.1" },
+  { pattern: /sindrome compartimental/, code: "T79.A" },
+  { pattern: /hipotermia accidental/, code: "T68" },
+  { pattern: /golpe de calor/, code: "T67.0" },
+  { pattern: /ahogamiento/, code: "T75.1" },
+  { pattern: /fragilidad geriatrica/, code: "R54" },
+  { pattern: /ulceras por presion/, code: "L89.9" },
+  { pattern: /polifarmacia/, code: "Z79.899" },
+];
+
+function normalizeLite(value: string) {
+  return String(value ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function slugify(value: string) {
+  return normalizeLite(value).replace(/\s+/g, "-");
+}
+
+function inferIcd10Code(seed: MedicalPathologySeed) {
+  const text = normalizeLite(`${seed.id} ${seed.name}`);
+  for (const rule of ICD10_RULES) {
+    if (rule.pattern.test(text)) return rule.code;
+  }
+  return DEFAULT_CODE_BY_AREA[seed.area];
+}
+
+function buildTemplatePathology(seed: {
+  id?: string;
+  name: string;
+  area: MedicalArea;
+  urgency: MedicalUrgency;
+  code?: string;
+  codeSystem?: MedicalCodeSystem;
+}): MedicalPathologySeed {
+  const tpl = TEMPLATE_BY_AREA[seed.area];
+  return {
+    id: seed.id ?? slugify(seed.name),
+    name: seed.name,
+    area: seed.area,
+    urgency: seed.urgency,
+    code: seed.code,
+    codeSystem: seed.codeSystem ?? "CIE-10",
+    summary: `${seed.name}. ${tpl.summaryTail}`,
+    clinical_clues: [...tpl.clues],
+    red_flags: [...tpl.redFlags],
+    nursing_priorities: [...tpl.priorities],
+    diagnostic_support: [...tpl.diagnostics],
+  };
+}
+
+function mapCaseCatalogToPathologySeed() {
+  const existingNames = new Set(
+    [...BASE_MEDICAL_PATHOLOGY_LIBRARY, ...EXTRA_MEDICAL_PATHOLOGY_LIBRARY].map((item) =>
+      normalizeLite(item.name)
+    )
+  );
+
+  return MEDICAL_CASE_CATALOG.filter(
+    (item) => !existingNames.has(normalizeLite(item.title))
+  ).map((item) =>
+    buildTemplatePathology({
+      id: item.id,
+      name: item.title,
+      area: CASE_AREA_TO_MEDICAL_AREA[item.area],
+      urgency: item.urgency,
+    })
+  );
+}
+
+function mapSupplementalToPathologySeed() {
+  return SUPPLEMENTAL_PATHOLOGY_BLUEPRINTS.map((item) =>
+    buildTemplatePathology({
+      id: slugify(item.name),
+      name: item.name,
+      area: item.area,
+      urgency: item.urgency,
+      code: item.code,
+      codeSystem: item.codeSystem ?? "CIE-10",
+    })
+  );
+}
+
+function buildMedicalPathologyLibrary() {
+  const combined: MedicalPathologySeed[] = [
+    ...BASE_MEDICAL_PATHOLOGY_LIBRARY,
+    ...EXTRA_MEDICAL_PATHOLOGY_LIBRARY,
+    ...mapCaseCatalogToPathologySeed(),
+    ...mapSupplementalToPathologySeed(),
+  ];
+
+  const byId = new Set<string>();
+  const byName = new Set<string>();
+  const out: MedicalPathology[] = [];
+
+  for (const seed of combined) {
+    const normalizedName = normalizeLite(seed.name);
+    if (byName.has(normalizedName)) continue;
+
+    const baseId = seed.id || slugify(seed.name);
+    let safeId = baseId;
+    let suffix = 2;
+    while (byId.has(safeId)) {
+      safeId = `${baseId}-${suffix}`;
+      suffix += 1;
+    }
+
+    byId.add(safeId);
+    byName.add(normalizedName);
+
+    out.push({
+      ...seed,
+      id: safeId,
+      codeSystem: seed.codeSystem ?? "CIE-10",
+      code: (seed.code ?? inferIcd10Code(seed)).trim(),
+    });
+  }
+
+  if (out.length < TARGET_MEDICAL_PATHOLOGY_COUNT) {
+    const rotations = MEDICAL_AREAS.filter((x) => x !== "Geriátrico");
+    let fallbackIndex = 1;
+    while (out.length < TARGET_MEDICAL_PATHOLOGY_COUNT) {
+      const area = rotations[(fallbackIndex - 1) % rotations.length];
+      const filler = buildTemplatePathology({
+        name: `Patología clínica complementaria ${fallbackIndex}`,
+        area,
+        urgency: fallbackIndex % 3 === 0 ? "alta" : fallbackIndex % 2 === 0 ? "media" : "baja",
+      });
+      const fillerName = normalizeLite(filler.name);
+      if (!byName.has(fillerName)) {
+        const fillerId = `${filler.id}-${fallbackIndex}`;
+        byName.add(fillerName);
+        byId.add(fillerId);
+        out.push({
+          ...filler,
+          id: fillerId,
+          codeSystem: "CIE-10",
+          code: inferIcd10Code(filler),
+        });
+      }
+      fallbackIndex += 1;
+    }
+  }
+
+  return out.slice(0, TARGET_MEDICAL_PATHOLOGY_COUNT);
+}
+
+export const MEDICAL_PATHOLOGY_LIBRARY: MedicalPathology[] = buildMedicalPathologyLibrary();
