@@ -17,6 +17,7 @@ type LegacyDifficultyFilter = "all" | "basic" | "intermediate" | "advanced";
 
 type CacesFilter = {
   category?: string;
+  categories?: string[];
   component?: string;
   subcomponent?: string;
   topic?: string;
@@ -1849,25 +1850,59 @@ function uniqueSorted(values: string[]) {
   );
 }
 
+function buildCategoryFilterSet(category?: string, categories?: string[]) {
+  const values = [
+    category,
+    ...(Array.isArray(categories) ? categories : []),
+  ]
+    .map((v) => String(v ?? "").trim())
+    .filter(Boolean);
+  if (values.length === 0) return null;
+  return new Set(values);
+}
+
+function takeRandomFromPool<T>(pool: T[], size: number) {
+  const out: T[] = [];
+  const target = Math.max(0, Math.min(pool.length, Math.trunc(size)));
+  while (pool.length > 0 && out.length < target) {
+    const idx = Math.floor(Math.random() * pool.length);
+    out.push(pool[idx]);
+    pool.splice(idx, 1);
+  }
+  return out;
+}
+
 export function deriveQuestionCountByMode(mode: CacesPracticeMode) {
-  if (mode === "practica_individual") return 1;
   if (mode === "quiz_5") return 5;
   if (mode === "simulacro_10") return 10;
-  if (mode === "simulacro_30") return 30;
+  if (mode === "simulacro_20") return 20;
   if (mode === "simulacro_40") return 40;
-  if (mode === "simulacro_50_mixto") return 50;
-  if (mode === "simulacro_maximo") return 80;
+  if (mode === "simulacro_60") return 60;
+  if (mode === "simulacro_80") return 80;
+  if (mode === "simulacro_100") return 100;
+  if (mode === "simulacro_120") return 120;
   return 20;
 }
 
-export function listCacesComponents(category?: string, bank: CacesQuestion[] = CACES_QUESTION_BANK) {
-  const pool = !category ? bank : bank.filter((q) => q.category === category);
+export function listCacesComponents(
+  category?: string,
+  bank: CacesQuestion[] = CACES_QUESTION_BANK,
+  categories?: string[]
+) {
+  const categorySet = buildCategoryFilterSet(category, categories);
+  const pool = !categorySet ? bank : bank.filter((q) => categorySet.has(q.category));
   return uniqueSorted(pool.map((q) => q.component));
 }
 
-export function listCacesSubcomponents(component?: string, category?: string, bank: CacesQuestion[] = CACES_QUESTION_BANK) {
+export function listCacesSubcomponents(
+  component?: string,
+  category?: string,
+  bank: CacesQuestion[] = CACES_QUESTION_BANK,
+  categories?: string[]
+) {
+  const categorySet = buildCategoryFilterSet(category, categories);
   const pool = bank.filter((q) => {
-    if (category && q.category !== category) return false;
+    if (categorySet && !categorySet.has(q.category)) return false;
     if (component && q.component !== component) return false;
     return true;
   });
@@ -1878,10 +1913,12 @@ export function listCacesTopics(
   component?: string,
   subcomponent?: string,
   category?: string,
-  bank: CacesQuestion[] = CACES_QUESTION_BANK
+  bank: CacesQuestion[] = CACES_QUESTION_BANK,
+  categories?: string[]
 ) {
+  const categorySet = buildCategoryFilterSet(category, categories);
   const pool = bank.filter((q) => {
-    if (category && q.category !== category) return false;
+    if (categorySet && !categorySet.has(q.category)) return false;
     if (component && q.component !== component) return false;
     if (subcomponent && q.subcomponent !== subcomponent) return false;
     return true;
@@ -1891,12 +1928,13 @@ export function listCacesTopics(
 
 export function filterCacesQuestionBank(filters?: CacesFilter, bank: CacesQuestion[] = CACES_QUESTION_BANK) {
   const f = filters ?? {};
+  const categorySet = buildCategoryFilterSet(f.category, f.categories);
   const tagSet = Array.isArray(f.tags)
     ? new Set(f.tags.map((t) => normalizeCacesText(t)).filter(Boolean))
     : null;
 
   return bank.filter((q) => {
-    if (!f.mix_categories && f.category && q.category !== f.category) return false;
+    if (categorySet && !categorySet.has(q.category)) return false;
     if (f.component && q.component !== f.component) return false;
     if (f.subcomponent && q.subcomponent !== f.subcomponent) return false;
     if (f.topic && q.topic !== f.topic) return false;
@@ -1919,11 +1957,7 @@ export function sampleCacesQuestions(input: CacesQuestion[], size: number) {
   const out: CacesQuestion[] = [];
   const target = Math.max(0, Math.min(pool.length, Math.trunc(size)));
 
-  while (pool.length > 0 && out.length < target) {
-    const idx = Math.floor(Math.random() * pool.length);
-    out.push(pool[idx]);
-    pool.splice(idx, 1);
-  }
+  out.push(...takeRandomFromPool(pool, target));
 
   return out;
 }
@@ -1947,6 +1981,149 @@ export function sampleCacesQuestionsPrioritizingUnseen(args: {
     selected: [...pickUnseen, ...pickSeen],
     unseen_available: unseen.length,
     seen_reused: pickSeen.length,
+  };
+}
+
+export function sampleCacesQuestionsBalancedByCategory(args: {
+  input: CacesQuestion[];
+  size: number;
+  seenQuestionKeys?: Set<string>;
+  categoryOrder?: string[];
+}) {
+  const {
+    input,
+    size,
+    seenQuestionKeys = new Set<string>(),
+    categoryOrder = [],
+  } = args;
+
+  const pool = dedupeCacesQuestions(input);
+  const target = Math.max(0, Math.min(pool.length, Math.trunc(size)));
+  if (target <= 0) {
+    return {
+      selected: [] as CacesQuestion[],
+      unseen_available: 0,
+      seen_reused: 0,
+      by_category: [] as Array<{ category: string; selected: number }>,
+    };
+  }
+
+  const grouped = new Map<
+    string,
+    { unseen: CacesQuestion[]; seen: CacesQuestion[]; selected: number }
+  >();
+
+  for (const question of pool) {
+    const existing =
+      grouped.get(question.category) ??
+      { unseen: [] as CacesQuestion[], seen: [] as CacesQuestion[], selected: 0 };
+    const key = buildCacesQuestionKey(question);
+    if (seenQuestionKeys.has(key)) existing.seen.push(question);
+    else existing.unseen.push(question);
+    grouped.set(question.category, existing);
+  }
+
+  if (grouped.size <= 1) {
+    const picked = sampleCacesQuestionsPrioritizingUnseen({
+      input: pool,
+      size: target,
+      seenQuestionKeys,
+    });
+    const singleCategory = grouped.size === 1 ? [...grouped.keys()][0] : "General";
+    return {
+      ...picked,
+      by_category: [{ category: singleCategory, selected: picked.selected.length }],
+    };
+  }
+
+  const prioritizedOrder = categoryOrder
+    .map((v) => String(v ?? "").trim())
+    .filter((v) => grouped.has(v));
+  const remainingCategories = [...grouped.keys()].filter((cat) => !prioritizedOrder.includes(cat));
+  const categories = [...prioritizedOrder, ...remainingCategories];
+  const baseQuota = Math.floor(target / categories.length);
+  const remainder = target % categories.length;
+  const remainderOrder = takeRandomFromPool([...categories], remainder);
+  const desiredByCategory = new Map<string, number>();
+
+  for (const cat of categories) {
+    desiredByCategory.set(cat, baseQuota + (remainderOrder.includes(cat) ? 1 : 0));
+  }
+
+  const unseenAvailable = [...grouped.values()].reduce((acc, bucket) => acc + bucket.unseen.length, 0);
+  const selected: CacesQuestion[] = [];
+  let seenReused = 0;
+
+  for (const cat of categories) {
+    const bucket = grouped.get(cat);
+    if (!bucket) continue;
+    const desired = desiredByCategory.get(cat) ?? 0;
+    if (desired <= 0) continue;
+
+    const pickedUnseen = takeRandomFromPool(bucket.unseen, desired);
+    selected.push(...pickedUnseen);
+    bucket.selected += pickedUnseen.length;
+
+    const stillMissing = desired - pickedUnseen.length;
+    if (stillMissing > 0) {
+      const pickedSeen = takeRandomFromPool(bucket.seen, stillMissing);
+      selected.push(...pickedSeen);
+      bucket.selected += pickedSeen.length;
+      seenReused += pickedSeen.length;
+    }
+  }
+
+  while (selected.length < target) {
+    const candidates = categories
+      .map((cat) => {
+        const bucket = grouped.get(cat);
+        if (!bucket) return null;
+        const available = bucket.unseen.length + bucket.seen.length;
+        if (available <= 0) return null;
+        const desired = desiredByCategory.get(cat) ?? 0;
+        const deficit = desired - bucket.selected;
+        return { cat, bucket, deficit, available };
+      })
+      .filter(Boolean) as Array<{
+      cat: string;
+      bucket: { unseen: CacesQuestion[]; seen: CacesQuestion[]; selected: number };
+      deficit: number;
+      available: number;
+    }>;
+
+    if (candidates.length === 0) break;
+
+    candidates.sort((a, b) => {
+      if (b.deficit !== a.deficit) return b.deficit - a.deficit;
+      if (a.bucket.selected !== b.bucket.selected) return a.bucket.selected - b.bucket.selected;
+      return b.available - a.available;
+    });
+
+    const chosen = candidates[0];
+    const fromUnseen = takeRandomFromPool(chosen.bucket.unseen, 1);
+    if (fromUnseen.length > 0) {
+      selected.push(fromUnseen[0]);
+      chosen.bucket.selected += 1;
+      continue;
+    }
+
+    const fromSeen = takeRandomFromPool(chosen.bucket.seen, 1);
+    if (fromSeen.length > 0) {
+      selected.push(fromSeen[0]);
+      chosen.bucket.selected += 1;
+      seenReused += 1;
+      continue;
+    }
+  }
+
+  return {
+    selected,
+    unseen_available: unseenAvailable,
+    seen_reused: seenReused,
+    by_category: categories.map((cat) => ({
+      category: cat,
+      selected: grouped.get(cat)?.selected ?? 0,
+    })),
   };
 }
 

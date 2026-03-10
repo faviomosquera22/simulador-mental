@@ -292,10 +292,11 @@ export type QuizResult = {
     | "quiz_5"
     | "simulacro_10"
     | "simulacro_20"
-    | "simulacro_30"
     | "simulacro_40"
-    | "simulacro_50_mixto"
-    | "simulacro_maximo";
+    | "simulacro_60"
+    | "simulacro_80"
+    | "simulacro_100"
+    | "simulacro_120";
   total_questions: number;
   correct_answers: number;
   accuracy: number;
@@ -317,14 +318,14 @@ export type CacesCognitiveLevel =
   | "analisis";
 export type CacesComplexityLevel = "bajo" | "medio" | "alto";
 export type CacesPracticeMode =
-  | "practica_individual"
   | "quiz_5"
   | "simulacro_10"
   | "simulacro_20"
-  | "simulacro_30"
   | "simulacro_40"
-  | "simulacro_50_mixto"
-  | "simulacro_maximo";
+  | "simulacro_60"
+  | "simulacro_80"
+  | "simulacro_100"
+  | "simulacro_120";
 export type CacesFeedbackMode = "inmediata" | "final";
 
 export type CacesQuestionOption = {
@@ -360,6 +361,7 @@ export type CacesAttemptConfig = {
   subcomponent?: string;
   topic?: string;
   category?: string;
+  categories?: string[];
   difficulty?: CacesDifficulty;
   type?: CacesQuestionType;
   mode: CacesPracticeMode;

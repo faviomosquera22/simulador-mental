@@ -15,6 +15,7 @@ import {
   listCacesComponents,
   listCacesSubcomponents,
   listCacesTopics,
+  sampleCacesQuestionsBalancedByCategory,
   sampleCacesQuestionsPrioritizingUnseen,
 } from "@/src/lib/caces";
 import {
@@ -70,22 +71,25 @@ function getPriorityClass(priority: "Alta" | "Media" | "Baja") {
   return "border-emerald-400/25 bg-emerald-400/10 text-emerald-100";
 }
 
-function getModeLabel(mode: CacesPracticeMode) {
-  if (mode === "practica_individual") return "Práctica individual";
-  if (mode === "quiz_5") return "Quiz de 5";
-  if (mode === "simulacro_10") return "Simulacro de 10";
-  if (mode === "simulacro_20") return "Simulacro de 20";
-  if (mode === "simulacro_30") return "Simulacro de 30";
-  if (mode === "simulacro_40") return "Simulacro de 40";
-  if (mode === "simulacro_50_mixto") return "Examen amplio (50 mixtas)";
-  return "Simulacro amplio (80 mixtas)";
+function getModeLabel(mode: CacesPracticeMode | string) {
+  const value = String(mode ?? "");
+  if (value === "quiz_5") return "Quiz de 5";
+  if (value === "simulacro_10") return "Simulacro de 10";
+  if (value === "simulacro_20") return "Simulacro de 20";
+  if (value === "simulacro_30") return "Simulacro de 30";
+  if (value === "simulacro_40") return "Simulacro de 40";
+  if (value === "simulacro_50_mixto") return "Simulacro de 50";
+  if (value === "simulacro_60") return "Simulacro de 60";
+  if (value === "simulacro_80" || value === "simulacro_maximo") return "Simulacro de 80";
+  if (value === "simulacro_100") return "Simulacro de 100";
+  return "Simulacro de 120";
 }
 
 export default function SimulatorCacesPage() {
   const [loadingBank, setLoadingBank] = useState(true);
   const [history, setHistory] = useState<CacesHistoryEntry[]>([]);
 
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedComponent, setSelectedComponent] = useState<string>("");
   const [selectedSubcomponent, setSelectedSubcomponent] = useState<string>("");
   const [selectedTopic, setSelectedTopic] = useState<string>("");
@@ -111,6 +115,7 @@ export default function SimulatorCacesPage() {
   const [answerError, setAnswerError] = useState<string | null>(null);
   const [showErrorReview, setShowErrorReview] = useState(false);
   const [savedCurrentResult, setSavedCurrentResult] = useState(false);
+  const [showResultModal, setShowResultModal] = useState(false);
   const [nowMs, setNowMs] = useState<number>(0);
 
   const finishingRef = useRef(false);
@@ -130,25 +135,20 @@ export default function SimulatorCacesPage() {
   }, []);
 
   const questionCountByMode = useMemo(() => deriveQuestionCountByMode(mode), [mode]);
-  const isWideMixedMode =
-    mode === "simulacro_50_mixto" || mode === "simulacro_maximo";
-
-  useEffect(() => {
-    if (!isWideMixedMode) return;
-    setMixCategories(true);
-    setSelectedCategory("");
-    setSelectedComponent("");
-    setSelectedSubcomponent("");
-    setSelectedTopic("");
-    setSelectedDifficulty("all");
-    setSelectedType("all");
-  }, [isWideMixedMode]);
+  const effectiveMixCategories = mixCategories || selectedCategories.length > 1;
+  const effectiveCategories = useMemo(() => {
+    if (selectedCategories.length > 0) return selectedCategories;
+    if (mixCategories) return [...CACES_CATEGORIES];
+    return [] as string[];
+  }, [selectedCategories, mixCategories]);
+  const allCategoriesSelected = effectiveCategories.length === CACES_CATEGORIES.length;
+  const effectiveCategory = effectiveCategories.length === 1 ? effectiveCategories[0] : undefined;
 
   useEffect(() => {
     setSelectedComponent("");
     setSelectedSubcomponent("");
     setSelectedTopic("");
-  }, [selectedCategory, mixCategories]);
+  }, [selectedCategories, mixCategories]);
 
   useEffect(() => {
     setSelectedSubcomponent("");
@@ -170,26 +170,25 @@ export default function SimulatorCacesPage() {
     return () => window.clearInterval(id);
   }, [attempt]);
 
-  const effectiveMixCategories = isWideMixedMode || mixCategories;
-
-  const effectiveCategory = useMemo(() => {
-    if (effectiveMixCategories) return undefined;
-    return selectedCategory || undefined;
-  }, [effectiveMixCategories, selectedCategory]);
-
   const combinedQuestionBank = useMemo(
     () => dedupeCacesQuestions([...CACES_QUESTION_BANK, ...generatedQuestions]),
     [generatedQuestions]
   );
 
   const componentOptions = useMemo(
-    () => listCacesComponents(effectiveCategory, combinedQuestionBank),
-    [effectiveCategory, combinedQuestionBank]
+    () => listCacesComponents(effectiveCategory, combinedQuestionBank, effectiveCategories),
+    [effectiveCategory, effectiveCategories, combinedQuestionBank]
   );
 
   const subcomponentOptions = useMemo(
-    () => listCacesSubcomponents(selectedComponent || undefined, effectiveCategory, combinedQuestionBank),
-    [selectedComponent, effectiveCategory, combinedQuestionBank]
+    () =>
+      listCacesSubcomponents(
+        selectedComponent || undefined,
+        effectiveCategory,
+        combinedQuestionBank,
+        effectiveCategories
+      ),
+    [selectedComponent, effectiveCategory, effectiveCategories, combinedQuestionBank]
   );
 
   const topicOptions = useMemo(
@@ -198,14 +197,22 @@ export default function SimulatorCacesPage() {
         selectedComponent || undefined,
         selectedSubcomponent || undefined,
         effectiveCategory,
-        combinedQuestionBank
+        combinedQuestionBank,
+        effectiveCategories
       ),
-    [selectedComponent, selectedSubcomponent, effectiveCategory, combinedQuestionBank]
+    [
+      selectedComponent,
+      selectedSubcomponent,
+      effectiveCategory,
+      effectiveCategories,
+      combinedQuestionBank,
+    ]
   );
 
   const activeFilterPayload = useMemo(
     () => ({
       category: effectiveCategory,
+      categories: effectiveCategories.length > 0 ? effectiveCategories : undefined,
       component: selectedComponent || undefined,
       subcomponent: selectedSubcomponent || undefined,
       topic: selectedTopic || undefined,
@@ -215,6 +222,7 @@ export default function SimulatorCacesPage() {
     }),
     [
       effectiveCategory,
+      effectiveCategories,
       selectedComponent,
       selectedSubcomponent,
       selectedTopic,
@@ -300,6 +308,7 @@ export default function SimulatorCacesPage() {
   const cacesConfig: CacesAttemptConfig = useMemo(
     () => ({
       category: effectiveCategory,
+      categories: effectiveCategories.length > 0 ? effectiveCategories : undefined,
       component: selectedComponent || undefined,
       subcomponent: selectedSubcomponent || undefined,
       topic: selectedTopic || undefined,
@@ -316,6 +325,7 @@ export default function SimulatorCacesPage() {
     }),
     [
       effectiveCategory,
+      effectiveCategories,
       selectedComponent,
       selectedSubcomponent,
       selectedTopic,
@@ -417,6 +427,7 @@ export default function SimulatorCacesPage() {
         if (!prev) return prev;
         return { ...prev, result, immediateFeedbackQuestionId: null };
       });
+      setShowResultModal(true);
 
       if (saveResult) {
         persistResultToHistory(result);
@@ -448,37 +459,37 @@ export default function SimulatorCacesPage() {
     setConfigError(null);
     setAnswerError(null);
     setShowErrorReview(false);
+    setShowResultModal(false);
     setSavedCurrentResult(false);
     setAiError(null);
 
-    if (!effectiveMixCategories && !selectedCategory) {
-      setConfigError("Selecciona una categoría para comenzar.");
+    if (effectiveCategories.length === 0) {
+      setConfigError("Selecciona al menos una categoría para comenzar.");
       return;
     }
 
     const count = plannedQuestionCount;
     let candidatePool = filteredQuestions;
 
-    if (
-      enableAIDynamicBank &&
-      count > 0
-    ) {
+    let generationRounds = 0;
+    while (enableAIDynamicBank && count > 0 && generationRounds < 3) {
       const currentSeen = new Set(getSeenCacesQuestionKeys());
       const unseenNow = candidatePool.filter(
         (q) => !currentSeen.has(buildCacesQuestionKey(q))
       ).length;
+      if (candidatePool.length >= count && unseenNow >= count) break;
 
-      if (candidatePool.length < count || unseenNow < count) {
-        const missing = Math.max(count - candidatePool.length, count - unseenNow);
-        const batchSize = Math.min(80, Math.max(missing, count >= 20 ? 14 : 8));
-        await generateMoreQuestionsWithAI(batchSize, "inicio de simulacro");
+      const missing = Math.max(count - candidatePool.length, count - unseenNow);
+      const batchSize = Math.min(80, Math.max(missing, count >= 60 ? 24 : 10));
+      const generated = await generateMoreQuestionsWithAI(batchSize, "inicio de simulacro");
+      generationRounds += 1;
+      if (generated <= 0) break;
 
-        const refreshedBank = dedupeCacesQuestions([
-          ...CACES_QUESTION_BANK,
-          ...getGeneratedCacesBank(),
-        ]);
-        candidatePool = filterCacesQuestionBank(activeFilterPayload, refreshedBank);
-      }
+      const refreshedBank = dedupeCacesQuestions([
+        ...CACES_QUESTION_BANK,
+        ...getGeneratedCacesBank(),
+      ]);
+      candidatePool = filterCacesQuestionBank(activeFilterPayload, refreshedBank);
     }
 
     if (candidatePool.length === 0) {
@@ -494,11 +505,27 @@ export default function SimulatorCacesPage() {
     }
 
     const freshSeen = new Set(getSeenCacesQuestionKeys());
-    const picked = sampleCacesQuestionsPrioritizingUnseen({
-      input: candidatePool,
-      size: count,
-      seenQuestionKeys: freshSeen,
-    });
+    const useBalancedMix = effectiveMixCategories && effectiveCategories.length > 1;
+    const balancedPicked = useBalancedMix
+      ? sampleCacesQuestionsBalancedByCategory({
+          input: candidatePool,
+          size: count,
+          seenQuestionKeys: freshSeen,
+          categoryOrder: effectiveCategories,
+        })
+      : null;
+    const standardPicked = !useBalancedMix
+      ? sampleCacesQuestionsPrioritizingUnseen({
+          input: candidatePool,
+          size: count,
+          seenQuestionKeys: freshSeen,
+        })
+      : null;
+    const picked = balancedPicked ?? standardPicked;
+    if (!picked) {
+      setConfigError("No se pudieron preparar preguntas para este intento.");
+      return;
+    }
     const selected = picked.selected;
     if (selected.length < count) {
       setConfigError(
@@ -509,7 +536,17 @@ export default function SimulatorCacesPage() {
 
     markSeenCacesQuestions(selected);
     setSeenQuestionKeys(new Set(getSeenCacesQuestionKeys()));
-    if (picked.seen_reused > 0) {
+    if (balancedPicked) {
+      const byCategory = balancedPicked.by_category
+        .filter((row) => row.selected > 0)
+        .map((row) => `${row.category}: ${row.selected}`)
+        .join(" · ");
+      const reuseHint =
+        balancedPicked.seen_reused > 0
+          ? ` Se reutilizaron ${balancedPicked.seen_reused} preguntas por disponibilidad del filtro.`
+          : "";
+      setAiInfo(`Mezcla equitativa aplicada${byCategory ? ` (${byCategory})` : ""}.${reuseHint}`);
+    } else if (picked.seen_reused > 0) {
       setAiInfo(
         enableAIDynamicBank
           ? `Se reutilizaron ${picked.seen_reused} preguntas por disponibilidad del filtro. Puedes generar un lote IA adicional para variar más.`
@@ -543,7 +580,7 @@ export default function SimulatorCacesPage() {
     });
   }, [
     effectiveMixCategories,
-    selectedCategory,
+    effectiveCategories,
     filteredQuestions,
     plannedQuestionCount,
     minutesPerQuestion,
@@ -554,9 +591,9 @@ export default function SimulatorCacesPage() {
   ]);
 
   const handleGeneratePack = useCallback(async () => {
-    const batch = mode === "simulacro_maximo" ? 50 : Math.max(20, Math.min(60, plannedQuestionCount));
+    const batch = Math.max(24, Math.min(80, plannedQuestionCount));
     await generateMoreQuestionsWithAI(batch, "ampliar banco manual");
-  }, [generateMoreQuestionsWithAI, mode, plannedQuestionCount]);
+  }, [generateMoreQuestionsWithAI, plannedQuestionCount]);
 
   const handleToggleMark = useCallback(() => {
     if (!attempt || !currentQuestion || attempt.result) return;
@@ -699,6 +736,7 @@ export default function SimulatorCacesPage() {
     setConfigError(null);
     setAnswerError(null);
     setShowErrorReview(false);
+    setShowResultModal(false);
     setSavedCurrentResult(false);
     window.setTimeout(() => {
       handleStart();
@@ -709,6 +747,37 @@ export default function SimulatorCacesPage() {
     if (!attempt) return new Map<string, CacesQuestion>();
     return new Map(attempt.questions.map((q) => [q.id, q]));
   }, [attempt]);
+
+  const toggleCategory = useCallback((category: string) => {
+    setSelectedCategories((prev) => {
+      if (prev.includes(category)) return prev.filter((value) => value !== category);
+      return [...prev, category];
+    });
+  }, []);
+
+  const activeCategoryMixPreview = useMemo(() => {
+    const categoryCount = effectiveCategories.length;
+    if (categoryCount <= 1) return null;
+    const base = Math.floor(plannedQuestionCount / categoryCount);
+    const remainder = plannedQuestionCount % categoryCount;
+    return `${categoryCount} categorías · ${base}-${base + (remainder > 0 ? 1 : 0)} preguntas por categoría (meta equitativa)`;
+  }, [effectiveCategories, plannedQuestionCount]);
+
+  const describeAttemptCategories = useCallback((config: CacesAttemptConfig) => {
+    const categories = Array.isArray(config.categories)
+      ? config.categories.map((c) => String(c ?? "").trim()).filter(Boolean)
+      : [];
+    if (categories.length === 0) return config.category ? config.category : "Sin categoría";
+    if (categories.length === 1) return categories[0];
+    if (categories.length === CACES_CATEGORIES.length) return "Todas las categorías";
+    return `${categories.length} categorías mixtas`;
+  }, []);
+
+  const getOptionLabel = useCallback((question: CacesQuestion | undefined, optionId: CacesOptionId | null) => {
+    if (!question || !optionId) return "Sin respuesta";
+    const option = question.options.find((opt) => opt.id === optionId);
+    return option ? `${option.id}. ${option.text}` : optionId;
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#070A0F]">
@@ -741,30 +810,65 @@ export default function SimulatorCacesPage() {
                 {!attempt || attempt.result ? (
                   <>
                     <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-[#0F1117] to-[#1E2433] p-5">
-                      <div className="text-sm font-semibold text-white">Categorías rápidas</div>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="text-sm font-semibold text-white">Categorías (selección múltiple)</div>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedCategories([...CACES_CATEGORIES])}
+                            className="rounded-xl border border-cyan-300/25 px-3 py-1.5 text-xs text-cyan-100 hover:bg-cyan-300/10"
+                          >
+                            Seleccionar todas
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedCategories([])}
+                            className="rounded-xl border border-white/15 px-3 py-1.5 text-xs text-white/70 hover:bg-white/5"
+                          >
+                            Limpiar selección
+                          </button>
+                        </div>
+                      </div>
+
                       <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
                         {CACES_CATEGORIES.map((cat) => {
-                          const active = !effectiveMixCategories && selectedCategory === cat;
+                          const active = selectedCategories.includes(cat);
                           return (
                             <button
                               key={cat}
                               type="button"
-                              onClick={() => setSelectedCategory(cat)}
-                              disabled={isWideMixedMode}
+                              onClick={() => toggleCategory(cat)}
                               className={`rounded-2xl border px-3 py-3 text-left text-sm transition ${
                                 active
-                                  ? "border-white/25 bg-white/10 text-white"
+                                  ? "border-cyan-300/35 bg-cyan-300/10 text-cyan-50"
                                   : "border-white/10 bg-black/25 text-white/75 hover:bg-black/35"
-                              } ${isWideMixedMode ? "cursor-not-allowed opacity-55" : ""}`}
+                              }`}
                             >
                               {cat}
                             </button>
                           );
                         })}
                       </div>
-                      {isWideMixedMode && (
+
+                      <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                        <span className="rounded-full border border-white/15 bg-black/25 px-3 py-1 text-white/75">
+                          Seleccionadas: {selectedCategories.length}
+                        </span>
+                        {allCategoriesSelected && (
+                          <span className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-cyan-100">
+                            Todas las categorías activas
+                          </span>
+                        )}
+                        {effectiveMixCategories && (
+                          <span className="rounded-full border border-emerald-300/30 bg-emerald-300/10 px-3 py-1 text-emerald-100">
+                            Mezcla activa con reparto equitativo
+                          </span>
+                        )}
+                      </div>
+
+                      {activeCategoryMixPreview && (
                         <div className="mt-3 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-xs text-cyan-100">
-                          El modo de examen amplio usa automáticamente mezcla total de categorías.
+                          {activeCategoryMixPreview}
                         </div>
                       )}
                     </section>
@@ -838,20 +942,20 @@ export default function SimulatorCacesPage() {
                         </div>
 
                         <div>
-                          <label className="text-xs text-white/60">Modo</label>
+                          <label className="text-xs text-white/60">Cantidad de preguntas</label>
                           <select
                             value={mode}
                             onChange={(e) => setMode(e.target.value as CacesPracticeMode)}
                             className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
                           >
-                            <option value="practica_individual">Práctica individual</option>
                             <option value="quiz_5">Quiz de 5</option>
                             <option value="simulacro_10">Simulacro de 10</option>
                             <option value="simulacro_20">Simulacro de 20</option>
-                            <option value="simulacro_30">Simulacro de 30</option>
                             <option value="simulacro_40">Simulacro de 40</option>
-                            <option value="simulacro_50_mixto">Examen amplio (50 mixtas)</option>
-                            <option value="simulacro_maximo">Simulacro amplio de 80</option>
+                            <option value="simulacro_60">Simulacro de 60</option>
+                            <option value="simulacro_80">Simulacro de 80</option>
+                            <option value="simulacro_100">Simulacro de 100</option>
+                            <option value="simulacro_120">Simulacro de 120</option>
                           </select>
                         </div>
 
@@ -927,10 +1031,11 @@ export default function SimulatorCacesPage() {
                               <input
                                 type="checkbox"
                                 checked={effectiveMixCategories}
-                                disabled={isWideMixedMode}
+                                disabled={selectedCategories.length > 1}
                                 onChange={(e) => setMixCategories(e.target.checked)}
                               />
-                              Mezclar categorías {isWideMixedMode ? "(obligatorio en examen amplio)" : ""}
+                              Mezclar categorías (con reparto equitativo)
+                              {selectedCategories.length > 1 ? " (activo por selección múltiple)" : ""}
                             </label>
                             <label className="flex items-center gap-2 text-white/80">
                               <input
@@ -986,13 +1091,13 @@ export default function SimulatorCacesPage() {
                         </div>
                       </div>
 
-                      {!effectiveMixCategories && !selectedCategory && (
+                      {effectiveCategories.length === 0 && (
                         <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/10 p-3 text-sm text-amber-100">
-                          Selecciona una categoría para comenzar.
+                          Selecciona al menos una categoría para comenzar.
                         </div>
                       )}
 
-                      {filteredQuestions.length === 0 && (effectiveMixCategories || selectedCategory) && (
+                      {filteredQuestions.length === 0 && effectiveCategories.length > 0 && (
                         <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/10 p-3 text-sm text-amber-100">
                           No hay preguntas disponibles para este filtro.
                         </div>
@@ -1013,11 +1118,7 @@ export default function SimulatorCacesPage() {
                         >
                           {aiBusy
                             ? "Preparando banco..."
-                            : mode === "practica_individual"
-                              ? "Iniciar práctica"
-                              : mode === "simulacro_50_mixto" || mode === "simulacro_maximo"
-                                ? "Iniciar examen amplio"
-                                : "Iniciar simulacro"}
+                            : "Iniciar simulacro"}
                         </button>
                         <button
                           type="button"
@@ -1030,7 +1131,7 @@ export default function SimulatorCacesPage() {
                         <button
                           type="button"
                           onClick={() => {
-                            setSelectedCategory("");
+                            setSelectedCategories([]);
                             setSelectedComponent("");
                             setSelectedSubcomponent("");
                             setSelectedTopic("");
@@ -1057,74 +1158,24 @@ export default function SimulatorCacesPage() {
                     {attempt?.result && (
                       <section className="mt-4 rounded-3xl border border-white/10 bg-white/5 p-5">
                         <div className="text-lg font-semibold text-white">Resultado final</div>
-                        <div className="mt-1 text-sm text-white/60">Resumen de rendimiento del intento actual</div>
-
-                        <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4">
-                          <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
-                            <div className="text-xs text-white/55">Puntaje total</div>
-                            <div className="mt-1 text-2xl font-semibold text-white">
-                              {attempt.result.total_score}/{attempt.result.total_questions}
-                            </div>
-                          </div>
-                          <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
-                            <div className="text-xs text-white/55">Porcentaje</div>
-                            <div className="mt-1 text-2xl font-semibold text-white">{attempt.result.accuracy}%</div>
-                          </div>
-                          <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
-                            <div className="text-xs text-white/55">Correctas / Incorrectas</div>
-                            <div className="mt-1 text-2xl font-semibold text-white">
-                              {attempt.result.correct_answers} / {attempt.result.incorrect_answers}
-                            </div>
-                          </div>
-                          <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
-                            <div className="text-xs text-white/55">Tiempo total</div>
-                            <div className="mt-1 text-2xl font-semibold text-white">{formatTimer(attempt.result.elapsed_seconds)}</div>
-                          </div>
-                        </div>
-
-                        <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
-                          <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
-                            <div className="text-sm font-semibold text-white">Desempeño por categoría</div>
-                            <div className="mt-2 space-y-2 text-sm">
-                              {attempt.result.by_category.map((row) => (
-                                <div key={row.category} className="rounded-xl border border-white/10 bg-black/20 p-2">
-                                  <div className="font-medium text-white">{row.category}</div>
-                                  <div className="mt-1 text-white/70">
-                                    {row.correct}/{row.total} correctas · {row.accuracy}%
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
-                            <div className="text-sm font-semibold text-white">Temas débiles</div>
-                            {attempt.result.weak_topics.length === 0 ? (
-                              <div className="mt-2 text-sm text-white/65">Sin temas débiles predominantes en este intento.</div>
-                            ) : (
-                              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-white/75">
-                                {attempt.result.weak_topics.map((topic) => (
-                                  <li key={topic}>{topic}</li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
+                        <div className="mt-1 text-sm text-white/60">
+                          Se abrió una ventana emergente con el detalle completo y revisión de errores.
                         </div>
 
                         <div className="mt-4 flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setShowResultModal(true)}
+                            className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-2 text-sm text-cyan-100 hover:bg-cyan-300/20"
+                          >
+                            Ver detalle del resultado
+                          </button>
                           <button
                             type="button"
                             onClick={retryWithCurrentConfig}
                             className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black"
                           >
                             Repetir
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setShowErrorReview((v) => !v)}
-                            className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
-                          >
-                            Revisar errores
                           </button>
                           <button
                             type="button"
@@ -1135,31 +1186,6 @@ export default function SimulatorCacesPage() {
                             {savedCurrentResult ? "Guardado en historial" : "Guardar en historial"}
                           </button>
                         </div>
-
-                        {showErrorReview && (
-                          <div className="mt-4 space-y-3">
-                            {attempt.result.review.filter((r) => !r.is_correct).length === 0 ? (
-                              <div className="rounded-xl border border-emerald-400/25 bg-emerald-400/10 p-3 text-sm text-emerald-100">
-                                No hubo errores en este intento.
-                              </div>
-                            ) : (
-                              attempt.result.review
-                                .filter((r) => !r.is_correct)
-                                .map((r) => {
-                                  const q = resultQuestionMap.get(r.question_id);
-                                  if (!q) return null;
-                                  return (
-                                    <div key={r.question_id} className="rounded-2xl border border-white/10 bg-black/30 p-3 text-sm">
-                                      <div className="text-xs text-white/55">{q.category} · {q.topic}</div>
-                                      <div className="mt-1 font-medium text-white">{q.question}</div>
-                                      <div className="mt-2 text-white/75">Tu respuesta: {r.selected ?? "Sin respuesta"} · Correcta: {r.correct}</div>
-                                      <div className="mt-2 text-white/70">{q.explanation}</div>
-                                    </div>
-                                  );
-                                })
-                            )}
-                          </div>
-                        )}
                       </section>
                     )}
 
@@ -1190,7 +1216,7 @@ export default function SimulatorCacesPage() {
                                 {item.config.timer_enabled
                                   ? ` Límite ${item.config.estimated_time_minutes ?? item.config.number_of_questions * (item.config.minutes_per_question ?? 2)} min ·`
                                   : " Sin límite ·"}
-                                {item.config.category ? ` ${item.config.category}` : " Categorías mixtas"}
+                                {" "}{describeAttemptCategories(item.config)}
                               </div>
                             </div>
                           ))}
@@ -1364,6 +1390,135 @@ export default function SimulatorCacesPage() {
           </div>
         </main>
       </div>
+
+      {attempt?.result && showResultModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4">
+          <div className="w-full max-w-5xl max-h-[92vh] overflow-y-auto rounded-3xl border border-white/10 bg-[#0B0F17] p-5 shadow-2xl">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-lg font-semibold text-white">Resultado final del simulador</div>
+                <div className="mt-1 text-sm text-white/60">
+                  Puntaje verificado con detalle de aciertos, errores y explicación por pregunta.
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowResultModal(false)}
+                className="rounded-xl border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
+              >
+                Cerrar
+              </button>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4">
+              <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
+                <div className="text-xs text-white/55">Puntaje total</div>
+                <div className="mt-1 text-2xl font-semibold text-white">
+                  {attempt.result.total_score}/{attempt.result.total_questions}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
+                <div className="text-xs text-white/55">Porcentaje</div>
+                <div className="mt-1 text-2xl font-semibold text-white">{attempt.result.accuracy}%</div>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
+                <div className="text-xs text-white/55">Correctas / Incorrectas</div>
+                <div className="mt-1 text-2xl font-semibold text-white">
+                  {attempt.result.correct_answers} / {attempt.result.incorrect_answers}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
+                <div className="text-xs text-white/55">Tiempo total</div>
+                <div className="mt-1 text-2xl font-semibold text-white">{formatTimer(attempt.result.elapsed_seconds)}</div>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+              <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
+                <div className="text-sm font-semibold text-white">Desempeño por categoría</div>
+                <div className="mt-2 space-y-2 text-sm">
+                  {attempt.result.by_category.map((row) => (
+                    <div key={row.category} className="rounded-xl border border-white/10 bg-black/20 p-2">
+                      <div className="font-medium text-white">{row.category}</div>
+                      <div className="mt-1 text-white/70">
+                        {row.correct}/{row.total} correctas · {row.accuracy}%
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
+                <div className="text-sm font-semibold text-white">Temas débiles</div>
+                {attempt.result.weak_topics.length === 0 ? (
+                  <div className="mt-2 text-sm text-white/65">Sin temas débiles predominantes en este intento.</div>
+                ) : (
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-white/75">
+                    {attempt.result.weak_topics.map((topic) => (
+                      <li key={topic}>{topic}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setShowErrorReview((v) => !v)}
+                className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-2 text-sm text-cyan-100 hover:bg-cyan-300/20"
+              >
+                {showErrorReview ? "Ocultar revisión de errores" : "Mostrar revisión de errores"}
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveCurrentResult}
+                disabled={savedCurrentResult}
+                className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5 disabled:opacity-50"
+              >
+                {savedCurrentResult ? "Guardado en historial" : "Guardar en historial"}
+              </button>
+              <button
+                type="button"
+                onClick={retryWithCurrentConfig}
+                className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black"
+              >
+                Repetir simulacro
+              </button>
+            </div>
+
+            {showErrorReview && (
+              <div className="mt-4 space-y-3">
+                {attempt.result.review.filter((r) => !r.is_correct).length === 0 ? (
+                  <div className="rounded-xl border border-emerald-400/25 bg-emerald-400/10 p-3 text-sm text-emerald-100">
+                    No hubo errores en este intento.
+                  </div>
+                ) : (
+                  attempt.result.review
+                    .filter((r) => !r.is_correct)
+                    .map((r) => {
+                      const q = resultQuestionMap.get(r.question_id);
+                      if (!q) return null;
+                      return (
+                        <div key={r.question_id} className="rounded-2xl border border-white/10 bg-black/30 p-3 text-sm">
+                          <div className="text-xs text-white/55">{q.category} · {q.topic}</div>
+                          <div className="mt-1 font-medium text-white">{q.question}</div>
+                          <div className="mt-2 text-white/75">
+                            Tu respuesta: {getOptionLabel(q, r.selected)}
+                          </div>
+                          <div className="mt-1 text-emerald-100">
+                            Respuesta correcta: {getOptionLabel(q, r.correct)}
+                          </div>
+                          <div className="mt-2 text-white/70">{q.explanation}</div>
+                        </div>
+                      );
+                    })
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

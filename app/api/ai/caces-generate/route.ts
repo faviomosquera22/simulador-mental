@@ -27,6 +27,7 @@ type CacesGenerateRequest = {
   count?: number;
   filters?: {
     category?: string;
+    categories?: string[];
     component?: string;
     subcomponent?: string;
     topic?: string;
@@ -157,6 +158,53 @@ function cleanTags(value: unknown) {
   return out;
 }
 
+function normalizeLite(value: string) {
+  return String(value ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function buildFallbackExplanation(correct: CacesOptionId, rationale: string) {
+  const base = cleanText(rationale, "responde mejor al escenario clínico planteado")
+    .replace(/\.$/, "")
+    .toLowerCase();
+  return `La opción ${correct} es la más adecuada porque ${base}.`;
+}
+
+function isGeneratedQuestionQualityAcceptable(args: {
+  stem: string;
+  options: CacesQuestion["options"];
+  explanation: string;
+  difficulty: CacesDifficulty;
+}) {
+  const { stem, options, explanation, difficulty } = args;
+  const normalizedStem = normalizeLite(stem);
+  if (normalizedStem.length < 24) return false;
+  if (!stem.includes("?") && !stem.includes("¿")) return false;
+  if (explanation.trim().length < 24) return false;
+
+  const optionTexts = options.map((opt) => cleanText(opt.text));
+  const normalizedOptions = optionTexts.map((text) => normalizeLite(text));
+  const uniqueOptions = new Set(normalizedOptions.filter(Boolean));
+  if (uniqueOptions.size < 4) return false;
+  if (optionTexts.some((text) => text.length < 14)) return false;
+
+  const hasBadAbsolute = optionTexts.some((text) => /\bsiempre\b|\bnunca\b|\btodas\b|\bninguna\b/i.test(text));
+  if (hasBadAbsolute) return false;
+
+  if (difficulty === "alta") {
+    const lengths = optionTexts.map((text) => text.length);
+    const spread = Math.max(...lengths) - Math.min(...lengths);
+    if (spread > 95) return false;
+  }
+
+  return true;
+}
+
 function sanitizeGeneratedQuestions(args: {
   raw: CacesGenerateLLMResponse;
   fallbackCategory?: string;
@@ -196,26 +244,46 @@ function sanitizeGeneratedQuestions(args: {
       answerInput === "A" || answerInput === "B" || answerInput === "C" || answerInput === "D"
         ? (answerInput as CacesOptionId)
         : "A";
+    const correctOption = mappedOptions.find((opt) => opt.id === correctAnswer);
 
     const categoryRaw = cleanText(q?.category, fallbackCategory);
     const category = CACES_CATEGORIES.includes(categoryRaw as (typeof CACES_CATEGORIES)[number])
       ? categoryRaw
       : fallbackCategory;
-
-    out.push({
+    const stemRaw = cleanText(q?.question, "Pregunta académica de práctica");
+    const stem = /[?¿]/.test(stemRaw) ? stemRaw : `${stemRaw}?`;
+    const difficulty = normalizeDifficulty(q?.difficulty, fallbackDifficulty);
+    const explanationRaw = cleanText(q?.explanation);
+    const explanation =
+      explanationRaw.length >= 24
+        ? explanationRaw
+        : buildFallbackExplanation(correctAnswer, correctOption?.rationale ?? "");
+    const candidate: CacesQuestion = {
       id: `caces-ai-${now}-${i + 1}-${Math.floor(Math.random() * 10_000)}`,
       component: cleanText(q?.component, fallbackComponent),
       subcomponent: cleanText(q?.subcomponent, fallbackSubcomponent),
       topic: cleanText(q?.topic, fallbackTopic),
       category,
       type: normalizeType(q?.type, fallbackType),
-      question: cleanText(q?.question, "Pregunta académica de práctica."),
+      question: stem,
       options: mappedOptions,
       correctAnswer,
-      explanation: cleanText(q?.explanation, "Respuesta orientativa de uso educativo."),
-      difficulty: normalizeDifficulty(q?.difficulty, fallbackDifficulty),
+      explanation,
+      difficulty,
       tags: cleanTags(q?.tags),
-    });
+    };
+    if (
+      !isGeneratedQuestionQualityAcceptable({
+        stem: candidate.question,
+        options: candidate.options,
+        explanation: candidate.explanation,
+        difficulty: candidate.difficulty,
+      })
+    ) {
+      continue;
+    }
+
+    out.push(candidate);
   }
 
   return dedupeCacesQuestions(out).map(alignQuestionToEhepManual);
@@ -244,9 +312,20 @@ export async function POST(req: Request) {
     const count = Math.max(1, Math.min(MAX_GENERATE_COUNT, Number.isFinite(countRaw) ? Math.trunc(countRaw) : 10));
 
     const filters = body?.filters ?? {};
+    const requestedCategories = Array.isArray(filters?.categories)
+      ? filters.categories
+          .map((value) => cleanText(value))
+          .filter((value) => CACES_CATEGORIES.includes(value as (typeof CACES_CATEGORIES)[number]))
+      : [];
     const fallbackDifficulty = filters?.difficulty ?? "intermedia";
     const fallbackType = filters?.type ?? "directa";
-    const categoryForPrompt = filters?.mix_categories ? "mezcla de categorías" : cleanText(filters?.category, "todas");
+    const categoryForPrompt = requestedCategories.length > 0
+      ? requestedCategories.length === 1
+        ? requestedCategories[0]
+        : `mezcla de categorías (${requestedCategories.join(", ")})`
+      : filters?.mix_categories
+        ? "mezcla de categorías"
+        : cleanText(filters?.category, "todas");
     const componentForPrompt = cleanText(filters?.component, "todos");
     const subcomponentForPrompt = cleanText(filters?.subcomponent, "todos");
     const topicForPrompt = cleanText(filters?.topic, "todos");
@@ -295,10 +374,12 @@ Reglas:
 - Preguntas originales. No copiar reactivos oficiales.
 - Estilo académico profesional con razonamiento clínico.
 - 4 opciones plausibles, una correcta.
+- Todas las opciones deben ser coherentes con el enunciado y pertenecer al mismo contexto clínico.
 - En preguntas de caso clínico, incluir escenario clínico breve, valoración y una instrucción interrogativa clara.
 - Evitar defectos técnicos: términos absolutos ("siempre", "nunca"), "ninguna/todas las anteriores", pistas gramaticales o lógicas.
 - Mantener opciones de la misma categoría conceptual y extensión relativa similar.
-- Explicación breve y didáctica.
+- En dificultad "alta", las 4 opciones deben ser clínicamente cercanas entre sí, con diferencias sutiles.
+- Explicación breve y didáctica que justifique por qué la respuesta correcta es la mejor opción.
 - Uso educativo.
 - Evita repetir o parafrasear demasiado preguntas previas.
 - No incluir contenido morboso ni sensacionalista.
@@ -310,12 +391,14 @@ Reglas:
         count,
         filters: {
           category: categoryForPrompt,
+          categories: requestedCategories,
           component: componentForPrompt,
           subcomponent: subcomponentForPrompt,
           topic: topicForPrompt,
           difficulty: fallbackDifficulty,
           type: fallbackType,
           mix_categories: Boolean(filters?.mix_categories),
+          balance_by_category: Boolean(filters?.mix_categories),
         },
         allowed_categories: CACES_CATEGORIES,
         avoid_similar_to_previous: previousStems,
@@ -392,8 +475,8 @@ Reglas:
 
     const generated = sanitizeGeneratedQuestions({
       raw: rawJson as CacesGenerateLLMResponse,
-      fallbackCategory: filters?.category,
-      fallbackComponent: filters?.component || filters?.category || "General",
+      fallbackCategory: requestedCategories[0] || filters?.category,
+      fallbackComponent: filters?.component || requestedCategories[0] || filters?.category || "General",
       fallbackSubcomponent: filters?.subcomponent || "General",
       fallbackTopic: filters?.topic || "Práctica académica",
       fallbackDifficulty,
