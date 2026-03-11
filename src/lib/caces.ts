@@ -1953,13 +1953,15 @@ const CACES_SUPPLEMENTAL_BANK: CacesQuestion[] = (() => {
 })();
 
 export const CACES_QUESTION_BANK: CacesQuestion[] = dedupeCacesQuestions(
-  [
-    ...CACES_CORE_QUESTION_BANK,
-    ...CACES_EXTRA_CLINICAL_CASE_BANK,
-    ...CACES_EXPANDED_QUESTION_BANK,
-    ...CACES_SUPPLEMENTAL_BANK,
-    ...CACES_IMPORTED_PDF_BANK,
-  ].map(alignQuestionToEhepManual)
+  dedupeCacesQuestionsByStem(
+    [
+      ...CACES_CORE_QUESTION_BANK,
+      ...CACES_EXTRA_CLINICAL_CASE_BANK,
+      ...CACES_EXPANDED_QUESTION_BANK,
+      ...CACES_SUPPLEMENTAL_BANK,
+      ...CACES_IMPORTED_PDF_BANK,
+    ].map(alignQuestionToEhepManual)
+  )
 );
 
 export function normalizeCacesText(value: string) {
@@ -1990,6 +1992,20 @@ export function dedupeCacesQuestions(input: CacesQuestion[]) {
     const key = buildCacesQuestionKey(question);
     if (!key || seen.has(key)) continue;
     seen.add(key);
+    out.push(question);
+  }
+
+  return out;
+}
+
+export function dedupeCacesQuestionsByStem(input: CacesQuestion[]) {
+  const out: CacesQuestion[] = [];
+  const seen = new Set<string>();
+
+  for (const question of input) {
+    const stem = normalizeCacesText(question.question);
+    if (!stem || seen.has(stem)) continue;
+    seen.add(stem);
     out.push(question);
   }
 
