@@ -213,34 +213,6 @@ export default function TriageSimulatorPage() {
 
           {phase === "setup" && (
             <>
-              <section className="mt-5 rounded-2xl border border-white/10 bg-[#0C111D]/85 p-5">
-                <div className="text-sm text-white/60">Escenario de entrenamiento</div>
-                <h2 className="mt-1 text-xl font-semibold">{scenario.title}</h2>
-                <div className="mt-2 text-sm text-white/75">{scenario.setting}</div>
-
-                <div className="mt-2 text-xs text-white/60">
-                  Disponibles para {career.name}: {availableScenarios.length} escenarios.
-                  {scenarioMode === "random" && availableScenarios.length > 1
-                    ? " Se elegira uno al azar al iniciar."
-                    : ""}
-                </div>
-
-                <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-3">
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                    <div className="text-xs uppercase tracking-wide text-white/50">Paciente</div>
-                    <div className="mt-1 text-sm text-white/85">{scenario.patientSummary}</div>
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                    <div className="text-xs uppercase tracking-wide text-white/50">Motivo de consulta</div>
-                    <div className="mt-1 text-sm text-white/85">{scenario.chiefComplaint}</div>
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                    <div className="text-xs uppercase tracking-wide text-white/50">Objetivo docente</div>
-                    <div className="mt-1 text-sm text-white/85">{scenario.learningGoal}</div>
-                  </div>
-                </div>
-              </section>
-
               <section className="mt-5 rounded-2xl border border-white/10 bg-[#0C111D]/80 p-5">
                 <div className="text-sm text-white/60">Paso 1</div>
                 <h2 className="mt-1 text-lg font-semibold">Selecciona carrera de salud</h2>
@@ -321,6 +293,41 @@ export default function TriageSimulatorPage() {
                         </select>
                       </div>
                     )}
+
+                    <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="text-xs uppercase tracking-wide text-white/50">
+                          {scenarioMode === "manual" ? "Escenario seleccionado" : "Escenario (vista previa)"}
+                        </div>
+                        <div className="text-[11px] text-white/55">
+                          {availableScenarios.length} disponibles
+                        </div>
+                      </div>
+
+                      <div className="mt-2 text-sm font-semibold text-white">{scenario.title}</div>
+                      <div className="mt-1 text-xs text-white/60">{scenario.setting}</div>
+
+                      {scenarioMode === "random" && availableScenarios.length > 1 && (
+                        <div className="mt-2 text-xs text-cyan-100/85">
+                          Al iniciar se elige uno aleatorio de esta carrera.
+                        </div>
+                      )}
+
+                      <div className="mt-3 grid grid-cols-1 gap-2">
+                        <div className="rounded-lg border border-white/10 bg-black/25 p-2.5">
+                          <div className="text-[11px] uppercase tracking-wide text-white/50">Paciente</div>
+                          <div className="mt-1 text-xs text-white/80">{scenario.patientSummary}</div>
+                        </div>
+                        <div className="rounded-lg border border-white/10 bg-black/25 p-2.5">
+                          <div className="text-[11px] uppercase tracking-wide text-white/50">Motivo de consulta</div>
+                          <div className="mt-1 text-xs text-white/80">{scenario.chiefComplaint}</div>
+                        </div>
+                        <div className="rounded-lg border border-white/10 bg-black/25 p-2.5">
+                          <div className="text-[11px] uppercase tracking-wide text-white/50">Objetivo docente</div>
+                          <div className="mt-1 text-xs text-white/80">{scenario.learningGoal}</div>
+                        </div>
+                      </div>
+                    </div>
 
                     <div className="mt-4 text-xs uppercase tracking-wide text-white/50">Enfoques de evaluacion</div>
                     <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-white/75">
