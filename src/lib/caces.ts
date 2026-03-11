@@ -12,6 +12,7 @@ import type {
   QuizQuestion,
 } from "./types";
 import { CACES_EXPANDED_QUESTION_BANK } from "./cacesExpanded";
+import { CACES_IMPORTED_PDF_BANK } from "./cacesPdfImported";
 
 type LegacyDifficultyFilter = "all" | "basic" | "intermediate" | "advanced";
 
@@ -1951,12 +1952,15 @@ const CACES_SUPPLEMENTAL_BANK: CacesQuestion[] = (() => {
   return out;
 })();
 
-export const CACES_QUESTION_BANK: CacesQuestion[] = [
-  ...CACES_CORE_QUESTION_BANK,
-  ...CACES_EXTRA_CLINICAL_CASE_BANK,
-  ...CACES_EXPANDED_QUESTION_BANK,
-  ...CACES_SUPPLEMENTAL_BANK,
-].map(alignQuestionToEhepManual);
+export const CACES_QUESTION_BANK: CacesQuestion[] = dedupeCacesQuestions(
+  [
+    ...CACES_CORE_QUESTION_BANK,
+    ...CACES_EXTRA_CLINICAL_CASE_BANK,
+    ...CACES_EXPANDED_QUESTION_BANK,
+    ...CACES_SUPPLEMENTAL_BANK,
+    ...CACES_IMPORTED_PDF_BANK,
+  ].map(alignQuestionToEhepManual)
+);
 
 export function normalizeCacesText(value: string) {
   return String(value ?? "")
