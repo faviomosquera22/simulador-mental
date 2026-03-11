@@ -62,6 +62,20 @@ const NAV: NavItem[] = [
     ),
   },
   {
+    label: "Triage por carrera",
+    href: "/triage-simulator",
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M8 6h11" />
+        <path d="M8 12h11" />
+        <path d="M8 18h11" />
+        <path d="M3.5 6h.01" />
+        <path d="M3.5 12h.01" />
+        <path d="M3.5 18h.01" />
+      </svg>
+    ),
+  },
+  {
     label: "CACES",
     href: "/caces",
     icon: (

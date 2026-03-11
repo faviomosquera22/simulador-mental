@@ -406,6 +406,12 @@ export default function MedicalCasesPage() {
                   Simulador de trastornos mentales
                 </Link>
                 <Link
+                  href="/triage-simulator"
+                  className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
+                >
+                  Triage por carrera
+                </Link>
+                <Link
                   href="/medical-pathologies"
                   className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
                 >

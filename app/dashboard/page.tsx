@@ -248,13 +248,13 @@ export default function DashboardPage() {
     const cards: RecommendationCard[] = hasHighRisk
       ? [
           { priority: "Alta", title: "Practicar seguridad", desc: "Enfoca tamizaje suicida, factores protectores y cierre seguro.", href: "/cases" },
-          { priority: "Media", title: "Practicar CACES", desc: "Resuelve preguntas tipo examen para reforzar razonamiento clínico.", href: "/caces" },
-          { priority: "Baja", title: "Fortalecer MSE", desc: "Completa cognición, juicio e insight en cada entrevista.", href: "/cases" },
+          { priority: "Media", title: "Triage por carrera", desc: "Practica priorizacion y manejo inicial en escenarios clinicos.", href: "/triage-simulator" },
+          { priority: "Baja", title: "Practicar CACES", desc: "Resuelve preguntas tipo examen para reforzar razonamiento clínico.", href: "/caces" },
         ]
       : [
           { priority: "Alta", title: "Mejorar MSE", desc: "Haz un barrido completo y consistente del examen mental.", href: "/cases" },
-          { priority: "Media", title: "Practicar CACES", desc: "Entrena estructura de examen y toma de decisiones clínicas.", href: "/caces" },
-          { priority: "Baja", title: "Diferenciales", desc: "Contrasta hipótesis clínicas antes del cierre de sesión.", href: "/cases" },
+          { priority: "Media", title: "Triage por carrera", desc: "Entrena seguridad del paciente y tiempo de respuesta por rol.", href: "/triage-simulator" },
+          { priority: "Baja", title: "Practicar CACES", desc: "Entrena estructura de examen y toma de decisiones clínicas.", href: "/caces" },
         ];
 
     return { focus: cards[0].title, cards };
@@ -321,6 +321,9 @@ export default function DashboardPage() {
                     </Link>
                     <Link href="/caces" className="rounded-xl border border-white/15 bg-black/25 px-4 py-2 text-sm text-white/80 hover:bg-white/5">
                       Practicar CACES
+                    </Link>
+                    <Link href="/triage-simulator" className="rounded-xl border border-white/15 bg-black/25 px-4 py-2 text-sm text-white/80 hover:bg-white/5">
+                      Triage por carrera
                     </Link>
                     <Link href="/topics" className="rounded-xl border border-white/15 bg-black/25 px-4 py-2 text-sm text-white/80 hover:bg-white/5">
                       Biblioteca clínica
