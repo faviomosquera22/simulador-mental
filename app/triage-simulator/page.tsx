@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import {
   TRIAGE_CAREERS,
@@ -11,14 +10,19 @@ import {
   createInitialTriageScores,
   evaluateTriageSession,
   getCareerById,
+  getScenarioById,
   getScenarioForCareer,
+  getScenariosForCareer,
+  pickRandomScenarioForCareer,
   type TriageCareerId,
   type TriageDecisionRecord,
   type TriageMetricScores,
+  type TriageScenario,
   type TriageStepOption,
 } from "@/src/lib/triageCareerSimulator";
 
 type Phase = "setup" | "running" | "finished";
+type ScenarioMode = "random" | "manual";
 
 function scoreTone(score: number) {
   if (score >= 75) return "text-emerald-200";
@@ -44,13 +48,16 @@ function formatElapsedSeconds(startedAt: string | null, endedAt: string | null) 
   const started = new Date(startedAt).getTime();
   const ended = new Date(endedAt).getTime();
   if (!Number.isFinite(started) || !Number.isFinite(ended)) return null;
-  const delta = Math.max(0, Math.round((ended - started) / 1000));
-  return delta;
+  return Math.max(0, Math.round((ended - started) / 1000));
 }
 
 export default function TriageSimulatorPage() {
   const [careerId, setCareerId] = useState<TriageCareerId>(TRIAGE_CAREERS[0].id);
   const [phase, setPhase] = useState<Phase>("setup");
+  const [scenarioMode, setScenarioMode] = useState<ScenarioMode>("random");
+  const [selectedScenarioId, setSelectedScenarioId] = useState<string>("random");
+  const [activeScenario, setActiveScenario] = useState<TriageScenario | null>(null);
+
   const [stepIndex, setStepIndex] = useState(0);
   const [scores, setScores] = useState<TriageMetricScores>(createInitialTriageScores());
   const [decisions, setDecisions] = useState<TriageDecisionRecord[]>([]);
@@ -60,28 +67,58 @@ export default function TriageSimulatorPage() {
   const [endedAt, setEndedAt] = useState<string | null>(null);
 
   const career = useMemo(() => getCareerById(careerId), [careerId]);
-  const scenario = useMemo(() => getScenarioForCareer(careerId), [careerId]);
-  const currentStep = scenario.steps[stepIndex] ?? null;
+  const availableScenarios = useMemo(() => [...getScenariosForCareer(careerId)], [careerId]);
+
+  const setupScenario = useMemo(() => {
+    const fallback = getScenarioForCareer(careerId);
+    if (!availableScenarios.length) return fallback;
+    if (scenarioMode === "manual" && selectedScenarioId !== "random") {
+      return availableScenarios.find((scenario) => scenario.id === selectedScenarioId) ?? availableScenarios[0];
+    }
+    return availableScenarios[0];
+  }, [careerId, availableScenarios, scenarioMode, selectedScenarioId]);
+
+  const scenario = phase === "setup" ? setupScenario : activeScenario ?? setupScenario;
+  const currentStep = phase === "running" ? scenario.steps[stepIndex] ?? null : null;
+
+  useEffect(() => {
+    if (scenarioMode !== "manual") return;
+    if (!availableScenarios.length) {
+      setSelectedScenarioId("random");
+      return;
+    }
+
+    if (selectedScenarioId === "random") {
+      setSelectedScenarioId(availableScenarios[0].id);
+      return;
+    }
+
+    const exists = availableScenarios.some((item) => item.id === selectedScenarioId);
+    if (!exists) {
+      setSelectedScenarioId(availableScenarios[0].id);
+    }
+  }, [scenarioMode, availableScenarios, selectedScenarioId]);
 
   const progress = useMemo(() => {
-    if (!scenario.steps.length) return 0;
+    if (phase !== "running" || !scenario.steps.length) return 0;
     const value = ((stepIndex + (selectedOptionId ? 1 : 0)) / scenario.steps.length) * 100;
     return Math.max(0, Math.min(100, Math.round(value)));
-  }, [scenario.steps.length, stepIndex, selectedOptionId]);
+  }, [phase, scenario.steps.length, stepIndex, selectedOptionId]);
 
   const elapsedSeconds = useMemo(() => formatElapsedSeconds(startedAt, endedAt), [startedAt, endedAt]);
 
   const debrief = useMemo(() => {
-    if (phase !== "finished") return null;
+    if (phase !== "finished" || !activeScenario) return null;
     return evaluateTriageSession({
       career,
-      scenario,
+      scenario: activeScenario,
       scores,
       decisions,
     });
-  }, [phase, career, scenario, scores, decisions]);
+  }, [phase, activeScenario, career, scores, decisions]);
 
-  function startSimulation() {
+  function startRunWithScenario(nextScenario: TriageScenario) {
+    setActiveScenario(nextScenario);
     setPhase("running");
     setStepIndex(0);
     setScores(createInitialTriageScores());
@@ -92,8 +129,30 @@ export default function TriageSimulatorPage() {
     setEndedAt(null);
   }
 
+  function startSimulation() {
+    const manualScenario =
+      scenarioMode === "manual" && selectedScenarioId !== "random"
+        ? getScenarioById(selectedScenarioId)
+        : null;
+
+    const scenarioForRun =
+      manualScenario ??
+      pickRandomScenarioForCareer(careerId, activeScenario?.id);
+
+    startRunWithScenario(scenarioForRun);
+  }
+
+  function repeatCurrentScenario() {
+    if (!activeScenario) {
+      startSimulation();
+      return;
+    }
+    startRunWithScenario(activeScenario);
+  }
+
   function resetToSetup() {
     setPhase("setup");
+    setActiveScenario(null);
     setStepIndex(0);
     setScores(createInitialTriageScores());
     setDecisions([]);
@@ -135,8 +194,7 @@ export default function TriageSimulatorPage() {
     setStepFeedback("");
   }
 
-  const roleObjective =
-    scenario.roleObjectiveByCareer[careerId] ?? scenario.learningGoal;
+  const roleObjective = scenario.roleObjectiveByCareer[careerId] ?? scenario.learningGoal;
 
   return (
     <div className="min-h-screen bg-[#070A12] text-white">
@@ -151,29 +209,21 @@ export default function TriageSimulatorPage() {
                 Entrena priorizacion, manejo inicial y comunicacion interprofesional con rubricas por rol.
               </p>
             </div>
-
-            <div className="flex items-center gap-2">
-              <Link
-                href="/medical-cases"
-                className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
-              >
-                Patologias medicas
-              </Link>
-              <Link
-                href="/cases"
-                className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
-              >
-                Trastornos mentales
-              </Link>
-            </div>
           </header>
 
           {phase === "setup" && (
             <>
               <section className="mt-5 rounded-2xl border border-white/10 bg-[#0C111D]/85 p-5">
-                <div className="text-sm text-white/60">Escenario V1</div>
+                <div className="text-sm text-white/60">Escenario de entrenamiento</div>
                 <h2 className="mt-1 text-xl font-semibold">{scenario.title}</h2>
                 <div className="mt-2 text-sm text-white/75">{scenario.setting}</div>
+
+                <div className="mt-2 text-xs text-white/60">
+                  Disponibles para {career.name}: {availableScenarios.length} escenarios.
+                  {scenarioMode === "random" && availableScenarios.length > 1
+                    ? " Se elegira uno al azar al iniciar."
+                    : ""}
+                </div>
 
                 <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-3">
                   <div className="rounded-xl border border-white/10 bg-black/20 p-3">
@@ -220,6 +270,58 @@ export default function TriageSimulatorPage() {
                   <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
                     <div className="text-xs uppercase tracking-wide text-white/50">Objetivo por carrera</div>
                     <div className="mt-2 text-sm text-white/85">{roleObjective}</div>
+
+                    <div className="mt-4 text-xs uppercase tracking-wide text-white/50">Paso 2 · Tipo de escenario</div>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setScenarioMode("random");
+                          setSelectedScenarioId("random");
+                        }}
+                        className={`rounded-full border px-3 py-1.5 text-xs transition ${
+                          scenarioMode === "random"
+                            ? "border-cyan-300/40 bg-cyan-300/10 text-cyan-100"
+                            : "border-white/10 bg-black/25 text-white/70 hover:bg-white/5"
+                        }`}
+                      >
+                        Aleatorio por carrera
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setScenarioMode("manual");
+                          if (selectedScenarioId === "random" && availableScenarios[0]) {
+                            setSelectedScenarioId(availableScenarios[0].id);
+                          }
+                        }}
+                        className={`rounded-full border px-3 py-1.5 text-xs transition ${
+                          scenarioMode === "manual"
+                            ? "border-cyan-300/40 bg-cyan-300/10 text-cyan-100"
+                            : "border-white/10 bg-black/25 text-white/70 hover:bg-white/5"
+                        }`}
+                      >
+                        Escoger manual
+                      </button>
+                    </div>
+
+                    {scenarioMode === "manual" && (
+                      <div className="mt-3">
+                        <label className="text-xs text-white/60">Escenario</label>
+                        <select
+                          value={selectedScenarioId === "random" ? (availableScenarios[0]?.id ?? "") : selectedScenarioId}
+                          onChange={(e) => setSelectedScenarioId(e.target.value)}
+                          className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                        >
+                          {availableScenarios.map((item) => (
+                            <option key={item.id} value={item.id}>
+                              {item.title}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
                     <div className="mt-4 text-xs uppercase tracking-wide text-white/50">Enfoques de evaluacion</div>
                     <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-white/75">
                       {career.focus.map((focusLine) => (
@@ -257,6 +359,8 @@ export default function TriageSimulatorPage() {
                     Paso {stepIndex + 1} de {scenario.steps.length}
                   </div>
                 </div>
+
+                <div className="mt-1 text-xs text-white/55">Escenario activo: {scenario.title}</div>
 
                 <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-white/10">
                   <div className="h-full rounded-full bg-cyan-400" style={{ width: `${progress}%` }} />
@@ -452,7 +556,7 @@ export default function TriageSimulatorPage() {
                 <div className="mt-4 flex flex-wrap gap-2">
                   <button
                     type="button"
-                    onClick={startSimulation}
+                    onClick={repeatCurrentScenario}
                     className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black"
                   >
                     Repetir escenario
