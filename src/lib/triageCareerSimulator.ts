@@ -1640,18 +1640,163 @@ const OBSTETRIC_SCENARIO_SEEDS: readonly ScenarioSeed[] = [
   },
 ];
 
-const CLINICAL_TRIAGE_SCENARIOS: readonly TriageScenario[] = [
+type StepFlavor = "priority" | "questions" | "monitoring" | "tests" | "action";
+
+function detectStepFlavor(step: TriageStep): StepFlavor {
+  const key = `${step.id} ${step.title}`.toLowerCase();
+  if (key.includes("priority") || key.includes("triage")) return "priority";
+  if (key.includes("question")) return "questions";
+  if (key.includes("monitor")) return "monitoring";
+  if (key.includes("test")) return "tests";
+  return "action";
+}
+
+function subtleHintByFlavor(flavor: StepFlavor) {
+  if (flavor === "priority") return "Hay datos mixtos: prioriza los que cambian desenlace en minutos.";
+  if (flavor === "questions") return "No todo dato pesa igual; busca el minimo set que cambia conducta.";
+  if (flavor === "monitoring") return "El reto es balancear vigilancia clinica y tiempo operativo.";
+  if (flavor === "tests") return "Selecciona pruebas por valor de decision temprana, no por volumen.";
+  return "Combina seguridad inmediata, comunicacion clara y escalamiento oportuno.";
+}
+
+function subtlePromptTail(flavor: StepFlavor) {
+  if (flavor === "priority") return "Dato adicional: hay mejoria parcial subjetiva, pero persisten signos de riesgo.";
+  if (flavor === "questions") return "Dato adicional: el acompanante aporta informacion parcial y a veces contradictoria.";
+  if (flavor === "monitoring") return "Dato adicional: los signos iniciales son borderline y pueden fluctuar rapido.";
+  if (flavor === "tests") return "Dato adicional: hay recursos disponibles, pero no todos de forma inmediata.";
+  return "Dato adicional: el paciente/familia solicita soluciones rapidas aunque el riesgo siga presente.";
+}
+
+function optionNuanceClause(tags: TriageOptionTag[], flavor: StepFlavor) {
+  if (tags.includes("undertriage")) return "si la estabilidad aparente inicial se mantiene";
+  if (tags.includes("premature_closure")) return "partiendo de la hipotesis inicial mas probable";
+  if (tags.includes("overuse")) return "para cubrir un espectro amplio de causas desde el inicio";
+  if (tags.includes("weak_handoff")) return "sin activar handoff formal hasta confirmar el siguiente paso";
+  if (tags.includes("delay")) return "mientras esperas confirmacion adicional antes de escalar";
+
+  if (flavor === "priority") return "coordinando escalamiento y reevaluacion en paralelo";
+  if (flavor === "questions") return "enfocando preguntas que realmente cambian la decision";
+  if (flavor === "monitoring") return "con vigilancia continua orientada a deterioro";
+  if (flavor === "tests") return "usando pruebas de alto rendimiento clinico temprano";
+  return "alineando seguridad, tiempo y coordinacion interprofesional";
+}
+
+function nuancedSummary(tags: TriageOptionTag[]) {
+  if (tags.includes("undertriage")) return "Puede parecer razonable al inicio, pero eleva riesgo de omision critica.";
+  if (tags.includes("premature_closure")) return "Reduce complejidad rapida, pero aumenta probabilidad de sesgo diagnostico.";
+  if (tags.includes("overuse")) return "Amplia cobertura diagnostica con costo de tiempo y recursos.";
+  if (tags.includes("weak_handoff")) return "Depende de terceros y puede dejar vacios de responsabilidad clinica.";
+  if (tags.includes("delay")) return "Aporta control parcial, con riesgo de perder ventana terapeutica.";
+  return "Mantiene buen balance entre seguridad, oportunidad y protocolo.";
+}
+
+function rewriteOptionLabel(base: string, tags: TriageOptionTag[], flavor: StepFlavor) {
+  const cleaned = String(base || "").replace(/\s+/g, " ").trim().replace(/[.;,:]+$/, "");
+  const clause = optionNuanceClause(tags, flavor);
+  if (!cleaned) return clause ? `${clause}.` : "";
+  if (!clause) return `${cleaned}.`;
+  return `${cleaned}; ${clause}.`;
+}
+
+function buildAmbiguousDistractor(step: TriageStep, flavor: StepFlavor): TriageStepOption {
+  if (flavor === "priority") {
+    return {
+      id: `${step.id}-ambiguous`,
+      label: "Prioridad alta diferida con observacion monitorizada breve antes de activar ruta completa.",
+      summary: "Estrategia intermedia: parece prudente, pero suele consumir minutos criticos.",
+      impact: { patientSafety: 6, responseTime: -5, resourceUse: 2, teamCommunication: 2, protocolCompliance: 1 },
+      tags: ["delay"],
+      npcReply: "La observacion aporta datos, aunque el equipo percibe retraso para la ruta critica.",
+    };
+  }
+
+  if (flavor === "questions") {
+    return {
+      id: `${step.id}-ambiguous`,
+      label: "Aplicar checklist amplio de anamnesis antes de priorizar el nucleo de riesgo.",
+      summary: "Recolecta informacion extensa, con riesgo de perder foco temporal.",
+      impact: { patientSafety: 4, responseTime: -4, resourceUse: 1, teamCommunication: 2, protocolCompliance: 1 },
+      tags: ["delay"],
+      npcReply: "Se obtiene informacion adicional, pero no toda impacta en la decision inmediata.",
+    };
+  }
+
+  if (flavor === "monitoring") {
+    return {
+      id: `${step.id}-ambiguous`,
+      label: "Monitorizacion escalonada: intermitente al inicio y continua solo ante empeoramiento.",
+      summary: "Puede parecer eficiente, pero puede subestimar cambios tempranos.",
+      impact: { patientSafety: 3, responseTime: -4, resourceUse: 2, teamCommunication: 1, protocolCompliance: -1 },
+      tags: ["delay"],
+      npcReply: "El control intermitente deja intervalos sin vigilancia de deterioro temprano.",
+    };
+  }
+
+  if (flavor === "tests") {
+    return {
+      id: `${step.id}-ambiguous`,
+      label: "Solicitar set intermedio de pruebas y esperar primer resultado antes de escalar.",
+      summary: "Mezcla pertinencia con espera que puede retrasar acciones clave.",
+      impact: { patientSafety: 3, responseTime: -4, resourceUse: -3, teamCommunication: 1, protocolCompliance: -2 },
+      tags: ["delay", "overuse"],
+      npcReply: "Hay datos iniciales utiles, aunque la decision critica se posterga.",
+    };
+  }
+
+  return {
+    id: `${step.id}-ambiguous`,
+    label: "Iniciar control sintomatico + consulta con senior, y activar ruta completa si persiste riesgo.",
+    summary: "Escalamiento condicionado: util en algunos casos, riesgoso en cuadros inestables.",
+    impact: { patientSafety: 2, responseTime: -5, resourceUse: 2, teamCommunication: 1, protocolCompliance: -2 },
+    tags: ["delay", "weak_handoff"],
+    npcReply: "El control inicial ayuda parcialmente, pero el equipo requiere decision de escalamiento mas rapida.",
+  };
+}
+
+function enhanceScenarioComplexity(scenario: TriageScenario): TriageScenario {
+  return {
+    ...scenario,
+    steps: scenario.steps.map((step) => {
+      const flavor = detectStepFlavor(step);
+      const mappedOptions = step.options.map((option) => ({
+        ...option,
+        label: rewriteOptionLabel(option.label, option.tags, flavor),
+        summary: nuancedSummary(option.tags),
+      }));
+
+      const options =
+        mappedOptions.length >= 4
+          ? mappedOptions
+          : [...mappedOptions, buildAmbiguousDistractor(step, flavor)];
+
+      return {
+        ...step,
+        prompt: `${step.prompt} ${subtlePromptTail(flavor)}`.trim(),
+        hint: subtleHintByFlavor(flavor),
+        options,
+      };
+    }),
+  };
+}
+
+const CLINICAL_TRIAGE_SCENARIOS_BASE: readonly TriageScenario[] = [
   CHEST_PAIN_SCENARIO,
   STROKE_SCENARIO,
   SEPSIS_SCENARIO,
   ...GENERAL_SCENARIO_SEEDS.map(buildSeedScenario),
-].slice(0, 15);
+];
 
-const OBSTETRIC_TRIAGE_SCENARIOS: readonly TriageScenario[] = [
+const OBSTETRIC_TRIAGE_SCENARIOS_BASE: readonly TriageScenario[] = [
   OBSTETRIC_SCENARIO,
   OB_POSTPARTUM_SCENARIO,
   ...OBSTETRIC_SCENARIO_SEEDS.map(buildSeedScenario),
-].slice(0, 15);
+];
+
+const CLINICAL_TRIAGE_SCENARIOS: readonly TriageScenario[] =
+  CLINICAL_TRIAGE_SCENARIOS_BASE.map(enhanceScenarioComplexity).slice(0, 15);
+
+const OBSTETRIC_TRIAGE_SCENARIOS: readonly TriageScenario[] =
+  OBSTETRIC_TRIAGE_SCENARIOS_BASE.map(enhanceScenarioComplexity).slice(0, 15);
 
 const TRIAGE_SCENARIOS_BY_CAREER: Record<TriageCareerId, readonly TriageScenario[]> = {
   medicina: CLINICAL_TRIAGE_SCENARIOS,
@@ -1699,6 +1844,27 @@ export function getScenarioById(scenarioId: string): TriageScenario | null {
 
 export function getScenarioForCareer(careerId: TriageCareerId): TriageScenario {
   return getScenariosForCareer(careerId)[0] ?? CHEST_PAIN_SCENARIO;
+}
+
+function shuffleArray<T>(items: T[]): T[] {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = copy[i];
+    copy[i] = copy[j];
+    copy[j] = tmp;
+  }
+  return copy;
+}
+
+export function prepareScenarioForRun(scenario: TriageScenario): TriageScenario {
+  return {
+    ...scenario,
+    steps: scenario.steps.map((step) => ({
+      ...step,
+      options: shuffleArray(step.options),
+    })),
+  };
 }
 
 export function pickRandomScenarioForCareer(

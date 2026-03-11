@@ -13,6 +13,7 @@ import {
   getScenarioById,
   getScenarioForCareer,
   getScenariosForCareer,
+  prepareScenarioForRun,
   pickRandomScenarioForCareer,
   type TriageCareerId,
   type TriageDecisionRecord,
@@ -118,7 +119,7 @@ export default function TriageSimulatorPage() {
   }, [phase, activeScenario, career, scores, decisions]);
 
   function startRunWithScenario(nextScenario: TriageScenario) {
-    setActiveScenario(nextScenario);
+    setActiveScenario(prepareScenarioForRun(nextScenario));
     setPhase("running");
     setStepIndex(0);
     setScores(createInitialTriageScores());
