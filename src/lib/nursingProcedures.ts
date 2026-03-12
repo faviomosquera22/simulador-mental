@@ -1,3 +1,11 @@
+import {
+  TARGET_CASE_LIBRARY_SIZE,
+  buildVariantId,
+  buildVariantName,
+  buildVariantSentence,
+  expandCaseLibrary,
+} from "./caseExpansion";
+
 export type ProcedureMode = "practice" | "evaluation";
 
 export type ProcedureDifficulty = "basic" | "intermediate" | "advanced";
@@ -60,7 +68,7 @@ export function procedureCategoryLabel(value: ProcedureCategory) {
   return "Curaciones";
 }
 
-export const NURSING_PROCEDURE_LIBRARY: NursingProcedure[] = [
+const BASE_NURSING_PROCEDURE_LIBRARY: NursingProcedure[] = [
   {
     id: "im_injection",
     name: "Administración intramuscular",
@@ -279,6 +287,17 @@ export const NURSING_PROCEDURE_LIBRARY: NursingProcedure[] = [
     rationale: "El oxígeno es una intervención terapéutica que requiere dispositivo correcto, flujo y reevaluación.",
   },
 ];
+
+export const NURSING_PROCEDURE_LIBRARY: NursingProcedure[] = expandCaseLibrary(
+  BASE_NURSING_PROCEDURE_LIBRARY,
+  TARGET_CASE_LIBRARY_SIZE,
+  (baseProcedure, variantIndex) => ({
+    ...baseProcedure,
+    id: buildVariantId(baseProcedure.id, variantIndex),
+    name: buildVariantName(baseProcedure.name, variantIndex),
+    context: buildVariantSentence(baseProcedure.context, variantIndex),
+  })
+);
 
 export function evaluateProcedure(args: {
   procedure: NursingProcedure;

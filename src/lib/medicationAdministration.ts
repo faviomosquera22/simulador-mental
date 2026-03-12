@@ -1,3 +1,13 @@
+import {
+  TARGET_CASE_LIBRARY_SIZE,
+  buildVariantId,
+  buildVariantName,
+  buildVariantPatient,
+  buildVariantSentence,
+  expandCaseLibrary,
+  pickDeterministic,
+} from "./caseExpansion";
+
 export type MedicationMode = "practice" | "evaluation";
 
 export type MedicationDifficulty = "basic" | "intermediate" | "advanced";
@@ -151,7 +161,7 @@ export function medicationDecisionLabel(value: MedicationDecision) {
   return "Aclarar antes de administrar";
 }
 
-export const MEDICATION_LIBRARY: MedicationCase[] = [
+const BASE_MEDICATION_LIBRARY: MedicationCase[] = [
   {
     id: "ceftriaxone_iv_safe",
     name: "Antibiótico IV sin alertas mayores",
@@ -334,6 +344,53 @@ export const MEDICATION_LIBRARY: MedicationCase[] = [
     commonErrors: ["Cambiar innecesariamente el volumen de una jeringa prellenada."],
   },
 ];
+
+const MEDICATION_TIMES = ["06:00", "08:00", "10:00", "14:00", "18:00", "21:00", "22:00"];
+
+function buildMedicationSchedule(baseSchedule: string, variantIndex: number) {
+  if (/ahora|inmediato/i.test(baseSchedule)) return baseSchedule;
+  const selectedTime = pickDeterministic(MEDICATION_TIMES, variantIndex);
+  if (/dosis programada/i.test(baseSchedule)) {
+    return `Dosis programada ${selectedTime}`;
+  }
+  if (/\d{2}:\d{2}/.test(baseSchedule)) return selectedTime;
+  return baseSchedule;
+}
+
+function buildMedicationAlerts(alerts: string[] | undefined, variantIndex: number) {
+  const baseAlerts = alerts ? [...alerts] : [];
+  const extraAlert = pickDeterministic(
+    [
+      "Requiere doble verificación institucional",
+      "Confirmar identidad antes de preparar",
+      "Revisar registro previo de administración",
+      "Valorar signos vitales antes de ejecutar la orden",
+    ],
+    variantIndex
+  );
+
+  if (baseAlerts.includes(extraAlert)) return baseAlerts;
+  return [...baseAlerts, extraAlert];
+}
+
+export const MEDICATION_LIBRARY: MedicationCase[] = expandCaseLibrary(
+  BASE_MEDICATION_LIBRARY,
+  TARGET_CASE_LIBRARY_SIZE,
+  (baseCase, variantIndex) => ({
+    ...baseCase,
+    id: buildVariantId(baseCase.id, variantIndex),
+    name: buildVariantName(baseCase.name, variantIndex),
+    patient: {
+      ...buildVariantPatient(baseCase.patient, variantIndex),
+      alerts: buildMedicationAlerts(baseCase.patient.alerts, variantIndex),
+    },
+    context: buildVariantSentence(baseCase.context, variantIndex),
+    order: {
+      ...baseCase.order,
+      schedule: buildMedicationSchedule(baseCase.order.schedule, variantIndex),
+    },
+  })
+);
 
 export function evaluateMedicationCase(args: {
   caseSet: MedicationCase;

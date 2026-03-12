@@ -1,3 +1,12 @@
+import {
+  TARGET_CASE_LIBRARY_SIZE,
+  boundedNumber,
+  buildVariantId,
+  buildVariantName,
+  buildVariantSentence,
+  expandCaseLibrary,
+} from "./caseExpansion";
+
 export type EmergencyMode = "practice" | "evaluation";
 
 export type EmergencyDifficulty = "basic" | "intermediate" | "advanced";
@@ -103,7 +112,7 @@ export function applyEmergencyVitals(
   };
 }
 
-export const EMERGENCY_SCENARIOS: EmergencyScenario[] = [
+const BASE_EMERGENCY_SCENARIOS: EmergencyScenario[] = [
   {
     id: "stemi_chest_pain",
     name: "Dolor torácico con sospecha de IAM",
@@ -559,6 +568,42 @@ export const EMERGENCY_SCENARIOS: EmergencyScenario[] = [
     finalTeaching: "La gasometría cambia decisiones en disnea compleja porque integra oxigenación, ventilación y estado ácido-base.",
   },
 ];
+
+function buildEmergencyVitalsVariant(
+  baseVitals: EmergencyVitals,
+  variantIndex: number
+): EmergencyVitals {
+  return {
+    hr: boundedNumber(baseVitals.hr, variantIndex, [-10, -6, -4, 0, 4, 6, 10], 45, 170, 0),
+    sbp: boundedNumber(baseVitals.sbp, variantIndex + 1, [-8, -6, -4, 0, 4, 6, 8], 70, 140, 0),
+    dbp: boundedNumber(baseVitals.dbp, variantIndex + 2, [-6, -4, -2, 0, 2, 4, 6], 40, 90, 0),
+    spo2: boundedNumber(baseVitals.spo2, variantIndex + 3, [-4, -3, -2, 0, 2, 3, 4], 82, 100, 0),
+    rr: boundedNumber(baseVitals.rr, variantIndex + 4, [-6, -4, -2, 0, 2, 4, 6], 12, 42, 0),
+    temp: boundedNumber(baseVitals.temp, variantIndex + 5, [-0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6], 35.5, 40.5, 1),
+  };
+}
+
+function buildEmergencyTimeLimit(baseTimeLimitSec: number, variantIndex: number) {
+  return boundedNumber(baseTimeLimitSec, variantIndex, [-30, -15, 0, 15, 30], 120, 240, 0);
+}
+
+export const EMERGENCY_SCENARIOS: EmergencyScenario[] = expandCaseLibrary(
+  BASE_EMERGENCY_SCENARIOS,
+  TARGET_CASE_LIBRARY_SIZE,
+  (baseScenario, variantIndex) => ({
+    ...baseScenario,
+    id: buildVariantId(baseScenario.id, variantIndex),
+    name: buildVariantName(baseScenario.name, variantIndex),
+    patient: {
+      ...baseScenario.patient,
+      age: boundedNumber(baseScenario.patient.age, variantIndex, [-8, -6, -4, -2, 0, 2, 4, 6, 8], 18, 90, 0),
+      chiefComplaint: buildVariantSentence(baseScenario.patient.chiefComplaint, variantIndex),
+    },
+    initialVitals: buildEmergencyVitalsVariant(baseScenario.initialVitals, variantIndex),
+    context: buildVariantSentence(baseScenario.context, variantIndex),
+    timeLimitSec: buildEmergencyTimeLimit(baseScenario.timeLimitSec, variantIndex),
+  })
+);
 
 export function evaluateEmergencyScenario(args: {
   scenario: EmergencyScenario;

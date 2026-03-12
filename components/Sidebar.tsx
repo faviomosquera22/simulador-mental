@@ -12,226 +12,201 @@ type NavItem = {
   requiresActiveCase?: boolean;
 };
 
-const NAV: NavItem[] = [
+type NavSection = {
+  title: string;
+  items: NavItem[];
+};
+
+const navIcons = {
+  dashboard: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
+    </svg>
+  ),
+  activeCase: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 8v4l3 3" />
+    </svg>
+  ),
+  library: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M9 3H5a2 2 0 0 0-2 2v4" />
+      <path d="M9 3h10a2 2 0 0 1 2 2v4" />
+      <path d="M9 3v18" />
+      <path d="M9 21h10a2 2 0 0 0 2-2V9" />
+      <path d="M9 21H5a2 2 0 0 1-2-2V9" />
+      <path d="M3 9h18" />
+    </svg>
+  ),
+  pathologies: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M12 3v18" />
+      <path d="M3 12h18" />
+      <rect x="5" y="5" width="14" height="14" rx="3" />
+    </svg>
+  ),
+  ecg: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M3 12h4l2.5-6 5 12 2.5-6H21" />
+      <path d="M4 5h16" />
+      <path d="M4 19h16" />
+    </svg>
+  ),
+  lab: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M10 2v6l-4.5 7.6A4 4 0 0 0 8.9 22h6.2a4 4 0 0 0 3.4-6.4L14 8V2" />
+      <path d="M9 13h6" />
+    </svg>
+  ),
+  gasometry: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M6 4h12" />
+      <path d="M7 4v7l-3 5a3 3 0 0 0 2.6 4.5h10.8A3 3 0 0 0 20 16l-3-5V4" />
+      <path d="M9 10h6" />
+      <path d="M9 14h6" />
+    </svg>
+  ),
+  calculations: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="4" y="2.5" width="16" height="19" rx="2.5" />
+      <path d="M8 7h8" />
+      <path d="M8 11h2" />
+      <path d="M12 11h4" />
+      <path d="M8 15h2" />
+      <path d="M12 15h4" />
+    </svg>
+  ),
+  medications: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M8 4h8" />
+      <path d="M9 4v6" />
+      <path d="M15 4v6" />
+      <rect x="6" y="10" width="12" height="10" rx="2" />
+      <path d="M10 15h4" />
+    </svg>
+  ),
+  procedures: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M4 20l6-6" />
+      <path d="M14 4l6 6" />
+      <path d="M13 5l6 6" />
+      <path d="M3 21l5-1 10-10-4-4L4 16l-1 5z" />
+    </svg>
+  ),
+  notes: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M6 3h9l3 3v15H6z" />
+      <path d="M15 3v4h4" />
+      <path d="M9 10h6" />
+      <path d="M9 14h6" />
+      <path d="M9 18h4" />
+    </svg>
+  ),
+  pae: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M6 3h9l3 3v15H6z" />
+      <path d="M15 3v4h4" />
+      <path d="M9 11h6" />
+      <path d="M9 15h6" />
+    </svg>
+  ),
+  urgency: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" />
+    </svg>
+  ),
+  triage: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M8 6h11" />
+      <path d="M8 12h11" />
+      <path d="M8 18h11" />
+      <path d="M3.5 6h.01" />
+      <path d="M3.5 12h.01" />
+      <path d="M3.5 18h.01" />
+    </svg>
+  ),
+  caces: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M9.5 9a2.5 2.5 0 1 1 4 2c-.6.4-1 .7-1.2 1.4" />
+      <circle cx="12" cy="17" r="1" />
+      <circle cx="12" cy="12" r="9" />
+    </svg>
+  ),
+  mental: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+    </svg>
+  ),
+  history: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M9 11l3 3L22 4" />
+      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+    </svg>
+  ),
+  reports: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <line x1="18" y1="20" x2="18" y2="10" />
+      <line x1="12" y1="20" x2="12" y2="4" />
+      <line x1="6" y1="20" x2="6" y2="14" />
+    </svg>
+  ),
+  profile: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M20 21a8 8 0 1 0-16 0" />
+      <circle cx="12" cy="8" r="4" />
+    </svg>
+  ),
+};
+
+const NAV_SECTIONS: NavSection[] = [
   {
-    label: "Dashboard",
-    href: "/dashboard",
-    icon: (
-      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <rect x="3" y="3" width="7" height="7" rx="1" />
-        <rect x="14" y="3" width="7" height="7" rx="1" />
-        <rect x="3" y="14" width="7" height="7" rx="1" />
-        <rect x="14" y="14" width="7" height="7" rx="1" />
-      </svg>
-    ),
+    title: "Inicio",
+    items: [
+      { label: "Dashboard", href: "/dashboard", icon: navIcons.dashboard },
+      { label: "Caso en curso", href: "/simulator", requiresActiveCase: true, icon: navIcons.activeCase },
+      { label: "Biblioteca clínica", href: "/topics", icon: navIcons.library },
+    ],
   },
   {
-    label: "Caso en curso",
-    href: "/simulator",
-    requiresActiveCase: true,
-    icon: (
-      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <circle cx="12" cy="12" r="9" />
-        <path d="M12 8v4l3 3" />
-      </svg>
-    ),
+    title: "Simulación",
+    items: [
+      { label: "Simulador de patologías", href: "/medical-cases", icon: navIcons.pathologies },
+      { label: "Simulador de trastornos mentales", href: "/cases", icon: navIcons.mental },
+      { label: "Urgencias", href: "/emergency-simulator", icon: navIcons.urgency },
+      { label: "Triage por carrera", href: "/triage-simulator", icon: navIcons.triage },
+    ],
   },
   {
-    label: "Biblioteca clínica",
-    href: "/topics",
-    icon: (
-      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M9 3H5a2 2 0 0 0-2 2v4" />
-        <path d="M9 3h10a2 2 0 0 1 2 2v4" />
-        <path d="M9 3v18" />
-        <path d="M9 21h10a2 2 0 0 0 2-2V9" />
-        <path d="M9 21H5a2 2 0 0 1-2-2V9" />
-        <path d="M3 9h18" />
-      </svg>
-    ),
+    title: "Diagnóstico",
+    items: [
+      { label: "Simulador de ECG", href: "/ecg-simulator", icon: navIcons.ecg },
+      { label: "Laboratorio", href: "/laboratory", icon: navIcons.lab },
+      { label: "Gasometría", href: "/gasometry", icon: navIcons.gasometry },
+    ],
   },
   {
-    label: "Simulador de patologías",
-    href: "/medical-cases",
-    icon: (
-      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M12 3v18" />
-        <path d="M3 12h18" />
-        <rect x="5" y="5" width="14" height="14" rx="3" />
-      </svg>
-    ),
+    title: "Práctica clínica",
+    items: [
+      { label: "Cálculo clínico", href: "/clinical-calculations", icon: navIcons.calculations },
+      { label: "Medicamentos", href: "/medications", icon: navIcons.medications },
+      { label: "Procedimientos", href: "/procedures", icon: navIcons.procedures },
+      { label: "Notas clínicas", href: "/clinical-notes", icon: navIcons.notes },
+      { label: "PAE", href: "/pae", icon: navIcons.pae },
+    ],
   },
   {
-    label: "Simulador de ECG",
-    href: "/ecg-simulator",
-    icon: (
-      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M3 12h4l2.5-6 5 12 2.5-6H21" />
-        <path d="M4 5h16" />
-        <path d="M4 19h16" />
-      </svg>
-    ),
-  },
-  {
-    label: "Laboratorio",
-    href: "/laboratory",
-    icon: (
-      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M10 2v6l-4.5 7.6A4 4 0 0 0 8.9 22h6.2a4 4 0 0 0 3.4-6.4L14 8V2" />
-        <path d="M9 13h6" />
-      </svg>
-    ),
-  },
-  {
-    label: "Gasometría",
-    href: "/gasometry",
-    icon: (
-      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M6 4h12" />
-        <path d="M7 4v7l-3 5a3 3 0 0 0 2.6 4.5h10.8A3 3 0 0 0 20 16l-3-5V4" />
-        <path d="M9 10h6" />
-        <path d="M9 14h6" />
-      </svg>
-    ),
-  },
-  {
-    label: "Cálculo clínico",
-    href: "/clinical-calculations",
-    icon: (
-      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <rect x="4" y="2.5" width="16" height="19" rx="2.5" />
-        <path d="M8 7h8" />
-        <path d="M8 11h2" />
-        <path d="M12 11h4" />
-        <path d="M8 15h2" />
-        <path d="M12 15h4" />
-      </svg>
-    ),
-  },
-  {
-    label: "Medicamentos",
-    href: "/medications",
-    icon: (
-      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M8 4h8" />
-        <path d="M9 4v6" />
-        <path d="M15 4v6" />
-        <rect x="6" y="10" width="12" height="10" rx="2" />
-        <path d="M10 15h4" />
-      </svg>
-    ),
-  },
-  {
-    label: "Procedimientos",
-    href: "/procedures",
-    icon: (
-      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M4 20l6-6" />
-        <path d="M14 4l6 6" />
-        <path d="M13 5l6 6" />
-        <path d="M3 21l5-1 10-10-4-4L4 16l-1 5z" />
-      </svg>
-    ),
-  },
-  {
-    label: "Notas clínicas",
-    href: "/clinical-notes",
-    icon: (
-      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M6 3h9l3 3v15H6z" />
-        <path d="M15 3v4h4" />
-        <path d="M9 10h6" />
-        <path d="M9 14h6" />
-        <path d="M9 18h4" />
-      </svg>
-    ),
-  },
-  {
-    label: "PAE",
-    href: "/pae",
-    icon: (
-      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M6 3h9l3 3v15H6z" />
-        <path d="M15 3v4h4" />
-        <path d="M9 11h6" />
-        <path d="M9 15h6" />
-      </svg>
-    ),
-  },
-  {
-    label: "Urgencias",
-    href: "/emergency-simulator",
-    icon: (
-      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" />
-      </svg>
-    ),
-  },
-  {
-    label: "Triage por carrera",
-    href: "/triage-simulator",
-    icon: (
-      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M8 6h11" />
-        <path d="M8 12h11" />
-        <path d="M8 18h11" />
-        <path d="M3.5 6h.01" />
-        <path d="M3.5 12h.01" />
-        <path d="M3.5 18h.01" />
-      </svg>
-    ),
-  },
-  {
-    label: "CACES",
-    href: "/caces",
-    icon: (
-      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M9.5 9a2.5 2.5 0 1 1 4 2c-.6.4-1 .7-1.2 1.4" />
-        <circle cx="12" cy="17" r="1" />
-        <circle cx="12" cy="12" r="9" />
-      </svg>
-    ),
-  },
-  {
-    label: "Simulador de trastornos mentales",
-    href: "/cases",
-    icon: (
-      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-      </svg>
-    ),
-  },
-  {
-    label: "Mis sesiones",
-    href: "/history",
-    icon: (
-      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M9 11l3 3L22 4" />
-        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-      </svg>
-    ),
-  },
-  {
-    label: "Reportes",
-    href: "/reports",
-    icon: (
-      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <line x1="18" y1="20" x2="18" y2="10" />
-        <line x1="12" y1="20" x2="12" y2="4" />
-        <line x1="6" y1="20" x2="6" y2="14" />
-      </svg>
-    ),
-  },
-  {
-    label: "Perfil",
-    href: "/profile",
-    icon: (
-      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M20 21a8 8 0 1 0-16 0" />
-        <circle cx="12" cy="8" r="4" />
-      </svg>
-    ),
+    title: "Seguimiento",
+    items: [
+      { label: "CACES", href: "/caces", icon: navIcons.caces },
+      { label: "Mis sesiones", href: "/history", icon: navIcons.history },
+      { label: "Reportes", href: "/reports", icon: navIcons.reports },
+      { label: "Perfil", href: "/profile", icon: navIcons.profile },
+    ],
   },
 ];
 
@@ -318,59 +293,70 @@ export default function Sidebar() {
     const closeOnNavigate = Boolean(options?.closeOnNavigate);
 
     return (
-      <ul className="space-y-1">
-        {NAV.map((item) => {
-          const disabledCase = Boolean(item.requiresActiveCase) && !hasActiveCase;
-          const href = disabledCase ? "/cases" : item.href;
-          const isCacesItem = item.label === "CACES";
-          const active = !disabledCase && (
-            isCacesItem
-              ? isCacesRoute
-              : pathname === item.href || pathname.startsWith(item.href + "/")
-          );
+      <div className={compact ? "space-y-3" : "space-y-4"}>
+        {NAV_SECTIONS.map((section) => (
+          <div key={section.title} className={cn(compact ? "border-t border-white/5 pt-3 first:border-t-0 first:pt-0" : "")}>
+            {!compact && (
+              <div className="px-2 pb-2 text-[10px] font-semibold tracking-[0.14em] text-white/25">
+                {section.title.toUpperCase()}
+              </div>
+            )}
+            <ul className="space-y-1">
+              {section.items.map((item) => {
+                const disabledCase = Boolean(item.requiresActiveCase) && !hasActiveCase;
+                const href = disabledCase ? "/cases" : item.href;
+                const isCacesItem = item.label === "CACES";
+                const active = !disabledCase && (
+                  isCacesItem
+                    ? isCacesRoute
+                    : pathname === item.href || pathname.startsWith(item.href + "/")
+                );
 
-          return (
-            <li key={`${item.href}::${item.label}`}>
-              <Link
-                href={href}
-                onClick={() => {
-                  if (closeOnNavigate) setMobileOpen(false);
-                }}
-                className={cn(
-                  "group flex items-center gap-3 rounded-2xl px-3 py-2 text-sm transition",
-                  active
-                    ? "bg-blue-400/10 text-sky-300"
-                    : disabledCase
-                    ? "text-white/35 hover:bg-white/5 hover:text-white/60"
-                    : "text-white/70 hover:bg-white/5 hover:text-white"
-                )}
-                aria-current={active ? "page" : undefined}
-                title={
-                  disabledCase
-                    ? "No hay caso en curso. Genera un caso primero en Simulador de trastornos mentales."
-                    : compact
-                    ? item.label
-                    : undefined
-                }
-              >
-                <span className={cn("flex h-6 w-6 items-center justify-center", active ? "text-sky-300" : "text-white/70")}>
-                  {item.icon}
-                </span>
+                return (
+                  <li key={`${section.title}::${item.href}::${item.label}`}>
+                    <Link
+                      href={href}
+                      onClick={() => {
+                        if (closeOnNavigate) setMobileOpen(false);
+                      }}
+                      className={cn(
+                        "group flex items-center gap-3 rounded-2xl px-3 py-2 text-sm transition",
+                        active
+                          ? "bg-blue-400/10 text-sky-300"
+                          : disabledCase
+                          ? "text-white/35 hover:bg-white/5 hover:text-white/60"
+                          : "text-white/70 hover:bg-white/5 hover:text-white"
+                      )}
+                      aria-current={active ? "page" : undefined}
+                      title={
+                        disabledCase
+                          ? "No hay caso en curso. Genera un caso primero en Simulador de trastornos mentales."
+                          : compact
+                          ? item.label
+                          : undefined
+                      }
+                    >
+                      <span className={cn("flex h-6 w-6 items-center justify-center", active ? "text-sky-300" : "text-white/70")}>
+                        {item.icon}
+                      </span>
 
-                {!compact && (
-                  <span className={cn("min-w-0 flex-1 truncate", active ? "font-semibold" : "font-medium")}>
-                    {item.label === "Caso en curso" && !hasActiveCase ? "Genera un caso" : item.label}
-                  </span>
-                )}
+                      {!compact && (
+                        <span className={cn("min-w-0 flex-1 truncate", active ? "font-semibold" : "font-medium")}>
+                          {item.label === "Caso en curso" && !hasActiveCase ? "Genera un caso" : item.label}
+                        </span>
+                      )}
 
-                {!compact && item.label === "Caso en curso" && hasActiveCase && (
-                  <span className="ml-auto rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-semibold text-white">1</span>
-                )}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+                      {!compact && item.label === "Caso en curso" && hasActiveCase && (
+                        <span className="ml-auto rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-semibold text-white">1</span>
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
+      </div>
     );
   };
 
@@ -425,7 +411,6 @@ export default function Sidebar() {
           </div>
 
           <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
-            <div className="px-2 pb-2 text-[10px] font-semibold tracking-[0.14em] text-white/25">PRINCIPAL</div>
             {renderNavItems({ closeOnNavigate: true })}
           </nav>
 
@@ -476,9 +461,6 @@ export default function Sidebar() {
         </div>
 
         <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
-          {!collapsed && (
-            <div className="px-2 pb-2 text-[10px] font-semibold tracking-[0.14em] text-white/25">PRINCIPAL</div>
-          )}
           {renderNavItems({ compact: collapsed })}
         </nav>
 

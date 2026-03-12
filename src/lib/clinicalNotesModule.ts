@@ -1,3 +1,12 @@
+import {
+  TARGET_CASE_LIBRARY_SIZE,
+  buildVariantId,
+  buildVariantName,
+  buildVariantPatient,
+  buildVariantSentence,
+  expandCaseLibrary,
+} from "./caseExpansion";
+
 export type ClinicalNoteMode = "practice" | "evaluation";
 
 export type ClinicalNoteDifficulty = "basic" | "intermediate" | "advanced";
@@ -116,7 +125,7 @@ export function getClinicalNoteSections(type: ClinicalNoteType): ClinicalNoteSec
   ];
 }
 
-export const CLINICAL_NOTES_LIBRARY: ClinicalNoteCase[] = [
+const BASE_CLINICAL_NOTES_LIBRARY: ClinicalNoteCase[] = [
   {
     id: "note_postop_pain",
     name: "Dolor posoperatorio controlado parcialmente",
@@ -178,6 +187,20 @@ export const CLINICAL_NOTES_LIBRARY: ClinicalNoteCase[] = [
     educationalHint: "En incidentes, evita juicios de valor y prioriza hechos, acciones y comunicación.",
   },
 ];
+
+export const CLINICAL_NOTES_LIBRARY: ClinicalNoteCase[] = expandCaseLibrary(
+  BASE_CLINICAL_NOTES_LIBRARY,
+  TARGET_CASE_LIBRARY_SIZE,
+  (baseCase, variantIndex) => ({
+    ...baseCase,
+    id: buildVariantId(baseCase.id, variantIndex),
+    name: buildVariantName(baseCase.name, variantIndex),
+    context: buildVariantSentence(baseCase.context, variantIndex),
+    patient: {
+      ...buildVariantPatient(baseCase.patient, variantIndex),
+    },
+  })
+);
 
 export function evaluateClinicalNote(args: {
   caseSet: ClinicalNoteCase;

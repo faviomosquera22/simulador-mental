@@ -1,3 +1,13 @@
+import {
+  TARGET_CASE_LIBRARY_SIZE,
+  boundedNumber,
+  buildVariantId,
+  buildVariantName,
+  buildVariantPatient,
+  buildVariantSentence,
+  expandCaseLibrary,
+} from "./caseExpansion";
+
 export type BloodGasMode = "practice" | "evaluation";
 
 export type BloodGasDifficulty = "basic" | "intermediate" | "advanced";
@@ -185,7 +195,7 @@ export function inferBloodGasContextFromCase(caseObject: any): BloodGasContext {
   return "general";
 }
 
-export const BLOOD_GAS_LIBRARY: BloodGasCase[] = [
+const BASE_BLOOD_GAS_LIBRARY: BloodGasCase[] = [
   {
     id: "copd_resp_acidosis",
     name: "EPOC reagudizado con acidosis respiratoria",
@@ -376,6 +386,75 @@ export const BLOOD_GAS_LIBRARY: BloodGasCase[] = [
     conductKeywords: ["vigilar", "monitorizar", "continuar", "cuidados habituales"],
   },
 ];
+
+function buildBloodGasValueVariant(
+  parameter: keyof BloodGasValues,
+  baseValue: number,
+  variantIndex: number
+) {
+  const state = bloodGasParameterState(parameter, baseValue);
+
+  if (parameter === "ph") {
+    if (state === "low") return boundedNumber(baseValue, variantIndex, [-0.03, -0.02, -0.01, 0, 0.01, 0.02], 7.12, 7.34, 2);
+    if (state === "high") return boundedNumber(baseValue, variantIndex, [-0.03, -0.02, -0.01, 0, 0.01, 0.02], 7.46, 7.56, 2);
+    return boundedNumber(baseValue, variantIndex, [-0.02, -0.01, 0, 0.01, 0.02], 7.35, 7.45, 2);
+  }
+
+  if (parameter === "paCO2") {
+    if (state === "low") return boundedNumber(baseValue, variantIndex, [-4, -2, -1, 0, 1, 2, 4], 20, 34, 0);
+    if (state === "high") return boundedNumber(baseValue, variantIndex, [-6, -4, -2, 0, 2, 4, 6], 46, 72, 0);
+    return boundedNumber(baseValue, variantIndex, [-3, -2, -1, 0, 1, 2, 3], 35, 45, 0);
+  }
+
+  if (parameter === "hco3") {
+    if (state === "low") return boundedNumber(baseValue, variantIndex, [-3, -2, -1, 0, 1, 2], 8, 21, 0);
+    if (state === "high") return boundedNumber(baseValue, variantIndex, [-3, -2, -1, 0, 1, 2, 3], 27, 40, 0);
+    return boundedNumber(baseValue, variantIndex, [-2, -1, 0, 1, 2], 22, 26, 0);
+  }
+
+  if (parameter === "paO2") {
+    if (state === "low") return boundedNumber(baseValue, variantIndex, [-8, -6, -4, 0, 4, 6, 8], 48, 79, 0);
+    if (state === "high") return boundedNumber(baseValue, variantIndex, [-4, -2, 0, 2, 4], 101, 110, 0);
+    return boundedNumber(baseValue, variantIndex, [-6, -4, -2, 0, 2, 4, 6], 80, 100, 0);
+  }
+
+  if (parameter === "saturation") {
+    if (state === "low") return boundedNumber(baseValue, variantIndex, [-4, -3, -2, 0, 2, 3, 4], 82, 94, 0);
+    return boundedNumber(baseValue, variantIndex, [-2, -1, 0, 1, 2], 95, 100, 0);
+  }
+
+  if (state === "normal") {
+    return boundedNumber(baseValue, variantIndex, [-0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3], 0.8, 1.9, 1);
+  }
+
+  return boundedNumber(baseValue, variantIndex, [-0.8, -0.6, -0.4, 0, 0.4, 0.6, 0.8], 2.1, 7.2, 1);
+}
+
+function buildBloodGasValuesVariant(baseCase: BloodGasCase, variantIndex: number): BloodGasValues {
+  return {
+    ph: buildBloodGasValueVariant("ph", baseCase.values.ph, variantIndex),
+    paCO2: buildBloodGasValueVariant("paCO2", baseCase.values.paCO2, variantIndex + 1),
+    hco3: buildBloodGasValueVariant("hco3", baseCase.values.hco3, variantIndex + 2),
+    paO2: buildBloodGasValueVariant("paO2", baseCase.values.paO2, variantIndex + 3),
+    saturation: buildBloodGasValueVariant("saturation", baseCase.values.saturation, variantIndex + 4),
+    lactate: buildBloodGasValueVariant("lactate", baseCase.values.lactate, variantIndex + 5),
+  };
+}
+
+export const BLOOD_GAS_LIBRARY: BloodGasCase[] = expandCaseLibrary(
+  BASE_BLOOD_GAS_LIBRARY,
+  TARGET_CASE_LIBRARY_SIZE,
+  (baseCase, variantIndex) => ({
+    ...baseCase,
+    id: buildVariantId(baseCase.id, variantIndex),
+    name: buildVariantName(baseCase.name, variantIndex),
+    patient: {
+      ...buildVariantPatient(baseCase.patient, variantIndex),
+      chiefComplaint: buildVariantSentence(baseCase.patient.chiefComplaint, variantIndex),
+    },
+    values: buildBloodGasValuesVariant(baseCase, variantIndex),
+  })
+);
 
 export function evaluateBloodGasInterpretation(args: {
   caseSet: BloodGasCase;
