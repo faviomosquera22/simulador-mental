@@ -335,11 +335,19 @@ export default function PaePage() {
     const nanda = nandaMap.get(nandaId);
     if (!nanda) return null;
 
+    const primaryNandaId = selectedDiagnosisIds[0];
+
     const outcomes = NOC_LIBRARY.filter(
-      (item) => selectedOutcomeIds.includes(item.id) && item.linkedNandaIds.includes(nandaId)
+      (item) =>
+        selectedOutcomeIds.includes(item.id) &&
+        (item.linkedNandaIds.includes(nandaId) ||
+          (!item.linkedNandaIds.length && primaryNandaId === nandaId))
     );
     const interventions = NIC_LIBRARY.filter(
-      (item) => selectedInterventionIds.includes(item.id) && item.linkedNandaIds.includes(nandaId)
+      (item) =>
+        selectedInterventionIds.includes(item.id) &&
+        (item.linkedNandaIds.includes(nandaId) ||
+          (!item.linkedNandaIds.length && primaryNandaId === nandaId))
     );
 
     return {

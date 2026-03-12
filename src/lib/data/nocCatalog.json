@@ -1,0 +1,4954 @@
+[
+  {
+    "id": "noc_0001",
+    "code": "0001",
+    "label": "Resistencia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0002",
+    "code": "0002",
+    "label": "Conservacion de la energia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0003",
+    "code": "0003",
+    "label": "Descanso",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0004",
+    "code": "0004",
+    "label": "Sueño",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0005",
+    "code": "0005",
+    "label": "Tolerancia de la actividad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0006",
+    "code": "0006",
+    "label": "Energía psicomotora",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0007",
+    "code": "0007",
+    "label": "Nivel de fatiga",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0008",
+    "code": "0008",
+    "label": "Fatiga: efectos disruptivos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0060",
+    "code": "0060",
+    "label": "Cognicion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0100",
+    "code": "0100",
+    "label": "Desarrollo infantil: 2 meses",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0101",
+    "code": "0101",
+    "label": "Desarrollo infantil:4 meses",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0102",
+    "code": "0102",
+    "label": "Desarrollo infantil:6 meses",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0103",
+    "code": "0103",
+    "label": "Desarrollo infantil: 12 meses",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0104",
+    "code": "0104",
+    "label": "Desarrollo infantil:2 anos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0105",
+    "code": "0105",
+    "label": "Desarrollo infantil: 3 anos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0106",
+    "code": "0106",
+    "label": "Desarrollo infantil: 4 años",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0107",
+    "code": "0107",
+    "label": "Desarrollo infantil: 5 anios",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0110",
+    "code": "0110",
+    "label": "Crecimiento",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0111",
+    "code": "0111",
+    "label": "Estadofetal:prenatal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0112",
+    "code": "0112",
+    "label": "Estado fetal:durante el parto",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0113",
+    "code": "0113",
+    "label": "Envejecimiento físico",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0114",
+    "code": "0114",
+    "label": "Maduracion fisica: femenina",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0115",
+    "code": "0115",
+    "label": "Maduracion fisica: masculina",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0116",
+    "code": "0116",
+    "label": "Participacion en juegos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0117",
+    "code": "0117",
+    "label": "Adaptación del prematuro",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0118",
+    "code": "0118",
+    "label": "Adaptaciondelreciennacido",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0119",
+    "code": "0119",
+    "label": "Funcionamiento sexual",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0120",
+    "code": "0120",
+    "label": "Desarrollo infantil:i mes",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0121",
+    "code": "0121",
+    "label": "Desarrollo: adulto mayor",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0122",
+    "code": "0122",
+    "label": "Desarrollo:adulto demediana edad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0123",
+    "code": "0123",
+    "label": "Desarrollo: adulto joven",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0124",
+    "code": "0124",
+    "label": "Desarrollo:edadadultaestablecida",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0125",
+    "code": "0125",
+    "label": "Desarrollo infantil: 9 meses",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0126",
+    "code": "0126",
+    "label": "Desarrollo infantil:18 meses",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0127",
+    "code": "0127",
+    "label": "Desarrollo infantil:6-7anos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0128",
+    "code": "0128",
+    "label": "Desarrolloinfantil:8-10anos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0129",
+    "code": "0129",
+    "label": "Desarrollo infantil: adolescencia temprana",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0130",
+    "code": "0130",
+    "label": "Desarrollo infantil: adolescencia tardia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0131",
+    "code": "0131",
+    "label": "Desarrollo infantil: adolescencia media",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0200",
+    "code": "0200",
+    "label": "Ambular",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0201",
+    "code": "0201",
+    "label": "Ambular: silla de ruedas",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0202",
+    "code": "0202",
+    "label": "Equilibrio",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0203",
+    "code": "0203",
+    "label": "Posicion corporal: autoiniciada",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0204",
+    "code": "0204",
+    "label": "Consecuencias de la inmovilidad:fisiologicas",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0205",
+    "code": "0205",
+    "label": "Consecuencias de la inmovilidad:psicocognitivas",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0206",
+    "code": "0206",
+    "label": "Movimiento articular",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0207",
+    "code": "0207",
+    "label": "Movimiento articular:pasivo",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0208",
+    "code": "0208",
+    "label": "Movilidad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0210",
+    "code": "0210",
+    "label": "Realizacion de transferencia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0211",
+    "code": "0211",
+    "label": "Funcion esqueletica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0212",
+    "code": "0212",
+    "label": "Movimiento coordinado",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0213",
+    "code": "0213",
+    "label": "Movimientoarticular:tobillo",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0214",
+    "code": "0214",
+    "label": "Movimiento articular:codo",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0215",
+    "code": "0215",
+    "label": "Movimiento articular: dedos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0216",
+    "code": "0216",
+    "label": "Movimiento articular:cadera",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0217",
+    "code": "0217",
+    "label": "Movimiento articular: rodilla",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0218",
+    "code": "0218",
+    "label": "Movimiento articular: cuello",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0219",
+    "code": "0219",
+    "label": "Hombro",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0220",
+    "code": "0220",
+    "label": "Movimiento articular:columna vertebral",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0221",
+    "code": "0221",
+    "label": "Muñeca",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0222",
+    "code": "0222",
+    "label": "Marcha",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0300",
+    "code": "0300",
+    "label": "Conducta de autocuidado: actividades de la vida diaria (avd)",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0301",
+    "code": "0301",
+    "label": "Conducta de autocuidado: bano",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0302",
+    "code": "0302",
+    "label": "Conducta de autocuidado: vestir",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0303",
+    "code": "0303",
+    "label": "Conducta de autocuidado: comer",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0305",
+    "code": "0305",
+    "label": "Conducta deautocuidado:higiene",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0306",
+    "code": "0306",
+    "label": "Conducta de autocuidado: actividades instrumentales de la vida diaria (aivd)",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0307",
+    "code": "0307",
+    "label": "Conducta de autocuidado: medicacion no parenteral",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0308",
+    "code": "0308",
+    "label": "Conducta de autocuidado: higiene oral",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0309",
+    "code": "0309",
+    "label": "Conducta deautocuidado:medicacionparenteral",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0310",
+    "code": "0310",
+    "label": "Conducta de autocuidado: uso del inodoro",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0311",
+    "code": "0311",
+    "label": "Preparacionparaelalta:vidaindependiente",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0312",
+    "code": "0312",
+    "label": "Preparación para el alta: vida dependiente",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0313",
+    "code": "0313",
+    "label": "Conducta de autocuidado",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0314",
+    "code": "0314",
+    "label": "Conducta de autocuidado: pies",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0400",
+    "code": "0400",
+    "label": "Efectividad de la bomba cardiaca",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0401",
+    "code": "0401",
+    "label": "Estado circulatorio",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0402",
+    "code": "0402",
+    "label": "Funcionrespiratoria:intercambiogaseoso",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0403",
+    "code": "0403",
+    "label": "Función respiratoria: ventilación",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0404",
+    "code": "0404",
+    "label": "Perfusión tisular: órganos abdominales",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0405",
+    "code": "0405",
+    "label": "Perfusion tisular: cardiaca",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0406",
+    "code": "0406",
+    "label": "Perfusiontisular: cerebral",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0407",
+    "code": "0407",
+    "label": "Perfusion tisular: periferica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0408",
+    "code": "0408",
+    "label": "Perfusion tisular:pulmonar",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0409",
+    "code": "0409",
+    "label": "Coagulación sanguínea",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0410",
+    "code": "0410",
+    "label": "Funcionrespiratoria:permeabilidad de las vias respiratorias",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0411",
+    "code": "0411",
+    "label": "Respuestaalaventilacionmecanica:adulto",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0412",
+    "code": "0412",
+    "label": "Respuestaal destetede la ventilacion mecanica:adulto",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0413",
+    "code": "0413",
+    "label": "Severidad de la perdida de sangre",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0414",
+    "code": "0414",
+    "label": "Funcion cardiopulmonar",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0415",
+    "code": "0415",
+    "label": "Wilkins. función respiratoria",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0416",
+    "code": "0416",
+    "label": "Perfusión tisular: celular",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0417",
+    "code": "0417",
+    "label": "Severidad del shock: anafilactico",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0418",
+    "code": "0418",
+    "label": "Cardiogénico",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0419",
+    "code": "0419",
+    "label": "Severidaddel shock:hipovolemico",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0420",
+    "code": "0420",
+    "label": "Severidad del shock: neurogenico",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0421",
+    "code": "0421",
+    "label": "Severidad del shock: septico",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0422",
+    "code": "0422",
+    "label": "Perfusion tisular",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0500",
+    "code": "0500",
+    "label": "Continencia intestinal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0501",
+    "code": "0501",
+    "label": "Eliminacion intestinal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0502",
+    "code": "0502",
+    "label": "Continencia urinaria",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0503",
+    "code": "0503",
+    "label": "Eliminacion urinaria",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0504",
+    "code": "0504",
+    "label": "S neurology (14th ed.). wolters kluwer. función renal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0600",
+    "code": "0600",
+    "label": "Equilibrioelectroliticoyacido-base",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0601",
+    "code": "0601",
+    "label": "Equilibrio hidrico",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0602",
+    "code": "0602",
+    "label": "Hidratacion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0603",
+    "code": "0603",
+    "label": "Severidad de la sobrecarga deliquidos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0604",
+    "code": "0604",
+    "label": "Severidad de la acidosis respiratoria aguda",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0605",
+    "code": "0605",
+    "label": "Severidadde laalcalosis respiratoriaaguda",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0606",
+    "code": "0606",
+    "label": "Equilibrio electrolítico",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0607",
+    "code": "0607",
+    "label": "Severidad de la hipercalcemia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0608",
+    "code": "0608",
+    "label": "Severidad de la hipercloremia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0609",
+    "code": "0609",
+    "label": "Severidad de la hiperpotasemia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0610",
+    "code": "0610",
+    "label": "Severidad de la hipermagnesemia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0611",
+    "code": "0611",
+    "label": "Severidad de la hipernatremia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0612",
+    "code": "0612",
+    "label": "Severidadde la hiperfosfatemia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0613",
+    "code": "0613",
+    "label": "Severidad de la hipocalcemia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0614",
+    "code": "0614",
+    "label": "Severidad de la hipocloremia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0615",
+    "code": "0615",
+    "label": "Severidadde lahipopotasemia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0616",
+    "code": "0616",
+    "label": "Severidad de la hipomagnesemia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0617",
+    "code": "0617",
+    "label": "Severidadde la hiponatremia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0618",
+    "code": "0618",
+    "label": "Severidadde lahipofosfatemia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0619",
+    "code": "0619",
+    "label": "Severidad de la acidosis metabolica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0620",
+    "code": "0620",
+    "label": "Severidad de la alcalosis metabolica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0621",
+    "code": "0621",
+    "label": "Severidad de la deshidratacion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0700",
+    "code": "0700",
+    "label": "Reaccionalatransfusiondehemoderivados",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0702",
+    "code": "0702",
+    "label": "Estado inmune",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0703",
+    "code": "0703",
+    "label": "Severidad de la infección",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0704",
+    "code": "0704",
+    "label": "Automanejo: asma",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0705",
+    "code": "0705",
+    "label": "Localizada",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0706",
+    "code": "0706",
+    "label": "Respuesta alergica: sistemica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0707",
+    "code": "0707",
+    "label": "Respuesta de hipersensibilidad inmunológica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0708",
+    "code": "0708",
+    "label": "Severidad de la infección: recién nacido",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0800",
+    "code": "0800",
+    "label": "Termorregulación",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0801",
+    "code": "0801",
+    "label": "Neonato",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0802",
+    "code": "0802",
+    "label": "Signos vitales",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0803",
+    "code": "0803",
+    "label": "Función hepática",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0804",
+    "code": "0804",
+    "label": "Funcion metabolica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0900",
+    "code": "0900",
+    "label": "Cognición",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0901",
+    "code": "0901",
+    "label": "Orientación cognitiva",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0902",
+    "code": "0902",
+    "label": "Comunicacion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0903",
+    "code": "0903",
+    "label": "Comunicación: expresiva",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0904",
+    "code": "0904",
+    "label": "Comunicación: receptiva",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0905",
+    "code": "0905",
+    "label": "Concentración",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0906",
+    "code": "0906",
+    "label": "Toma de decisiones",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0907",
+    "code": "0907",
+    "label": "Elaboracion de la informacion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0908",
+    "code": "0908",
+    "label": "Memoria",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0909",
+    "code": "0909",
+    "label": "Función neurológica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0910",
+    "code": "0910",
+    "label": "Función neurológica: autónoma",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0911",
+    "code": "0911",
+    "label": "Funcion neurologica:controlmotorcentral",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0912",
+    "code": "0912",
+    "label": "Funcion neurologica: consciencia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0913",
+    "code": "0913",
+    "label": "Funcion neurologica: funcion sensitivomotora de pares craneales",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0914",
+    "code": "0914",
+    "label": "Funcion neurologica: funcion sensitivomotora de nervios espinales",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0915",
+    "code": "0915",
+    "label": "Nivel de hiperactividad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0916",
+    "code": "0916",
+    "label": "Nivel de delirium",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0917",
+    "code": "0917",
+    "label": "Funcion neurologica: periferica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0918",
+    "code": "0918",
+    "label": "Atención al lado afectado",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0919",
+    "code": "0919",
+    "label": "Pensamiento abstracto",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0920",
+    "code": "0920",
+    "label": "Interventions (pp. 442-454). mosby. nivel de demencia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_0921",
+    "code": "0921",
+    "label": "Nivel de deficit de atencion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1000",
+    "code": "1000",
+    "label": "Establecimientode la lactanciamaterna:lactante",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1001",
+    "code": "1001",
+    "label": "Establecimiento de la lactancia materna: madre",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1002",
+    "code": "1002",
+    "label": "Mantenimiento de la lactancia materna",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1003",
+    "code": "1003",
+    "label": "Lactancia materna: destete",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1004",
+    "code": "1004",
+    "label": "Estado nutricional",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1005",
+    "code": "1005",
+    "label": "Dietary guidelines for americans (9th ed.). estado nutricional: determinaciones bioquímicas",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1006",
+    "code": "1006",
+    "label": "Peso: masa corporal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1007",
+    "code": "1007",
+    "label": "Energia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1008",
+    "code": "1008",
+    "label": "Ingestión alimentaria y de líquidos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1009",
+    "code": "1009",
+    "label": "Estadonutricional:ingestiondenutrientes",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1010",
+    "code": "1010",
+    "label": "Estado de deglución",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1011",
+    "code": "1011",
+    "label": "Estado de deglución: fase esofágica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1012",
+    "code": "1012",
+    "label": "Estado de deglución: fase oral",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1013",
+    "code": "1013",
+    "label": "Estado de deglución: fase faríngea",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1014",
+    "code": "1014",
+    "label": "Apetito",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1015",
+    "code": "1015",
+    "label": "Funciongastrointestinal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1016",
+    "code": "1016",
+    "label": "Establecimiento de la alimentacion con biberon:lactante",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1017",
+    "code": "1017",
+    "label": "Realizacion de la alimentacion conbiberon",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1018",
+    "code": "1018",
+    "label": "Establecimiento de la alimentacion con taza: lactante",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1019",
+    "code": "1019",
+    "label": "Realizacionde laalimentacion contaza",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1020",
+    "code": "1020",
+    "label": "Estado nutricional del lactante",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1060",
+    "code": "1060",
+    "label": "Orientacion cognitiva",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1100",
+    "code": "1100",
+    "label": "Salud oral",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1101",
+    "code": "1101",
+    "label": "Integridadtisular:pielymembranasmucosas",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1102",
+    "code": "1102",
+    "label": "Curaciondeheridas:porprimeraintencion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1103",
+    "code": "1103",
+    "label": "Curacion de heridas: por segunda intencion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1104",
+    "code": "1104",
+    "label": "Regeneracion osea",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1105",
+    "code": "1105",
+    "label": "Integridad del acceso para hemodiálisis",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1106",
+    "code": "1106",
+    "label": "Curacion de las quemaduras",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1107",
+    "code": "1107",
+    "label": "Recuperación de las quemaduras",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1108",
+    "code": "1108",
+    "label": "Salud de los pies",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1109",
+    "code": "1109",
+    "label": "Severidad de la lesiontisular:procedimientopercutaneo",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1110",
+    "code": "1110",
+    "label": "Funcion vocal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1200",
+    "code": "1200",
+    "label": "Imagen corporal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1201",
+    "code": "1201",
+    "label": "Esperanza",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1202",
+    "code": "1202",
+    "label": "Identidad personal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1203",
+    "code": "1203",
+    "label": "Severidad de la soledad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1204",
+    "code": "1204",
+    "label": "Equilibrio emocional",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1205",
+    "code": "1205",
+    "label": "Autoestima",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1206",
+    "code": "1206",
+    "label": "Deseo de vivir",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1207",
+    "code": "1207",
+    "label": "Identidad sexual",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1208",
+    "code": "1208",
+    "label": "Nivel de depresion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1209",
+    "code": "1209",
+    "label": "Motivacion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1210",
+    "code": "1210",
+    "label": "Nivel de miedo",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1211",
+    "code": "1211",
+    "label": "Nivel de ansiedad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1212",
+    "code": "1212",
+    "label": "Nivel de estres",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1214",
+    "code": "1214",
+    "label": "Nivel de agitacion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1215",
+    "code": "1215",
+    "label": "Conciencia de uno mismo",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1216",
+    "code": "1216",
+    "label": "Nivel de ansiedad social",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1217",
+    "code": "1217",
+    "label": "Nivel de panico",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1218",
+    "code": "1218",
+    "label": "Nivel de miedo: adolescente",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1219",
+    "code": "1219",
+    "label": "Nivel de miedo: segunda infancia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1220",
+    "code": "1220",
+    "label": "Nivel de miedo: preescolar",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1221",
+    "code": "1221",
+    "label": "Identidad degenero",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1222",
+    "code": "1222",
+    "label": "Severidad de la conducta de acaparamiento",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1223",
+    "code": "1223",
+    "label": "Identidad social",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1300",
+    "code": "1300",
+    "label": "Aceptacion: estado de salud",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1302",
+    "code": "1302",
+    "label": "Afrontamiento",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1304",
+    "code": "1304",
+    "label": "Resolución de la aflicción",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1305",
+    "code": "1305",
+    "label": "Modificacionpsicosocial:cambiodevida",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1306",
+    "code": "1306",
+    "label": "Dolor: respuesta psicologica adversa",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1307",
+    "code": "1307",
+    "label": "Muerte digna",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1308",
+    "code": "1308",
+    "label": "Adaptacionaladiscapacidadfisica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1309",
+    "code": "1309",
+    "label": "Resiliencia personal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1310",
+    "code": "1310",
+    "label": "Resolucion de la culpa",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1311",
+    "code": "1311",
+    "label": "6686.21.1.173. adaptación al traslado",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1312",
+    "code": "1312",
+    "label": "Recuperacion del acoso infantil",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1313",
+    "code": "1313",
+    "label": "Adaptacionalahospitalizacion:preescolar",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1314",
+    "code": "1314",
+    "label": "Adaptaciona la hospitalizacion: segundainfancia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1315",
+    "code": "1315",
+    "label": "Adaptacion a lahospitalizacion:adolescente",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1316",
+    "code": "1316",
+    "label": "Adaptacion de los padres a la hospitalizacion del lactante",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1317",
+    "code": "1317",
+    "label": "220x2018056203614. adaptación de los padres a la hospitalización del niño pequeño",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1400",
+    "code": "1400",
+    "label": "Autorrestricción de la conducta abusiva",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1401",
+    "code": "1401",
+    "label": "Autorrestriccionde laagresion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1402",
+    "code": "1402",
+    "label": "502). mosby. autocontrol de la ansiedad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1403",
+    "code": "1403",
+    "label": "Autocontrol delpensamiento distorsionado",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1404",
+    "code": "1404",
+    "label": "Autocontrol delmiedo",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1405",
+    "code": "1405",
+    "label": "Autocontrol de los impulsos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1407",
+    "code": "1407",
+    "label": "Consecuencias de la adiccion a sustancias psicoactivas",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1408",
+    "code": "1408",
+    "label": "Autorrestriccion del impulso suicida",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1409",
+    "code": "1409",
+    "label": "Autocontrol de la depresion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1410",
+    "code": "1410",
+    "label": "Autorrestriccion de la ira",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1411",
+    "code": "1411",
+    "label": "Autocontroldeltrastornode laalimentacion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1412",
+    "code": "1412",
+    "label": "Autocontrol delpanico",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1413",
+    "code": "1413",
+    "label": "Cese de la conducta de acaparamiento",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1414",
+    "code": "1414",
+    "label": "Restriccion de las autolesiones",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1500",
+    "code": "1500",
+    "label": "Vinculo padres-hijo",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1501",
+    "code": "1501",
+    "label": "Desempeno del rol",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1502",
+    "code": "1502",
+    "label": "Habilidadesdeinteraccion social",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1503",
+    "code": "1503",
+    "label": "Implicacion social",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1504",
+    "code": "1504",
+    "label": "Soportesocial",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1600",
+    "code": "1600",
+    "label": "Conducta de adherencia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1602",
+    "code": "1602",
+    "label": "Conducta defavorecimiento de la salud",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1603",
+    "code": "1603",
+    "label": "Conducta de bisqueda de la salud",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1604",
+    "code": "1604",
+    "label": "Participacion en actividades de ocio",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1605",
+    "code": "1605",
+    "label": "Control del dolor",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1606",
+    "code": "1606",
+    "label": "Participación en las decisiones sobre la salud",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1607",
+    "code": "1607",
+    "label": "Conducta de salud prenatal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1608",
+    "code": "1608",
+    "label": "Control de sintomas",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1610",
+    "code": "1610",
+    "label": "Conducta de compensación auditiva",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1611",
+    "code": "1611",
+    "label": "Conducta de compensacion visual",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1613",
+    "code": "1613",
+    "label": "2524.2011.00994.x. autogestión de los cuidados",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1614",
+    "code": "1614",
+    "label": "Autonomiapersonal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1615",
+    "code": "1615",
+    "label": "Automanejo:ostomia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1616",
+    "code": "1616",
+    "label": "Rendimientode lamecanica corporal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1617",
+    "code": "1617",
+    "label": "Automanejo: enfermedad cardiaca",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1618",
+    "code": "1618",
+    "label": "Control de nauseas y vomitos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1619",
+    "code": "1619",
+    "label": "Automanejo: diabetes",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1620",
+    "code": "1620",
+    "label": "Autocontrol de las convulsiones",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1621",
+    "code": "1621",
+    "label": "Conducta de adherencia: dieta saludable",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1622",
+    "code": "1622",
+    "label": "Fividad prescrita conservando el codigo original",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1623",
+    "code": "1623",
+    "label": "Conducta de adherencia: medicacion prescrita",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1624",
+    "code": "1624",
+    "label": "Conducta de salud maternaposparto",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1625",
+    "code": "1625",
+    "label": "Conducta de abandono del consumo de tabaco",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1626",
+    "code": "1626",
+    "label": "Conducta de aumento de peso",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1627",
+    "code": "1627",
+    "label": "Conducta de perdida de peso",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1628",
+    "code": "1628",
+    "label": "Conducta de mantenimiento del peso",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1629",
+    "code": "1629",
+    "label": "Conducta deabandonodel consumodealcohol",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1630",
+    "code": "1630",
+    "label": "Conducta deabandonodelconsumodedrogas",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1631",
+    "code": "1631",
+    "label": "Automanejo: esclerosis miltiple",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1632",
+    "code": "1632",
+    "label": "Conducta de adherencia: actividadprescrita",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1633",
+    "code": "1633",
+    "label": "Participacion en el ejercicio",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1634",
+    "code": "1634",
+    "label": "Conductapersonaldecribadodesalud",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1635",
+    "code": "1635",
+    "label": "Gestion del tiempo personal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1636",
+    "code": "1636",
+    "label": "Participacion en la rehabilitacion cardiaca",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1637",
+    "code": "1637",
+    "label": "Participacion en la rehabilitacion musculoesqueletica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1638",
+    "code": "1638",
+    "label": "Conducta decompromisodelpaciente",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1639",
+    "code": "1639",
+    "label": "Aivd",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1640",
+    "code": "1640",
+    "label": "Conducta deadherencia:condicionclinica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1641",
+    "code": "1641",
+    "label": "Participación en terapia de grupo",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1642",
+    "code": "1642",
+    "label": "Conducta de mejora del sueno",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1700",
+    "code": "1700",
+    "label": "Creencias sobre la salud",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1701",
+    "code": "1701",
+    "label": "Creencias sobre la salud: capacidad percibida para actuar",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1702",
+    "code": "1702",
+    "label": "Creencias sobre la salud: percepcion de control",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1703",
+    "code": "1703",
+    "label": "Creencias sobre la salud: percepcion de recursos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1704",
+    "code": "1704",
+    "label": "Creencias sobrela salud:percepciondeamenaza",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1705",
+    "code": "1705",
+    "label": "Orientacion sobre la salud",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1800",
+    "code": "1800",
+    "label": "Conocimiento: lactancia materna",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1801",
+    "code": "1801",
+    "label": "Conocimiento:seguridadfisicainfantil",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1802",
+    "code": "1802",
+    "label": "Conocimiento: dieta prescrita",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1803",
+    "code": "1803",
+    "label": "Conocimiento: manejo de la enfermedad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1804",
+    "code": "1804",
+    "label": "Conocimiento: conservacion de la energia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1805",
+    "code": "1805",
+    "label": "Conocimiento: conducta de salud",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1806",
+    "code": "1806",
+    "label": "Conocimiento: recursos sanitarios",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1808",
+    "code": "1808",
+    "label": "Conocimiento: medicacion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1809",
+    "code": "1809",
+    "label": "Conocimiento:seguridadpersonal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1810",
+    "code": "1810",
+    "label": "Conocimiento:gestacion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1811",
+    "code": "1811",
+    "label": "Conocimiento: actividad prescrita",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1812",
+    "code": "1812",
+    "label": "Conocimiento:controldelconsumodesustancias",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1813",
+    "code": "1813",
+    "label": "Conocimiento:regimenterapeutico",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1814",
+    "code": "1814",
+    "label": "Conocimiento:procedimiento terapeutico",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1815",
+    "code": "1815",
+    "label": "Conocimiento: funcion sexual",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1816",
+    "code": "1816",
+    "label": "Conocimiento:fomento de la fertilidad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1817",
+    "code": "1817",
+    "label": "Conocimiento:partoyalumbramiento",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1818",
+    "code": "1818",
+    "label": "Conocimiento: salud materna en el puerperio",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1819",
+    "code": "1819",
+    "label": "Conocimiento: cuidados del lactante",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1820",
+    "code": "1820",
+    "label": "Conocimiento: manejo de la diabetes",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1821",
+    "code": "1821",
+    "label": "Conocimiento:prevenciondelembarazo",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1822",
+    "code": "1822",
+    "label": "Conocimiento: salud materna antes de la concepcion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1826",
+    "code": "1826",
+    "label": "Conocimiento: cuidado de los hijos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1827",
+    "code": "1827",
+    "label": "Conocimiento:mecanica corporal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1828",
+    "code": "1828",
+    "label": "Conocimiento: prevencion de caidas",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1829",
+    "code": "1829",
+    "label": "Conocimiento:cuidadosde laostomia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1830",
+    "code": "1830",
+    "label": "Conocimiento:manejode laenfermedadcardiaca",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1831",
+    "code": "1831",
+    "label": "Conocimiento:manejo de la artritis",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1832",
+    "code": "1832",
+    "label": "Conocimiento: manejo del asma",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1833",
+    "code": "1833",
+    "label": "Conocimiento: manejo del cancer",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1834",
+    "code": "1834",
+    "label": "Conocimiento:reduccionde laamenazadecancer",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1835",
+    "code": "1835",
+    "label": "Conocimiento: manejo de lainsuficiencia cardiaca",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1836",
+    "code": "1836",
+    "label": "Conocimiento:manejode ladepresion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1837",
+    "code": "1837",
+    "label": "Conocimiento: manejo de la hipertensión",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1838",
+    "code": "1838",
+    "label": "Conocimiento: manejo de la esclerosis miltiple",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1839",
+    "code": "1839",
+    "label": "Conocimiento: funcion sexual durante el embarazo y el posparto",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1840",
+    "code": "1840",
+    "label": "Conocimiento:cuidados del reciennacidopretermino",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1841",
+    "code": "1841",
+    "label": "Conocimiento:manejodelpeso",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1842",
+    "code": "1842",
+    "label": "Conocimiento:manejo de lainfeccion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1843",
+    "code": "1843",
+    "label": "Conocimiento: manejo del dolor",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1844",
+    "code": "1844",
+    "label": "Conocimiento:manejode laenfermedadaguda",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1845",
+    "code": "1845",
+    "label": "Conocimiento: manejo del tratamiento anticoagulante",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1846",
+    "code": "1846",
+    "label": "Conocimiento:alimentacionconbiberon",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1847",
+    "code": "1847",
+    "label": "Conocimiento: manejo de la enfermedad cronica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1848",
+    "code": "1848",
+    "label": "Manejo de la enfermedad pulmonar obstructiva crónica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1849",
+    "code": "1849",
+    "label": "Conocimiento:manejo de la enfermedad arterial coronaria",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1850",
+    "code": "1850",
+    "label": "Conocimiento:alimentacioncontaza",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1851",
+    "code": "1851",
+    "label": "Conocimiento: manejo de la demencia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1852",
+    "code": "1852",
+    "label": "Conocimiento:manejode laarritmia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1853",
+    "code": "1853",
+    "label": "Conocimiento: manejo del trastorno de la alimentacion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1854",
+    "code": "1854",
+    "label": "Conocimiento:dietasaludable",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1855",
+    "code": "1855",
+    "label": "Conocimiento: estilo de vida saludable",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1856",
+    "code": "1856",
+    "label": "Conocimiento:manejo de la enfermedad inflamatoria intestinal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1857",
+    "code": "1857",
+    "label": "Conocimiento: manejo de la enfermedad renal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1858",
+    "code": "1858",
+    "label": "Conocimiento:manejodeltrastornolipidico",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1859",
+    "code": "1859",
+    "label": "Conocimiento: manejo de la osteoporosis",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1860",
+    "code": "1860",
+    "label": "Conocimiento: manejo de la enfermedad arterial periferica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1861",
+    "code": "1861",
+    "label": "Conocimiento:manejode laneumonia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1862",
+    "code": "1862",
+    "label": "Conocimiento: manejo del estres",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1863",
+    "code": "1863",
+    "label": "Conocimiento: manejo del accidente cerebrovascular",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1864",
+    "code": "1864",
+    "label": "Conocimiento: reduccion de la amenaza de accidente cerebrovascular",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1865",
+    "code": "1865",
+    "label": "Conocimiento:reduccionde laamenaza detrombo",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1866",
+    "code": "1866",
+    "label": "Conocimiento: gestion del tiempo",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1867",
+    "code": "1867",
+    "label": "Conocimiento:procedimientos diagnosticos yterapeuticos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1868",
+    "code": "1868",
+    "label": "Conocimiento:manejo de la ansiedad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1869",
+    "code": "1869",
+    "label": "Con hiperactividad (tdah)",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1870",
+    "code": "1870",
+    "label": "Conocimiento:recursos sanitarios de la comunidad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1871",
+    "code": "1871",
+    "label": "Conocimiento: cuidado de los pies",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1872",
+    "code": "1872",
+    "label": "Conocimiento: manejo de la insuficiencia renal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1873",
+    "code": "1873",
+    "label": "Conocimiento:manejode laenfermedadhepatica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1874",
+    "code": "1874",
+    "label": "Conocimiento: manejo de la enfermedad de parkinson",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1875",
+    "code": "1875",
+    "label": "Conocimiento: seguridadpsicosocial del nino en edad escolar",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1900",
+    "code": "1900",
+    "label": "Conducta de vacunacion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1902",
+    "code": "1902",
+    "label": "Control del riesgo",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1903",
+    "code": "1903",
+    "label": "Control delriesgo: consumodealcohol",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1904",
+    "code": "1904",
+    "label": "Control del riesgo: consumo de drogas",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1905",
+    "code": "1905",
+    "label": "Control del riesgo: infecciones detransmision sexual (its)",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1906",
+    "code": "1906",
+    "label": "Control del riesgo: consumo de tabaco",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1907",
+    "code": "1907",
+    "label": "Controldelriesgo:embarazonodeseado",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1908",
+    "code": "1908",
+    "label": "Deteccion del riesgo",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1909",
+    "code": "1909",
+    "label": "Conducta de prevencion de caidas",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1910",
+    "code": "1910",
+    "label": "Understanding patient safety (3rd ed.). mcgraw-hill. entorno seguro del hogar",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1911",
+    "code": "1911",
+    "label": "Conductas de seguridad personal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1912",
+    "code": "1912",
+    "label": "Caidas",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1913",
+    "code": "1913",
+    "label": "Severidad de la lesion fisica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1914",
+    "code": "1914",
+    "label": "Controldelriesgo:enfermedadcardiovascular",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1915",
+    "code": "1915",
+    "label": "Control del riesgo:deterioro auditivo",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1916",
+    "code": "1916",
+    "label": "Controldel riesgo:deteriorovisual",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1917",
+    "code": "1917",
+    "label": "Control del riesgo: cancer",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1919",
+    "code": "1919",
+    "label": "Gov/2020/ fugas",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1920",
+    "code": "1920",
+    "label": "Riesgo de tendencia a las fugas",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1921",
+    "code": "1921",
+    "label": "Preparación antes del procedimiento",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1922",
+    "code": "1922",
+    "label": "Control del riesgo: hipertermia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1923",
+    "code": "1923",
+    "label": "Control del riesgo: hipotermia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1924",
+    "code": "1924",
+    "label": "Control del riesgo: proceso infeccioso",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1925",
+    "code": "1925",
+    "label": "Control del riesgo: exposicion al sol",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1926",
+    "code": "1926",
+    "label": "Vagabundeo seguro",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1927",
+    "code": "1927",
+    "label": "Sequedad ocular",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1928",
+    "code": "1928",
+    "label": "Control del riesgo: hipertension",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1929",
+    "code": "1929",
+    "label": "Control del riesgo: trastorno lipídico",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1930",
+    "code": "1930",
+    "label": "Control del riesgo: osteoporosis",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1931",
+    "code": "1931",
+    "label": "Control del riesgo:accidentecerebrovascular",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1932",
+    "code": "1932",
+    "label": "Control del riesgo: trombos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1933",
+    "code": "1933",
+    "label": "Controldelriesgo:hipotension",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1934",
+    "code": "1934",
+    "label": "Entorno seguro de asistencia sanitaria",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1935",
+    "code": "1935",
+    "label": "Control del riesgo: aspiracion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1936",
+    "code": "1936",
+    "label": "Control del riesgo: acoso infantil",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1937",
+    "code": "1937",
+    "label": "Control del riesgo: deshidratacion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1938",
+    "code": "1938",
+    "label": "Controldel riesgo:peligrosmedioambientales",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1939",
+    "code": "1939",
+    "label": "Control del riesgo: caidas",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1940",
+    "code": "1940",
+    "label": "Control del riesgo: alergias del lactante",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1941",
+    "code": "1941",
+    "label": "Control del riesgo: obesidad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1942",
+    "code": "1942",
+    "label": "Controldel riesgo:lesionporpresion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1943",
+    "code": "1943",
+    "label": "Control del riesgo: inseguridad alimentaria",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1944",
+    "code": "1944",
+    "label": "Inseguridad en el alojamiento",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1945",
+    "code": "1945",
+    "label": "Control del riesgo: prediabetes",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1946",
+    "code": "1946",
+    "label": "Uso problemático de internet",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1947",
+    "code": "1947",
+    "label": "Entornosegurodelhogar:habitaciondel nino",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_1948",
+    "code": "1948",
+    "label": "Controldelriesgo:trastornode lavoz",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2000",
+    "code": "2000",
+    "label": "Calidad de vida",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2001",
+    "code": "2001",
+    "label": "Salud espiritual",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2002",
+    "code": "2002",
+    "label": "Bienestarpersonal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2003",
+    "code": "2003",
+    "label": "Severidad del sufrimiento",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2004",
+    "code": "2004",
+    "label": "Forma física",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2005",
+    "code": "2005",
+    "label": "Estado de salud del estudiante",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2006",
+    "code": "2006",
+    "label": "Estado de salud personal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2008",
+    "code": "2008",
+    "label": "Estado de comodidad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2009",
+    "code": "2009",
+    "label": "Entorno",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2010",
+    "code": "2010",
+    "label": "Estado de comodidad: física",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2011",
+    "code": "2011",
+    "label": "Estadodecomodidad:psicoespiritual",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2012",
+    "code": "2012",
+    "label": "Estado de comodidad: sociocultural",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2013",
+    "code": "2013",
+    "label": "Equilibrio en el estilo de vida",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2014",
+    "code": "2014",
+    "label": "Conducta dealfabetizacioneconomica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2015",
+    "code": "2015",
+    "label": "Conducta de alfabetizacion sobre la salud",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2016",
+    "code": "2016",
+    "label": "Envejecimiento eficaz",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2040",
+    "code": "2040",
+    "label": "Conducta de alfabetizacion digital",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2041",
+    "code": "2041",
+    "label": "Conducta de alfabetizacion sobre seguros sanitarios",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2101",
+    "code": "2101",
+    "label": "Dolor: efectos disruptivos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2102",
+    "code": "2102",
+    "label": "Nivel del dolor",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2103",
+    "code": "2103",
+    "label": "Severidad de los sintomas",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2104",
+    "code": "2104",
+    "label": "Severidad de los sintomas de la perimenopausia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2105",
+    "code": "2105",
+    "label": "Severidad de los sintomas del sindrome premenstrual (spm)",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2106",
+    "code": "2106",
+    "label": "Nauseasyvomitos:efectosdisruptivos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2107",
+    "code": "2107",
+    "label": "Severidad de las nauseas y los vomitos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2108",
+    "code": "2108",
+    "label": "Severidad de la abstinencia de sustancias",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2109",
+    "code": "2109",
+    "label": "Nivel de malestar",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2110",
+    "code": "2110",
+    "label": "Severidad del ojo seco",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2111",
+    "code": "2111",
+    "label": "Severidad de la hiperglucemia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2112",
+    "code": "2112",
+    "label": "Severidad de la hipertension",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2113",
+    "code": "2113",
+    "label": "Severidad de la hipoglucemia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2114",
+    "code": "2114",
+    "label": "Severidad de la hipotension",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2115",
+    "code": "2115",
+    "label": "Severidad de la enfermedad arterialperiferica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2116",
+    "code": "2116",
+    "label": "Quimioterapia:efectosfisicosdisruptivos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2117",
+    "code": "2117",
+    "label": "Severidad del linfedema",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2118",
+    "code": "2118",
+    "label": "Severidad de la convulsion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2119",
+    "code": "2119",
+    "label": "Severidad de la alteraciondel sueio",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2200",
+    "code": "2200",
+    "label": "Adaptacion del cuidadoral ingresodel pacienteenun centro sanitario",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2202",
+    "code": "2202",
+    "label": "Preparacion del cuidador familiar domiciliario",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2203",
+    "code": "2203",
+    "label": "Alteraciondel estilodevidadel cuidador",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2204",
+    "code": "2204",
+    "label": "Relacion entre el cuidador y el paciente",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2205",
+    "code": "2205",
+    "label": "Rendimiento del cuidador: cuidados directos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2206",
+    "code": "2206",
+    "label": "Rendimiento del cuidador: cuidados indirectos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2208",
+    "code": "2208",
+    "label": "Factores estresantesdelcuidadorfamiliar",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2210",
+    "code": "2210",
+    "label": "Resistencia del papel del cuidador",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2211",
+    "code": "2211",
+    "label": "Desempeno del rol de padres",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2212",
+    "code": "2212",
+    "label": "Funcionamiento de la familia: cuidados de la demencia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2300",
+    "code": "2300",
+    "label": "Control de la glucemia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2301",
+    "code": "2301",
+    "label": "Respuestaalamedicacion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2302",
+    "code": "2302",
+    "label": "Eliminaciondetoxinas sistemicas:dialisis",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2303",
+    "code": "2303",
+    "label": "Recuperación posterior al procedimiento",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2304",
+    "code": "2304",
+    "label": "Recuperación quirúrgica: convalecencia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2305",
+    "code": "2305",
+    "label": "Recuperacionquirurgica:postoperatorioinmediato",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2306",
+    "code": "2306",
+    "label": "Hemodialisis:efectosdisruptivos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2307",
+    "code": "2307",
+    "label": "Dialisisperitoneal:efectosdisruptivos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2400",
+    "code": "2400",
+    "label": "Interventions (pp. 476-491). mosby. función sensitiva: táctil",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2401",
+    "code": "2401",
+    "label": "Interventions (pp. 476-491). mosby. función sensitiva: auditiva",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2402",
+    "code": "2402",
+    "label": "Funcion sensitiva: propioceptiva",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2404",
+    "code": "2404",
+    "label": "Interventions (pp. 476-491). mosby. función sensitiva: visión",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2405",
+    "code": "2405",
+    "label": "Funcion sensitiva",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2406",
+    "code": "2406",
+    "label": "Funcion sensitiva: olfato",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2407",
+    "code": "2407",
+    "label": "Interventions (pp. 476-491). mosby. función sensitiva: gusto",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2500",
+    "code": "2500",
+    "label": "Cese del abuso",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2501",
+    "code": "2501",
+    "label": "Proteccion frente al abuso",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2502",
+    "code": "2502",
+    "label": "Recuperacion tras el abuso: emocional",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2503",
+    "code": "2503",
+    "label": "Recuperaciontraselabuso:economico",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2504",
+    "code": "2504",
+    "label": "Recuperacion tras el abuso: fisico",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2505",
+    "code": "2505",
+    "label": "Recuperacion tras el abuso: sexual",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2506",
+    "code": "2506",
+    "label": "Estado de salud emocional del cuidador",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2507",
+    "code": "2507",
+    "label": "Estado de salud fisica del cuidador",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2508",
+    "code": "2508",
+    "label": "Bienestar del cuidador",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2509",
+    "code": "2509",
+    "label": "Estadomaterno:preparto",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2510",
+    "code": "2510",
+    "label": "Estado materno: durante el parto",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2511",
+    "code": "2511",
+    "label": "Estadomaterno:puerperio",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2512",
+    "code": "2512",
+    "label": "Recuperacion tras abandono",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2513",
+    "code": "2513",
+    "label": "Cese del abandono",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2514",
+    "code": "2514",
+    "label": "Recuperacion tras el abuso",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2515",
+    "code": "2515",
+    "label": "Abuso: efectos disruptivos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2516",
+    "code": "2516",
+    "label": "Abandono:efectos disruptivos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2600",
+    "code": "2600",
+    "label": "Afrontamiento familiar",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2601",
+    "code": "2601",
+    "label": "Clima social de la familia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2602",
+    "code": "2602",
+    "label": "Funcionamiento de la familia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2603",
+    "code": "2603",
+    "label": "Integridad de la familia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2604",
+    "code": "2604",
+    "label": "Normalizacion de la familia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2605",
+    "code": "2605",
+    "label": "Participacion de la familia en los cuidados profesionales",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2606",
+    "code": "2606",
+    "label": "Estado de salud de la familia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2608",
+    "code": "2608",
+    "label": "Resiliencia familiar",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2609",
+    "code": "2609",
+    "label": "Apoyo familiar durante el tratamiento",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2610",
+    "code": "2610",
+    "label": "Controldelriesgofamiliar:obesidad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2611",
+    "code": "2611",
+    "label": "Normalizacion de la familia: demencia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2612",
+    "code": "2612",
+    "label": "Control del riesgofamiliar:acoso",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2613",
+    "code": "2613",
+    "label": "Normalizacion de la familia:trastornodel espectro autista",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2614",
+    "code": "2614",
+    "label": "Control del riesgo familiar: fugas",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2615",
+    "code": "2615",
+    "label": "Control del riesgo familiar: violencia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2620",
+    "code": "2620",
+    "label": "Control del riesgo familiar: inseguridad alimentaria en el hogar",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2630",
+    "code": "2630",
+    "label": "S cyclopedic medical dictionary (22nd ed.). f .a. davis. apoyo de la red social familiar",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2700",
+    "code": "2700",
+    "label": "Competencia social",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2701",
+    "code": "2701",
+    "label": "Estadodesaludde lacomunidad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2702",
+    "code": "2702",
+    "label": "Nivel de violencia social",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2703",
+    "code": "2703",
+    "label": "Respuesta a la afliccion de la comunidad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2704",
+    "code": "2704",
+    "label": "Resiliencia de la comunidad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2705",
+    "code": "2705",
+    "label": "Recuperacion de una catastrofe en la comunidad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2706",
+    "code": "2706",
+    "label": "Recuperacion de la afliccion de la comunidad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2707",
+    "code": "2707",
+    "label": "Preparacion para una pandemia en la comunidad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2708",
+    "code": "2708",
+    "label": "Recuperación de una pandemia en la comunidad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2709",
+    "code": "2709",
+    "label": "Respuestaanteunapandemiaen lacomunidad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2796",
+    "code": "2796",
+    "label": "Estado de inmunizacion de la comunidad: adulto",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2797",
+    "code": "2797",
+    "label": "Estado de inmunizacionde la comunidad: nino en edad escolar",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2798",
+    "code": "2798",
+    "label": "Estado de inmunizacion de la comunidad: nino pequeno",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2799",
+    "code": "2799",
+    "label": "Efectividadde lainmunizacion de la comunidad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2800",
+    "code": "2800",
+    "label": "Estado de inmunizacion de la comunidad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2801",
+    "code": "2801",
+    "label": "Control del riesgo en la comunidad: enfermedad cronica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2802",
+    "code": "2802",
+    "label": "Control del riesgo en la comunidad: enfermedad transmisible",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2803",
+    "code": "2803",
+    "label": "Control del riesgo en la comunidad: exposicion al plomo",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2804",
+    "code": "2804",
+    "label": "Preparacion para una catastrofe en la comunidad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2805",
+    "code": "2805",
+    "label": "Control del riesgo en la comunidad:violencia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2806",
+    "code": "2806",
+    "label": "Respuesta ante una catastrofe en la comunidad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2807",
+    "code": "2807",
+    "label": "Efectividad del cribado en la comunidad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2808",
+    "code": "2808",
+    "label": "Efectividad del programa comunitario",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2809",
+    "code": "2809",
+    "label": "Control del riesgo en la comunidad: obesidad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2810",
+    "code": "2810",
+    "label": "Control del riesgo en la comunidad: tradiciones culturales no saludables",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2811",
+    "code": "2811",
+    "label": "Control del riesgo en la comunidad:acoso infantil",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2812",
+    "code": "2812",
+    "label": "Control del riesgo en la comunidad: peligros medioambientales",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2813",
+    "code": "2813",
+    "label": "Control del riesgo en la comunidad: suicidio",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2901",
+    "code": "2901",
+    "label": "Desempeno del rol de padres: seguridad fisica en la primera y segunda infancia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2902",
+    "code": "2902",
+    "label": "Desempeno del rol depadres: seguridadfisica del adolescente",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2903",
+    "code": "2903",
+    "label": "Desempeno del rol de padres: adolescente",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2904",
+    "code": "2904",
+    "label": "Desempenodelroldepadres:lactante",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2905",
+    "code": "2905",
+    "label": "Desempeiodel rol depadres:segundainfancia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2906",
+    "code": "2906",
+    "label": "Desempeno del rol de padres: preescolar",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2907",
+    "code": "2907",
+    "label": "Desempenodelroldepadres:ninopequeno",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2908",
+    "code": "2908",
+    "label": "Desempeno del rol de padres: trastorno de deficit de atencion con hiperactividad (tdah)",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2909",
+    "code": "2909",
+    "label": "Desempeno del rol de padres: seguridad psicosocial en la primera infancia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2910",
+    "code": "2910",
+    "label": "Desempeno del rol de padres: seguridad fisica del lactante",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2911",
+    "code": "2911",
+    "label": "Desempeno del rol de padres: seguridad psicosocial del lactante",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2912",
+    "code": "2912",
+    "label": "Desempeno del rol de padres: seguridad psicosocial del nino en edad escolar",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_2913",
+    "code": "2913",
+    "label": "Desempeno del rol de padres: seguridad fisica del nino pequeno",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3000",
+    "code": "3000",
+    "label": "Satisfaccion del paciente/usuario: acceso a los recursos sanitarios",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3001",
+    "code": "3001",
+    "label": "Satisfaccion del paciente/usuario: cuidados",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3002",
+    "code": "3002",
+    "label": "Satisfacciondelpaciente/usuario: comunicacion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3003",
+    "code": "3003",
+    "label": "Satisfaccion del paciente/usuario: continuidad de los cuidados",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3004",
+    "code": "3004",
+    "label": "Satisfaccion del paciente/usuario: cumplimiento de las necesidades culturales",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3005",
+    "code": "3005",
+    "label": "Asistencia funcional",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3006",
+    "code": "3006",
+    "label": "Satisfaccion del paciente/usuario: cuidados fisicos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3007",
+    "code": "3007",
+    "label": "Satisfacciondelpaciente/usuario:entornofisico",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3008",
+    "code": "3008",
+    "label": "Satisfaccion del paciente/usuario: proteccion de sus derechos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3009",
+    "code": "3009",
+    "label": "Satisfacciondel paciente/usuario:cuidados psicologicos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3010",
+    "code": "3010",
+    "label": "Satisfaccion del paciente/usuario: seguridad",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3011",
+    "code": "3011",
+    "label": "Satisfaccion del paciente/usuario: control delos sintomas",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3012",
+    "code": "3012",
+    "label": "Satisfaccion del paciente/usuario: ensenanza",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3013",
+    "code": "3013",
+    "label": "Satisfaccion del paciente/usuario: aspectos tecnicos del cuidado",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3014",
+    "code": "3014",
+    "label": "Satisfacción del paciente/usuario",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3015",
+    "code": "3015",
+    "label": "Satisfaccion del paciente/usuario:gestion de casos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3016",
+    "code": "3016",
+    "label": "Satisfaccion del paciente/usuario: manejo del dolor",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3018",
+    "code": "3018",
+    "label": "Satisfacciondelpaciente/usuario:procesodealta",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3019",
+    "code": "3019",
+    "label": "Satisfaccion del paciente/usuario: parto y alumbramiento",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3020",
+    "code": "3020",
+    "label": "Satisfaccion del paciente/usuario: servicios de telemedicina",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3100",
+    "code": "3100",
+    "label": "Automanejo: enfermedad aguda",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3101",
+    "code": "3101",
+    "label": "Automanejo:tratamientoanticoagulante",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3102",
+    "code": "3102",
+    "label": "Automanejo: enfermedad crónica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3103",
+    "code": "3103",
+    "label": "Automanejo: enfermedad pulmonar obstructiva cronica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3104",
+    "code": "3104",
+    "label": "Automanejo:enfermedadarterialcoronaria",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3105",
+    "code": "3105",
+    "label": "Automanejo: arritmia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3106",
+    "code": "3106",
+    "label": "Automanejo:insuficiencia cardiaca",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3107",
+    "code": "3107",
+    "label": "Automanejo:hipertension",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3108",
+    "code": "3108",
+    "label": "Automanejo: enfermedad renal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3109",
+    "code": "3109",
+    "label": "Automanejo:trastorno lipidico",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3110",
+    "code": "3110",
+    "label": "Automanejo: osteoporosis",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3111",
+    "code": "3111",
+    "label": "Automanejo:enfermedadarterial periferica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3112",
+    "code": "3112",
+    "label": "Automanejo: artritis",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3113",
+    "code": "3113",
+    "label": "Automanejo:trastornodelespectroautista",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3114",
+    "code": "3114",
+    "label": "Automanejo:cancer",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3115",
+    "code": "3115",
+    "label": "Automanejo:enfermedad celiaca (celiaquia)",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3116",
+    "code": "3116",
+    "label": "Automanejo: anemia crónica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3117",
+    "code": "3117",
+    "label": "Automanejo: virus de la inmunodeficiencia humana (vih)",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3118",
+    "code": "3118",
+    "label": "Automanejo:infeccion",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3119",
+    "code": "3119",
+    "label": "Automanejo: enfermedad inflamatoria intestinal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3120",
+    "code": "3120",
+    "label": "Automanejo: alergia conocida",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3121",
+    "code": "3121",
+    "label": "Automanejo:linfedema",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3122",
+    "code": "3122",
+    "label": "Automanejo: neumonía",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3123",
+    "code": "3123",
+    "label": "Automanejo:accidentecerebrovascular",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3124",
+    "code": "3124",
+    "label": "Automanejo:herida",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3125",
+    "code": "3125",
+    "label": "Automanejo: insuficiencia renal",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3126",
+    "code": "3126",
+    "label": "Automanejo: enfermedad hepatica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3127",
+    "code": "3127",
+    "label": "Automanejo: enfermedad de parkinson",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3128",
+    "code": "3128",
+    "label": "Automanejo: procedimiento terapéutico",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3129",
+    "code": "3129",
+    "label": "Automanejo:regimenterapeutico",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3200",
+    "code": "3200",
+    "label": "Conocimiento: manejo de la alergia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3201",
+    "code": "3201",
+    "label": "Conocimiento:manejodeltrastornodel espectroautista",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3202",
+    "code": "3202",
+    "label": "Conocimiento: rehabilitacion cardiaca",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3203",
+    "code": "3203",
+    "label": "Conocimiento: manejo de la enfermedad celiaca",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3204",
+    "code": "3204",
+    "label": "Conocimiento: manejo de la anemia cronica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3205",
+    "code": "3205",
+    "label": "Conocimiento: manejo de la epilepsia",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3206",
+    "code": "3206",
+    "label": "Conocimiento: manejo del virus de la inmunodeficiencia humana",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3207",
+    "code": "3207",
+    "label": "Conocimiento: manejo del linfedema",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3208",
+    "code": "3208",
+    "label": "Conocimiento:rehabilitacionmusculoesqueletica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_3209",
+    "code": "3209",
+    "label": "Conocimiento: manejo de heridas",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_6060",
+    "code": "6060",
+    "label": "Funcion neurologica",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_8000",
+    "code": "8000",
+    "label": "Fatiga: efectos disruptivos",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_8060",
+    "code": "8060",
+    "label": "Memoria",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_9000",
+    "code": "9000",
+    "label": "Energia psicomotora",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_9060",
+    "code": "9060",
+    "label": "Toma de decisiones",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  },
+  {
+    "id": "noc_9090",
+    "code": "9090",
+    "label": "Equilibrio electrolitico",
+    "domain": "Taxonomia NOC",
+    "linkedNandaIds": [],
+    "indicators": []
+  }
+]

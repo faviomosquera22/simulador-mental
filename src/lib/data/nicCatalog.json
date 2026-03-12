@@ -1,0 +1,4906 @@
+[
+  {
+    "id": "nic_0140",
+    "code": "0140",
+    "label": "Favorecimiento de la mecanica corporal",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0180",
+    "code": "0180",
+    "label": "Manejo de la energia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0200",
+    "code": "0200",
+    "label": "Favorecimiento del ejercicio",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0201",
+    "code": "0201",
+    "label": "Favorecimientodel ejercicio:entrenamientodefuerza",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0202",
+    "code": "0202",
+    "label": "Favorecimiento del ejercicio: estiramientos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0221",
+    "code": "0221",
+    "label": "Wilkins. terapia de ejercicios: ambulación",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0222",
+    "code": "0222",
+    "label": "Terapia de ejercicios: equilibrio",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0224",
+    "code": "0224",
+    "label": "Terapia de ejercicios: movilidad articular",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0226",
+    "code": "0226",
+    "label": "Terapia de ejercicios: control muscular",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0260",
+    "code": "0260",
+    "label": "Transferencia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0410",
+    "code": "0410",
+    "label": "Cuidados de la incontinencia intestinal",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0412",
+    "code": "0412",
+    "label": "Cuidados de la incontinencia intestinal: encopresis",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0430",
+    "code": "0430",
+    "label": "Manejo intestinal",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0450",
+    "code": "0450",
+    "label": "Manejo del estrenimiento",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0460",
+    "code": "0460",
+    "label": "Manejo de la diarrea",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0466",
+    "code": "0466",
+    "label": "Administracion de enema",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0470",
+    "code": "0470",
+    "label": "Disminucion de la flatulencia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0480",
+    "code": "0480",
+    "label": "Cuidados de la ostomia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0490",
+    "code": "0490",
+    "label": "Manejo del prolapso rectal",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0550",
+    "code": "0550",
+    "label": "938). prentice hall, pearson. irrigación de la vejiga urinaria",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0560",
+    "code": "0560",
+    "label": "Ejercicios del suelo pelvico",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0565",
+    "code": "0565",
+    "label": "Ecografia: vejiga urinaria",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0570",
+    "code": "0570",
+    "label": "Entrenamiento de la vejiga urinaria",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0580",
+    "code": "0580",
+    "label": "Sondaje vesical",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0581",
+    "code": "0581",
+    "label": "Sondaje vesical: externo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0582",
+    "code": "0582",
+    "label": "Sondaje vesical: intermitente",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0590",
+    "code": "0590",
+    "label": "Manejo de la eliminacion urinaria",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0600",
+    "code": "0600",
+    "label": "Entrenamiento del habito urinario",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0610",
+    "code": "0610",
+    "label": "Cuidados de la incontinencia urinaria",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0612",
+    "code": "0612",
+    "label": "Cuidados de la incontinencia urinaria: enuresis",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0620",
+    "code": "0620",
+    "label": "Cuidados de la retencion urinaria",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0630",
+    "code": "0630",
+    "label": "Manejo del pesario",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0640",
+    "code": "0640",
+    "label": "Miccion estimulada",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0740",
+    "code": "0740",
+    "label": "Bartlett learning. cuidados del paciente encamado",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0762",
+    "code": "0762",
+    "label": "Cuidados de los yesos: mantenimiento",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0764",
+    "code": "0764",
+    "label": "Wilkins. cuidados de los yesos: yeso húmedo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0840",
+    "code": "0840",
+    "label": "Cambio de posicion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0842",
+    "code": "0842",
+    "label": "Cambio de posicion: intraoperatorio",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0844",
+    "code": "0844",
+    "label": "Cambio de posicion: neurologico",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0846",
+    "code": "0846",
+    "label": "Cambio de posicion: silla de ruedas",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0910",
+    "code": "0910",
+    "label": "Inmovilizacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0940",
+    "code": "0940",
+    "label": "Cuidados de traccion/inmovilizacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_0970",
+    "code": "0970",
+    "label": "Transferencia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1020",
+    "code": "1020",
+    "label": "Etapas en la dieta",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1024",
+    "code": "1024",
+    "label": "Bartlett. 266. etapas en la dieta: cirugía para la pérdida de peso",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1030",
+    "code": "1030",
+    "label": "Manejodelostrastornosde laalimentacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1050",
+    "code": "1050",
+    "label": "Alimentación",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1052",
+    "code": "1052",
+    "label": "Alimentacion con biberon",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1056",
+    "code": "1056",
+    "label": "Alimentacionenteral porsonda",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1080",
+    "code": "1080",
+    "label": "Sondaje nasogastrico",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1100",
+    "code": "1100",
+    "label": "Manejo de la nutricion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1120",
+    "code": "1120",
+    "label": "Terapia nutricional",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1160",
+    "code": "1160",
+    "label": "Monitorizacion nutricional",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1200",
+    "code": "1200",
+    "label": "Npt",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1240",
+    "code": "1240",
+    "label": "Ayuda para ganar peso",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1260",
+    "code": "1260",
+    "label": "Manejo del peso",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1280",
+    "code": "1280",
+    "label": "Ayuda para perder peso",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1310",
+    "code": "1310",
+    "label": "Masaje abdominal",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1320",
+    "code": "1320",
+    "label": "Acupresion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1330",
+    "code": "1330",
+    "label": "Aromaterapia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1340",
+    "code": "1340",
+    "label": "Estimulacion cutanea",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1350",
+    "code": "1350",
+    "label": "Prevencion de la sequedad ocular",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1360",
+    "code": "1360",
+    "label": "Paliativa",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1380",
+    "code": "1380",
+    "label": "Aplicacion de calor ofrio",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1390",
+    "code": "1390",
+    "label": "T tacto curativo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1410",
+    "code": "1410",
+    "label": "Manejo del dolor: agudo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1415",
+    "code": "1415",
+    "label": "Manejo del dolor: cronico",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1440",
+    "code": "1440",
+    "label": "Manejo del sindrome premenstrual (spm)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1450",
+    "code": "1450",
+    "label": "Manejo de las nduseas",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1460",
+    "code": "1460",
+    "label": "Relajacion muscular progresiva",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1480",
+    "code": "1480",
+    "label": "Masaje",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1520",
+    "code": "1520",
+    "label": "Reiki",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1540",
+    "code": "1540",
+    "label": "Wilkins. estimulación nerviosa eléctrica transcutánea (tens)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1570",
+    "code": "1570",
+    "label": "Manejo del vomito",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1610",
+    "code": "1610",
+    "label": "Bano",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1620",
+    "code": "1620",
+    "label": "Cuidados de las lentes de contacto",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1630",
+    "code": "1630",
+    "label": "V vestir",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1640",
+    "code": "1640",
+    "label": "Cuidados de los oidos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1645",
+    "code": "1645",
+    "label": "Irrigacion de los oidos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1650",
+    "code": "1650",
+    "label": "Cuidados de los ojos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1655",
+    "code": "1655",
+    "label": "S drug guide for nurses (17th ed.). f. a. davis. irrigación de los ojos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1660",
+    "code": "1660",
+    "label": "Cuidados de los pies",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1665",
+    "code": "1665",
+    "label": "Mejora de la capacidad funcional",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1670",
+    "code": "1670",
+    "label": "Bartlett learning. cuidados del cabello y del cuero cabelludo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1680",
+    "code": "1680",
+    "label": "Cuidados de las unas",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1710",
+    "code": "1710",
+    "label": "Mantenimiento de la salud oral",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1720",
+    "code": "1720",
+    "label": "Favorecimiento de la salud oral",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1730",
+    "code": "1730",
+    "label": "Restablecimiento de la salud oral",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1750",
+    "code": "1750",
+    "label": "Wilkins. cuidados perineales",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1770",
+    "code": "1770",
+    "label": "Cuidados post mortem",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1800",
+    "code": "1800",
+    "label": "Ayuda con el autocuidado",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1804",
+    "code": "1804",
+    "label": "Ayuda con el autocuidado: miccion/defecacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1806",
+    "code": "1806",
+    "label": "Ayuda con el autocuidado: transferencia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1850",
+    "code": "1850",
+    "label": "Mejora del sueno",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1860",
+    "code": "1860",
+    "label": "Terapia de deglucion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1870",
+    "code": "1870",
+    "label": "Cuidados del drenaje",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1872",
+    "code": "1872",
+    "label": "Cuidados del drenaje: toracico",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1874",
+    "code": "1874",
+    "label": "Cuidados del drenaje: gastrointestinal",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1875",
+    "code": "1875",
+    "label": "Cuidados del drenaje: umbilical",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1876",
+    "code": "1876",
+    "label": "Cuidados del drenaje: urinario",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1878",
+    "code": "1878",
+    "label": "Cuidados del drenaje: ventriculostomia/lumbar",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1910",
+    "code": "1910",
+    "label": "Manejo del equilibrio acido-base",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1911",
+    "code": "1911",
+    "label": "Manejodel equilibrio acido-base:acidosismetabolica",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1912",
+    "code": "1912",
+    "label": "Manejodel equilibrio acido-base:alcalosismetabolica",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1913",
+    "code": "1913",
+    "label": "Manejodel equilibrio acido-base: acidosis respiratoria",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1914",
+    "code": "1914",
+    "label": "Manejodel equilibrioacido-base:alcalosis respiratoria",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_1920",
+    "code": "1920",
+    "label": "Monitorizacion del equilibrio acido-base",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2000",
+    "code": "2000",
+    "label": "Ergo.pdf. manejo de electrólitos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2001",
+    "code": "2001",
+    "label": "Manejo de electrólitos: hipercalcemia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2002",
+    "code": "2002",
+    "label": "Manejo de electrolitos: hiperpotasemia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2003",
+    "code": "2003",
+    "label": "Wilkins. manejo de electrólitos: hipermagnesemia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2004",
+    "code": "2004",
+    "label": "Manejo de electrolitos: hipernatremia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2005",
+    "code": "2005",
+    "label": "Institute for clinical systems improvement (icsi)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2006",
+    "code": "2006",
+    "label": "Wilkins. manejo de electrólitos: hipocalcemia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2007",
+    "code": "2007",
+    "label": "Wilkins. manejo de electrólitos: hipopotasemia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2008",
+    "code": "2008",
+    "label": "Manejo de electrolitos: hipomagnesemia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2009",
+    "code": "2009",
+    "label": "Psychological associates daisy foundation",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2010",
+    "code": "2010",
+    "label": "Manejo de electrolitos: hipofosfatemia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2020",
+    "code": "2020",
+    "label": "Monitorización de electrólitos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2080",
+    "code": "2080",
+    "label": "Manejo de liquidos/electrolitos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2100",
+    "code": "2100",
+    "label": "Terapia de hemodialisis",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2110",
+    "code": "2110",
+    "label": "Terapia de hemofiltracion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2120",
+    "code": "2120",
+    "label": "Manejo de la hiperglucemia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2125",
+    "code": "2125",
+    "label": "Manejo de la hiperlipidemia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2130",
+    "code": "2130",
+    "label": "Manejo de la hipoglucemia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2150",
+    "code": "2150",
+    "label": "Terapia de dialisis peritoneal",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2210",
+    "code": "2210",
+    "label": "Administracion de analgesicos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2214",
+    "code": "2214",
+    "label": "Administraciondeanalgesicos:intraespinal",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2240",
+    "code": "2240",
+    "label": "Manejo de la quimioterapia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2260",
+    "code": "2260",
+    "label": "Manejo de la sedacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2280",
+    "code": "2280",
+    "label": "Terapia de sustitucion hormonal",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2300",
+    "code": "2300",
+    "label": "Administracion de medicacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2301",
+    "code": "2301",
+    "label": "S drug guide for nurses (17th ed.). f. a. davis. administración de medicación: enteral",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2302",
+    "code": "2302",
+    "label": "Administracion de medicacion: intrapleural",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2303",
+    "code": "2303",
+    "label": "S drug guide for nurses (17th ed.). f. a. davis. administración de medicación: intraósea",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2304",
+    "code": "2304",
+    "label": "S drug guide for nurses (17th ed.). f. a. davis. administración de medicación: oral",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2307",
+    "code": "2307",
+    "label": "Administracion de medicacion: reservorio ventricular",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2308",
+    "code": "2308",
+    "label": "S drug guide for nurses (17th ed.). f. a. davis. administración de medicación: ótica",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2310",
+    "code": "2310",
+    "label": "S drug guide for nurses (17th ed.). f. a. davis. administración de medicación: oftálmica",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2311",
+    "code": "2311",
+    "label": "S drug guide for nurses (17th ed.). f. a. davis. administración de medicación: inhalatoria",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2312",
+    "code": "2312",
+    "label": "S drug guide for nurses (17th ed.). f. a. davis. administración de medicación: intradérmica",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2313",
+    "code": "2313",
+    "label": "Administracion de medicacion: intramuscular (i.m.)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2314",
+    "code": "2314",
+    "label": "Administracion de medicacion: intravenosa (i.v.)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2315",
+    "code": "2315",
+    "label": "Administracion de medicacion: rectal",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2316",
+    "code": "2316",
+    "label": "Administracion de medicacion: cutanea",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2317",
+    "code": "2317",
+    "label": "Administracion de medicacion: subcutanea",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2318",
+    "code": "2318",
+    "label": "S drug guide for nurses (17th ed.). f. a. davis. administración de medicación: vaginal",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2319",
+    "code": "2319",
+    "label": "Administraciondemedicacion:intraespinal",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2320",
+    "code": "2320",
+    "label": "S drug guide for nurses (17th ed.). f. a. davis. administración de medicación: nasal",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2321",
+    "code": "2321",
+    "label": "Administracion de medicacion: infusion subcutanea continua",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2322",
+    "code": "2322",
+    "label": "Administracion de medicacion: disco intraocular",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2370",
+    "code": "2370",
+    "label": "Desprescripcion de medicacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2380",
+    "code": "2380",
+    "label": "Manejo de la medicacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2385",
+    "code": "2385",
+    "label": "Manejo de la medicacion: cannabis medicinal",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2390",
+    "code": "2390",
+    "label": "Prescripcion de medicacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2395",
+    "code": "2395",
+    "label": "Conciliacion de medicacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2398",
+    "code": "2398",
+    "label": "Manejo de la medicacion: dispositivo de infusion portatil",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2400",
+    "code": "2400",
+    "label": "Asistencia en laanalgesia controladaporel paciente (acp)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2420",
+    "code": "2420",
+    "label": "Fitoterapia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2430",
+    "code": "2430",
+    "label": "Terapia hormonal para personas transgenero",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2540",
+    "code": "2540",
+    "label": "Manejo del edema cerebral",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2550",
+    "code": "2550",
+    "label": "Favorecimiento de la perfusión cerebral",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2560",
+    "code": "2560",
+    "label": "Manejo de la disreflexia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2570",
+    "code": "2570",
+    "label": "Wilkins. manejo de la terapia electroconvulsiva",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2590",
+    "code": "2590",
+    "label": "Pic",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2620",
+    "code": "2620",
+    "label": "Monitorizacion neurologica",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2660",
+    "code": "2660",
+    "label": "Manejo de la sensibilidad periferica alterada",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2680",
+    "code": "2680",
+    "label": "Manejo de las convulsiones",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2690",
+    "code": "2690",
+    "label": "Precauciones en las convulsiones",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2720",
+    "code": "2720",
+    "label": "Precauciones en la hemorragia subaracnoidea",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2760",
+    "code": "2760",
+    "label": "Manejo de la desatencion unilateral",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2840",
+    "code": "2840",
+    "label": "Administración de anestesia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2860",
+    "code": "2860",
+    "label": "Autotransfusion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2865",
+    "code": "2865",
+    "label": "Manejo del torniquete neumatico",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2870",
+    "code": "2870",
+    "label": "Families (pp. 469-509). f.a. davis. cuidados postanestesia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2880",
+    "code": "2880",
+    "label": "Coordinacion preoperatoria",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2900",
+    "code": "2900",
+    "label": "Asistencia quiriurgica",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2910",
+    "code": "2910",
+    "label": "Manejo de la instrumentacion quirirgica",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2920",
+    "code": "2920",
+    "label": "Precauciones quirurgicas",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_2930",
+    "code": "2930",
+    "label": "Preparacion quirirgica",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3000",
+    "code": "3000",
+    "label": "Cuidados de la circuncision",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3120",
+    "code": "3120",
+    "label": "Intubacion y estabilizacion de la via aerea",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3140",
+    "code": "3140",
+    "label": "Manejo de la via aerea",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3160",
+    "code": "3160",
+    "label": "Credentialing institute. aspiración de la vía aérea",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3180",
+    "code": "3180",
+    "label": "Manejo de la via aerea artificial",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3200",
+    "code": "3200",
+    "label": "Precauciones en la aspiracion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3210",
+    "code": "3210",
+    "label": "Manejo del asma",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3230",
+    "code": "3230",
+    "label": "Fisioterapia toracica",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3250",
+    "code": "3250",
+    "label": "Mejora de la tos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3270",
+    "code": "3270",
+    "label": "Extubacionendotraqueal",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3300",
+    "code": "3300",
+    "label": "Invasiva",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3302",
+    "code": "3302",
+    "label": "Manejo de la ventilacion mecanica: no invasiva",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3304",
+    "code": "3304",
+    "label": "Manejo de la ventilacion mecanica: prevencion de la neumonia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3310",
+    "code": "3310",
+    "label": "Destete de la ventilacion mecanica",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3316",
+    "code": "3316",
+    "label": "S drug guide for nurses (17th ed.). f. a. davis. irrigación nasal",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3320",
+    "code": "3320",
+    "label": "Oxigenoterapia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3330",
+    "code": "3330",
+    "label": "Cambio de posicion: dectibito prono",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3340",
+    "code": "3340",
+    "label": "1%7e150. inducción e intubación en secuencia rápida",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3350",
+    "code": "3350",
+    "label": "Monitorizacion respiratoria",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3390",
+    "code": "3390",
+    "label": "Ayuda a la ventilacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3420",
+    "code": "3420",
+    "label": "Cuidados de las amputaciones",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3440",
+    "code": "3440",
+    "label": "Families (pp. 427-465). f.a. davis. cuidados del sitio de incisión",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3460",
+    "code": "3460",
+    "label": "Terapia con sanguijuelas",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3480",
+    "code": "3480",
+    "label": "Monitorizacion de las extremidadesinferiores",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3510",
+    "code": "3510",
+    "label": "Fototerapia: piel",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3520",
+    "code": "3520",
+    "label": "Cuidados de las lesiones por presion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3540",
+    "code": "3540",
+    "label": "Prevencion de las lesiones por presion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3550",
+    "code": "3550",
+    "label": "Manejo del prurito",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3570",
+    "code": "3570",
+    "label": "Cuidados de la piel: productos absorbentes",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3582",
+    "code": "3582",
+    "label": "Cuidados de la piel: zona donante",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3583",
+    "code": "3583",
+    "label": "Cuidados de la piel: zona del injerto",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3584",
+    "code": "3584",
+    "label": "Cuidados de la piel: tratamiento topico",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3590",
+    "code": "3590",
+    "label": "Vigilancia de la piel",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3620",
+    "code": "3620",
+    "label": "1%7e150. sutura",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3660",
+    "code": "3660",
+    "label": "Cuidados de las heridas",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3661",
+    "code": "3661",
+    "label": "Cuidados de las heridas: quemaduras",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3662",
+    "code": "3662",
+    "label": "Cuidados de las heridas: drenaje cerrado",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3664",
+    "code": "3664",
+    "label": "Cuidados de las heridas: ausencia de cicatrizacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3670",
+    "code": "3670",
+    "label": "Cuidados de las heridas: proteccion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3680",
+    "code": "3680",
+    "label": "Irrigacion de heridas",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3786",
+    "code": "3786",
+    "label": "Manejo de la hipertermia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3790",
+    "code": "3790",
+    "label": "S clinical nursing (4th ed.). mosby. terapia de inducción de hipotermia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3800",
+    "code": "3800",
+    "label": "Manejo de la hipotermia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3840",
+    "code": "3840",
+    "label": "Precauciones en la hipertermia maligna",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3900",
+    "code": "3900",
+    "label": "Regulacion de la temperatura",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3902",
+    "code": "3902",
+    "label": "Regulacion de la temperatura: perioperatoria",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3910",
+    "code": "3910",
+    "label": "Regulacion de la temperatura: recien nacido",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_3920",
+    "code": "3920",
+    "label": "Manejo de la termorregulacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4010",
+    "code": "4010",
+    "label": "Prevencion de hemorragias",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4020",
+    "code": "4020",
+    "label": "Disminucion de la hemorragia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4021",
+    "code": "4021",
+    "label": "Disminucion de la hemorragia: titero anteparto",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4022",
+    "code": "4022",
+    "label": "Wilkins. disminución de la hemorragia: digestiva",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4024",
+    "code": "4024",
+    "label": "Disminucion de la hemorragia: epistaxis",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4026",
+    "code": "4026",
+    "label": "Wilkins. disminución de la hemorragia: útero posparto",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4028",
+    "code": "4028",
+    "label": "Disminucion de la hemorragia: heridas",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4030",
+    "code": "4030",
+    "label": "Administracion de hemoderivados",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4035",
+    "code": "4035",
+    "label": "Muestra de sangre capilar",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4040",
+    "code": "4040",
+    "label": "Cuidados cardiacos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4044",
+    "code": "4044",
+    "label": "Cuidados cardiacos: agudos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4046",
+    "code": "4046",
+    "label": "Cuidados cardiacos: rehabilitacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4050",
+    "code": "4050",
+    "label": "Manejo del riesgo cardiaco",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4054",
+    "code": "4054",
+    "label": "Manejode laccesovenosocentral:insercioncentral",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4062",
+    "code": "4062",
+    "label": "Cuidados circulatorios: insuficiencia arterial",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4064",
+    "code": "4064",
+    "label": "Cuidados circulatorios: dispositivode ayudamecanico",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4066",
+    "code": "4066",
+    "label": "Cuidados circulatorios: insuficiencia venosa",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4070",
+    "code": "4070",
+    "label": "Precauciones circulatorias",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4090",
+    "code": "4090",
+    "label": "Manejo de la arritmia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4091",
+    "code": "4091",
+    "label": "Manejo del marcapasos: permanente",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4092",
+    "code": "4092",
+    "label": "Manejo del marcapasos: temporal",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4095",
+    "code": "4095",
+    "label": "Manejo del desfibrilador: externo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4096",
+    "code": "4096",
+    "label": "Manejo del desfibrilador: interno",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4104",
+    "code": "4104",
+    "label": "Cuidados del embolismo: periferico",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4106",
+    "code": "4106",
+    "label": "Cuidados del embolismo: pulmonar",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4110",
+    "code": "4110",
+    "label": "Precauciones en el embolismo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4115",
+    "code": "4115",
+    "label": "Terapia mediante oxigenacion con membrana extracorporea",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4120",
+    "code": "4120",
+    "label": "Manejo de liquidos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4130",
+    "code": "4130",
+    "label": "Monitorizacion de liquidos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4140",
+    "code": "4140",
+    "label": "Bartlett. reposición de líquidos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4150",
+    "code": "4150",
+    "label": "Regulacion hemodinamica",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4162",
+    "code": "4162",
+    "label": "Manejo de la hipertension",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4170",
+    "code": "4170",
+    "label": "Manejo de la hipervolemia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4175",
+    "code": "4175",
+    "label": "Manejo de la hipotension",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4180",
+    "code": "4180",
+    "label": "Manejo de la hipovolemia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4190",
+    "code": "4190",
+    "label": "Puncion intravenosa (i.v.)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4200",
+    "code": "4200",
+    "label": "Terapia intravenosa (i.v.)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4210",
+    "code": "4210",
+    "label": "Wilkins. monitorización hemodinámica invasiva",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4220",
+    "code": "4220",
+    "label": "Manejode laccesovenoso central:insercionperiferica",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4232",
+    "code": "4232",
+    "label": "Puncion arterial: muestra de sangre arterial",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4234",
+    "code": "4234",
+    "label": "Flebotomia: donacion de sangre",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4238",
+    "code": "4238",
+    "label": "Flebotomia: muestra de sangre venosa",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4240",
+    "code": "4240",
+    "label": "Mantenimiento del acceso para dialisis",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4250",
+    "code": "4250",
+    "label": "Manejo del shock",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4254",
+    "code": "4254",
+    "label": "Manejo del shock: cardiaco",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4255",
+    "code": "4255",
+    "label": "Manejo del shock: sepsis",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4256",
+    "code": "4256",
+    "label": "Manejo del shock: vasogenico",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4258",
+    "code": "4258",
+    "label": "Wilkins. manejo del shock: volumen",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4260",
+    "code": "4260",
+    "label": "Prevencion del shock",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4266",
+    "code": "4266",
+    "label": "Infusion de celulas madre",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4270",
+    "code": "4270",
+    "label": "Manejo de la terapia trombolitica",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4310",
+    "code": "4310",
+    "label": "Terapia de actividad",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4320",
+    "code": "4320",
+    "label": "Terapia asistida con animales",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4330",
+    "code": "4330",
+    "label": "Arteterapia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4340",
+    "code": "4340",
+    "label": "Entrenamiento de la asertividad",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4350",
+    "code": "4350",
+    "label": "Manejo de la conducta",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4352",
+    "code": "4352",
+    "label": "Manejo de la conducta: falta de atencion e hiperactividad",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4354",
+    "code": "4354",
+    "label": "Manejo de la conducta: autolesion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4356",
+    "code": "4356",
+    "label": "Manejo de la conducta: sexual",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4360",
+    "code": "4360",
+    "label": "Modificacion de la conducta",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4362",
+    "code": "4362",
+    "label": "Modificacionde laconducta:habilidades sociales",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4364",
+    "code": "4364",
+    "label": "Elogio",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4367",
+    "code": "4367",
+    "label": "Terapia de baile",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4368",
+    "code": "4368",
+    "label": "Terapia de jardineria",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4370",
+    "code": "4370",
+    "label": "Entrenamiento para controlar los impulsos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4380",
+    "code": "4380",
+    "label": "Establecimientode limites",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4390",
+    "code": "4390",
+    "label": "Terapia con el entorno",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4395",
+    "code": "4395",
+    "label": "Entrevista motivacional",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4400",
+    "code": "4400",
+    "label": "Musicoterapia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4410",
+    "code": "4410",
+    "label": "Wilkins. establecimiento de objetivos comunes",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4420",
+    "code": "4420",
+    "label": "Acuerdo sobre la conducta",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4430",
+    "code": "4430",
+    "label": "Ludoterapia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4470",
+    "code": "4470",
+    "label": "Ayuda en la modificacion de si mismo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4480",
+    "code": "4480",
+    "label": "Facilitacion de la autorresponsabilidad",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4490",
+    "code": "4490",
+    "label": "Ayuda para dejar de fumar",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4500",
+    "code": "4500",
+    "label": "Prevencion del consumo de sustancias nocivas",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4510",
+    "code": "4510",
+    "label": "Tratamiento del consumo de sustancias nocivas",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4516",
+    "code": "4516",
+    "label": "Tratamiento del consumo de sustancias nocivas: sobredosis",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4640",
+    "code": "4640",
+    "label": "Ayuda para el control de la ira",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4680",
+    "code": "4680",
+    "label": "B biblioterapia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4700",
+    "code": "4700",
+    "label": "Reestructuracion cognitiva",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4720",
+    "code": "4720",
+    "label": "Estimulacion cognitiva",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4730",
+    "code": "4730",
+    "label": "Reflexion guiada",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4740",
+    "code": "4740",
+    "label": "L llevar un diario",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4760",
+    "code": "4760",
+    "label": "Entrenamiento de la memoria",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4820",
+    "code": "4820",
+    "label": "Orientacion en la realidad",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4860",
+    "code": "4860",
+    "label": "Terapia de reminiscencia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4920",
+    "code": "4920",
+    "label": "Escucha activa",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4974",
+    "code": "4974",
+    "label": "Mejora de la comunicacion: deficit auditivo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4976",
+    "code": "4976",
+    "label": "Déficit del habla",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_4978",
+    "code": "4978",
+    "label": "Déficit visual",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5000",
+    "code": "5000",
+    "label": "Desarrollo de interacciones empaticas",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5020",
+    "code": "5020",
+    "label": "Mediacion de conflictos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5100",
+    "code": "5100",
+    "label": "Mejora de la socializacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5210",
+    "code": "5210",
+    "label": "Orientacion anticipatoria",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5215",
+    "code": "5215",
+    "label": "Cuidados en el duelo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5220",
+    "code": "5220",
+    "label": "Mejora de la imagen corporal",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5230",
+    "code": "5230",
+    "label": "Mejora del afrontamiento",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5235",
+    "code": "5235",
+    "label": "Prevencion de las recidivas",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5240",
+    "code": "5240",
+    "label": "Asesoramiento",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5242",
+    "code": "5242",
+    "label": "Consejo genetico",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5244",
+    "code": "5244",
+    "label": "Asesoramiento en la lactancia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5246",
+    "code": "5246",
+    "label": "Families (pp. 469-509). f.a. davis. asesoramiento nutricional",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5247",
+    "code": "5247",
+    "label": "Asesoramientoantes de la concepcion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5248",
+    "code": "5248",
+    "label": "Asesoramiento sexual",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5250",
+    "code": "5250",
+    "label": "Wilkins. apoyo en la toma de decisiones",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5260",
+    "code": "5260",
+    "label": "Cuidados en la agonia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5270",
+    "code": "5270",
+    "label": "Apoyo emocional",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5280",
+    "code": "5280",
+    "label": "Facilitacion del perdon",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5290",
+    "code": "5290",
+    "label": "Facilitacion de la superacion de la afliccion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5294",
+    "code": "5294",
+    "label": "Facilitacion de la superacion de la afliccion: muerte perinatal",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5300",
+    "code": "5300",
+    "label": "Facilitacion de la superacion de la culpa",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5305",
+    "code": "5305",
+    "label": "Entrenamiento en salud",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5310",
+    "code": "5310",
+    "label": "D dar esperanza",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5320",
+    "code": "5320",
+    "label": "Humor",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5326",
+    "code": "5326",
+    "label": "Mejora de las aptitudes para la vida diaria",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5328",
+    "code": "5328",
+    "label": "Visitas domiciliarias de apoyo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5330",
+    "code": "5330",
+    "label": "Manejo del estado de animo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5340",
+    "code": "5340",
+    "label": "Presencia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5350",
+    "code": "5350",
+    "label": "Wilkins. 746-755. disminución del estrés por traslado",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5360",
+    "code": "5360",
+    "label": "Terapia de entretenimiento",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5370",
+    "code": "5370",
+    "label": "Mejora de roles",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5390",
+    "code": "5390",
+    "label": "Mejora de la autoconciencia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5395",
+    "code": "5395",
+    "label": "Mejora de la autoeficacia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5400",
+    "code": "5400",
+    "label": "Mejora de la autoestima",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5410",
+    "code": "5410",
+    "label": "Wilkins. terapia del trauma: niño",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5420",
+    "code": "5420",
+    "label": "Apoyo espiritual",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5422",
+    "code": "5422",
+    "label": "Terapia de la adiccion a la religion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5424",
+    "code": "5424",
+    "label": "Mejora de la practica religiosa",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5426",
+    "code": "5426",
+    "label": "Facilitacion del crecimiento espiritual",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5430",
+    "code": "5430",
+    "label": "Grupo de apoyo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5440",
+    "code": "5440",
+    "label": "Mejora de los sistemas de apoyo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5450",
+    "code": "5450",
+    "label": "Terapia de grupo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5460",
+    "code": "5460",
+    "label": "Contacto",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5465",
+    "code": "5465",
+    "label": "Tacto terapéutico",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5470",
+    "code": "5470",
+    "label": "Declarar la verdad al paciente",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5480",
+    "code": "5480",
+    "label": "Clarificacion de valores",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5510",
+    "code": "5510",
+    "label": "Educacion para la salud",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5515",
+    "code": "5515",
+    "label": "Mejora de la alfabetizacion en salud",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5520",
+    "code": "5520",
+    "label": "Facilitacion del aprendizaje",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5562",
+    "code": "5562",
+    "label": "Adolescentes",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5566",
+    "code": "5566",
+    "label": "Wilkins. educación parental: crianza familiar de los niños",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5568",
+    "code": "5568",
+    "label": "Educacion parental: lactante",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5580",
+    "code": "5580",
+    "label": "Informacion preparatoria: sensorial",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5602",
+    "code": "5602",
+    "label": "S, textbook of medical surgical nursing. wolters kluwer. enseñanza: proceso de enfermedad",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5604",
+    "code": "5604",
+    "label": "Ensenanza:grupo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5606",
+    "code": "5606",
+    "label": "Ensenanza: individual",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5610",
+    "code": "5610",
+    "label": "Bartlett learning. enseñanza: preoperatoria",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5612",
+    "code": "5612",
+    "label": "Ensenanza: ejercicio prescrito",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5614",
+    "code": "5614",
+    "label": "Bartlett learning. enseñanza: dieta prescrita",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5616",
+    "code": "5616",
+    "label": "Ensenanza: medicamentos prescritos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5618",
+    "code": "5618",
+    "label": "Ensenanza: procedimientos o tratamientos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5620",
+    "code": "5620",
+    "label": "Ensenanza: habilidad psicomotora",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5622",
+    "code": "5622",
+    "label": "Ensenanza: relaciones sexuales seguras",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5624",
+    "code": "5624",
+    "label": "Bartlett learning. enseñanza: sexualidad",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5634",
+    "code": "5634",
+    "label": "Ensenanza: entrenamiento del control de esfinteres",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5640",
+    "code": "5640",
+    "label": "Ensenanza: nutricion del lactante (0-3 meses)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5641",
+    "code": "5641",
+    "label": "Ensenanza: nutricion del lactante (4-6 meses)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5642",
+    "code": "5642",
+    "label": "Bartlett learning. enseñanza: nutrición del lactante (7-9 meses)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5643",
+    "code": "5643",
+    "label": "Bartlett learning. enseñanza: nutrición del lactante (10-12 meses)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5645",
+    "code": "5645",
+    "label": "Ensenanza: seguridad del lactante (0-3 meses)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5646",
+    "code": "5646",
+    "label": "Ensenanza: seguridad del lactante (4-6 meses)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5647",
+    "code": "5647",
+    "label": "Ensenanza: seguridad del lactante (7-9 meses)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5648",
+    "code": "5648",
+    "label": "Bartlett learning. enseñanza: seguridad del lactante (10-12 meses)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5649",
+    "code": "5649",
+    "label": "Ensenanza: control de infecciones",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5650",
+    "code": "5650",
+    "label": "Bartlett learning. enseñanza: desarrollo en la infancia media (6-12 años)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5652",
+    "code": "5652",
+    "label": "Bartlett learning. enseñanza: nutrición en la infancia media (6-12 años)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5654",
+    "code": "5654",
+    "label": "Bartlett learning. enseñanza: seguridad en la infancia media (6-12 años)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5655",
+    "code": "5655",
+    "label": "Ensenanza: desarrollo del lactante (0-3 meses)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5656",
+    "code": "5656",
+    "label": "Ensenanza: desarrollo del lactante (7-9 meses)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5657",
+    "code": "5657",
+    "label": "Bartlett learning. enseñanza: desarrollo del lactante (10-12 meses)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5658",
+    "code": "5658",
+    "label": "Bartlett learning. enseñanza: desarrollo del lactante (4-6 meses)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5660",
+    "code": "5660",
+    "label": "Ensenanza:nutriciondel nino (13-18meses)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5661",
+    "code": "5661",
+    "label": "Ensenanza: nutricion del nino (19-24 meses)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5662",
+    "code": "5662",
+    "label": "Ensenanza: nutricion del nino (25-36 meses)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5665",
+    "code": "5665",
+    "label": "Bartlett learning. enseñanza: seguridad del niño (13-18 meses)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5666",
+    "code": "5666",
+    "label": "Ensenanza: seguridad del nino (19-24 meses)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5667",
+    "code": "5667",
+    "label": "Wilkins. enseñanza: seguridad del niño (25-36 meses)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5670",
+    "code": "5670",
+    "label": "Bartlett learning. enseñanza: desarrollo del adolescente (12-21 años)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5672",
+    "code": "5672",
+    "label": "Ensenanza:nutriciondel adolescente (12-2laios)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5674",
+    "code": "5674",
+    "label": "Bartlett learning. enseñanza: seguridad del adolescente (12-21 años)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5680",
+    "code": "5680",
+    "label": "Ensenanza: desarrollo en la primera infancia (1-5 anos)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5682",
+    "code": "5682",
+    "label": "Ensenanza:nutricionen laprimera infancia (1-5anos)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5684",
+    "code": "5684",
+    "label": "Ensenanza: seguridad en la primera infancia (1-5 aios)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5820",
+    "code": "5820",
+    "label": "Disminucion de la ansiedad",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5840",
+    "code": "5840",
+    "label": "Entrenamiento autogeno",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5860",
+    "code": "5860",
+    "label": "Biorretroalimentacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5880",
+    "code": "5880",
+    "label": "Tecnica de relajacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5900",
+    "code": "5900",
+    "label": "Distraccion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5920",
+    "code": "5920",
+    "label": "H hipnosis",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5922",
+    "code": "5922",
+    "label": "F facilitación de la autohipnosis",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5930",
+    "code": "5930",
+    "label": "Yoga de la risa",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_5960",
+    "code": "5960",
+    "label": "Facilitacion de la meditacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6000",
+    "code": "6000",
+    "label": "Visualizacion guiada",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6040",
+    "code": "6040",
+    "label": "Terapia de relajacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6050",
+    "code": "6050",
+    "label": "Y yoga",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6140",
+    "code": "6140",
+    "label": "Manejo de la parada cardiorrespiratoria",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6160",
+    "code": "6160",
+    "label": "Intervencion en caso de crisis",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6170",
+    "code": "6170",
+    "label": "Manejo del apaciguamiento",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6200",
+    "code": "6200",
+    "label": "Wilkins. cuidados en la emergencia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6240",
+    "code": "6240",
+    "label": "Primeros auxilios",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6260",
+    "code": "6260",
+    "label": "Obtencion de organos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6300",
+    "code": "6300",
+    "label": "Cuidadosdel traumaporunaagresion sexual",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6320",
+    "code": "6320",
+    "label": "R reanimación",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6340",
+    "code": "6340",
+    "label": "Prevencion del suicidio",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6362",
+    "code": "6362",
+    "label": "Triaje: catastrofe en la comunidad",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6364",
+    "code": "6364",
+    "label": "Triaje: centro de urgencias",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6366",
+    "code": "6366",
+    "label": "Triaje: telecomunicacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6400",
+    "code": "6400",
+    "label": "Apoyo en la proteccion contra abusos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6402",
+    "code": "6402",
+    "label": "Apoyo en laproteccion contraabusos:ninos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6403",
+    "code": "6403",
+    "label": "Apoyo en la proteccion contra abusos: pareja",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6404",
+    "code": "6404",
+    "label": "Apoyoen laproteccioncontraabusos:ancianos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6408",
+    "code": "6408",
+    "label": "Apoyo en la proteccion contra abusos: religioso",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6410",
+    "code": "6410",
+    "label": "Manejo de la alergia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6412",
+    "code": "6412",
+    "label": "Manejo de la anafilaxia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6420",
+    "code": "6420",
+    "label": "Restriccion de zonas de movimiento",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6425",
+    "code": "6425",
+    "label": "Registro corporal",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6430",
+    "code": "6430",
+    "label": "Restriccion quimica",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6440",
+    "code": "6440",
+    "label": "Manejo del delirium",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6450",
+    "code": "6450",
+    "label": "Wilkins. manejo de las ideas delirantes",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6460",
+    "code": "6460",
+    "label": "Manejo de la demencia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6462",
+    "code": "6462",
+    "label": "Manejo de la demencia: bano",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6466",
+    "code": "6466",
+    "label": "Manejode lademencia:deambulacionerratica",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6470",
+    "code": "6470",
+    "label": "Wilkins. 417-435. precauciones contra fugas",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6480",
+    "code": "6480",
+    "label": "M manejo ambiental",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6482",
+    "code": "6482",
+    "label": "Manejo del confort",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6484",
+    "code": "6484",
+    "label": "Manejo ambiental: comunidad",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6485",
+    "code": "6485",
+    "label": "Planificacion para el alta: preparacion del hogar",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6486",
+    "code": "6486",
+    "label": "Manejo ambiental: seguridad",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6487",
+    "code": "6487",
+    "label": "Manejo ambiental:prevencion de la violencia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6489",
+    "code": "6489",
+    "label": "Manejo ambiental: seguridad del trabajador",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6490",
+    "code": "6490",
+    "label": "Oxford: wiley-blackwell. prevención de caídas",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6500",
+    "code": "6500",
+    "label": "Precauciones en incendios provocados",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6510",
+    "code": "6510",
+    "label": "Manejo de las alucinaciones",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6520",
+    "code": "6520",
+    "label": "Cribado de salud",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6522",
+    "code": "6522",
+    "label": "Exploracion mamaria",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6525",
+    "code": "6525",
+    "label": "Deteccion de la trata de seres humanos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6530",
+    "code": "6530",
+    "label": "Manejo de la vacunacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6540",
+    "code": "6540",
+    "label": "Control de infecciones",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6545",
+    "code": "6545",
+    "label": "Control de infecciones: intraoperatorio",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6550",
+    "code": "6550",
+    "label": "Proteccion contra las infecciones",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6560",
+    "code": "6560",
+    "label": "Precauciones con el laser",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6570",
+    "code": "6570",
+    "label": "Wilkins. precauciones en la alergia al látex",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6574",
+    "code": "6574",
+    "label": "Identificacion del paciente",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6576",
+    "code": "6576",
+    "label": "Acompanamientofisico",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6580",
+    "code": "6580",
+    "label": "Wilkins. restricción física",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6581",
+    "code": "6581",
+    "label": "Precauciones en la neutropenia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6592",
+    "code": "6592",
+    "label": "Precauciones en pandemias",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6594",
+    "code": "6594",
+    "label": "Facilitacion del distanciamiento fisico",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6596",
+    "code": "6596",
+    "label": "Facilitacion de la cuarentena",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6600",
+    "code": "6600",
+    "label": "Bartlett. manejo de la radioterapia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6610",
+    "code": "6610",
+    "label": "I identificación de riesgos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6612",
+    "code": "6612",
+    "label": "Identificacionderiesgos:familia conreciennacido",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6614",
+    "code": "6614",
+    "label": "Identificacion de riesgos: geneticos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6620",
+    "code": "6620",
+    "label": "Identificacionderiesgos:enfermedades infecciosas",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6630",
+    "code": "6630",
+    "label": "Aislamiento",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6648",
+    "code": "6648",
+    "label": "Ensenanza: prevencion de las lesiones deportivas",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6650",
+    "code": "6650",
+    "label": "Clinical nursing skills and technique (10th ed.). mosby. vigilancia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6652",
+    "code": "6652",
+    "label": "Vigilancia: comunidad",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6656",
+    "code": "6656",
+    "label": "Vigilancia: al final del embarazo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6658",
+    "code": "6658",
+    "label": "Vigilancia: monitorizacion remota",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6660",
+    "code": "6660",
+    "label": "S health across the lifespan (9th ed.). pearson. vigilancia: monitorización con vídeo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6670",
+    "code": "6670",
+    "label": "Terapia de validacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6675",
+    "code": "6675",
+    "label": "Cribado visual",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6680",
+    "code": "6680",
+    "label": "Monitorizacion de los signos vitales",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6700",
+    "code": "6700",
+    "label": "Aplicacion de calor o frio",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6710",
+    "code": "6710",
+    "label": "Favorecimiento del apego",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6720",
+    "code": "6720",
+    "label": "P parto",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6750",
+    "code": "6750",
+    "label": "Cuidados del parto por cesarea",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6760",
+    "code": "6760",
+    "label": "Preparacion al parto",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6771",
+    "code": "6771",
+    "label": "Wilkins. monitorización fetal electrónica: antes del parto",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6772",
+    "code": "6772",
+    "label": "Monitorizacionfetalelectronica:duranteelparto",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6784",
+    "code": "6784",
+    "label": "Planificacion familiar: anticoncepcion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6786",
+    "code": "6786",
+    "label": "Planificacion familiar: infertilidad",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6788",
+    "code": "6788",
+    "label": "Planificacionfamiliar:embarazonodeseado",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6800",
+    "code": "6800",
+    "label": "Cuidados del embarazo de alto riesgo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6810",
+    "code": "6810",
+    "label": "Families (pp. 701-714). f.a. davis. cuidados del lactante: ayuda para la exploración ocular",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6820",
+    "code": "6820",
+    "label": "Cuidados del lactante",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6824",
+    "code": "6824",
+    "label": "Families (pp. 603-637). f. a. davis. cuidados del lactante: recién nacido",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6826",
+    "code": "6826",
+    "label": "Cuidados del lactante: prematuro",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6830",
+    "code": "6830",
+    "label": "Cuidados intraparto",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6834",
+    "code": "6834",
+    "label": "Cuidados intraparto: parto de alto riesgo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6840",
+    "code": "6840",
+    "label": "Cuidados de canguro (del nino prematuro)",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6850",
+    "code": "6850",
+    "label": "Id.htm. inducción del parto",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6855",
+    "code": "6855",
+    "label": "Manejo del dolor de parto",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6860",
+    "code": "6860",
+    "label": "Supresion de las contracciones de parto",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6870",
+    "code": "6870",
+    "label": "Supresion de la lactancia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6900",
+    "code": "6900",
+    "label": "Succion no nutritiva",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6924",
+    "code": "6924",
+    "label": "Fototerapia: neonato",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6926",
+    "code": "6926",
+    "label": "Fototerapia: regulacion del estado de animo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6930",
+    "code": "6930",
+    "label": "Cuidados posparto",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6950",
+    "code": "6950",
+    "label": "Cuidados porinterrupciondel embarazo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6960",
+    "code": "6960",
+    "label": "Cuidados prenatales",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6965",
+    "code": "6965",
+    "label": "Apoyo al procedimiento: lactante",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6972",
+    "code": "6972",
+    "label": "Reanimacion: feto",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6974",
+    "code": "6974",
+    "label": "Reanimacion: neonato",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_6982",
+    "code": "6982",
+    "label": "Ecografia: obstetrica y ginecologica",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7040",
+    "code": "7040",
+    "label": "Apoyo al cuidador",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7100",
+    "code": "7100",
+    "label": "Favorecimiento de la integridad familiar",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7104",
+    "code": "7104",
+    "label": "Favorecimiento de la integridad familiar: familia con recien nacido",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7110",
+    "code": "7110",
+    "label": "Favorecimiento de la implicacion familiar",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7120",
+    "code": "7120",
+    "label": "Movilizacion familiar",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7130",
+    "code": "7130",
+    "label": "Mantenimiento de procesos familiares",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7140",
+    "code": "7140",
+    "label": "Apoyo a la familia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7150",
+    "code": "7150",
+    "label": "Terapia familiar",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7160",
+    "code": "7160",
+    "label": "Preservacion de la fertilidad",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7170",
+    "code": "7170",
+    "label": "Facilitacion de la presencia de la familia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7180",
+    "code": "7180",
+    "label": "Asistencia en el mantenimiento del hogar",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7200",
+    "code": "7200",
+    "label": "Families (pp. 77-95). springer. favorecimiento de la normalización",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7260",
+    "code": "7260",
+    "label": "Cuidados de relevo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7280",
+    "code": "7280",
+    "label": "Apoyo de hermanos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7300",
+    "code": "7300",
+    "label": "Planificacion anticipada de los cuidados",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7310",
+    "code": "7310",
+    "label": "Cuidados de enfermeria al ingreso",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7320",
+    "code": "7320",
+    "label": "G gestión de casos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7330",
+    "code": "7330",
+    "label": "Negociacion de cuidados culturales",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7370",
+    "code": "7370",
+    "label": "Planificacion para el alta",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7380",
+    "code": "7380",
+    "label": "Ayuda con recursos economicos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7400",
+    "code": "7400",
+    "label": "Orientacion en el sistema sanitario",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7410",
+    "code": "7410",
+    "label": "Autorizacion de seguros",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7440",
+    "code": "7440",
+    "label": "Facilitacion de los permisos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7460",
+    "code": "7460",
+    "label": "Proteccion de los derechos del paciente",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7470",
+    "code": "7470",
+    "label": "Prevencion del reingreso",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7500",
+    "code": "7500",
+    "label": "Apoyo para la consecucion del sustento",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7560",
+    "code": "7560",
+    "label": "Facilitacion de las visitas",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7610",
+    "code": "7610",
+    "label": "Pruebas diagnosticas en el punto de atencion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7615",
+    "code": "7615",
+    "label": "Mejora de la colaboracion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7620",
+    "code": "7620",
+    "label": "Comprobacion de sustancias controladas",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7630",
+    "code": "7630",
+    "label": "Contencion de los costes",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7640",
+    "code": "7640",
+    "label": "Desarrollo de vias clinicas",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7650",
+    "code": "7650",
+    "label": "Bartlett learning. delegación",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7660",
+    "code": "7660",
+    "label": "Revision del carro de emergencias",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7680",
+    "code": "7680",
+    "label": "Ayuda en la exploración",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7685",
+    "code": "7685",
+    "label": "Colaboracion con otros profesionales sanitarios",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7690",
+    "code": "7690",
+    "label": "Interpretacion de datos de laboratorio",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7700",
+    "code": "7700",
+    "label": "Evaluacion de companeros",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7722",
+    "code": "7722",
+    "label": "Preceptor: empleado",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7726",
+    "code": "7726",
+    "label": "Preceptor: estudiante",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7760",
+    "code": "7760",
+    "label": "Evaluacion de productos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7770",
+    "code": "7770",
+    "label": "Facilitacion del desarrollo profesional",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7800",
+    "code": "7800",
+    "label": "Control de calidad",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7810",
+    "code": "7810",
+    "label": "Reunion de seguridad",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7820",
+    "code": "7820",
+    "label": "Wilkins. manejo de muestras",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7830",
+    "code": "7830",
+    "label": "Supervision del personal",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7840",
+    "code": "7840",
+    "label": "Gestion de la cadena de suministro",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7850",
+    "code": "7850",
+    "label": "Gestion de la competencia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7880",
+    "code": "7880",
+    "label": "Manejo de la tecnologia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7886",
+    "code": "7886",
+    "label": "Manejo de la tecnologia reproductiva",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7890",
+    "code": "7890",
+    "label": "Transporte: entre centros",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7892",
+    "code": "7892",
+    "label": "Transporte: dentro del centro",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7910",
+    "code": "7910",
+    "label": "Consulta",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7920",
+    "code": "7920",
+    "label": "Documentacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7926",
+    "code": "7926",
+    "label": "Documentacion: reuniones",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7930",
+    "code": "7930",
+    "label": "Declaracion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7940",
+    "code": "7940",
+    "label": "Recogidade datos forenses",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7960",
+    "code": "7960",
+    "label": "Bartlett. intercambio de información de cuidados de salud",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7970",
+    "code": "7970",
+    "label": "S seguimiento de la política sanitaria",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_7980",
+    "code": "7980",
+    "label": "Informe de incidencias",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8020",
+    "code": "8020",
+    "label": "Reunion multidisciplinar sobre cuidados",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8060",
+    "code": "8060",
+    "label": "Transcripcion de ordenes",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8070",
+    "code": "8070",
+    "label": "Ayuda en el acceso a la historia clinica electronica",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8080",
+    "code": "8080",
+    "label": "Prescripcion: pruebas diagnosticas",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8086",
+    "code": "8086",
+    "label": "Prescripcion: tratamiento no farmacologico",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8100",
+    "code": "8100",
+    "label": "Derivacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8130",
+    "code": "8130",
+    "label": "Gestion del protocolo de investigacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8140",
+    "code": "8140",
+    "label": "Transferencia de cuidados del paciente",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8180",
+    "code": "8180",
+    "label": "Consulta mediante telecomunicacion",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8190",
+    "code": "8190",
+    "label": "Seguimiento tras el alta",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8240",
+    "code": "8240",
+    "label": "Alimentacion con taza: recien nacido",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8272",
+    "code": "8272",
+    "label": "Cuidados del adolescente",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8274",
+    "code": "8274",
+    "label": "Bartlett learning. cuidados del niño",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8278",
+    "code": "8278",
+    "label": "Mejora del desarrollo: lactantes",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8300",
+    "code": "8300",
+    "label": "Favorecimiento del rol parental",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8340",
+    "code": "8340",
+    "label": "Favorecimiento de la resiliencia",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8500",
+    "code": "8500",
+    "label": "Desarrollo de la salud de la comunidad",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8510",
+    "code": "8510",
+    "label": "Defensa de la salud de la comunidad",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8550",
+    "code": "8550",
+    "label": "Gestion de los recursos economicos",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8700",
+    "code": "8700",
+    "label": "Desarrollo de un programa",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8720",
+    "code": "8720",
+    "label": "Favorecimiento de la resiliencia: comunidad",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8740",
+    "code": "8740",
+    "label": "Facilitacion de la justicia social",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8750",
+    "code": "8750",
+    "label": "Marketing social",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8810",
+    "code": "8810",
+    "label": "Preparacion ante el bioterrorismo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8820",
+    "code": "8820",
+    "label": "Wilkins. manejo de enfermedades transmisibles",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8840",
+    "code": "8840",
+    "label": "Preparacion para una catastrofe en la comunidad",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_8880",
+    "code": "8880",
+    "label": "Proteccion de riesgos ambientales",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  },
+  {
+    "id": "nic_9050",
+    "code": "9050",
+    "label": "Favorecimiento de la seguridad en el vehiculo",
+    "classLabel": "Taxonomia NIC",
+    "linkedNandaIds": [],
+    "activities": []
+  }
+]

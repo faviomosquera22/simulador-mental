@@ -18,6 +18,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Local OCR/PDF tooling environment.
+    ".venv-pdf/**",
   ]),
 ]);
 

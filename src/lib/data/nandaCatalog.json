@@ -1,0 +1,3797 @@
+[
+  {
+    "id": "nanda_00004",
+    "code": "00004",
+    "label": "Riesgo de infeccion",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00007",
+    "code": "00007",
+    "label": "Hipertermia",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 6",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00008",
+    "code": "00008",
+    "label": "Termorregulacion ineficaz",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 6",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00010",
+    "code": "00010",
+    "label": "Riesgo de disreflexia autonomica",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00016",
+    "code": "00016",
+    "label": "Eliminacion urinaria alterada",
+    "domain": "Dominio 3",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00017",
+    "code": "00017",
+    "label": "Incontinencia urinaria de esfuerzo",
+    "domain": "Dominio 3",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00019",
+    "code": "00019",
+    "label": "Incontinencia urinaria de urgencia",
+    "domain": "Dominio 3",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00022",
+    "code": "00022",
+    "label": "Riesgo de incontinencia urinaria de urgencia",
+    "domain": "Dominio 3",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00026",
+    "code": "00026",
+    "label": "Volumen excesivo de liquido",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 5",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00030",
+    "code": "00030",
+    "label": "Intercambio de gases deteriorado",
+    "domain": "Dominio 3",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00031",
+    "code": "00031",
+    "label": "Limpieza ineficaz de las vias respiratorias",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00032",
+    "code": "00032",
+    "label": "Patron de respiracion ineficaz",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00033",
+    "code": "00033",
+    "label": "Ventilacion espontanea alterada",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00039",
+    "code": "00039",
+    "label": "Riesgo de aspiracion",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00042",
+    "code": "00042",
+    "label": "Riesgo de reaccion alérgica al latex",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 5",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00044",
+    "code": "00044",
+    "label": "Deterioro de la integridad tisular",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00045",
+    "code": "00045",
+    "label": "Alteracion de la integridad de la mucosa oral",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00046",
+    "code": "00046",
+    "label": "Integridad de la piel deteriorada",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00047",
+    "code": "00047",
+    "label": "Riesgo de deterioro de la integridad de la piel",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00051",
+    "code": "00051",
+    "label": "Comunicacion verbal deteriorada",
+    "domain": "Dominio 5",
+    "classLabel": "Clase 5",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00052",
+    "code": "00052",
+    "label": "Interaccion social deteriorada",
+    "domain": "Dominio 7",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "general",
+      "postoperative"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00055",
+    "code": "00055",
+    "label": "Desempeno ineficaz del rol",
+    "domain": "Dominio 7",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "general",
+      "postoperative"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00068",
+    "code": "00068",
+    "label": "Disposicion para un mayor bienestar espiritual",
+    "domain": "Dominio 10",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00075",
+    "code": "00075",
+    "label": "Preparacion para una mejor adaptacion familiar",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00076",
+    "code": "00076",
+    "label": "Preparacion para una mejor respuesta comunitaria",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00080",
+    "code": "00080",
+    "label": "Gestion ineficaz de la salud familiar",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00085",
+    "code": "00085",
+    "label": "Movilidad fisica deteriorada",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00087",
+    "code": "00087",
+    "label": "Riesgo de lesion por posicionamiento perioperatorio",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00089",
+    "code": "00089",
+    "label": "Movilidad reducida en silla de ruedas",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00091",
+    "code": "00091",
+    "label": "Movilidad reducida en la cama",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00097",
+    "code": "00097",
+    "label": "Disminucion de la participacion en actividades de distraccion",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00103",
+    "code": "00103",
+    "label": "Dificultad para tragar",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00128",
+    "code": "00128",
+    "label": "Confusion aguda",
+    "domain": "Dominio 5",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00129",
+    "code": "00129",
+    "label": "Confusion cronica",
+    "domain": "Dominio 5",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00131",
+    "code": "00131",
+    "label": "Memoria deteriorada",
+    "domain": "Dominio 5",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00132",
+    "code": "00132",
+    "label": "Dolor agudo",
+    "domain": "Dominio 12",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "postoperative",
+      "infection",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00133",
+    "code": "00133",
+    "label": "Dolor cronico",
+    "domain": "Dominio 12",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "postoperative",
+      "infection",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00138",
+    "code": "00138",
+    "label": "Riesgo de violencia dirigida hacia otros",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00141",
+    "code": "00141",
+    "label": "Sindrome postraumatico",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00145",
+    "code": "00145",
+    "label": "Riesgo de sindrome postraumatico",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00156",
+    "code": "00156",
+    "label": "Riesgo de muerte subita infantil",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00158",
+    "code": "00158",
+    "label": "Preparacion para un mejor afrontamiento",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00159",
+    "code": "00159",
+    "label": "Preparacion para procesos familiares mejorados",
+    "domain": "Dominio 7",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general",
+      "postoperative"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00167",
+    "code": "00167",
+    "label": "Disposicion para un autoconcepto mejorado",
+    "domain": "Dominio 6",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00169",
+    "code": "00169",
+    "label": "Religiosidad deteriorada",
+    "domain": "Dominio 10",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00170",
+    "code": "00170",
+    "label": "Riesgo de deterioro de la religiosidad",
+    "domain": "Dominio 10",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00171",
+    "code": "00171",
+    "label": "Disposicion para una religiosidad mejorada",
+    "domain": "Dominio 10",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00173",
+    "code": "00173",
+    "label": "Riesgo de confusion aguda",
+    "domain": "Dominio 5",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00175",
+    "code": "00175",
+    "label": "Angustia moral",
+    "domain": "Dominio 10",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00180",
+    "code": "00180",
+    "label": "Riesgodecontaminacion",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00181",
+    "code": "00181",
+    "label": "Contaminacion",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00184",
+    "code": "00184",
+    "label": "Preparacion para una mejor toma de decisiones",
+    "domain": "Dominio 5",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00185",
+    "code": "00185",
+    "label": "Diagnostico NANDA 00185",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00194",
+    "code": "00194",
+    "label": "Hiperbilirrubinemia neonatal",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00201",
+    "code": "00201",
+    "label": "Riesgo de perfusion tisular cerebral ineficaz",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00204",
+    "code": "00204",
+    "label": "Perfusion tisular periférica ineficaz",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00205",
+    "code": "00205",
+    "label": "Riesgo de shock",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00208",
+    "code": "00208",
+    "label": "Preparacion para un proceso de gestacion mejorado",
+    "domain": "Dominio 7",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "general",
+      "postoperative"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00210",
+    "code": "00210",
+    "label": "Resiliencia deteriorada",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00211",
+    "code": "00211",
+    "label": "Riesgo de deterioro de la resiliencia",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00212",
+    "code": "00212",
+    "label": "Preparacion para una mayor resiliencia",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00217",
+    "code": "00217",
+    "label": "Riesgo de reaccion alérgica",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 5",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00219",
+    "code": "00219",
+    "label": "Riesgo de ojo seco",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00221",
+    "code": "00221",
+    "label": "Proceso de procreacion ineficaz",
+    "domain": "Dominio 7",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "general",
+      "postoperative"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00222",
+    "code": "00222",
+    "label": "Control de impulsos ineficaz",
+    "domain": "Dominio 5",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00227",
+    "code": "00227",
+    "label": "Riesgo de un proceso de gestacion ineficaz",
+    "domain": "Dominio 7",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "general",
+      "postoperative"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00228",
+    "code": "00228",
+    "label": "Riesgo de perfusion tisular periférica ineficaz",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00230",
+    "code": "00230",
+    "label": "Riesgo de hiperbilirrubinemia neonatal",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00235",
+    "code": "00235",
+    "label": "Estrenimientofuncional cronico",
+    "domain": "Dominio 3",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00236",
+    "code": "00236",
+    "label": "Riesgo de estrenimiento funcional cronico",
+    "domain": "Dominio 3",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00240",
+    "code": "00240",
+    "label": "Riesgo de disminucion del gasto cardiaco",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00241",
+    "code": "00241",
+    "label": "Deterioro de la regulacion del estado de animo",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00242",
+    "code": "00242",
+    "label": "Toma de decisiones emancipada deteriorada",
+    "domain": "Dominio 5",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00243",
+    "code": "00243",
+    "label": "Preparacion para una toma de decisiones mas emancipada",
+    "domain": "Dominio 5",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00244",
+    "code": "00244",
+    "label": "Riesgo de deterioro de la toma de decisiones emancipada",
+    "domain": "Dominio 5",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00245",
+    "code": "00245",
+    "label": "Riesgo de lesion corneal",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00247",
+    "code": "00247",
+    "label": "Riesgo de deterioro de la integridad de la mucosa oral",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00248",
+    "code": "00248",
+    "label": "Riesgo de deterioro de la integridad tisular",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00250",
+    "code": "00250",
+    "label": "Riesgo de lesion del tracto urinario",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00255",
+    "code": "00255",
+    "label": "Diagnostico NANDA 00255",
+    "domain": "Dominio 12",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "postoperative",
+      "infection",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00256",
+    "code": "00256",
+    "label": "Dolor de parto",
+    "domain": "Dominio 12",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "postoperative",
+      "infection",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00258",
+    "code": "00258",
+    "label": "Sindrome de abstinencia aguda de sustancias",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00259",
+    "code": "00259",
+    "label": "Riesgo de sindrome de abstinencia aguda de sustancias",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00262",
+    "code": "00262",
+    "label": "Preparacion para una mayor alfabetizacion en salud",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00269",
+    "code": "00269",
+    "label": "Dinamicas alimentarias ineficaces en adolescentes",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00270",
+    "code": "00270",
+    "label": "Dinamicas alimentarias infantiles ineficaces",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00271",
+    "code": "00271",
+    "label": "Diagnostico NANDA 00271",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00272",
+    "code": "00272",
+    "label": "Diagnostico NANDA 00272",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00273",
+    "code": "00273",
+    "label": "Campo energetico desequilibrado",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00274",
+    "code": "00274",
+    "label": "Riesgo de termorregulacion ineficaz",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 6",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00276",
+    "code": "00276",
+    "label": "Autogestion ineficaz de la salud",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00277",
+    "code": "00277",
+    "label": "Diagnostico NANDA 00277",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00278",
+    "code": "00278",
+    "label": "Autogestion ineficaz del linfedema",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00281",
+    "code": "00281",
+    "label": "Riesgo de autogestion ineficaz del linfedema",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00285",
+    "code": "00285",
+    "label": "Preparacion para un duelo intensificado",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00286",
+    "code": "00286",
+    "label": "Diagnostico NANDA 00286",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00287",
+    "code": "00287",
+    "label": "Lesion por presion neonatal",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00288",
+    "code": "00288",
+    "label": "Riesgo de lesion por presion neonatal",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00290",
+    "code": "00290",
+    "label": "Riesgo de intento de fuga",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00291",
+    "code": "00291",
+    "label": "Riesgo de trombosis",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00292",
+    "code": "00292",
+    "label": "Diagnostico NANDA 00292",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00293",
+    "code": "00293",
+    "label": "Preparacion para una mejor autogestion de la salud",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00297",
+    "code": "00297",
+    "label": "Incontinencia urinaria asociada a discapacidad",
+    "domain": "Dominio 3",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00298",
+    "code": "00298",
+    "label": "Disminucion de la tolerancia a la actividad",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00299",
+    "code": "00299",
+    "label": "Riesgo de disminucion de la tolerancia a la actividad",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00300",
+    "code": "00300",
+    "label": "Conductas ineficaces de mantenimiento del hogar",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00301",
+    "code": "00301",
+    "label": "Duelo desadaptativo",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00302",
+    "code": "00302",
+    "label": "Riesgo de duelo desadaptativo",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00303",
+    "code": "00303",
+    "label": "Riesgo de caidas en adultos",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00304",
+    "code": "00304",
+    "label": "Riesgo de lesion por presion en adultos",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00305",
+    "code": "00305",
+    "label": "Riesgo de retraso en el desarrollo infantil",
+    "domain": "Dominio 13",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00306",
+    "code": "00306",
+    "label": "Riesgo de caidas en los ninos",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00307",
+    "code": "00307",
+    "label": "Preparacion para una mayor participacion en el ejercicio",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00308",
+    "code": "00308",
+    "label": "Riesgo de conductas ineficaces de mantenimiento del hogar",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00309",
+    "code": "00309",
+    "label": "Preparacion para mejorar los habitos de mantenimiento",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00310",
+    "code": "00310",
+    "label": "Incontinencia urinaria mixta",
+    "domain": "Dominio 3",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00311",
+    "code": "00311",
+    "label": "Riesgo de deterioro de la funcion cardiovascular",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00312",
+    "code": "00312",
+    "label": "Ulcera por presion en adultos",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00313",
+    "code": "00313",
+    "label": "Lesionporpresionenninos",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00314",
+    "code": "00314",
+    "label": "Diagnostico NANDA 00314",
+    "domain": "Dominio 13",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00315",
+    "code": "00315",
+    "label": "Retraso en el desarrollo motor infantil",
+    "domain": "Dominio 13",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00316",
+    "code": "00316",
+    "label": "Riesgo de retraso en el desarrollo motor infantil",
+    "domain": "Dominio 13",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00322",
+    "code": "00322",
+    "label": "Riesgo de retencion urinaria",
+    "domain": "Dominio 3",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00323",
+    "code": "00323",
+    "label": "Conductas ineficaces de higiene del sueno",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00324",
+    "code": "00324",
+    "label": "Riesgo de deterioro de la movilidad fisica",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00325",
+    "code": "00325",
+    "label": "Autocompasion inadecuada",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00326",
+    "code": "00326",
+    "label": "Disminucion de la capacidad para banarse",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 5",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00327",
+    "code": "00327",
+    "label": "Disminucion de la capacidad para vestirse",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 5",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00328",
+    "code": "00328",
+    "label": "Disminucion de la capacidad de alimentacion",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 5",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00329",
+    "code": "00329",
+    "label": "Disminucion de la capacidad para ir al bano",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 5",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00330",
+    "code": "00330",
+    "label": "Disminucion de la capacidad de aseo",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 5",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00331",
+    "code": "00331",
+    "label": "Sindrome de disminucion de la capacidad de autocuidado",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 5",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00332",
+    "code": "00332",
+    "label": "Riesgo de sindrome de disminucion de la capacidad de autocuidado",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 5",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00333",
+    "code": "00333",
+    "label": "Produccion inadecuada de leche humana",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00334",
+    "code": "00334",
+    "label": "Riesgo de produccion inadecuada de leche materna",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00335",
+    "code": "00335",
+    "label": "Riesgo de soledad excesiva",
+    "domain": "Dominio 12",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "postoperative",
+      "infection",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00336",
+    "code": "00336",
+    "label": "Riesgo de lesiones fisicas",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00337",
+    "code": "00337",
+    "label": "Patron de sueno ineficaz",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00338",
+    "code": "00338",
+    "label": "Autoeficacia sanitaria inadecuada",
+    "domain": "Dominio 6",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00339",
+    "code": "00339",
+    "label": "Alfabetizacion sanitaria inadecuada",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00340",
+    "code": "00340",
+    "label": "Preparacion para un envejecimiento saludable mejorado",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00341",
+    "code": "00341",
+    "label": "Preparacion para una identidad social transgénero mejorada",
+    "domain": "Dominio 6",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00342",
+    "code": "00342",
+    "label": "Sindrome de confort al final de la vida deteriorado",
+    "domain": "Dominio 12",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "postoperative",
+      "infection",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00343",
+    "code": "00343",
+    "label": "Ingesta nutricional inadecuada",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00344",
+    "code": "00344",
+    "label": "Eliminacion intestinal alterada",
+    "domain": "Dominio 3",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00345",
+    "code": "00345",
+    "label": "Riesgo de alteracion de la continencia fecal",
+    "domain": "Dominio 3",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00346",
+    "code": "00346",
+    "label": "Riesgo de eliminacion intestinal alterada",
+    "domain": "Dominio 3",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00347",
+    "code": "00347",
+    "label": "Lactancia materna exclusiva interrumpida",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00348",
+    "code": "00348",
+    "label": "Retraso en el crecimiento infantil",
+    "domain": "Dominio 13",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00349",
+    "code": "00349",
+    "label": "Riesgo de deterioro de la diada materno-fetal",
+    "domain": "Dominio 8",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00350",
+    "code": "00350",
+    "label": "Riesgo de sufrir quemaduras",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00351",
+    "code": "00351",
+    "label": "Riesgo de lesiones por frio",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00352",
+    "code": "00352",
+    "label": "Autogestion ineficaz de la boca seca",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00353",
+    "code": "00353",
+    "label": "Sindrome de fragilidad del anciano",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00355",
+    "code": "00355",
+    "label": "Conductas sedentarias excesivas",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00356",
+    "code": "00356",
+    "label": "Gestion ineficaz de la salud comunitaria",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00357",
+    "code": "00357",
+    "label": "Riesgo de sindrome de fragilidad en el anciano",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00358",
+    "code": "00358",
+    "label": "Red de apoyo social inadecuada",
+    "domain": "Dominio 12",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "postoperative",
+      "infection",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00359",
+    "code": "00359",
+    "label": "Ingesta nutricional de energia proteica inadecuada",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00360",
+    "code": "00360",
+    "label": "Riesgo de ingesta nutricional proteico-energetica inadecuada",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00361",
+    "code": "00361",
+    "label": "Respuesta inmune deteriorada",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00362",
+    "code": "00362",
+    "label": "Riesgo de presion arterial desequilibrada",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00363",
+    "code": "00363",
+    "label": "Disminucionde lacapacidadpara sentarse",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00364",
+    "code": "00364",
+    "label": "Capacidaddepermanecerdepiedeteriorada",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00365",
+    "code": "00365",
+    "label": "Diagnostico NANDA 00365",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00366",
+    "code": "00366",
+    "label": "Carga excesiva de cuidados",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00367",
+    "code": "00367",
+    "label": "Capacidad de transferencia deteriorada",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00368",
+    "code": "00368",
+    "label": "Preparacion para una mejor comunicacion verbal",
+    "domain": "Dominio 5",
+    "classLabel": "Clase 5",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00369",
+    "code": "00369",
+    "label": "Riesgo de una autogestion ineficaz de la salud",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00370",
+    "code": "00370",
+    "label": "Riesgo de volumen excesivo de liquido",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 5",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00371",
+    "code": "00371",
+    "label": "Lactancia materna ineficaz",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00372",
+    "code": "00372",
+    "label": "Regulacion ineficaz de las emociones",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00373",
+    "code": "00373",
+    "label": "Afrontamiento familiar desadaptativo",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00374",
+    "code": "00374",
+    "label": "Riesgo de sangrado excesivo",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00375",
+    "code": "00375",
+    "label": "Conductas de higiene bucal ineficaces",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 5",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00376",
+    "code": "00376",
+    "label": "Disposicion para una mayor comodidad social",
+    "domain": "Dominio 12",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "postoperative",
+      "infection",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00377",
+    "code": "00377",
+    "label": "Disposicion para un mayor confort psicologico",
+    "domain": "Dominio 12",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "postoperative",
+      "infection",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00378",
+    "code": "00378",
+    "label": "Disposicion para una mayor comodidad fisica",
+    "domain": "Dominio 12",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "postoperative",
+      "infection",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00379",
+    "code": "00379",
+    "label": "Confort psicologico deteriorado",
+    "domain": "Dominio 12",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "postoperative",
+      "infection",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00380",
+    "code": "00380",
+    "label": "Confort fisico deteriorado",
+    "domain": "Dominio 12",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "postoperative",
+      "infection",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00382",
+    "code": "00382",
+    "label": "Riesgo de interrupcion de la lactancia materna exclusiva",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00383",
+    "code": "00383",
+    "label": "Conectividad social inadecuada",
+    "domain": "Dominio 12",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "postoperative",
+      "infection",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00384",
+    "code": "00384",
+    "label": "Diagnostico NANDA 00384",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00386",
+    "code": "00386",
+    "label": "Funcion sexual deteriorada",
+    "domain": "Dominio 8",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00387",
+    "code": "00387",
+    "label": "Conflicto excesivo en el rol parental",
+    "domain": "Dominio 7",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "general",
+      "postoperative"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00388",
+    "code": "00388",
+    "label": "Procesos familiares deteriorados",
+    "domain": "Dominio 7",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general",
+      "postoperative"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00389",
+    "code": "00389",
+    "label": "Patrones de interaccion familiar alterados",
+    "domain": "Dominio 7",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general",
+      "postoperative"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00390",
+    "code": "00390",
+    "label": "Miedo excesivo",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00394",
+    "code": "00394",
+    "label": "Diagnostico NANDA 00394",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00395",
+    "code": "00395",
+    "label": "Riesgo de conductas ineficaces de mantenimiento de la salud",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00397",
+    "code": "00397",
+    "label": "Autogestion ineficaz de la fatiga",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00398",
+    "code": "00398",
+    "label": "Autogestion ineficaz del sobrepeso",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00399",
+    "code": "00399",
+    "label": "Ansiedad excesiva por la muerte",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00400",
+    "code": "00400",
+    "label": "Ansiedad excesiva",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00401",
+    "code": "00401",
+    "label": "Riesgo de carga excesiva de cuidados",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00402",
+    "code": "00402",
+    "label": "Riesgo de lesiones fisicas laborales",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00404",
+    "code": "00404",
+    "label": "Riesgo de enfermedad profesional",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00405",
+    "code": "00405",
+    "label": "Diagnostico NANDA 00405",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00406",
+    "code": "00406",
+    "label": "Riesgo de lactancia materna ineficaz",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00407",
+    "code": "00407",
+    "label": "Riesgo de un patron de sueno ineficaz",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00408",
+    "code": "00408",
+    "label": "Riesgo de conductas ineficaces de higiene del sueno",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00409",
+    "code": "00409",
+    "label": "Riesgo de ingesta nutricional inadecuada",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00410",
+    "code": "00410",
+    "label": "Riesgo de una gestion ineficaz de la salud familiar",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00411",
+    "code": "00411",
+    "label": "Riesgo de alfabetizacion sanitaria inadecuada",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00412",
+    "code": "00412",
+    "label": "Riesgo de autogestion ineficaz de la sequedad bucal",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00413",
+    "code": "00413",
+    "label": "Riesgo de una gestion ineficaz de la salud comunitaria",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00414",
+    "code": "00414",
+    "label": "Riesgo de conductas de higiene bucal ineficaces",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 5",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00417",
+    "code": "00417",
+    "label": "Preparacion para un patron de sueno mejorado",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00418",
+    "code": "00418",
+    "label": "Autogestion ineficaz del dolor",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00419",
+    "code": "00419",
+    "label": "Disposicion para una mayor ingesta nutricional",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00420",
+    "code": "00420",
+    "label": "Riesgo de volumen inadecuado de liquido",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 5",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00421",
+    "code": "00421",
+    "label": "Volumen de liquido inadecuado",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 5",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00422",
+    "code": "00422",
+    "label": "Riesgo de alteracion de la motilidad gastrointestinal",
+    "domain": "Dominio 3",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00423",
+    "code": "00423",
+    "label": "Motilidad gastrointestinal deteriorada",
+    "domain": "Dominio 3",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00424",
+    "code": "00424",
+    "label": "Continencia fecal alterada",
+    "domain": "Dominio 3",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00425",
+    "code": "00425",
+    "label": "Riesgo de deterioro de la funcion neurovascular periférica",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00429",
+    "code": "00429",
+    "label": "Toma de decisiones deteriorada",
+    "domain": "Dominio 5",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00430",
+    "code": "00430",
+    "label": "Respuesta deteriorada al destete ventilatorio en adultos",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00431",
+    "code": "00431",
+    "label": "Respuesta deteriorada al destete ventilatorio infantil",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00434",
+    "code": "00434",
+    "label": "Riesgo de alteracion de la comunicacion verbal",
+    "domain": "Dominio 5",
+    "classLabel": "Clase 5",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00435",
+    "code": "00435",
+    "label": "Conocimientos inadecuados sobre salud",
+    "domain": "Dominio 5",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00436",
+    "code": "00436",
+    "label": "Conductas parentales deterioradas",
+    "domain": "Dominio 7",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "general",
+      "postoperative"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00437",
+    "code": "00437",
+    "label": "Riesgo de conductas parentales deterioradas",
+    "domain": "Dominio 7",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "general",
+      "postoperative"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00438",
+    "code": "00438",
+    "label": "Preparacion para mejorar las conductas parentales",
+    "domain": "Dominio 7",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "general",
+      "postoperative"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00439",
+    "code": "00439",
+    "label": "Riesgo de conductas de apego interrumpidas",
+    "domain": "Dominio 7",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general",
+      "postoperative"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00440",
+    "code": "00440",
+    "label": "Riesgo de alteracion de los patrones de interaccion familiar",
+    "domain": "Dominio 7",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general",
+      "postoperative"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00442",
+    "code": "00442",
+    "label": "Preparacion para mejorar las capacidades de autocuidado",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 5",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00445",
+    "code": "00445",
+    "label": "Riesgo de una relacion de pareja ineficaz",
+    "domain": "Dominio 7",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "general",
+      "postoperative"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00446",
+    "code": "00446",
+    "label": "Preparacion para una relacion de pareja mas estrecha",
+    "domain": "Dominio 7",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "general",
+      "postoperative"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00447",
+    "code": "00447",
+    "label": "Preparacion para una mejor autogestion del peso",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00448",
+    "code": "00448",
+    "label": "Riesgo de disminucion de la participacion en actividades recreativas",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00449",
+    "code": "00449",
+    "label": "Relacion de pareja ineficaz",
+    "domain": "Dominio 7",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "general",
+      "postoperative"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00454",
+    "code": "00454",
+    "label": "Bienestar espiritual deteriorado",
+    "domain": "Dominio 10",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00456",
+    "code": "00456",
+    "label": "Diagnostico NANDA 00456",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00460",
+    "code": "00460",
+    "label": "Riesgo de deterioro del bienestar espiritual",
+    "domain": "Dominio 10",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00461",
+    "code": "00461",
+    "label": "Diagnostico NANDA 00461",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00462",
+    "code": "00462",
+    "label": "Riesgo de deterioro de la integridad del complejo areola-pezon",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00463",
+    "code": "00463",
+    "label": "Diagnostico NANDA 00463",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00464",
+    "code": "00464",
+    "label": "Riesgo de recuperacion quirurgica deteriorada",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00465",
+    "code": "00465",
+    "label": "Recuperacion quirurgica deteriorada",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00466",
+    "code": "00466",
+    "label": "Riesgo de conducta autolesiva suicida",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00467",
+    "code": "00467",
+    "label": "Conducta autolesiva no suicida",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00468",
+    "code": "00468",
+    "label": "Riesgo de conducta autolesiva no suicida",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00469",
+    "code": "00469",
+    "label": "Riesgo de envenenamiento accidental",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00471",
+    "code": "00471",
+    "label": "Diagnostico NANDA 00471",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 6",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00472",
+    "code": "00472",
+    "label": "Disminucion de la temperatura corporal",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 6",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00473",
+    "code": "00473",
+    "label": "Riesgo de disminucion de la temperatura corporal",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 6",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00474",
+    "code": "00474",
+    "label": "Disminucion de la temperatura corporal neonatal",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 6",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00475",
+    "code": "00475",
+    "label": "Soledad excesiva",
+    "domain": "Dominio 12",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "postoperative",
+      "infection",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00476",
+    "code": "00476",
+    "label": "Riesgo de disminucion de la temperatura corporal neonatal",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 6",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00477",
+    "code": "00477",
+    "label": "Carga excesiva de fatiga",
+    "domain": "Dominio 4",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00478",
+    "code": "00478",
+    "label": "Riesgo de retraso en el crecimiento infantil",
+    "domain": "Dominio 13",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00479",
+    "code": "00479",
+    "label": "Disposicion para una mejor lactancia materna",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00480",
+    "code": "00480",
+    "label": "Riesgo de autoestima cronicamente inadecuada",
+    "domain": "Dominio 6",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00481",
+    "code": "00481",
+    "label": "Autoestima inadecuada situacional",
+    "domain": "Dominio 6",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00482",
+    "code": "00482",
+    "label": "Riesgo de autoestima inadecuada situacional",
+    "domain": "Dominio 6",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00483",
+    "code": "00483",
+    "label": "Autoestima cronica inadecuada",
+    "domain": "Dominio 6",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00484",
+    "code": "00484",
+    "label": "Riesgo de interrupcion de la transicion migratoria",
+    "domain": "Dominio 9",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00485",
+    "code": "00485",
+    "label": "Autogestion ineficaz del bajo peso",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00486",
+    "code": "00486",
+    "label": "Riesgo de una autogestion ineficaz del bajo peso",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00487",
+    "code": "00487",
+    "label": "Riesgo de una gestion personal ineficaz del sobrepeso",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00488",
+    "code": "00488",
+    "label": "Riesgo de vulneracion de la dignidad humana",
+    "domain": "Dominio 6",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00489",
+    "code": "00489",
+    "label": "Riesgo de autogestion ineficaz del patron de glucemia",
+    "domain": "Dominio 1",
+    "classLabel": "Clase 2",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00490",
+    "code": "00490",
+    "label": "Riesgo de disminucion de la temperatura corporal perioperatoria",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 6",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00491",
+    "code": "00491",
+    "label": "Riesgo de alteracion del equilibrio hidroelectrolitico",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 5",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00492",
+    "code": "00492",
+    "label": "Riesgo de alteracion del equilibrio del volumen de liquidos",
+    "domain": "Dominio 2",
+    "classLabel": "Clase 5",
+    "contexts": [
+      "metabolic",
+      "renal",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00493",
+    "code": "00493",
+    "label": "Procesos de pensamiento alterados",
+    "domain": "Dominio 5",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00494",
+    "code": "00494",
+    "label": "Identidad personal alterada",
+    "domain": "Dominio 6",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00495",
+    "code": "00495",
+    "label": "Sindrome de identidad familiar alterada",
+    "domain": "Dominio 6",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00496",
+    "code": "00496",
+    "label": "Riesgo de sindrome de identidad familiar alterada",
+    "domain": "Dominio 6",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00497",
+    "code": "00497",
+    "label": "Imagen corporal alterada",
+    "domain": "Dominio 6",
+    "classLabel": "Clase 3",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00499",
+    "code": "00499",
+    "label": "Disposicion para un mayor conocimiento de la salud",
+    "domain": "Dominio 5",
+    "classLabel": "Clase 4",
+    "contexts": [
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  },
+  {
+    "id": "nanda_00500",
+    "code": "00500",
+    "label": "Riesgo de infeccion de la herida quirurgica",
+    "domain": "Dominio 11",
+    "classLabel": "Clase 1",
+    "contexts": [
+      "infection",
+      "postoperative",
+      "respiratory",
+      "renal",
+      "metabolic",
+      "general"
+    ],
+    "definingCharacteristics": [],
+    "relatedFactors": []
+  }
+]
