@@ -6,11 +6,13 @@ import {
   ECG_LIBRARY,
   type ECGAdditionalLeadRequest,
   type ECGCase,
+  type ECGClinicalContext,
   type ECGConductId,
   type ECGDecisionInput,
   type ECGDecisionStability,
   type ECGModuleConfig,
   type ECGPattern,
+  type ECGSelectionMode,
   type ECGViewMode,
   deriveVitalsForTrend,
   evaluateEcgDecision,
@@ -20,6 +22,7 @@ import {
   getDynamicNextEcg,
   getEcgCaseById,
   getEcgDifficultyLabel,
+  getEcgPoolForContext,
   getEcgSelectionModeLabel,
   getEcgViewModeLabel,
   getVisibleLeads,
@@ -27,7 +30,6 @@ import {
   leadSetSummary,
   normalizeEcgModuleConfig,
   outcomeTone,
-  pickEcgStudyByConfig,
 } from "@/src/lib/ecgLibrary";
 
 type EcgWorkspaceProps = {
@@ -65,6 +67,16 @@ const EMPTY_DECISION: DecisionState = {
   requestedAdditionalLeads: "none",
   justification: "",
 };
+
+const CONTEXT_SELECTOR_OPTIONS: Array<{ value: "auto" | ECGClinicalContext; label: string }> = [
+  { value: "auto", label: "Automático (según caso actual)" },
+  { value: "palpitations", label: "Palpitaciones" },
+  { value: "chest_pain", label: "Dolor torácico" },
+  { value: "cardiac_arrest", label: "Paro cardiorrespiratorio" },
+  { value: "syncope_collapse", label: "Síncope/colapso" },
+  { value: "electrolyte_disorder", label: "Alteración electrolítica" },
+  { value: "general_critical", label: "Contexto crítico general" },
+];
 
 function normalizeText(value: unknown) {
   return String(value ?? "")
@@ -396,6 +408,8 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
   const [attempts, setAttempts] = useState<AttemptEntry[]>([]);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [tick, setTick] = useState(0);
+  const [selectionMode, setSelectionMode] = useState<ECGSelectionMode>(ecgConfig.selectionMode);
+  const [contextSelector, setContextSelector] = useState<"auto" | ECGClinicalContext>("auto");
 
   const caseId = useMemo(
     () => String(caseObject?.id ?? caseObject?.meta?.case_id ?? "default"),
@@ -426,21 +440,56 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     ]
   );
 
+  const inferredContext = useMemo(
+    () => inferEcgClinicalContext(selectionContext),
+    [selectionContext]
+  );
+  const effectiveContext = useMemo(
+    () => (contextSelector === "auto" ? inferredContext : contextSelector),
+    [contextSelector, inferredContext]
+  );
+
+  function pickEcgFromControls(args?: { excludeId?: string | null; modeOverride?: ECGSelectionMode }) {
+    const mode = args?.modeOverride ?? selectionMode;
+    const contextualFilter = mode === "contextual_random" ? effectiveContext : null;
+    const pool = getEcgPoolForContext({ ...ecgConfig, selectionMode: mode }, contextualFilter).filter(
+      (item) => item.id !== args?.excludeId
+    );
+
+    if (mode === "manual") {
+      const manual = getEcgCaseById(ecgConfig.manualEcgId);
+      if (manual) return manual;
+    }
+
+    if (pool.length > 0) {
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    return getEcgCaseById(ecgConfig.manualEcgId) ?? ECG_LIBRARY[0];
+  }
+
   useEffect(() => {
     if (!ecgConfigStable.enabled) return;
-    const seed = pickEcgStudyByConfig({
-      config: ecgConfigStable,
-      caseObject: selectionContext,
-    });
+    setSelectionMode(ecgConfigStable.selectionMode);
+    setContextSelector("auto");
+
+    const defaultContext = ecgConfigStable.selectionMode === "contextual_random" ? inferredContext : null;
+    const defaultPool = getEcgPoolForContext(ecgConfigStable, defaultContext);
+    const manual = ecgConfigStable.selectionMode === "manual" ? getEcgCaseById(ecgConfigStable.manualEcgId) : null;
+    const seed =
+      manual ??
+      (defaultPool.length > 0 ? defaultPool[Math.floor(Math.random() * defaultPool.length)] : null) ??
+      ECG_LIBRARY[0];
+
     setActiveEcg(seed);
     setViewMode(ecgConfigStable.viewMode);
     setRequested(false);
-    setDecision((prev) => ({ ...prev, interpretation: "" }));
+    setDecision(EMPTY_DECISION);
     setEvaluation(null);
     setFeedbackVisible(ecgConfigStable.immediateFeedback);
     setTrend("stable");
     setStartedAt(null);
-  }, [caseId, ecgConfigStable, selectionContext]);
+  }, [caseId, ecgConfigStable, inferredContext]);
 
   useEffect(() => {
     if (!open) return;
@@ -486,7 +535,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     }
   }, [attempts, caseId]);
 
-  const contextLabel = useMemo(() => getClinicalContextLabel(inferEcgClinicalContext(caseObject)), [caseObject]);
+  const contextLabel = useMemo(() => getClinicalContextLabel(effectiveContext), [effectiveContext]);
 
   const visibleLeads = useMemo(() => {
     if (!activeEcg) return ["II"];
@@ -527,23 +576,33 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
   const handleSelectManual = (id: string) => {
     const found = getEcgCaseById(id);
     if (!found) return;
+    setSelectionMode("manual");
     setActiveEcg(found);
     setRequested(false);
-    setDecision({ ...EMPTY_DECISION, interpretation: found.name });
+    setDecision(EMPTY_DECISION);
     setEvaluation(null);
     setTrend("stable");
     setStartedAt(null);
   };
 
   const handleRandomEcg = () => {
-    const next = pickEcgStudyByConfig({
-      config: ecgConfig,
-      caseObject,
-      excludeId: activeEcg?.id,
-    });
+    const next = pickEcgFromControls({ excludeId: activeEcg?.id });
     setActiveEcg(next);
     setRequested(false);
-    setDecision({ ...EMPTY_DECISION, interpretation: next.name });
+    setDecision(EMPTY_DECISION);
+    setEvaluation(null);
+    setTrend("stable");
+    setStartedAt(null);
+  };
+
+  const handleSelectionModeChange = (mode: ECGSelectionMode) => {
+    setSelectionMode(mode);
+    if (mode !== "manual") return;
+
+    const manual = getEcgCaseById(ecgConfig.manualEcgId) ?? activeEcg ?? ECG_LIBRARY[0];
+    setActiveEcg(manual);
+    setRequested(false);
+    setDecision(EMPTY_DECISION);
     setEvaluation(null);
     setTrend("stable");
     setStartedAt(null);
@@ -641,7 +700,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
             <h2 className="text-lg font-semibold">Herramienta de decisión clínica integrada al caso</h2>
             <div className="mt-1 flex flex-wrap gap-2 text-[11px] text-white/70">
               <span className="rounded-full border border-white/15 bg-black/30 px-2.5 py-1">
-                Selección: {getEcgSelectionModeLabel(ecgConfig.selectionMode)}
+                Selección: {getEcgSelectionModeLabel(selectionMode)}
               </span>
               <span className="rounded-full border border-white/15 bg-black/30 px-2.5 py-1">
                 Dificultad: {getEcgDifficultyLabel(ecgConfig.difficulty)}
@@ -812,14 +871,69 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-              <div className="text-xs uppercase tracking-wider text-white/50">Botones funcionales</div>
+              <div className="text-xs uppercase tracking-wider text-white/50">Selección de caso ECG</div>
+              <div className="mt-2 rounded-xl border border-cyan-300/20 bg-cyan-300/5 p-2.5 text-[11px] text-cyan-100">
+                1) Elige tipo de caso y modo. 2) Pulsa &quot;Generar caso aleatorio&quot;. 3) Luego solicita ECG.
+              </div>
+
+              <div className="mt-3 space-y-2">
+                <div>
+                  <label className="text-xs text-white/60">Tipo de caso</label>
+                  <select
+                    value={contextSelector}
+                    onChange={(e) => setContextSelector(e.target.value as "auto" | ECGClinicalContext)}
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-sm text-white/85 outline-none"
+                  >
+                    {CONTEXT_SELECTOR_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs text-white/60">Modo de selección de ECG</label>
+                  <select
+                    value={selectionMode}
+                    onChange={(e) => handleSelectionModeChange(e.target.value as ECGSelectionMode)}
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-sm text-white/85 outline-none"
+                  >
+                    <option value="contextual_random">Aleatorio contextual</option>
+                    <option value="random">Aleatorio libre</option>
+                    <option value="manual">Manual</option>
+                  </select>
+                </div>
+
+                {selectionMode === "manual" && (
+                  <div>
+                    <label className="text-xs text-white/60">Seleccionar trazado manual</label>
+                    <select
+                      value={activeEcg?.id ?? ""}
+                      onChange={(e) => handleSelectManual(e.target.value)}
+                      className="mt-1 w-full rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-sm text-white/85 outline-none"
+                    >
+                      {ECG_LIBRARY.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-2 text-[11px] text-white/60">
+                Contexto activo: <span className="text-white/85">{contextLabel}</span>
+              </div>
+
               <div className="mt-2 grid grid-cols-1 gap-2 text-xs">
                 <button
                   type="button"
                   onClick={handleRandomEcg}
-                  className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-left text-white/80"
+                  className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-3 py-2 text-left text-cyan-100"
                 >
-                  Pedir nueva información clínica (nuevo ECG)
+                  Generar caso aleatorio
                 </button>
                 <button
                   type="button"
@@ -866,6 +980,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
                       <option key={option} value={option} />
                     ))}
                   </datalist>
+                  <div className="mt-1 text-[11px] text-white/50">Este campo es manual y no se autocompleta.</div>
                 </div>
 
                 <div>
@@ -950,19 +1065,6 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
                   Continuar caso
                 </button>
 
-                {ecgConfig.selectionMode === "manual" && (
-                  <select
-                    value={activeEcg?.id ?? ""}
-                    onChange={(e) => handleSelectManual(e.target.value)}
-                    className="rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-sm text-white/85 outline-none"
-                  >
-                    {ECG_LIBRARY.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
               </div>
 
               {activeEcg && ecgConfig.showHints && (

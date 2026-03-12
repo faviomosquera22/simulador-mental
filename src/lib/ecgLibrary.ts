@@ -1046,7 +1046,10 @@ export function listEcgCasesByDifficulty(maxDifficulty: ECGDifficulty) {
   return ECG_LIBRARY.filter((item) => difficultyRank[item.difficulty] <= difficultyRank[maxDifficulty]);
 }
 
-export function getEcgPoolForCase(config: ECGModuleConfig, caseObject: any) {
+export function getEcgPoolForContext(
+  config: ECGModuleConfig,
+  context?: ECGClinicalContext | null
+) {
   let pool = listEcgCasesByDifficulty(config.difficulty);
 
   if (config.viewMode === "rhythm_monitor") {
@@ -1057,13 +1060,17 @@ export function getEcgPoolForCase(config: ECGModuleConfig, caseObject: any) {
     pool = pool.filter((item) => item.viewModes.includes("expanded"));
   }
 
-  if (config.selectionMode === "contextual_random") {
-    const context = inferEcgClinicalContext(caseObject);
+  if (context) {
     const contextual = pool.filter((item) => item.contexts.includes(context));
     if (contextual.length > 0) pool = contextual;
   }
 
   return pool;
+}
+
+export function getEcgPoolForCase(config: ECGModuleConfig, caseObject: any) {
+  const context = config.selectionMode === "contextual_random" ? inferEcgClinicalContext(caseObject) : null;
+  return getEcgPoolForContext(config, context);
 }
 
 export function pickEcgStudyByConfig(args: {

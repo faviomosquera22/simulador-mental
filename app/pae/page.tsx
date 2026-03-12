@@ -40,6 +40,13 @@ type Stage = 1 | 2 | 3 | 4 | 5 | 6;
 type UsageMode = "integrated_case" | "standalone";
 type SelectionMode = "manual" | "random" | "by_category" | "contextual_random";
 type GuidanceMode = "guided" | "autonomous";
+type NicScaleValue = 1 | 2 | 3 | 4 | 5;
+
+type NicScaleSelection = {
+  baseline: NicScaleValue;
+  target: NicScaleValue;
+  indicators: string[];
+};
 
 type GuidedRow = {
   kind: "guided";
@@ -78,6 +85,27 @@ function toggleSelection(ids: string[], id: string) {
   return ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id];
 }
 
+const NIC_SCALE_VALUES: NicScaleValue[] = [1, 2, 3, 4, 5];
+const NIC_GENERIC_INDICATORS = [
+  "Aplicación correcta de la intervención",
+  "Seguridad del paciente durante la intervención",
+  "Respuesta clínica inicial favorable",
+  "Registro de enfermería completo",
+];
+
+function nicScaleLabel(value: NicScaleValue) {
+  if (value === 1) return "1 · Muy comprometido";
+  if (value === 2) return "2 · Compromiso moderado";
+  if (value === 3) return "3 · Intermedio";
+  if (value === 4) return "4 · Mejoría clara";
+  return "5 · Objetivo alcanzado";
+}
+
+function nicIndicatorOptions(item: NicIntervention) {
+  const fromActivities = item.activities.filter(Boolean).slice(0, 4);
+  return fromActivities.length ? fromActivities : NIC_GENERIC_INDICATORS;
+}
+
 export default function PaePage() {
   const [mode, setMode] = useState<PaeMode>("practice");
   const [guidanceMode, setGuidanceMode] = useState<GuidanceMode>("guided");
@@ -101,6 +129,7 @@ export default function PaePage() {
   const [diagnosisJustification, setDiagnosisJustification] = useState("");
   const [selectedOutcomeIds, setSelectedOutcomeIds] = useState<string[]>([]);
   const [selectedInterventionIds, setSelectedInterventionIds] = useState<string[]>([]);
+  const [nicScaleById, setNicScaleById] = useState<Record<string, NicScaleSelection>>({});
 
   const [nandaQuery, setNandaQuery] = useState("");
   const [nocQuery, setNocQuery] = useState("");
@@ -139,6 +168,7 @@ export default function PaePage() {
     setDiagnosisJustification("");
     setSelectedOutcomeIds([]);
     setSelectedInterventionIds([]);
+    setNicScaleById({});
     setNandaQuery("");
     setNocQuery("");
     setNicQuery("");
@@ -310,6 +340,50 @@ export default function PaePage() {
 
   function goPrev() {
     setStage((prev) => (prev > 1 ? ((prev - 1) as Stage) : prev));
+  }
+
+  function ensureNicScaleSelection(interventionId: string) {
+    setNicScaleById((prev) => {
+      if (prev[interventionId]) return prev;
+      return {
+        ...prev,
+        [interventionId]: {
+          baseline: 2,
+          target: 4,
+          indicators: [],
+        },
+      };
+    });
+  }
+
+  function setNicScaleValue(interventionId: string, field: "baseline" | "target", value: NicScaleValue) {
+    setNicScaleById((prev) => {
+      const base = prev[interventionId] ?? { baseline: 2 as NicScaleValue, target: 4 as NicScaleValue, indicators: [] };
+      return {
+        ...prev,
+        [interventionId]: {
+          ...base,
+          [field]: value,
+        },
+      };
+    });
+  }
+
+  function toggleNicIndicator(interventionId: string, indicator: string) {
+    setNicScaleById((prev) => {
+      const base = prev[interventionId] ?? { baseline: 2 as NicScaleValue, target: 4 as NicScaleValue, indicators: [] };
+      const indicators = base.indicators.includes(indicator)
+        ? base.indicators.filter((item) => item !== indicator)
+        : [...base.indicators, indicator];
+
+      return {
+        ...prev,
+        [interventionId]: {
+          ...base,
+          indicators,
+        },
+      };
+    });
   }
 
   function rowByGuidedDiagnosis(diagnosisId: string): GuidedRow | null {
@@ -710,9 +784,18 @@ export default function PaePage() {
                           <div className="mt-1 text-xs text-white/60">
                             {item.domain} · {item.classLabel}
                           </div>
+                          <div className="mt-1 text-xs text-cyan-100/85">
+                            Contexto sugerido: {item.contexts.map((ctx) => getPaeContextLabel(ctx)).join(" · ")}
+                          </div>
+                          <div className="mt-1 text-xs text-white/65">
+                            Diagnóstico de respuesta humana para priorizar problemas de enfermería en este caso.
+                          </div>
                           {mode === "practice" && (
                             <div className="mt-1 text-xs text-white/70">
-                              Características: {item.definingCharacteristics.slice(0, 3).join(" · ")}
+                              Características clave:{" "}
+                              {item.definingCharacteristics.length
+                                ? item.definingCharacteristics.slice(0, 3).join(" · ")
+                                : "Revisa signos/síntomas y factores de riesgo en la valoración."}
                             </div>
                           )}
                           <div className="mt-2">
@@ -810,9 +893,18 @@ export default function PaePage() {
                             {item.code} · {item.label}
                           </div>
                           <div className="mt-1 text-xs text-white/60">{item.domain}</div>
+                          <div className="mt-1 text-xs text-emerald-100/85">
+                            Este NOC mide evolución clínica y respuesta al cuidado de enfermería.
+                          </div>
+                          <div className="mt-1 text-xs text-white/65">
+                            Sugerencia de escala: 1 (muy comprometido) a 5 (objetivo alcanzado).
+                          </div>
                           {mode === "practice" && (
                             <div className="mt-1 text-xs text-white/70">
-                              Indicadores: {item.indicators.slice(0, 2).join(" · ")}
+                              Indicadores:{" "}
+                              {item.indicators.length
+                                ? item.indicators.slice(0, 3).join(" · ")
+                                : "Selecciona un resultado y define después línea base y meta clínica."}
                             </div>
                           )}
                           <div className="mt-2">
@@ -912,9 +1004,18 @@ export default function PaePage() {
                             {item.code} · {item.label}
                           </div>
                           <div className="mt-1 text-xs text-white/60">Clase: {item.classLabel}</div>
+                          <div className="mt-1 text-xs text-sky-100/85">
+                            Contexto: intervención inicial para actuar sobre la prioridad NANDA seleccionada.
+                          </div>
+                          <div className="mt-1 text-xs text-white/65">
+                            Define escala NIC e indicadores de ejecución para dejar el PAE más operativo.
+                          </div>
                           {mode === "practice" && (
                             <div className="mt-1 text-xs text-white/70">
-                              Actividades: {item.activities.slice(0, 2).join(" · ")}
+                              Actividades:{" "}
+                              {item.activities.length
+                                ? item.activities.slice(0, 3).join(" · ")
+                                : "Intervención taxonómica; añade indicadores de ejecución abajo."}
                             </div>
                           )}
                           <div className="mt-2">
@@ -922,12 +1023,75 @@ export default function PaePage() {
                               type="checkbox"
                               checked={selected}
                               onChange={() =>
-                                setSelectedInterventionIds((prev) => toggleSelection(prev, item.id))
+                                setSelectedInterventionIds((prev) => {
+                                  const next = toggleSelection(prev, item.id);
+                                  if (next.includes(item.id)) {
+                                    ensureNicScaleSelection(item.id);
+                                  }
+                                  return next;
+                                })
                               }
                               className="mr-2 h-4 w-4"
                             />
                             <span className="text-sm text-white/85">Seleccionar NIC</span>
                           </div>
+                          {selected && (
+                            <div className="mt-3 rounded-lg border border-sky-300/20 bg-black/35 p-3">
+                              <div className="text-xs font-medium text-sky-100">Indicadores y escala NIC</div>
+                              <div className="mt-2 grid gap-2 md:grid-cols-2">
+                                <label className="text-[11px] text-white/70">
+                                  Línea base
+                                  <select
+                                    value={nicScaleById[item.id]?.baseline ?? 2}
+                                    onChange={(event) =>
+                                      setNicScaleValue(item.id, "baseline", Number(event.target.value) as NicScaleValue)
+                                    }
+                                    className="mt-1 w-full rounded-lg border border-white/15 bg-black/40 px-2 py-1 text-xs text-white"
+                                  >
+                                    {NIC_SCALE_VALUES.map((value) => (
+                                      <option key={`${item.id}-base-${value}`} value={value}>
+                                        {nicScaleLabel(value)}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </label>
+                                <label className="text-[11px] text-white/70">
+                                  Meta
+                                  <select
+                                    value={nicScaleById[item.id]?.target ?? 4}
+                                    onChange={(event) =>
+                                      setNicScaleValue(item.id, "target", Number(event.target.value) as NicScaleValue)
+                                    }
+                                    className="mt-1 w-full rounded-lg border border-white/15 bg-black/40 px-2 py-1 text-xs text-white"
+                                  >
+                                    {NIC_SCALE_VALUES.map((value) => (
+                                      <option key={`${item.id}-target-${value}`} value={value}>
+                                        {nicScaleLabel(value)}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </label>
+                              </div>
+
+                              <div className="mt-2 text-[11px] text-white/70">Indicadores de ejecución</div>
+                              <div className="mt-1 grid gap-1">
+                                {nicIndicatorOptions(item).map((indicator) => {
+                                  const checked = nicScaleById[item.id]?.indicators.includes(indicator) ?? false;
+                                  return (
+                                    <label key={`${item.id}-${indicator}`} className="text-xs text-white/75">
+                                      <input
+                                        type="checkbox"
+                                        checked={checked}
+                                        onChange={() => toggleNicIndicator(item.id, indicator)}
+                                        className="mr-2 h-3.5 w-3.5 align-middle"
+                                      />
+                                      <span className="align-middle">{indicator}</span>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
                         </label>
                       );
                     })}
@@ -1185,8 +1349,19 @@ export default function PaePage() {
                                   : `${intervention.code} · ${intervention.label}`}
                               </div>
                               <div className="text-xs text-white/65">
-                                {intervention.activities.slice(0, 2).join(" · ")}
+                                {intervention.activities.length
+                                  ? intervention.activities.slice(0, 2).join(" · ")
+                                  : "Sin actividades cargadas en catálogo."}
                               </div>
+                              {guidanceMode === "autonomous" && nicScaleById[intervention.id] && (
+                                <div className="mt-1 text-[11px] text-sky-100/90">
+                                  Escala NIC: {nicScaleById[intervention.id].baseline} →{" "}
+                                  {nicScaleById[intervention.id].target}
+                                  {nicScaleById[intervention.id].indicators.length
+                                    ? ` · Indicadores: ${nicScaleById[intervention.id].indicators.join(" · ")}`
+                                    : " · Indicadores pendientes"}
+                                </div>
+                              )}
                             </div>
                           ))
                         ) : (

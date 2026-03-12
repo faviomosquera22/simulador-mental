@@ -118,16 +118,29 @@ export default function LaboratoryPage() {
 
         setLabPool(LAB_CASE_LIBRARY);
         setPoolSource("local");
-        setPoolError("Base de datos sin casos activos. Usando biblioteca local.");
+        if (!LAB_CASE_LIBRARY.length) {
+          setPoolError("No se encontraron casos activos ni respaldo local disponible.");
+        } else if (process.env.NODE_ENV !== "production") {
+          setPoolError("Modo local activo (debug): base de datos sin casos activos.");
+        } else {
+          setPoolError(null);
+        }
       } catch (error) {
         if (!mounted) return;
         setLabPool(LAB_CASE_LIBRARY);
         setPoolSource("local");
-        setPoolError(
-          error instanceof Error
-            ? `Base de datos no disponible: ${error.message}.`
-            : "Base de datos no disponible. Usando biblioteca local."
-        );
+        if (!LAB_CASE_LIBRARY.length) {
+          setPoolError(
+            error instanceof Error
+              ? `No se pudo cargar laboratorio: ${error.message}.`
+              : "No se pudo cargar laboratorio y no hay respaldo local."
+          );
+        } else if (process.env.NODE_ENV !== "production") {
+          const detail = error instanceof Error ? error.message : "Error desconocido.";
+          setPoolError(`Modo local activo (debug): ${detail}`);
+        } else {
+          setPoolError(null);
+        }
       } finally {
         if (mounted) setPoolLoading(false);
       }

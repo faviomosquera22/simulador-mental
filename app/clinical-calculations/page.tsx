@@ -207,11 +207,14 @@ export default function ClinicalCalculationsPage() {
         if (!mounted) return;
         setExercisePool(localFallback);
         setPoolSource("local");
-        setPoolError(
-          error instanceof Error
-            ? `Base de datos no disponible: ${error.message}.`
-            : "Base de datos no disponible. Usando ejercicios locales."
-        );
+        if (!localFallback.length) {
+          setPoolError("No se pudieron cargar ejercicios desde base de datos ni desde el respaldo local.");
+        } else if (process.env.NODE_ENV !== "production") {
+          const detail = error instanceof Error ? error.message : "Error desconocido.";
+          setPoolError(`Modo local activo (debug): ${detail}`);
+        } else {
+          setPoolError(null);
+        }
         if (localFallback.length > 0) {
           const next = localFallback[Math.floor(Math.random() * localFallback.length)];
           setExercise(next);
