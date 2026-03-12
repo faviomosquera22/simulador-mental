@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Sidebar from "../../components/Sidebar";
+import EcgWorkspace from "../../components/ecg/EcgWorkspace";
 import { addSession, type EndReason } from "../../lib/history";
 import { getAuthFetchHeaders } from "@/src/lib/clientAuth";
 import {
@@ -26,6 +27,14 @@ import {
   normalizeSpeakerRole,
   pediatricExplorationChecklist,
 } from "@/src/lib/clinicalRuntime";
+import {
+  getClinicalContextLabel,
+  getEcgDifficultyLabel,
+  getEcgSelectionModeLabel,
+  getEcgViewModeLabel,
+  inferEcgClinicalContext,
+  normalizeEcgModuleConfig,
+} from "@/src/lib/ecgLibrary";
 import type {
   ActiveInstrumentContext,
   BatterySession,
@@ -313,7 +322,7 @@ export default function SimulatorPage() {
 
   // UI (layout estilo Claude)
   const [eduExpanded, setEduExpanded] = useState(false);
-  const [rightTab, setRightTab] = useState<"patient" | "mse" | "dsm" | "risk" | "scales" | "tests" | "batteries">("patient");
+  const [rightTab, setRightTab] = useState<"patient" | "mse" | "ecg" | "dsm" | "risk" | "scales" | "tests" | "batteries">("patient");
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
   const [mobileRightOpen, setMobileRightOpen] = useState(false);
   const [mseOpen, setMseOpen] = useState<Record<string, boolean>>({});
@@ -343,6 +352,7 @@ export default function SimulatorPage() {
   const [runningMedicalExam, setRunningMedicalExam] = useState(false);
   const [runningRiskWorkflow, setRunningRiskWorkflow] = useState<RiskWorkflowKind | null>(null);
   const [riskWorkflowHistory, setRiskWorkflowHistory] = useState<RiskWorkflowEntry[]>([]);
+  const [ecgWorkspaceOpen, setEcgWorkspaceOpen] = useState(false);
 
   const [sessionNotes, setSessionNotes] = useState<string[]>([]);
   const [useScaleInFeedback, setUseScaleInFeedback] = useState(false);
@@ -356,7 +366,16 @@ export default function SimulatorPage() {
     )
       .toLowerCase()
       .trim();
-    if (tab === "patient" || tab === "mse" || tab === "dsm" || tab === "risk" || tab === "scales" || tab === "tests" || tab === "batteries") {
+    if (
+      tab === "patient" ||
+      tab === "mse" ||
+      tab === "ecg" ||
+      tab === "dsm" ||
+      tab === "risk" ||
+      tab === "scales" ||
+      tab === "tests" ||
+      tab === "batteries"
+    ) {
       setRightTab(tab);
     }
   }, []);
@@ -779,12 +798,27 @@ export default function SimulatorPage() {
     [caseObject]
   );
   const isMedicalCase = caseDomain === "medical";
+  const ecgConfig = useMemo(
+    () => normalizeEcgModuleConfig(caseObject?.meta?.ecg ?? caseObject?.ecg, caseObject),
+    [caseObject]
+  );
+  const ecgEnabled = isMedicalCase && ecgConfig.enabled;
+  const ecgContextLabel = useMemo(
+    () => getClinicalContextLabel(inferEcgClinicalContext(caseObject)),
+    [caseObject]
+  );
 
   useEffect(() => {
     if (!caseObject) return;
     if (!pediatricCase) setTargetSpeaker("patient");
     else if (targetSpeaker === "both") setTargetSpeaker("patient");
   }, [caseObject, pediatricCase, targetSpeaker]);
+
+  useEffect(() => {
+    if (rightTab === "ecg" && !ecgEnabled) {
+      setRightTab("mse");
+    }
+  }, [rightTab, ecgEnabled]);
 
   useEffect(() => {
     if (rightPanelCollapsed) {
@@ -2437,6 +2471,18 @@ export default function SimulatorPage() {
                       </button>
                     );
                   })}
+                  {ecgEnabled && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRightTab("ecg");
+                        setEcgWorkspaceOpen(true);
+                      }}
+                      className="max-w-full rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1.5 text-xs leading-snug text-cyan-100 transition hover:bg-cyan-300/15"
+                    >
+                      Simulador de ECG: solicitar monitor
+                    </button>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -2494,21 +2540,22 @@ export default function SimulatorPage() {
               </div>
 
               <div className="flex gap-1 overflow-x-auto border-b border-white/10 px-3">
-                {(
-                  [
-                    ["patient", "Paciente"],
-                    ["mse", isMedicalCase ? "Examen" : "MSE"],
-                    ["dsm", isMedicalCase ? "Impresión" : "DSM-5"],
-                    ["risk", isMedicalCase ? "Urgencia" : "Seguridad"],
-                    ["scales", "Escalas"],
-                    ["tests", "Tests"],
-                    ["batteries", "Baterías"],
-                  ] as const
-                ).map(([key, label]) => (
+                {[
+                  { key: "patient", label: "Paciente" },
+                  { key: "mse", label: isMedicalCase ? "Examen" : "MSE" },
+                  ...(ecgEnabled ? [{ key: "ecg", label: "Simulador ECG" }] : []),
+                  { key: "dsm", label: isMedicalCase ? "Impresión" : "DSM-5" },
+                  { key: "risk", label: isMedicalCase ? "Urgencia" : "Seguridad" },
+                  { key: "scales", label: "Escalas" },
+                  { key: "tests", label: "Tests" },
+                  { key: "batteries", label: "Baterías" },
+                ].map(({ key, label }) => (
                   <button
                     key={key}
                     onClick={() => {
-                      setRightTab(key);
+                      setRightTab(
+                        key as "patient" | "mse" | "ecg" | "dsm" | "risk" | "scales" | "tests" | "batteries"
+                      );
                       if (window.innerWidth < 1024) setMobileRightOpen(false);
                     }}
                     className={`whitespace-nowrap border-b-2 px-3 py-3 text-xs font-semibold transition ${
@@ -2803,6 +2850,64 @@ export default function SimulatorPage() {
                         </button>
                       </>
                     )}
+                  </div>
+                )}
+
+                {rightTab === "ecg" && isMedicalCase && (
+                  <div className="space-y-3">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Simulador de ECG</div>
+                    <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-4">
+                      <div className="text-sm font-semibold text-cyan-100">Simulador de ECG integrado al flujo del caso</div>
+                      <div className="mt-1 text-xs text-cyan-50/90">
+                        Visualiza el trazado, interpreta, decide estabilidad, selecciona conducta y recibe feedback automático.
+                      </div>
+
+                      <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-cyan-50/95 sm:grid-cols-2">
+                        <div className="rounded-xl border border-cyan-300/20 bg-black/25 p-2.5">
+                          <div className="text-cyan-100/85">Visualización</div>
+                          <div className="mt-0.5">{getEcgViewModeLabel(ecgConfig.viewMode)}</div>
+                        </div>
+                        <div className="rounded-xl border border-cyan-300/20 bg-black/25 p-2.5">
+                          <div className="text-cyan-100/85">Selección</div>
+                          <div className="mt-0.5">{getEcgSelectionModeLabel(ecgConfig.selectionMode)}</div>
+                        </div>
+                        <div className="rounded-xl border border-cyan-300/20 bg-black/25 p-2.5">
+                          <div className="text-cyan-100/85">Dificultad</div>
+                          <div className="mt-0.5">{getEcgDifficultyLabel(ecgConfig.difficulty)}</div>
+                        </div>
+                        <div className="rounded-xl border border-cyan-300/20 bg-black/25 p-2.5">
+                          <div className="text-cyan-100/85">Contexto clínico</div>
+                          <div className="mt-0.5">{ecgContextLabel}</div>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setEcgWorkspaceOpen(true)}
+                          className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-black"
+                        >
+                          Abrir simulador de ECG
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRightTab("risk");
+                            setEcgWorkspaceOpen(true);
+                          }}
+                          className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs text-white/85"
+                        >
+                          Simulador ECG + urgencia
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-3 text-xs text-white/70">
+                      <div>Dinámico: {ecgConfig.dynamicEnabled ? "sí" : "no"}</div>
+                      <div className="mt-1">Pistas: {ecgConfig.showHints ? "sí" : "no"} · Nombre del ritmo: {ecgConfig.showRhythmName ? "sí" : "no"}</div>
+                      <div className="mt-1">Derivaciones adicionales: {ecgConfig.allowAdditionalLeads ? "permitidas" : "bloqueadas"}</div>
+                      <div className="mt-1">Feedback inmediato: {ecgConfig.immediateFeedback ? "sí" : "no"}</div>
+                    </div>
                   </div>
                 )}
 
@@ -3475,6 +3580,24 @@ export default function SimulatorPage() {
               </div>
             </aside>
           </div>
+
+          <EcgWorkspace
+            open={ecgWorkspaceOpen}
+            caseObject={caseObject}
+            timeLabel={timeLabel}
+            currentRiskLabel={riskLevel}
+            onClose={() => setEcgWorkspaceOpen(false)}
+            onAddNote={addNote}
+            onCaseObjectChange={(nextCaseObject) => {
+              setCaseObject(nextCaseObject);
+              try {
+                localStorage.setItem("activeCase", JSON.stringify(nextCaseObject));
+              } catch {
+                // ignore
+              }
+            }}
+          />
+
           {/* SETTINGS MODAL */}
           {settingsOpen && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">

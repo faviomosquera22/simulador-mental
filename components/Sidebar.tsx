@@ -62,6 +62,42 @@ const NAV: NavItem[] = [
     ),
   },
   {
+    label: "Laboratorio",
+    href: "/laboratory",
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M10 2v6l-4.5 7.6A4 4 0 0 0 8.9 22h6.2a4 4 0 0 0 3.4-6.4L14 8V2" />
+        <path d="M9 13h6" />
+      </svg>
+    ),
+  },
+  {
+    label: "Cálculo clínico",
+    href: "/clinical-calculations",
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <rect x="4" y="2.5" width="16" height="19" rx="2.5" />
+        <path d="M8 7h8" />
+        <path d="M8 11h2" />
+        <path d="M12 11h4" />
+        <path d="M8 15h2" />
+        <path d="M12 15h4" />
+      </svg>
+    ),
+  },
+  {
+    label: "PAE",
+    href: "/pae",
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M6 3h9l3 3v15H6z" />
+        <path d="M15 3v4h4" />
+        <path d="M9 11h6" />
+        <path d="M9 15h6" />
+      </svg>
+    ),
+  },
+  {
     label: "Triage por carrera",
     href: "/triage-simulator",
     icon: (

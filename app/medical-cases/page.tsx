@@ -10,6 +10,17 @@ import {
   pickMedicalSeedByCategory,
   type MedicalCaseCatalogItem,
 } from "@/src/lib/medicalCaseCatalog";
+import {
+  ECG_LIBRARY,
+  type ECGDifficulty,
+  type ECGModuleConfig,
+  type ECGSelectionMode,
+  type ECGViewMode,
+  getEcgDifficultyLabel,
+  getEcgSelectionModeLabel,
+  getEcgViewModeLabel,
+  normalizeEcgModuleConfig,
+} from "@/src/lib/ecgLibrary";
 import type { AgeGroup } from "@/src/lib/types";
 
 type SexValue = "female" | "male" | "nonbinary" | "unspecified";
@@ -170,6 +181,34 @@ export default function MedicalCasesPage() {
   const [cfgTutorEnabled, setCfgTutorEnabled] = useState<boolean>(true);
   const [cfgChiefComplaint, setCfgChiefComplaint] = useState("");
   const [cfgLearningObjective, setCfgLearningObjective] = useState("");
+  const [cfgEcgEnabled, setCfgEcgEnabled] = useState<boolean>(true);
+  const [cfgEcgViewMode, setCfgEcgViewMode] = useState<ECGViewMode>("rhythm_monitor");
+  const [cfgEcgSelectionMode, setCfgEcgSelectionMode] = useState<ECGSelectionMode>("contextual_random");
+  const [cfgEcgManualId, setCfgEcgManualId] = useState<string>(ECG_LIBRARY[0]?.id ?? "");
+  const [cfgEcgDifficulty, setCfgEcgDifficulty] = useState<ECGDifficulty>("basic");
+  const [cfgEcgDynamicEnabled, setCfgEcgDynamicEnabled] = useState<boolean>(false);
+  const [cfgEcgShowHints, setCfgEcgShowHints] = useState<boolean>(true);
+  const [cfgEcgShowRhythmName, setCfgEcgShowRhythmName] = useState<boolean>(false);
+  const [cfgEcgAllowAdditionalLeads, setCfgEcgAllowAdditionalLeads] = useState<boolean>(true);
+  const [cfgEcgImmediateFeedback, setCfgEcgImmediateFeedback] = useState<boolean>(true);
+
+  function buildEcgConfig(): ECGModuleConfig {
+    return normalizeEcgModuleConfig(
+      {
+        enabled: cfgEcgEnabled,
+        viewMode: cfgEcgViewMode,
+        selectionMode: cfgEcgSelectionMode,
+        manualEcgId: cfgEcgSelectionMode === "manual" ? cfgEcgManualId : null,
+        difficulty: cfgEcgDifficulty,
+        dynamicEnabled: cfgEcgDynamicEnabled,
+        showHints: cfgEcgShowHints,
+        showRhythmName: cfgEcgShowRhythmName,
+        allowAdditionalLeads: cfgEcgAllowAdditionalLeads,
+        immediateFeedback: cfgEcgImmediateFeedback,
+      },
+      caseObj
+    );
+  }
 
   const filteredCatalog = useMemo(() => {
     const base = getMedicalCatalogByFilter(catalogFilter);
@@ -236,6 +275,19 @@ export default function MedicalCasesPage() {
       e.learningObjective ||
         `Practicar valoración inicial y priorización clínica en ${selectedCard?.title ?? "patología médica"}.`
     );
+
+    const ecgRaw = (meta as any)?.ecg ?? (base as any)?.ecg ?? {};
+    const ecgConfig = normalizeEcgModuleConfig(ecgRaw, nextCase);
+    setCfgEcgEnabled(ecgConfig.enabled);
+    setCfgEcgViewMode(ecgConfig.viewMode);
+    setCfgEcgSelectionMode(ecgConfig.selectionMode);
+    setCfgEcgManualId(ecgConfig.manualEcgId ?? ECG_LIBRARY[0]?.id ?? "");
+    setCfgEcgDifficulty(ecgConfig.difficulty);
+    setCfgEcgDynamicEnabled(ecgConfig.dynamicEnabled);
+    setCfgEcgShowHints(ecgConfig.showHints);
+    setCfgEcgShowRhythmName(ecgConfig.showRhythmName);
+    setCfgEcgAllowAdditionalLeads(ecgConfig.allowAdditionalLeads);
+    setCfgEcgImmediateFeedback(ecgConfig.immediateFeedback);
   }
 
   async function handleGenerate() {
@@ -268,6 +320,7 @@ export default function MedicalCasesPage() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((data as any)?.detail || (data as any)?.error || "No se pudo generar el caso médico.");
 
+      const ecgConfig = buildEcgConfig();
       const patched = {
         ...(data as any),
         meta: {
@@ -278,7 +331,9 @@ export default function MedicalCasesPage() {
           dx_id: safeStr((data as any)?.meta?.dx_id, selectedCard.dx_id),
           care_setting: cfgCareSetting,
           clinical_focus: cfgClinicalFocus,
+          ecg: ecgConfig,
         },
+        ecg: ecgConfig,
       };
       setCaseObj(patched);
       prefillConfigFromCase(patched);
@@ -313,6 +368,7 @@ export default function MedicalCasesPage() {
     const next: Record<string, unknown> = { ...(current ?? {}) };
     const patient = asRecord(next.patient_profile) ?? {};
     const meta = asRecord(next.meta) ?? {};
+    const ecgConfig = buildEcgConfig();
 
     next.patient_profile = {
       ...patient,
@@ -339,6 +395,7 @@ export default function MedicalCasesPage() {
       care_setting: cfgCareSetting,
       clinical_focus: cfgClinicalFocus,
       tutor_enabled: cfgTutorEnabled,
+      ecg: ecgConfig,
     };
 
     (next as any).age_group = cfgAgeGroup;
@@ -346,6 +403,7 @@ export default function MedicalCasesPage() {
     (next as any).care_setting = cfgCareSetting;
     (next as any).clinical_focus = cfgClinicalFocus;
     (next as any).tutor_enabled = cfgTutorEnabled;
+    (next as any).ecg = ecgConfig;
     (next as any).dsm_tag = safeStr((next as any).dsm_tag, safeStr((next as any)?.meta?.dsm_tag, selectedCard?.dx_tag ?? "MED"));
     (next as any).dx_id = safeStr((next as any).dx_id, safeStr((next as any)?.meta?.dx_id, selectedCard?.dx_id ?? selectedCategory));
 
@@ -455,6 +513,9 @@ export default function MedicalCasesPage() {
                     <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/75">
                       Urgencia: {selectedCard?.urgency ?? "—"}
                     </span>
+                    <span className="rounded-full border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs text-cyan-100">
+                      ECG: {cfgEcgEnabled ? "activo" : "desactivado"} · {getEcgSelectionModeLabel(cfgEcgSelectionMode)}
+                    </span>
                   </div>
                 </div>
 
@@ -530,6 +591,12 @@ export default function MedicalCasesPage() {
                   </button>
                 </div>
               </div>
+
+              <div className="mt-3 rounded-xl border border-cyan-300/20 bg-cyan-300/10 p-3 text-xs text-cyan-100">
+                ECG / monitor cardíaco: {cfgEcgEnabled ? "activado" : "desactivado"} · modo{" "}
+                {getEcgViewModeLabel(cfgEcgViewMode)} · selección {getEcgSelectionModeLabel(cfgEcgSelectionMode)} · dificultad{" "}
+                {getEcgDifficultyLabel(cfgEcgDifficulty)}.
+              </div>
             </section>
 
             {error && (
@@ -587,9 +654,15 @@ export default function MedicalCasesPage() {
                         <span className="rounded-full border border-white/15 bg-black/20 px-2.5 py-1 text-xs text-white/75">
                           {cfgTargetMinutes} min
                         </span>
+                        <span className="rounded-full border border-cyan-300/25 bg-cyan-300/10 px-2.5 py-1 text-xs text-cyan-100">
+                          ECG {cfgEcgEnabled ? "on" : "off"} · {getEcgDifficultyLabel(cfgEcgDifficulty)}
+                        </span>
                       </div>
                       <div className="mt-3 text-xs text-white/60">
                         Código clínico: {safeStr((caseObj as any)?.meta?.dsm_tag, selectedCard?.dx_tag ?? "MED")}
+                      </div>
+                      <div className="mt-1 text-xs text-white/60">
+                        ECG: {getEcgViewModeLabel(cfgEcgViewMode)} · {getEcgSelectionModeLabel(cfgEcgSelectionMode)}
                       </div>
                     </div>
                   </div>
@@ -894,6 +967,143 @@ export default function MedicalCasesPage() {
                                 <option value="psychodynamic">Narrativo/antecedentes</option>
                               </select>
                             </div>
+
+                            <div className="mt-4 rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-3">
+                              <div className="text-xs font-semibold uppercase tracking-wider text-cyan-100/90">
+                                Simulador de ECG / Monitor cardíaco
+                              </div>
+
+                              <div className="mt-2 flex items-center justify-between rounded-xl border border-white/10 bg-black/25 px-3 py-2">
+                                <div>
+                                  <div className="text-sm font-medium text-white">Activar ECG en el caso</div>
+                                  <div className="text-[11px] text-white/55">Integrar trazados ECG como herramienta de decisión.</div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setCfgEcgEnabled((prev) => !prev)}
+                                  className={`relative inline-flex h-7 w-12 items-center rounded-full border transition ${
+                                    cfgEcgEnabled ? "border-cyan-200/30 bg-cyan-200/80" : "border-white/15 bg-black/40"
+                                  }`}
+                                >
+                                  <span
+                                    className={`inline-block h-5 w-5 rounded-full bg-black transition ${
+                                      cfgEcgEnabled ? "translate-x-6" : "translate-x-1"
+                                    }`}
+                                  />
+                                </button>
+                              </div>
+
+                              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                <div>
+                                  <label className="text-xs text-white/60">Tipo de visualización</label>
+                                  <select
+                                    value={cfgEcgViewMode}
+                                    onChange={(e) => setCfgEcgViewMode(e.target.value as ECGViewMode)}
+                                    disabled={!cfgEcgEnabled}
+                                    className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs outline-none disabled:opacity-50"
+                                  >
+                                    <option value="rhythm_monitor">Monitor de ritmo</option>
+                                    <option value="standard_12_lead">ECG 12 derivaciones</option>
+                                    <option value="expanded">ECG ampliado</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="text-xs text-white/60">Selección del ECG</label>
+                                  <select
+                                    value={cfgEcgSelectionMode}
+                                    onChange={(e) => setCfgEcgSelectionMode(e.target.value as ECGSelectionMode)}
+                                    disabled={!cfgEcgEnabled}
+                                    className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs outline-none disabled:opacity-50"
+                                  >
+                                    <option value="manual">Manual</option>
+                                    <option value="random">Aleatorio</option>
+                                    <option value="contextual_random">Aleatorio contextual</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="text-xs text-white/60">Dificultad ECG</label>
+                                  <select
+                                    value={cfgEcgDifficulty}
+                                    onChange={(e) => setCfgEcgDifficulty(e.target.value as ECGDifficulty)}
+                                    disabled={!cfgEcgEnabled}
+                                    className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs outline-none disabled:opacity-50"
+                                  >
+                                    <option value="basic">Básico</option>
+                                    <option value="intermediate">Intermedio</option>
+                                    <option value="advanced">Avanzado</option>
+                                    <option value="expert">Experto</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="text-xs text-white/60">ECG manual</label>
+                                  <select
+                                    value={cfgEcgManualId}
+                                    onChange={(e) => setCfgEcgManualId(e.target.value)}
+                                    disabled={!cfgEcgEnabled || cfgEcgSelectionMode !== "manual"}
+                                    className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs outline-none disabled:opacity-50"
+                                  >
+                                    {ECG_LIBRARY.map((ecg) => (
+                                      <option key={ecg.id} value={ecg.id}>
+                                        {ecg.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+
+                              <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-white/75">
+                                <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/25 px-2.5 py-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={cfgEcgDynamicEnabled}
+                                    onChange={(e) => setCfgEcgDynamicEnabled(e.target.checked)}
+                                    disabled={!cfgEcgEnabled}
+                                    className="h-3.5 w-3.5"
+                                  />
+                                  ECG dinámico
+                                </label>
+                                <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/25 px-2.5 py-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={cfgEcgShowHints}
+                                    onChange={(e) => setCfgEcgShowHints(e.target.checked)}
+                                    disabled={!cfgEcgEnabled}
+                                    className="h-3.5 w-3.5"
+                                  />
+                                  Mostrar pistas
+                                </label>
+                                <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/25 px-2.5 py-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={cfgEcgShowRhythmName}
+                                    onChange={(e) => setCfgEcgShowRhythmName(e.target.checked)}
+                                    disabled={!cfgEcgEnabled}
+                                    className="h-3.5 w-3.5"
+                                  />
+                                  Mostrar nombre del ritmo
+                                </label>
+                                <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/25 px-2.5 py-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={cfgEcgAllowAdditionalLeads}
+                                    onChange={(e) => setCfgEcgAllowAdditionalLeads(e.target.checked)}
+                                    disabled={!cfgEcgEnabled}
+                                    className="h-3.5 w-3.5"
+                                  />
+                                  Permitir derivaciones extra
+                                </label>
+                                <label className="col-span-2 flex items-center gap-2 rounded-xl border border-white/10 bg-black/25 px-2.5 py-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={cfgEcgImmediateFeedback}
+                                    onChange={(e) => setCfgEcgImmediateFeedback(e.target.checked)}
+                                    disabled={!cfgEcgEnabled}
+                                    className="h-3.5 w-3.5"
+                                  />
+                                  Feedback inmediato
+                                </label>
+                              </div>
+                            </div>
                           </div>
 
                           <div className="space-y-3">
@@ -933,6 +1143,11 @@ export default function MedicalCasesPage() {
                               <div className="mt-1 text-xs text-white/75">
                                 Dificultad: {prettyDifficulty(cfgDifficulty)} · {cfgTargetMinutes} min
                               </div>
+                              <div className="mt-2 rounded-xl border border-cyan-300/20 bg-cyan-300/10 px-2.5 py-2 text-xs text-cyan-100">
+                                ECG: {cfgEcgEnabled ? "activo" : "desactivado"} · {getEcgViewModeLabel(cfgEcgViewMode)}
+                                <br />
+                                Selección {getEcgSelectionModeLabel(cfgEcgSelectionMode)} · Dificultad {getEcgDifficultyLabel(cfgEcgDifficulty)}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -971,6 +1186,9 @@ export default function MedicalCasesPage() {
                               <div className="mt-1 text-xs text-white/75">
                                 Escenario final: {prettyCareSetting(cfgCareSetting)} · {prettyClinicalFocus(cfgClinicalFocus)}
                               </div>
+                              <div className="mt-1 text-xs text-white/75">
+                                ECG: {cfgEcgEnabled ? "activo" : "desactivado"} · {getEcgViewModeLabel(cfgEcgViewMode)}
+                              </div>
                             </div>
 
                             <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
@@ -980,6 +1198,7 @@ export default function MedicalCasesPage() {
                                 <li>Objetivo docente alineado al nivel de dificultad.</li>
                                 <li>Escenario clínico consistente con urgencia del caso.</li>
                                 <li>Tutor IA ajustado según preferencia de práctica.</li>
+                                <li>Módulo ECG configurado según el nivel esperado (modo, selección y feedback).</li>
                               </ul>
                             </div>
                           </div>
