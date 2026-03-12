@@ -35,6 +35,7 @@ type EcgWorkspaceProps = {
   caseObject: any;
   timeLabel: string;
   currentRiskLabel: string;
+  standalone?: boolean;
   onClose: () => void;
   onAddNote?: (text: string) => void;
   onCaseObjectChange?: (nextCaseObject: any) => void;
@@ -342,7 +343,16 @@ function ScoreRow({ label, value, max }: { label: string; value: number; max: nu
 }
 
 export default function EcgWorkspace(props: EcgWorkspaceProps) {
-  const { open, caseObject, timeLabel, currentRiskLabel, onClose, onAddNote, onCaseObjectChange } = props;
+  const {
+    open,
+    caseObject,
+    timeLabel,
+    currentRiskLabel,
+    standalone = false,
+    onClose,
+    onAddNote,
+    onCaseObjectChange,
+  } = props;
 
   const ecgConfig = useMemo<ECGModuleConfig>(
     () => normalizeEcgModuleConfig(caseObject?.meta?.ecg ?? caseObject?.ecg, caseObject),
@@ -614,9 +624,17 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
 
   if (!open || !ecgConfig.enabled) return null;
 
+  const shellClass = standalone
+    ? "h-full w-full"
+    : "fixed inset-0 z-[120] bg-black/70 p-3 sm:p-5";
+
+  const frameClass = standalone
+    ? "flex h-full min-h-[820px] w-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#090D16] text-white shadow-[0_30px_120px_rgba(0,0,0,0.7)]"
+    : "mx-auto flex h-[94vh] w-full max-w-[1480px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#090D16] text-white shadow-[0_30px_120px_rgba(0,0,0,0.7)]";
+
   return (
-    <div className="fixed inset-0 z-[120] bg-black/70 p-3 sm:p-5">
-      <div className="mx-auto flex h-[94vh] w-full max-w-[1480px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#090D16] text-white shadow-[0_30px_120px_rgba(0,0,0,0.7)]">
+    <div className={shellClass}>
+      <div className={frameClass}>
         <header className="flex flex-wrap items-start justify-between gap-3 border-b border-white/10 bg-[#101826]/85 px-4 py-3">
           <div>
             <div className="text-xs uppercase tracking-wider text-white/50">Simulador de ECG</div>
@@ -641,7 +659,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
               onClick={onClose}
               className="rounded-xl border border-white/15 px-3 py-2 text-sm text-white/80 hover:bg-white/5"
             >
-              Cerrar simulador de ECG
+              {standalone ? "Salir de simulador ECG" : "Cerrar simulador de ECG"}
             </button>
           </div>
         </header>

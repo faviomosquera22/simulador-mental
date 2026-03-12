@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import {
   CLINICAL_CALCULATION_EXERCISES,
+  filterCalculationExercises,
   type CalculationCategory,
   type CalculationDifficulty,
   type CalculationEvaluation,
@@ -14,8 +15,8 @@ import {
   getCalculationCategoryLabel,
   getCalculationDifficultyLabel,
   getExerciseTypeLabel,
-  pickRandomCalculationExercise,
 } from "@/src/lib/clinicalCalculations";
+import { fetchClinicalExercisesFromDb } from "@/src/lib/clinicalCalculationsDb";
 
 type CategoryFilter = CalculationCategory | "all";
 type DifficultyFilter = CalculationDifficulty | "all";
@@ -74,11 +75,40 @@ function scoreTone(correctRate: number) {
   return "text-red-100 border-red-400/35 bg-red-400/10";
 }
 
+function normalizeCalcExpression(value: string) {
+  return String(value).replace(/×/g, "*").replace(/÷/g, "/");
+}
+
+function isValidCalcExpression(value: string) {
+  return /^[0-9+\-*/().\s]+$/.test(value);
+}
+
+function evaluateCalcExpression(value: string) {
+  const normalized = normalizeCalcExpression(value).replace(/\s+/g, "");
+  if (!normalized) return "0";
+  if (!isValidCalcExpression(normalized)) {
+    throw new Error("Expresión inválida");
+  }
+
+  const result = Function(`"use strict"; return (${normalized});`)();
+  if (typeof result !== "number" || !Number.isFinite(result)) {
+    throw new Error("Resultado no válido");
+  }
+
+  return Number(result.toFixed(10)).toString();
+}
+
 export default function ClinicalCalculationsPage() {
   const [mode, setMode] = useState<CalculationMode>("practice");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
   const [difficultyFilter, setDifficultyFilter] = useState<DifficultyFilter>("all");
   const [timerEnabled, setTimerEnabled] = useState(true);
+  const [exercisePool, setExercisePool] = useState<ClinicalCalculationExercise[]>(
+    CLINICAL_CALCULATION_EXERCISES
+  );
+  const [poolSource, setPoolSource] = useState<"database" | "local">("local");
+  const [poolLoading, setPoolLoading] = useState(false);
+  const [poolError, setPoolError] = useState<string | null>(null);
   const [exercise, setExercise] = useState<ClinicalCalculationExercise>(
     CLINICAL_CALCULATION_EXERCISES[0]
   );
@@ -87,6 +117,9 @@ export default function ClinicalCalculationsPage() {
   const [history, setHistory] = useState<AttemptRecord[]>([]);
   const [startedAt, setStartedAt] = useState<number>(Date.now());
   const [now, setNow] = useState<number>(Date.now());
+  const [calcExpression, setCalcExpression] = useState("");
+  const [calcDisplay, setCalcDisplay] = useState("0");
+  const [calcError, setCalcError] = useState<string | null>(null);
 
   useEffect(() => {
     setHistory(loadHistory());
@@ -98,13 +131,7 @@ export default function ClinicalCalculationsPage() {
     return () => window.clearInterval(id);
   }, [mode, timerEnabled, result]);
 
-  const filteredCount = useMemo(() => {
-    return CLINICAL_CALCULATION_EXERCISES.filter((item) => {
-      const categoryMatch = categoryFilter === "all" || item.category === categoryFilter;
-      const diffMatch = difficultyFilter === "all" || item.difficulty === difficultyFilter;
-      return categoryMatch && diffMatch;
-    }).length;
-  }, [categoryFilter, difficultyFilter]);
+  const filteredCount = useMemo(() => exercisePool.length, [exercisePool.length]);
 
   const elapsedSec = useMemo(() => {
     if (!(mode === "evaluation" && timerEnabled)) return 0;
@@ -122,12 +149,10 @@ export default function ClinicalCalculationsPage() {
   }, [history]);
 
   function pickNextExercise(excludeId?: string) {
-    const next = pickRandomCalculationExercise({
-      category: categoryFilter,
-      difficulty: difficultyFilter,
-      excludeId,
-    });
-    if (!next) return;
+    const pool = exercisePool.filter((item) => item.id !== excludeId);
+    const source = pool.length ? pool : exercisePool;
+    if (!source.length) return;
+    const next = source[Math.floor(Math.random() * source.length)];
     setExercise(next);
     setAnswerInput("");
     setResult(null);
@@ -136,8 +161,77 @@ export default function ClinicalCalculationsPage() {
   }
 
   useEffect(() => {
-    pickNextExercise();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let mounted = true;
+
+    async function loadExercisePool() {
+      setPoolLoading(true);
+      setPoolError(null);
+
+      const localFallback = filterCalculationExercises({
+        category: categoryFilter,
+        difficulty: difficultyFilter,
+      });
+
+      try {
+        const fromDb = await fetchClinicalExercisesFromDb({
+          category: categoryFilter,
+          difficulty: difficultyFilter,
+          limit: 2500,
+        });
+
+        if (!mounted) return;
+
+        if (fromDb.length > 0) {
+          setExercisePool(fromDb);
+          setPoolSource("database");
+          const next = fromDb[Math.floor(Math.random() * fromDb.length)];
+          setExercise(next);
+          setAnswerInput("");
+          setResult(null);
+          setStartedAt(Date.now());
+          setNow(Date.now());
+          return;
+        }
+
+        setExercisePool(localFallback);
+        setPoolSource("local");
+        if (localFallback.length > 0) {
+          const next = localFallback[Math.floor(Math.random() * localFallback.length)];
+          setExercise(next);
+          setAnswerInput("");
+          setResult(null);
+          setStartedAt(Date.now());
+          setNow(Date.now());
+        }
+      } catch (error) {
+        if (!mounted) return;
+        setExercisePool(localFallback);
+        setPoolSource("local");
+        setPoolError(
+          error instanceof Error
+            ? `Base de datos no disponible: ${error.message}.`
+            : "Base de datos no disponible. Usando ejercicios locales."
+        );
+        if (localFallback.length > 0) {
+          const next = localFallback[Math.floor(Math.random() * localFallback.length)];
+          setExercise(next);
+          setAnswerInput("");
+          setResult(null);
+          setStartedAt(Date.now());
+          setNow(Date.now());
+        }
+      } finally {
+        if (mounted) {
+          setPoolLoading(false);
+        }
+      }
+    }
+
+    loadExercisePool();
+
+    return () => {
+      mounted = false;
+    };
   }, [categoryFilter, difficultyFilter]);
 
   function validateCurrentAnswer() {
@@ -161,6 +255,39 @@ export default function ClinicalCalculationsPage() {
         persistHistory(next);
         return next;
       });
+    }
+  }
+
+  function appendCalcToken(token: string) {
+    setCalcError(null);
+    setCalcExpression((prev) => `${prev}${token}`);
+    setCalcDisplay((prev) => (prev === "0" ? token : `${prev}${token}`));
+  }
+
+  function clearCalculator() {
+    setCalcExpression("");
+    setCalcDisplay("0");
+    setCalcError(null);
+  }
+
+  function backspaceCalculator() {
+    setCalcError(null);
+    setCalcExpression((prev) => {
+      const next = prev.slice(0, -1);
+      setCalcDisplay(next || "0");
+      return next;
+    });
+  }
+
+  function solveCalculator() {
+    try {
+      const resultValue = evaluateCalcExpression(calcExpression);
+      setCalcExpression(resultValue);
+      setCalcDisplay(resultValue);
+      setCalcError(null);
+    } catch {
+      setCalcDisplay("Error");
+      setCalcError("No se pudo resolver la expresión. Verifica operadores y paréntesis.");
     }
   }
 
@@ -251,6 +378,9 @@ export default function ClinicalCalculationsPage() {
               <div className="uppercase tracking-[0.12em] text-white/45">Set actual</div>
               <div className="mt-1 text-sm font-semibold text-white/90">{filteredCount} ejercicios disponibles</div>
               <div className="mt-1">Tipo: {getExerciseTypeLabel(exercise.type)}</div>
+              <div className="mt-1">
+                Fuente: {poolLoading ? "Cargando..." : poolSource === "database" ? "Base de datos" : "Local"}
+              </div>
             </div>
 
             <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-xs text-white/70">
@@ -261,6 +391,12 @@ export default function ClinicalCalculationsPage() {
               <div className="mt-1">Promedio histórico: {formatTime(stats.meanSec)}</div>
             </div>
           </section>
+
+          {poolError && (
+            <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-xs text-amber-100">
+              {poolError}
+            </div>
+          )}
 
           <section className="mt-4 grid gap-4 xl:grid-cols-[1.6fr_1fr]">
             <article className="rounded-2xl border border-white/10 bg-[#0B101A]/90 p-4">
@@ -338,6 +474,65 @@ export default function ClinicalCalculationsPage() {
                   </ul>
                 </div>
               )}
+
+              <div className="rounded-2xl border border-white/10 bg-[#0C1422]/90 p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-sm font-semibold text-white">Mini calculadora</h3>
+                  <button
+                    type="button"
+                    onClick={() => setAnswerInput(calcDisplay === "Error" ? "" : calcDisplay)}
+                    className="rounded-lg border border-cyan-400/35 bg-cyan-400/10 px-2.5 py-1 text-xs text-cyan-100 hover:bg-cyan-400/20"
+                  >
+                    Usar en respuesta
+                  </button>
+                </div>
+
+                <div className="mt-3 rounded-lg border border-white/10 bg-black/35 px-3 py-2 text-right">
+                  <div className="text-xs text-white/50">{calcExpression || " "}</div>
+                  <div className="text-xl font-semibold text-white">{calcDisplay}</div>
+                </div>
+
+                {calcError && (
+                  <div className="mt-2 rounded-lg border border-amber-400/30 bg-amber-400/10 px-2 py-1 text-xs text-amber-100">
+                    {calcError}
+                  </div>
+                )}
+
+                <div className="mt-3 grid grid-cols-4 gap-2 text-sm">
+                  {["7", "8", "9", "÷", "4", "5", "6", "×", "1", "2", "3", "-", "0", ".", "(", ")", "C", "⌫", "=", "+"].map(
+                    (key) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => {
+                          if (key === "C") {
+                            clearCalculator();
+                            return;
+                          }
+                          if (key === "⌫") {
+                            backspaceCalculator();
+                            return;
+                          }
+                          if (key === "=") {
+                            solveCalculator();
+                            return;
+                          }
+                          appendCalcToken(key);
+                        }}
+                        className={`rounded-lg border px-2 py-2 transition ${
+                          key === "="
+                            ? "border-cyan-400/35 bg-cyan-400/10 text-cyan-100 hover:bg-cyan-400/20"
+                            : key === "C" || key === "⌫"
+                            ? "border-amber-400/30 bg-amber-400/10 text-amber-100 hover:bg-amber-400/20"
+                            : "border-white/10 bg-black/25 text-white/85 hover:bg-white/10"
+                        }`}
+                      >
+                        {key}
+                      </button>
+                    )
+                  )}
+                </div>
+              </div>
 
               {result && (
                 <div className="rounded-2xl border border-white/10 bg-[#0C1422]/90 p-4">

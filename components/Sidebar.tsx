@@ -62,6 +62,17 @@ const NAV: NavItem[] = [
     ),
   },
   {
+    label: "Simulador de ECG",
+    href: "/ecg-simulator",
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M3 12h4l2.5-6 5 12 2.5-6H21" />
+        <path d="M4 5h16" />
+        <path d="M4 19h16" />
+      </svg>
+    ),
+  },
+  {
     label: "Laboratorio",
     href: "/laboratory",
     icon: (

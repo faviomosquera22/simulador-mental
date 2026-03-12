@@ -8,6 +8,8 @@ export type PaeClinicalContext =
   | "postoperative"
   | "general";
 
+export type PaeTemplateContextFilter = PaeClinicalContext | "all";
+
 export type PaeCueType = "subjective" | "objective" | "history" | "vital";
 
 export type PaeAssessmentCue = {
@@ -95,6 +97,35 @@ export type PaeValidationResult = {
   criticalGaps: string[];
   notices: string[];
   summary: string;
+};
+
+export type NandaDiagnosis = {
+  id: string;
+  code: string;
+  label: string;
+  domain: string;
+  classLabel: string;
+  contexts: PaeClinicalContext[];
+  definingCharacteristics: string[];
+  relatedFactors: string[];
+};
+
+export type NocOutcome = {
+  id: string;
+  code: string;
+  label: string;
+  domain: string;
+  linkedNandaIds: string[];
+  indicators: string[];
+};
+
+export type NicIntervention = {
+  id: string;
+  code: string;
+  label: string;
+  classLabel: string;
+  linkedNandaIds: string[];
+  activities: string[];
 };
 
 function normalizeText(value: unknown) {
@@ -591,6 +622,453 @@ export function pickContextualPaeTemplate(caseObject: any, excludeId?: string) {
 export function pickRandomPaeTemplate(excludeId?: string) {
   const pool = PAE_TEMPLATE_LIBRARY.filter((item) => item.id !== excludeId);
   return pool[Math.floor(Math.random() * pool.length)] ?? PAE_TEMPLATE_LIBRARY[0];
+}
+
+export function getPaeTemplatesByContext(context: PaeTemplateContextFilter) {
+  if (context === "all") return [...PAE_TEMPLATE_LIBRARY];
+  return PAE_TEMPLATE_LIBRARY.filter((item) => item.context === context);
+}
+
+export function pickRandomPaeTemplateByContext(args: {
+  context: PaeTemplateContextFilter;
+  excludeId?: string;
+}) {
+  const base = getPaeTemplatesByContext(args.context).filter((item) => item.id !== args.excludeId);
+  if (base.length) return base[Math.floor(Math.random() * base.length)];
+  return pickRandomPaeTemplate(args.excludeId);
+}
+
+export function getPaeContextLabel(context: PaeTemplateContextFilter) {
+  if (context === "all") return "Todas las categorías";
+  if (context === "respiratory") return "Respiratorio";
+  if (context === "infection") return "Infeccioso";
+  if (context === "metabolic") return "Metabólico";
+  if (context === "renal") return "Renal";
+  if (context === "postoperative") return "Postoperatorio";
+  return "General";
+}
+
+export const NANDA_LIBRARY: NandaDiagnosis[] = [
+  {
+    id: "nanda_00030",
+    code: "00030",
+    label: "Intercambio gaseoso deteriorado",
+    domain: "Dominio 3: Eliminación e intercambio",
+    classLabel: "Clase 4: Función respiratoria",
+    contexts: ["respiratory"],
+    definingCharacteristics: ["disnea", "hipoxemia", "taquipnea", "uso de músculos accesorios"],
+    relatedFactors: ["infección pulmonar", "acúmulo de secreciones", "alteración ventilación/perfusión"],
+  },
+  {
+    id: "nanda_00031",
+    code: "00031",
+    label: "Limpieza ineficaz de las vías aéreas",
+    domain: "Dominio 11: Seguridad/protección",
+    classLabel: "Clase 2: Lesión física",
+    contexts: ["respiratory", "infection"],
+    definingCharacteristics: ["tos ineficaz", "ruidos respiratorios", "secreciones retenidas"],
+    relatedFactors: ["aumento de secreciones", "fatiga", "debilidad"],
+  },
+  {
+    id: "nanda_00092",
+    code: "00092",
+    label: "Intolerancia a la actividad",
+    domain: "Dominio 4: Actividad/reposo",
+    classLabel: "Clase 2: Actividad/ejercicio",
+    contexts: ["respiratory", "metabolic", "renal", "general"],
+    definingCharacteristics: ["fatiga", "disnea de esfuerzo", "debilidad general"],
+    relatedFactors: ["desequilibrio entre aporte y demanda de oxígeno", "condición aguda"],
+  },
+  {
+    id: "nanda_00007",
+    code: "00007",
+    label: "Hipertermia",
+    domain: "Dominio 11: Seguridad/protección",
+    classLabel: "Clase 6: Termorregulación",
+    contexts: ["infection", "postoperative"],
+    definingCharacteristics: ["temperatura elevada", "taquicardia", "piel caliente"],
+    relatedFactors: ["proceso infeccioso", "respuesta inflamatoria"],
+  },
+  {
+    id: "nanda_00132",
+    code: "00132",
+    label: "Dolor agudo",
+    domain: "Dominio 12: Confort",
+    classLabel: "Clase 1: Confort físico",
+    contexts: ["infection", "postoperative", "general"],
+    definingCharacteristics: ["verbalización de dolor", "conducta protectora", "EVA elevada"],
+    relatedFactors: ["lesión tisular", "inflamación", "proceso quirúrgico"],
+  },
+  {
+    id: "nanda_00004",
+    code: "00004",
+    label: "Riesgo de infección",
+    domain: "Dominio 11: Seguridad/protección",
+    classLabel: "Clase 1: Infección",
+    contexts: ["infection", "postoperative", "renal", "metabolic", "general"],
+    definingCharacteristics: ["diagnóstico de riesgo"],
+    relatedFactors: ["invasión microbiana", "procedimientos invasivos", "comorbilidades"],
+  },
+  {
+    id: "nanda_00027",
+    code: "00027",
+    label: "Déficit de volumen de líquidos",
+    domain: "Dominio 2: Nutrición",
+    classLabel: "Clase 5: Hidratación",
+    contexts: ["metabolic", "infection", "renal"],
+    definingCharacteristics: ["mucosas secas", "taquicardia", "disminución de diuresis"],
+    relatedFactors: ["poliuria", "pérdidas aumentadas", "ingesta insuficiente"],
+  },
+  {
+    id: "nanda_00179",
+    code: "00179",
+    label: "Riesgo de glucemia inestable",
+    domain: "Dominio 2: Nutrición",
+    classLabel: "Clase 4: Metabolismo",
+    contexts: ["metabolic"],
+    definingCharacteristics: ["diagnóstico de riesgo"],
+    relatedFactors: ["alteración metabólica", "descompensación diabética", "tratamiento insulinoterapia"],
+  },
+  {
+    id: "nanda_00195",
+    code: "00195",
+    label: "Riesgo de desequilibrio electrolítico",
+    domain: "Dominio 11: Seguridad/protección",
+    classLabel: "Clase 5: Procesos defensivos",
+    contexts: ["renal", "metabolic", "general"],
+    definingCharacteristics: ["diagnóstico de riesgo"],
+    relatedFactors: ["insuficiencia renal", "terapia con líquidos", "alteraciones ácido-base"],
+  },
+  {
+    id: "nanda_00203",
+    code: "00203",
+    label: "Riesgo de perfusión tisular renal ineficaz",
+    domain: "Dominio 4: Actividad/reposo",
+    classLabel: "Clase 4: Respuestas cardiovasculares/pulmonares",
+    contexts: ["renal"],
+    definingCharacteristics: ["diagnóstico de riesgo"],
+    relatedFactors: ["hipoperfusión", "deterioro renal agudo", "hemodinamia inestable"],
+  },
+  {
+    id: "nanda_00093",
+    code: "00093",
+    label: "Fatiga",
+    domain: "Dominio 4: Actividad/reposo",
+    classLabel: "Clase 2: Actividad/ejercicio",
+    contexts: ["renal", "metabolic", "infection", "general"],
+    definingCharacteristics: ["falta de energía", "agotamiento", "debilidad"],
+    relatedFactors: ["proceso agudo", "alteración metabólica", "insuficiencia orgánica"],
+  },
+  {
+    id: "nanda_00039",
+    code: "00039",
+    label: "Riesgo de aspiración",
+    domain: "Dominio 11: Seguridad/protección",
+    classLabel: "Clase 2: Lesión física",
+    contexts: ["respiratory", "postoperative", "general"],
+    definingCharacteristics: ["diagnóstico de riesgo"],
+    relatedFactors: ["disminución de reflejos", "alteración del estado de conciencia"],
+  },
+];
+
+export const NOC_LIBRARY: NocOutcome[] = [
+  {
+    id: "noc_0402",
+    code: "0402",
+    label: "Estado respiratorio: intercambio gaseoso",
+    domain: "Fisiológico: respiratorio",
+    linkedNandaIds: ["nanda_00030"],
+    indicators: ["SpO2 en rango objetivo", "ausencia de cianosis", "FR adecuada"],
+  },
+  {
+    id: "noc_0410",
+    code: "0410",
+    label: "Estado respiratorio: permeabilidad de vías aéreas",
+    domain: "Fisiológico: respiratorio",
+    linkedNandaIds: ["nanda_00031", "nanda_00039"],
+    indicators: ["auscultación sin ruidos agregados relevantes", "secreciones controladas"],
+  },
+  {
+    id: "noc_0005",
+    code: "0005",
+    label: "Tolerancia a la actividad",
+    domain: "Fisiológico: actividad",
+    linkedNandaIds: ["nanda_00092", "nanda_00093"],
+    indicators: ["realiza actividades básicas con menor disnea/fatiga"],
+  },
+  {
+    id: "noc_0800",
+    code: "0800",
+    label: "Termorregulación",
+    domain: "Fisiológico: regulación",
+    linkedNandaIds: ["nanda_00007"],
+    indicators: ["temperatura corporal dentro de meta", "sin escalofríos"],
+  },
+  {
+    id: "noc_1605",
+    code: "1605",
+    label: "Control del dolor",
+    domain: "Confort",
+    linkedNandaIds: ["nanda_00132"],
+    indicators: ["EVA disminuida", "mayor bienestar reportado"],
+  },
+  {
+    id: "noc_0703",
+    code: "0703",
+    label: "Severidad de la infección",
+    domain: "Seguridad/protección",
+    linkedNandaIds: ["nanda_00004"],
+    indicators: ["estabilidad clínica", "disminución de marcadores de infección"],
+  },
+  {
+    id: "noc_0601",
+    code: "0601",
+    label: "Balance hídrico",
+    domain: "Fisiológico: líquidos",
+    linkedNandaIds: ["nanda_00027"],
+    indicators: ["balance hídrico controlado", "mucosas hidratadas", "diuresis adecuada"],
+  },
+  {
+    id: "noc_2300",
+    code: "2300",
+    label: "Nivel de glucemia",
+    domain: "Metabólico",
+    linkedNandaIds: ["nanda_00179"],
+    indicators: ["glucosa en meta institucional", "sin hipoglucemia/hiperglucemia sintomática"],
+  },
+  {
+    id: "noc_0606",
+    code: "0606",
+    label: "Equilibrio electrolítico y ácido-base",
+    domain: "Fisiológico: regulación",
+    linkedNandaIds: ["nanda_00195"],
+    indicators: ["electrolitos en rango seguro", "sin alteraciones eléctricas asociadas"],
+  },
+  {
+    id: "noc_0502",
+    code: "0502",
+    label: "Función renal",
+    domain: "Fisiológico: eliminación",
+    linkedNandaIds: ["nanda_00203"],
+    indicators: ["diuresis acorde", "creatinina y urea en tendencia favorable"],
+  },
+];
+
+export const NIC_LIBRARY: NicIntervention[] = [
+  {
+    id: "nic_3350",
+    code: "3350",
+    label: "Monitorización respiratoria",
+    classLabel: "Respiratorio",
+    linkedNandaIds: ["nanda_00030", "nanda_00031", "nanda_00039"],
+    activities: ["vigilar FR y SpO2", "observar signos de dificultad respiratoria"],
+  },
+  {
+    id: "nic_3140",
+    code: "3140",
+    label: "Manejo de la vía aérea",
+    classLabel: "Respiratorio",
+    linkedNandaIds: ["nanda_00031", "nanda_00039"],
+    activities: ["posicionar al paciente", "facilitar eliminación de secreciones"],
+  },
+  {
+    id: "nic_0180",
+    code: "0180",
+    label: "Manejo de la energía",
+    classLabel: "Actividad/reposo",
+    linkedNandaIds: ["nanda_00092", "nanda_00093"],
+    activities: ["programar periodos de descanso", "fraccionar actividades"],
+  },
+  {
+    id: "nic_3900",
+    code: "3900",
+    label: "Regulación de la temperatura",
+    classLabel: "Seguridad/protección",
+    linkedNandaIds: ["nanda_00007"],
+    activities: ["control térmico periódico", "medidas físicas y farmacológicas prescritas"],
+  },
+  {
+    id: "nic_1400",
+    code: "1400",
+    label: "Manejo del dolor",
+    classLabel: "Confort",
+    linkedNandaIds: ["nanda_00132"],
+    activities: ["valorar EVA", "administrar analgesia", "reevaluar respuesta"],
+  },
+  {
+    id: "nic_6540",
+    code: "6540",
+    label: "Control de infecciones",
+    classLabel: "Seguridad/protección",
+    linkedNandaIds: ["nanda_00004"],
+    activities: ["aplicar precauciones", "vigilar signos de infección", "educar medidas preventivas"],
+  },
+  {
+    id: "nic_4120",
+    code: "4120",
+    label: "Manejo de líquidos",
+    classLabel: "Nutrición/hidratación",
+    linkedNandaIds: ["nanda_00027"],
+    activities: ["control de ingresos y egresos", "evaluar estado de hidratación"],
+  },
+  {
+    id: "nic_2120",
+    code: "2120",
+    label: "Manejo de la hiperglucemia",
+    classLabel: "Metabólico",
+    linkedNandaIds: ["nanda_00179"],
+    activities: ["control glucémico seriado", "administrar insulina según protocolo"],
+  },
+  {
+    id: "nic_2000",
+    code: "2000",
+    label: "Manejo de electrolitos",
+    classLabel: "Metabólico",
+    linkedNandaIds: ["nanda_00195"],
+    activities: ["vigilar electrolitos", "notificar alteraciones críticas", "corregir según indicación"],
+  },
+  {
+    id: "nic_4010",
+    code: "4010",
+    label: "Prevención de daño renal",
+    classLabel: "Renal",
+    linkedNandaIds: ["nanda_00203"],
+    activities: ["vigilar diuresis", "monitorizar función renal", "ajustar hidratación según respuesta"],
+  },
+  {
+    id: "nic_6680",
+    code: "6680",
+    label: "Monitorización de signos vitales",
+    classLabel: "Seguridad/protección",
+    linkedNandaIds: ["nanda_00007", "nanda_00004", "nanda_00203", "nanda_00027", "nanda_00179"],
+    activities: ["control seriado de FC, PA, FR, T", "identificar tendencias de deterioro"],
+  },
+];
+
+export function getNandaByContext(context: PaeTemplateContextFilter) {
+  if (context === "all") return [...NANDA_LIBRARY];
+  return NANDA_LIBRARY.filter((item) => item.contexts.includes(context));
+}
+
+export function getNocByNandaIds(selectedNandaIds: string[]) {
+  if (!selectedNandaIds.length) return [...NOC_LIBRARY];
+  const set = new Set(selectedNandaIds);
+  return NOC_LIBRARY.filter((item) => item.linkedNandaIds.some((id) => set.has(id)));
+}
+
+export function getNicByNandaIds(selectedNandaIds: string[]) {
+  if (!selectedNandaIds.length) return [...NIC_LIBRARY];
+  const set = new Set(selectedNandaIds);
+  return NIC_LIBRARY.filter((item) => item.linkedNandaIds.some((id) => set.has(id)));
+}
+
+export function validateTaxonomySelection(args: {
+  selectedCueIds: string[];
+  selectedNandaIds: string[];
+  selectedNocIds: string[];
+  selectedNicIds: string[];
+  rationaleText: string;
+  evaluationText: string;
+}): PaeValidationResult {
+  const selectedNandaSet = new Set(args.selectedNandaIds);
+  const selectedNocSet = new Set(args.selectedNocIds);
+  const selectedNicSet = new Set(args.selectedNicIds);
+
+  const criticalGaps: string[] = [];
+  const notices: string[] = [];
+
+  const assessmentScore = Math.min(20, args.selectedCueIds.length >= 3 ? 20 : args.selectedCueIds.length * 6);
+  if (args.selectedCueIds.length < 3) {
+    criticalGaps.push("La valoración es escasa para sustentar el PAE.");
+  }
+
+  const diagnosisScore = Math.min(25, args.selectedNandaIds.length * 8);
+  if (!args.selectedNandaIds.length) {
+    criticalGaps.push("No seleccionaste diagnósticos NANDA.");
+  }
+
+  let outcomesScore = 0;
+  if (!args.selectedNocIds.length) {
+    criticalGaps.push("No seleccionaste resultados NOC.");
+  } else {
+    const validCount = NOC_LIBRARY.filter(
+      (item) =>
+        selectedNocSet.has(item.id) &&
+        item.linkedNandaIds.some((id) => selectedNandaSet.has(id))
+    ).length;
+    outcomesScore = Math.round((validCount / args.selectedNocIds.length) * 20);
+    if (validCount < args.selectedNocIds.length) {
+      notices.push("Hay resultados NOC sin relación directa con los diagnósticos NANDA elegidos.");
+    }
+  }
+
+  let interventionsScore = 0;
+  if (!args.selectedNicIds.length) {
+    criticalGaps.push("No seleccionaste intervenciones NIC.");
+  } else {
+    const validCount = NIC_LIBRARY.filter(
+      (item) =>
+        selectedNicSet.has(item.id) &&
+        item.linkedNandaIds.some((id) => selectedNandaSet.has(id))
+    ).length;
+    interventionsScore = Math.round((validCount / args.selectedNicIds.length) * 20);
+    if (validCount < args.selectedNicIds.length) {
+      notices.push("Hay intervenciones NIC sin relación directa con los diagnósticos NANDA elegidos.");
+    }
+  }
+
+  const rationaleWords = normalizeText(args.rationaleText).split(" ").filter(Boolean).length;
+  const rationaleScore = Math.min(10, rationaleWords >= 18 ? 10 : Math.round(rationaleWords * 0.5));
+  if (rationaleWords < 10) {
+    notices.push("La fundamentación es breve; amplía razonamiento clínico.");
+  }
+
+  const evaluationWords = normalizeText(args.evaluationText).split(" ").filter(Boolean).length;
+  const evaluationScore = Math.min(5, evaluationWords >= 10 ? 5 : Math.round(evaluationWords * 0.5));
+  if (evaluationWords < 6) {
+    notices.push("La evaluación final requiere mayor detalle.");
+  }
+
+  const total = Math.max(
+    0,
+    Math.min(
+      100,
+      assessmentScore +
+        diagnosisScore +
+        outcomesScore +
+        interventionsScore +
+        rationaleScore +
+        evaluationScore
+    )
+  );
+
+  const outcome: PaeValidationResult["outcome"] =
+    total >= 85 ? "excellent" : total >= 70 ? "good" : total >= 45 ? "partial" : "needs_improvement";
+
+  const summary =
+    outcome === "excellent"
+      ? "PAE autónomo sólido con taxonomías NANDA/NOC/NIC coherentes."
+      : outcome === "good"
+      ? "Buen trabajo en modo autónomo; ajusta algunas relaciones NANDA-NOC-NIC."
+      : outcome === "partial"
+      ? "PAE autónomo parcial; revisa coherencia entre taxonomías."
+      : "PAE autónomo insuficiente; requiere reforzar selección y coherencia taxonómica.";
+
+  return {
+    totalScore: total,
+    outcome,
+    rubric: {
+      assessment: assessmentScore,
+      diagnosis: diagnosisScore,
+      outcomes: outcomesScore,
+      interventions: interventionsScore,
+      rationale: rationaleScore,
+      evaluation: evaluationScore,
+    },
+    criticalGaps,
+    notices,
+    summary,
+  };
 }
 
 export function suggestDiagnoses(args: {

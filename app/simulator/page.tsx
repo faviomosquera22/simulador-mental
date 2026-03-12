@@ -2882,13 +2882,12 @@ export default function SimulatorPage() {
                       </div>
 
                       <div className="mt-3 flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setEcgWorkspaceOpen(true)}
+                        <Link
+                          href="/ecg-simulator"
                           className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-black"
                         >
-                          Abrir simulador de ECG
-                        </button>
+                          Abrir simulador de ECG (separado)
+                        </Link>
                         <button
                           type="button"
                           onClick={() => {

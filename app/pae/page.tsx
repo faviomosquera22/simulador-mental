@@ -4,27 +4,56 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import Link from "next/link";
 import {
+  NIC_LIBRARY,
+  NOC_LIBRARY,
+  NANDA_LIBRARY,
   PAE_TEMPLATE_LIBRARY,
+  type NandaDiagnosis,
+  type NicIntervention,
+  type NocOutcome,
   type PaeDiagnosis,
+  type PaeIntervention,
   type PaeMode,
   type PaeOutcome,
   type PaeTemplate,
+  type PaeTemplateContextFilter,
   getCueTypeLabel,
+  getNandaByContext,
+  getNicByNandaIds,
+  getNocByNandaIds,
+  getPaeContextLabel,
   getPaeModeLabel,
   getPaeTemplateById,
   getPriorityTone,
   inferPaeContextFromCase,
   pickContextualPaeTemplate,
   pickRandomPaeTemplate,
+  pickRandomPaeTemplateByContext,
   suggestDiagnoses,
   suggestInterventions,
   suggestOutcomes,
   validatePaeDraft,
+  validateTaxonomySelection,
 } from "@/src/lib/paeIntelligent";
 
 type Stage = 1 | 2 | 3 | 4 | 5 | 6;
 type UsageMode = "integrated_case" | "standalone";
-type SelectionMode = "manual" | "random" | "contextual_random";
+type SelectionMode = "manual" | "random" | "by_category" | "contextual_random";
+type GuidanceMode = "guided" | "autonomous";
+
+type GuidedRow = {
+  kind: "guided";
+  diagnosis: PaeDiagnosis;
+  outcomes: PaeOutcome[];
+  interventions: PaeIntervention[];
+};
+
+type TaxonomyRow = {
+  kind: "taxonomy";
+  nanda: NandaDiagnosis;
+  outcomes: NocOutcome[];
+  interventions: NicIntervention[];
+};
 
 function parseActiveCase(raw: string | null) {
   if (!raw) return null;
@@ -45,23 +74,16 @@ function stageLabel(stage: Stage) {
   return "Evaluación";
 }
 
-function contextLabel(context: string) {
-  if (context === "respiratory") return "Respiratorio";
-  if (context === "infection") return "Infeccioso";
-  if (context === "metabolic") return "Metabólico";
-  if (context === "renal") return "Renal";
-  if (context === "postoperative") return "Postoperatorio";
-  return "General";
-}
-
 function toggleSelection(ids: string[], id: string) {
   return ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id];
 }
 
 export default function PaePage() {
   const [mode, setMode] = useState<PaeMode>("practice");
+  const [guidanceMode, setGuidanceMode] = useState<GuidanceMode>("guided");
   const [usageMode, setUsageMode] = useState<UsageMode>("integrated_case");
-  const [selectionMode, setSelectionMode] = useState<SelectionMode>("contextual_random");
+  const [selectionMode, setSelectionMode] = useState<SelectionMode>("random");
+  const [caseCategory, setCaseCategory] = useState<PaeTemplateContextFilter>("all");
   const [stage, setStage] = useState<Stage>(1);
   const [activeCaseObj, setActiveCaseObj] = useState<any>(null);
   const [template, setTemplate] = useState<PaeTemplate>(PAE_TEMPLATE_LIBRARY[0]);
@@ -74,10 +96,16 @@ export default function PaePage() {
   const [selectedCueIds, setSelectedCueIds] = useState<string[]>([]);
   const [subjectiveNotes, setSubjectiveNotes] = useState("");
   const [objectiveNotes, setObjectiveNotes] = useState("");
+
   const [selectedDiagnosisIds, setSelectedDiagnosisIds] = useState<string[]>([]);
   const [diagnosisJustification, setDiagnosisJustification] = useState("");
   const [selectedOutcomeIds, setSelectedOutcomeIds] = useState<string[]>([]);
   const [selectedInterventionIds, setSelectedInterventionIds] = useState<string[]>([]);
+
+  const [nandaQuery, setNandaQuery] = useState("");
+  const [nocQuery, setNocQuery] = useState("");
+  const [nicQuery, setNicQuery] = useState("");
+
   const [rationaleText, setRationaleText] = useState("");
   const [evaluationText, setEvaluationText] = useState("");
   const [validationVisible, setValidationVisible] = useState(false);
@@ -91,6 +119,16 @@ export default function PaePage() {
   }, []);
 
   const useIntegratedContext = usageMode === "integrated_case" && activeCaseObj;
+  const integratedContext = useMemo<PaeTemplateContextFilter>(
+    () => (useIntegratedContext ? inferPaeContextFromCase(activeCaseObj) : "all"),
+    [activeCaseObj, useIntegratedContext]
+  );
+
+  useEffect(() => {
+    if (selectionMode === "contextual_random" && useIntegratedContext && integratedContext !== "all") {
+      setCaseCategory(integratedContext);
+    }
+  }, [integratedContext, selectionMode, useIntegratedContext]);
 
   const resetDraft = useCallback(() => {
     setStage(1);
@@ -101,6 +139,9 @@ export default function PaePage() {
     setDiagnosisJustification("");
     setSelectedOutcomeIds([]);
     setSelectedInterventionIds([]);
+    setNandaQuery("");
+    setNocQuery("");
+    setNicQuery("");
     setRationaleText("");
     setEvaluationText("");
     setValidationVisible(false);
@@ -113,13 +154,31 @@ export default function PaePage() {
         return manual ?? PAE_TEMPLATE_LIBRARY[0];
       }
 
-      if (selectionMode === "contextual_random" && useIntegratedContext) {
-        return pickContextualPaeTemplate(activeCaseObj, excludeId) ?? PAE_TEMPLATE_LIBRARY[0];
+      if (selectionMode === "by_category") {
+        return (
+          pickRandomPaeTemplateByContext({
+            context: caseCategory,
+            excludeId,
+          }) ?? PAE_TEMPLATE_LIBRARY[0]
+        );
+      }
+
+      if (selectionMode === "contextual_random") {
+        if (useIntegratedContext) {
+          return pickContextualPaeTemplate(activeCaseObj, excludeId) ?? PAE_TEMPLATE_LIBRARY[0];
+        }
+
+        return (
+          pickRandomPaeTemplateByContext({
+            context: caseCategory,
+            excludeId,
+          }) ?? PAE_TEMPLATE_LIBRARY[0]
+        );
       }
 
       return pickRandomPaeTemplate(excludeId) ?? PAE_TEMPLATE_LIBRARY[0];
     },
-    [activeCaseObj, manualTemplateId, selectionMode, useIntegratedContext]
+    [activeCaseObj, caseCategory, manualTemplateId, selectionMode, useIntegratedContext]
   );
 
   useEffect(() => {
@@ -152,9 +211,46 @@ export default function PaePage() {
     [template, selectedDiagnosisIds]
   );
 
-  const draftValidation = useMemo(
-    () =>
-      validatePaeDraft({
+  const nandaPool = useMemo(() => getNandaByContext(caseCategory), [caseCategory]);
+  const nocPool = useMemo(() => getNocByNandaIds(selectedDiagnosisIds), [selectedDiagnosisIds]);
+  const nicPool = useMemo(() => getNicByNandaIds(selectedDiagnosisIds), [selectedDiagnosisIds]);
+
+  const filteredNanda = useMemo(() => {
+    const q = nandaQuery.trim().toLowerCase();
+    if (!q) return nandaPool;
+    return nandaPool.filter(
+      (item) =>
+        item.code.toLowerCase().includes(q) ||
+        item.label.toLowerCase().includes(q) ||
+        item.domain.toLowerCase().includes(q)
+    );
+  }, [nandaPool, nandaQuery]);
+
+  const filteredNoc = useMemo(() => {
+    const q = nocQuery.trim().toLowerCase();
+    if (!q) return nocPool;
+    return nocPool.filter(
+      (item) =>
+        item.code.toLowerCase().includes(q) ||
+        item.label.toLowerCase().includes(q) ||
+        item.domain.toLowerCase().includes(q)
+    );
+  }, [nocPool, nocQuery]);
+
+  const filteredNic = useMemo(() => {
+    const q = nicQuery.trim().toLowerCase();
+    if (!q) return nicPool;
+    return nicPool.filter(
+      (item) =>
+        item.code.toLowerCase().includes(q) ||
+        item.label.toLowerCase().includes(q) ||
+        item.classLabel.toLowerCase().includes(q)
+    );
+  }, [nicPool, nicQuery]);
+
+  const draftValidation = useMemo(() => {
+    if (guidanceMode === "guided") {
+      return validatePaeDraft({
         template,
         draft: {
           selectedCueIds,
@@ -164,25 +260,39 @@ export default function PaePage() {
           rationaleText,
           evaluationText,
         },
-      }),
-    [
-      evaluationText,
-      rationaleText,
+      });
+    }
+
+    return validateTaxonomySelection({
       selectedCueIds,
-      selectedDiagnosisIds,
-      selectedInterventionIds,
-      selectedOutcomeIds,
-      template,
-    ]
-  );
+      selectedNandaIds: selectedDiagnosisIds,
+      selectedNocIds: selectedOutcomeIds,
+      selectedNicIds: selectedInterventionIds,
+      rationaleText,
+      evaluationText,
+    });
+  }, [
+    evaluationText,
+    guidanceMode,
+    rationaleText,
+    selectedCueIds,
+    selectedDiagnosisIds,
+    selectedInterventionIds,
+    selectedOutcomeIds,
+    template,
+  ]);
 
   const diagnosisMap = useMemo(() => {
     const map = new Map<string, PaeDiagnosis>();
-    for (const item of template.diagnoses) {
-      map.set(item.id, item);
-    }
+    for (const item of template.diagnoses) map.set(item.id, item);
     return map;
   }, [template.diagnoses]);
+
+  const nandaMap = useMemo(() => {
+    const map = new Map<string, NandaDiagnosis>();
+    for (const item of NANDA_LIBRARY) map.set(item.id, item);
+    return map;
+  }, []);
 
   function chooseNewTemplate() {
     const next = pickTemplate(template.id);
@@ -202,7 +312,7 @@ export default function PaePage() {
     setStage((prev) => (prev > 1 ? ((prev - 1) as Stage) : prev));
   }
 
-  function rowByDiagnosis(diagnosisId: string) {
+  function rowByGuidedDiagnosis(diagnosisId: string): GuidedRow | null {
     const diagnosis = diagnosisMap.get(diagnosisId);
     if (!diagnosis) return null;
 
@@ -210,21 +320,40 @@ export default function PaePage() {
       (item) => item.diagnosisId === diagnosisId && selectedOutcomeIds.includes(item.id)
     );
     const interventions = template.interventions.filter(
-      (item) =>
-        item.diagnosisId === diagnosisId && selectedInterventionIds.includes(item.id)
+      (item) => item.diagnosisId === diagnosisId && selectedInterventionIds.includes(item.id)
     );
+
     return {
+      kind: "guided",
       diagnosis,
       outcomes,
       interventions,
     };
   }
 
-  const mappedRows = selectedDiagnosisIds.map(rowByDiagnosis).filter(Boolean) as Array<{
-    diagnosis: PaeDiagnosis;
-    outcomes: PaeOutcome[];
-    interventions: ReturnType<typeof suggestInterventions>;
-  }>;
+  function rowByNanda(nandaId: string): TaxonomyRow | null {
+    const nanda = nandaMap.get(nandaId);
+    if (!nanda) return null;
+
+    const outcomes = NOC_LIBRARY.filter(
+      (item) => selectedOutcomeIds.includes(item.id) && item.linkedNandaIds.includes(nandaId)
+    );
+    const interventions = NIC_LIBRARY.filter(
+      (item) => selectedInterventionIds.includes(item.id) && item.linkedNandaIds.includes(nandaId)
+    );
+
+    return {
+      kind: "taxonomy",
+      nanda,
+      outcomes,
+      interventions,
+    };
+  }
+
+  const mappedRows: Array<GuidedRow | TaxonomyRow> =
+    guidanceMode === "guided"
+      ? (selectedDiagnosisIds.map(rowByGuidedDiagnosis).filter(Boolean) as GuidedRow[])
+      : (selectedDiagnosisIds.map(rowByNanda).filter(Boolean) as TaxonomyRow[]);
 
   return (
     <div className="min-h-screen bg-[#070A12] text-white">
@@ -236,17 +365,17 @@ export default function PaePage() {
             <div>
               <h1 className="text-2xl font-semibold">PAE inteligente</h1>
               <p className="mt-1 text-sm text-white/70">
-                Construye el Proceso de Atención de Enfermería en 6 etapas con asistencia clínica y validación de coherencia.
+                Ahora incluye flujo guiado o autónomo con base taxonómica NANDA/NOC/NIC.
               </p>
             </div>
             <div className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white/70">
-              {getPaeModeLabel(mode)}
+              {getPaeModeLabel(mode)} · {guidanceMode === "guided" ? "Flujo guiado" : "Flujo autónomo"}
             </div>
           </header>
 
-          <section className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-[#0D121E]/90 p-4 md:grid-cols-2 xl:grid-cols-6">
+          <section className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-[#0D121E]/90 p-4 md:grid-cols-2 xl:grid-cols-7">
             <label className="text-xs text-white/70">
-              Modo
+              Modalidad
               <select
                 value={mode}
                 onChange={(event) => {
@@ -255,8 +384,23 @@ export default function PaePage() {
                 }}
                 className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
               >
-                <option value="practice">Práctica guiada</option>
+                <option value="practice">Práctica</option>
                 <option value="evaluation">Evaluación</option>
+              </select>
+            </label>
+
+            <label className="text-xs text-white/70">
+              Estructura
+              <select
+                value={guidanceMode}
+                onChange={(event) => {
+                  setGuidanceMode(event.target.value as GuidanceMode);
+                  resetDraft();
+                }}
+                className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
+              >
+                <option value="guided">Guiada (sugerencias)</option>
+                <option value="autonomous">No guiada (NANDA/NOC/NIC)</option>
               </select>
             </label>
 
@@ -273,15 +417,34 @@ export default function PaePage() {
             </label>
 
             <label className="text-xs text-white/70">
-              Selección
+              Generación de caso
               <select
                 value={selectionMode}
                 onChange={(event) => setSelectionMode(event.target.value as SelectionMode)}
                 className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
               >
-                <option value="contextual_random">Aleatorio contextual</option>
                 <option value="random">Aleatorio</option>
+                <option value="by_category">Aleatorio por categoría</option>
+                <option value="contextual_random">Aleatorio contextual</option>
                 <option value="manual">Manual</option>
+              </select>
+            </label>
+
+            <label className="text-xs text-white/70">
+              Categoría clínica
+              <select
+                value={caseCategory}
+                onChange={(event) => setCaseCategory(event.target.value as PaeTemplateContextFilter)}
+                disabled={selectionMode === "contextual_random" && useIntegratedContext}
+                className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white disabled:opacity-50"
+              >
+                <option value="all">Todas</option>
+                <option value="respiratory">Respiratorio</option>
+                <option value="infection">Infeccioso</option>
+                <option value="metabolic">Metabólico</option>
+                <option value="renal">Renal</option>
+                <option value="postoperative">Postoperatorio</option>
+                <option value="general">General</option>
               </select>
             </label>
 
@@ -307,22 +470,6 @@ export default function PaePage() {
                 ))}
               </select>
             </label>
-
-            <div className="flex items-end justify-end gap-2">
-              <button
-                type="button"
-                onClick={chooseNewTemplate}
-                className="rounded-xl border border-white/15 bg-black/30 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
-              >
-                Nueva plantilla
-              </button>
-              <Link
-                href="/laboratory"
-                className="rounded-xl border border-cyan-400/35 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-100 hover:bg-cyan-400/20"
-              >
-                Ir a Laboratorio
-              </Link>
-            </div>
           </section>
 
           <section className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
@@ -332,37 +479,48 @@ export default function PaePage() {
                 <div className="mt-1 text-lg font-semibold">{template.name}</div>
                 <div className="text-sm text-white/70">
                   {template.patient.name} · {template.patient.age} años ·{" "}
-                  {template.patient.sex === "female" ? "Femenino" : template.patient.sex === "male" ? "Masculino" : "No especificado"}
+                  {template.patient.sex === "female"
+                    ? "Femenino"
+                    : template.patient.sex === "male"
+                    ? "Masculino"
+                    : "No especificado"}
                 </div>
                 <div className="text-sm text-white/70">Motivo: {template.patient.chiefComplaint}</div>
+                <div className="mt-1 text-xs text-cyan-100">
+                  Categoría del caso: {getPaeContextLabel(template.context)}
+                </div>
                 {useIntegratedContext && (
                   <div className="mt-1 text-xs text-cyan-100">
-                    Contexto inferido desde caso activo: {contextLabel(inferPaeContextFromCase(activeCaseObj))}
+                    Contexto del caso activo: {getPaeContextLabel(integratedContext)}
                   </div>
                 )}
               </div>
 
               <div className="rounded-xl border border-white/10 bg-[#0A101A] p-3 text-xs text-white/70">
-                <div className="font-semibold text-white/85">Referencia visual PAE</div>
+                <div className="font-semibold text-white/85">Diseño estructurado</div>
                 <div className="mt-1">
-                  Estructura inspirada en formato: Diagnóstico, Resultados, Intervenciones y Evaluación con campos de identificación clínica.
+                  Flujo en 6 etapas + formato final tipo plan de atención. En modo autónomo puedes elegir taxonomías
+                  NANDA/NOC/NIC manualmente.
                 </div>
-                <div className="mt-2 text-white/60">
-                  Diagnóstico médico: {template.patient.medicalDiagnosis}
-                </div>
-                <div className="mt-1 text-white/60">
-                  Tratamiento: {template.patient.pharmacologicGroup}
-                </div>
+                <div className="mt-2 text-white/60">Diagnóstico médico: {template.patient.medicalDiagnosis}</div>
+                <div className="mt-1 text-white/60">Tratamiento: {template.patient.pharmacologicGroup}</div>
                 <div className="mt-1 text-white/60">Dieta: {template.patient.dietType}</div>
               </div>
 
-              <div className="rounded-xl border border-white/10 bg-[#0A101A] p-3 text-xs text-white/70">
-                <div className="font-semibold text-white/85">Progreso</div>
-                <div className="mt-2">Etapa actual: {stage}/6</div>
-                <div className="mt-1">Valoración: {selectedCueIds.length} hallazgos</div>
-                <div className="mt-1">Diagnósticos: {selectedDiagnosisIds.length}</div>
-                <div className="mt-1">Resultados: {selectedOutcomeIds.length}</div>
-                <div className="mt-1">Intervenciones: {selectedInterventionIds.length}</div>
+              <div className="flex items-start justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={chooseNewTemplate}
+                  className="rounded-xl border border-white/15 bg-black/30 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
+                >
+                  Generar caso
+                </button>
+                <Link
+                  href="/laboratory"
+                  className="rounded-xl border border-cyan-400/35 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-100 hover:bg-cyan-400/20"
+                >
+                  Ir a Laboratorio
+                </Link>
               </div>
             </div>
           </section>
@@ -413,9 +571,7 @@ export default function PaePage() {
                           <input
                             type="checkbox"
                             checked={selected}
-                            onChange={() =>
-                              setSelectedCueIds((prev) => toggleSelection(prev, cue.id))
-                            }
+                            onChange={() => setSelectedCueIds((prev) => toggleSelection(prev, cue.id))}
                             className="mr-2 h-4 w-4 align-middle"
                           />
                           <span className="align-middle">{cue.label}</span>
@@ -448,11 +604,11 @@ export default function PaePage() {
                 </div>
               )}
 
-              {stage === 2 && (
+              {stage === 2 && guidanceMode === "guided" && (
                 <div>
-                  <h2 className="text-lg font-semibold">Etapa 2 · Diagnóstico de enfermería</h2>
+                  <h2 className="text-lg font-semibold">Etapa 2 · Diagnóstico (guiado)</h2>
                   <p className="mt-1 text-sm text-white/65">
-                    Elige uno o más diagnósticos en función de la valoración.
+                    Elige diagnósticos sugeridos según hallazgos seleccionados.
                   </p>
 
                   <div className="mt-4 space-y-2">
@@ -466,9 +622,7 @@ export default function PaePage() {
                           }`}
                         >
                           <div className="flex flex-wrap items-center justify-between gap-2">
-                            <div className="text-sm font-semibold text-white/90">
-                              {item.diagnosis.diagnosticLabel}
-                            </div>
+                            <div className="text-sm font-semibold text-white/90">{item.diagnosis.diagnosticLabel}</div>
                             <span
                               className={`inline-flex rounded-full border px-2 py-0.5 text-xs ${getPriorityTone(
                                 item.diagnosis.priority
@@ -482,7 +636,7 @@ export default function PaePage() {
                           </div>
                           {mode === "practice" && (
                             <div className="mt-1 text-xs text-cyan-100/90">
-                              Compatibilidad sugerida: {item.score}/100 · hallazgos coincidentes {item.matchedCueCount}
+                              Compatibilidad: {item.score}/100 · hallazgos coincidentes {item.matchedCueCount}
                             </div>
                           )}
                           <div className="mt-2">
@@ -490,9 +644,7 @@ export default function PaePage() {
                               type="checkbox"
                               checked={selected}
                               onChange={() =>
-                                setSelectedDiagnosisIds((prev) =>
-                                  toggleSelection(prev, item.diagnosis.id)
-                                )
+                                setSelectedDiagnosisIds((prev) => toggleSelection(prev, item.diagnosis.id))
                               }
                               className="mr-2 h-4 w-4"
                             />
@@ -516,7 +668,62 @@ export default function PaePage() {
                 </div>
               )}
 
-              {stage === 3 && (
+              {stage === 2 && guidanceMode === "autonomous" && (
+                <div>
+                  <h2 className="text-lg font-semibold">Etapa 2 · Selección NANDA (no guiado)</h2>
+                  <p className="mt-1 text-sm text-white/65">
+                    Selecciona manualmente diagnósticos NANDA para practicar razonamiento autónomo.
+                  </p>
+
+                  <input
+                    type="text"
+                    value={nandaQuery}
+                    onChange={(event) => setNandaQuery(event.target.value)}
+                    placeholder="Buscar NANDA por código, etiqueta o dominio"
+                    className="mt-3 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
+                  />
+
+                  <div className="mt-3 space-y-2 max-h-[430px] overflow-auto pr-1">
+                    {filteredNanda.map((item) => {
+                      const selected = selectedDiagnosisIds.includes(item.id);
+                      return (
+                        <label
+                          key={item.id}
+                          className={`block rounded-xl border p-3 ${
+                            selected ? "border-cyan-400/35 bg-cyan-400/10" : "border-white/10 bg-black/25"
+                          }`}
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="text-sm font-semibold text-white/90">
+                              {item.code} · {item.label}
+                            </div>
+                            <div className="text-xs text-white/55">NANDA</div>
+                          </div>
+                          <div className="mt-1 text-xs text-white/60">
+                            {item.domain} · {item.classLabel}
+                          </div>
+                          {mode === "practice" && (
+                            <div className="mt-1 text-xs text-white/70">
+                              Características: {item.definingCharacteristics.slice(0, 3).join(" · ")}
+                            </div>
+                          )}
+                          <div className="mt-2">
+                            <input
+                              type="checkbox"
+                              checked={selected}
+                              onChange={() => setSelectedDiagnosisIds((prev) => toggleSelection(prev, item.id))}
+                              className="mr-2 h-4 w-4"
+                            />
+                            <span className="text-sm text-white/85">Seleccionar NANDA</span>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {stage === 3 && guidanceMode === "guided" && (
                 <div>
                   <h2 className="text-lg font-semibold">Etapa 3 · Resultados esperados</h2>
                   <p className="mt-1 text-sm text-white/65">
@@ -540,9 +747,7 @@ export default function PaePage() {
                           }`}
                         >
                           <div className="text-sm font-semibold text-white/90">{outcome.label}</div>
-                          <div className="mt-1 text-xs text-white/60">
-                            Meta: {outcome.target}
-                          </div>
+                          <div className="mt-1 text-xs text-white/60">Meta: {outcome.target}</div>
                           <div className="mt-1 text-xs text-white/70">
                             Indicadores: {outcome.indicators.join(" · ")}
                           </div>
@@ -550,9 +755,7 @@ export default function PaePage() {
                             <input
                               type="checkbox"
                               checked={selected}
-                              onChange={() =>
-                                setSelectedOutcomeIds((prev) => toggleSelection(prev, outcome.id))
-                              }
+                              onChange={() => setSelectedOutcomeIds((prev) => toggleSelection(prev, outcome.id))}
                               className="mr-2 h-4 w-4"
                             />
                             <span className="text-sm text-white/85">Seleccionar resultado</span>
@@ -564,7 +767,63 @@ export default function PaePage() {
                 </div>
               )}
 
-              {stage === 4 && (
+              {stage === 3 && guidanceMode === "autonomous" && (
+                <div>
+                  <h2 className="text-lg font-semibold">Etapa 3 · Selección NOC (no guiado)</h2>
+                  <p className="mt-1 text-sm text-white/65">
+                    Elige resultados NOC relacionados a tus diagnósticos NANDA seleccionados.
+                  </p>
+
+                  {!selectedDiagnosisIds.length && (
+                    <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-100">
+                      Selecciona NANDA primero para filtrar NOC relacionados.
+                    </div>
+                  )}
+
+                  <input
+                    type="text"
+                    value={nocQuery}
+                    onChange={(event) => setNocQuery(event.target.value)}
+                    placeholder="Buscar NOC por código, etiqueta o dominio"
+                    className="mt-3 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
+                  />
+
+                  <div className="mt-3 space-y-2 max-h-[430px] overflow-auto pr-1">
+                    {filteredNoc.map((item) => {
+                      const selected = selectedOutcomeIds.includes(item.id);
+                      return (
+                        <label
+                          key={item.id}
+                          className={`block rounded-xl border p-3 ${
+                            selected ? "border-emerald-400/35 bg-emerald-400/10" : "border-white/10 bg-black/25"
+                          }`}
+                        >
+                          <div className="text-sm font-semibold text-white/90">
+                            {item.code} · {item.label}
+                          </div>
+                          <div className="mt-1 text-xs text-white/60">{item.domain}</div>
+                          {mode === "practice" && (
+                            <div className="mt-1 text-xs text-white/70">
+                              Indicadores: {item.indicators.slice(0, 2).join(" · ")}
+                            </div>
+                          )}
+                          <div className="mt-2">
+                            <input
+                              type="checkbox"
+                              checked={selected}
+                              onChange={() => setSelectedOutcomeIds((prev) => toggleSelection(prev, item.id))}
+                              className="mr-2 h-4 w-4"
+                            />
+                            <span className="text-sm text-white/85">Seleccionar NOC</span>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {stage === 4 && guidanceMode === "guided" && (
                 <div>
                   <h2 className="text-lg font-semibold">Etapa 4 · Intervenciones</h2>
                   <p className="mt-1 text-sm text-white/65">
@@ -592,8 +851,62 @@ export default function PaePage() {
                             Actividades: {intervention.activities.join(" · ")}
                           </div>
                           {mode === "practice" && (
-                            <div className="mt-1 text-xs text-cyan-100/90">
-                              Fundamento: {intervention.rationale}
+                            <div className="mt-1 text-xs text-cyan-100/90">Fundamento: {intervention.rationale}</div>
+                          )}
+                          <div className="mt-2">
+                            <input
+                              type="checkbox"
+                              checked={selected}
+                              onChange={() => setSelectedInterventionIds((prev) => toggleSelection(prev, intervention.id))}
+                              className="mr-2 h-4 w-4"
+                            />
+                            <span className="text-sm text-white/85">Seleccionar intervención</span>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {stage === 4 && guidanceMode === "autonomous" && (
+                <div>
+                  <h2 className="text-lg font-semibold">Etapa 4 · Selección NIC (no guiado)</h2>
+                  <p className="mt-1 text-sm text-white/65">
+                    Elige intervenciones NIC asociadas a tus diagnósticos NANDA.
+                  </p>
+
+                  {!selectedDiagnosisIds.length && (
+                    <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-100">
+                      Selecciona NANDA primero para filtrar NIC relacionados.
+                    </div>
+                  )}
+
+                  <input
+                    type="text"
+                    value={nicQuery}
+                    onChange={(event) => setNicQuery(event.target.value)}
+                    placeholder="Buscar NIC por código, etiqueta o clase"
+                    className="mt-3 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
+                  />
+
+                  <div className="mt-3 space-y-2 max-h-[430px] overflow-auto pr-1">
+                    {filteredNic.map((item) => {
+                      const selected = selectedInterventionIds.includes(item.id);
+                      return (
+                        <label
+                          key={item.id}
+                          className={`block rounded-xl border p-3 ${
+                            selected ? "border-sky-400/35 bg-sky-400/10" : "border-white/10 bg-black/25"
+                          }`}
+                        >
+                          <div className="text-sm font-semibold text-white/90">
+                            {item.code} · {item.label}
+                          </div>
+                          <div className="mt-1 text-xs text-white/60">Clase: {item.classLabel}</div>
+                          {mode === "practice" && (
+                            <div className="mt-1 text-xs text-white/70">
+                              Actividades: {item.activities.slice(0, 2).join(" · ")}
                             </div>
                           )}
                           <div className="mt-2">
@@ -601,13 +914,11 @@ export default function PaePage() {
                               type="checkbox"
                               checked={selected}
                               onChange={() =>
-                                setSelectedInterventionIds((prev) =>
-                                  toggleSelection(prev, intervention.id)
-                                )
+                                setSelectedInterventionIds((prev) => toggleSelection(prev, item.id))
                               }
                               className="mr-2 h-4 w-4"
                             />
-                            <span className="text-sm text-white/85">Seleccionar intervención</span>
+                            <span className="text-sm text-white/85">Seleccionar NIC</span>
                           </div>
                         </label>
                       );
@@ -727,7 +1038,7 @@ export default function PaePage() {
                 </div>
               </div>
 
-              {mode === "practice" && (
+              {mode === "practice" && guidanceMode === "guided" && (
                 <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
                   <h3 className="text-sm font-semibold">Asistencia inteligente</h3>
                   <ul className="mt-2 space-y-1 text-xs text-white/75">
@@ -738,10 +1049,24 @@ export default function PaePage() {
                 </div>
               )}
 
+              {mode === "practice" && guidanceMode === "autonomous" && (
+                <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+                  <h3 className="text-sm font-semibold">Base taxonómica activa</h3>
+                  <div className="mt-2 text-xs text-white/75">NANDA: {NANDA_LIBRARY.length} entradas</div>
+                  <div className="mt-1 text-xs text-white/75">NOC: {NOC_LIBRARY.length} entradas</div>
+                  <div className="mt-1 text-xs text-white/75">NIC: {NIC_LIBRARY.length} entradas</div>
+                  <div className="mt-2 text-xs text-cyan-100/90">
+                    En modo no guiado la calificación evalúa coherencia entre NANDA, NOC y NIC seleccionados.
+                  </div>
+                </div>
+              )}
+
               {validationVisible && (
                 <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
                   <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-sm font-semibold">Coherencia del PAE</h3>
+                    <h3 className="text-sm font-semibold">
+                      {guidanceMode === "guided" ? "Coherencia del PAE" : "Coherencia NANDA/NOC/NIC"}
+                    </h3>
                     <span className="rounded-full border border-cyan-400/35 bg-cyan-400/10 px-2 py-0.5 text-xs text-cyan-100">
                       {draftValidation.totalScore}/100
                     </span>
@@ -749,24 +1074,12 @@ export default function PaePage() {
                   <div className="mt-2 text-xs text-white/70">{draftValidation.summary}</div>
 
                   <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-white/70">
-                    <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1">
-                      Valoración: {draftValidation.rubric.assessment}
-                    </div>
-                    <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1">
-                      Diagnóstico: {draftValidation.rubric.diagnosis}
-                    </div>
-                    <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1">
-                      Resultados: {draftValidation.rubric.outcomes}
-                    </div>
-                    <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1">
-                      Intervenciones: {draftValidation.rubric.interventions}
-                    </div>
-                    <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1">
-                      Fundamentación: {draftValidation.rubric.rationale}
-                    </div>
-                    <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1">
-                      Evaluación: {draftValidation.rubric.evaluation}
-                    </div>
+                    <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1">Valoración: {draftValidation.rubric.assessment}</div>
+                    <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1">Diagnóstico: {draftValidation.rubric.diagnosis}</div>
+                    <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1">Resultados: {draftValidation.rubric.outcomes}</div>
+                    <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1">Intervenciones: {draftValidation.rubric.interventions}</div>
+                    <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1">Fundamentación: {draftValidation.rubric.rationale}</div>
+                    <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1">Evaluación: {draftValidation.rubric.evaluation}</div>
                   </div>
 
                   {draftValidation.criticalGaps.length > 0 && (
@@ -807,18 +1120,44 @@ export default function PaePage() {
                 </thead>
                 <tbody>
                   {mappedRows.map((row) => (
-                    <tr key={row.diagnosis.id} className="border-t border-white/10 align-top">
+                    <tr
+                      key={row.kind === "guided" ? row.diagnosis.id : row.nanda.id}
+                      className="border-t border-white/10 align-top"
+                    >
                       <td className="px-3 py-3">
-                        <div className="font-semibold text-white/90">{row.diagnosis.diagnosticLabel}</div>
-                        <div className="text-xs text-white/60">{row.diagnosis.domain}</div>
-                        <div className="text-xs text-white/60">{row.diagnosis.classLabel}</div>
+                        {row.kind === "guided" ? (
+                          <>
+                            <div className="font-semibold text-white/90">{row.diagnosis.diagnosticLabel}</div>
+                            <div className="text-xs text-white/60">{row.diagnosis.domain}</div>
+                            <div className="text-xs text-white/60">{row.diagnosis.classLabel}</div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="font-semibold text-white/90">
+                              {row.nanda.code} · {row.nanda.label}
+                            </div>
+                            <div className="text-xs text-white/60">{row.nanda.domain}</div>
+                            <div className="text-xs text-white/60">{row.nanda.classLabel}</div>
+                          </>
+                        )}
                       </td>
                       <td className="px-3 py-3">
                         {row.outcomes.length ? (
                           row.outcomes.map((outcome) => (
-                            <div key={outcome.id} className="mb-2 rounded-lg border border-white/10 bg-black/25 p-2">
-                              <div className="font-medium text-white/90">{outcome.label}</div>
-                              <div className="text-xs text-white/65">Meta: {outcome.target}</div>
+                            <div
+                              key={outcome.id}
+                              className="mb-2 rounded-lg border border-white/10 bg-black/25 p-2"
+                            >
+                              <div className="font-medium text-white/90">
+                                {"target" in outcome
+                                  ? outcome.label
+                                  : `${outcome.code} · ${outcome.label}`}
+                              </div>
+                              <div className="text-xs text-white/65">
+                                {"target" in outcome
+                                  ? `Meta: ${outcome.target}`
+                                  : outcome.indicators.slice(0, 2).join(" · ")}
+                              </div>
                             </div>
                           ))
                         ) : (
@@ -828,8 +1167,15 @@ export default function PaePage() {
                       <td className="px-3 py-3">
                         {row.interventions.length ? (
                           row.interventions.map((intervention) => (
-                            <div key={intervention.id} className="mb-2 rounded-lg border border-white/10 bg-black/25 p-2">
-                              <div className="font-medium text-white/90">{intervention.label}</div>
+                            <div
+                              key={intervention.id}
+                              className="mb-2 rounded-lg border border-white/10 bg-black/25 p-2"
+                            >
+                              <div className="font-medium text-white/90">
+                                {"rationale" in intervention
+                                  ? intervention.label
+                                  : `${intervention.code} · ${intervention.label}`}
+                              </div>
                               <div className="text-xs text-white/65">
                                 {intervention.activities.slice(0, 2).join(" · ")}
                               </div>

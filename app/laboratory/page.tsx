@@ -11,14 +11,11 @@ import {
   type LabMode,
   difficultyLabel,
   evaluateLabInterpretation,
-  getLabCaseById,
-  getMainFindingOptions,
   inferLabContextFromCase,
-  pickContextualLabCase,
-  pickRandomLabCase,
   statusBadge,
   statusLabel,
 } from "@/src/lib/laboratoryModule";
+import { fetchLaboratoryCasesFromDb } from "@/src/lib/laboratoryDb";
 
 type SelectionMode = "manual" | "random" | "contextual_random";
 type UsageMode = "integrated_case" | "standalone";
@@ -60,11 +57,31 @@ function contextLabel(label: string) {
   return "General";
 }
 
+function sampleFromPool(pool: LabCaseSet[]) {
+  if (!pool.length) return null;
+  return pool[Math.floor(Math.random() * pool.length)] ?? null;
+}
+
+function buildMainFindingOptions(caseSet: LabCaseSet, pool: LabCaseSet[]) {
+  const distractors = pool
+    .filter((item) => item.id !== caseSet.id)
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 4)
+    .map((item) => item.mainFinding);
+
+  const options = [caseSet.mainFinding, ...distractors];
+  return Array.from(new Set(options)).slice(0, 5);
+}
+
 export default function LaboratoryPage() {
   const [mode, setMode] = useState<LabMode>("practice");
   const [usageMode, setUsageMode] = useState<UsageMode>("integrated_case");
   const [selectionMode, setSelectionMode] = useState<SelectionMode>("contextual_random");
   const [difficultyFilter, setDifficultyFilter] = useState<DifficultyFilter>("all");
+  const [labPool, setLabPool] = useState<LabCaseSet[]>(LAB_CASE_LIBRARY);
+  const [poolSource, setPoolSource] = useState<"database" | "local">("local");
+  const [poolLoading, setPoolLoading] = useState(false);
+  const [poolError, setPoolError] = useState<string | null>(null);
   const [activeCaseObj, setActiveCaseObj] = useState<any>(null);
   const [labSet, setLabSet] = useState<LabCaseSet>(LAB_CASE_LIBRARY[0]);
   const [manualLabId, setManualLabId] = useState<string>(LAB_CASE_LIBRARY[0]?.id ?? "");
@@ -83,6 +100,46 @@ export default function LaboratoryPage() {
     }
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadPoolFromDb() {
+      setPoolLoading(true);
+      setPoolError(null);
+
+      try {
+        const fromDb = await fetchLaboratoryCasesFromDb(1200);
+        if (!mounted) return;
+        if (fromDb.length > 0) {
+          setLabPool(fromDb);
+          setPoolSource("database");
+          return;
+        }
+
+        setLabPool(LAB_CASE_LIBRARY);
+        setPoolSource("local");
+        setPoolError("Base de datos sin casos activos. Usando biblioteca local.");
+      } catch (error) {
+        if (!mounted) return;
+        setLabPool(LAB_CASE_LIBRARY);
+        setPoolSource("local");
+        setPoolError(
+          error instanceof Error
+            ? `Base de datos no disponible: ${error.message}.`
+            : "Base de datos no disponible. Usando biblioteca local."
+        );
+      } finally {
+        if (mounted) setPoolLoading(false);
+      }
+    }
+
+    loadPoolFromDb();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const useContextualCase = usageMode === "integrated_case" && activeCaseObj;
 
   const clearAnswers = useCallback(() => {
@@ -96,11 +153,11 @@ export default function LaboratoryPage() {
 
   const pickNextLabSet = useCallback(
     (excludeId?: string) => {
-      const basePool = pickByDifficulty(LAB_CASE_LIBRARY, difficultyFilter).filter((item) => item.id !== excludeId);
-      if (!basePool.length) return LAB_CASE_LIBRARY[0];
+      const basePool = pickByDifficulty(labPool, difficultyFilter).filter((item) => item.id !== excludeId);
+      if (!basePool.length) return labPool[0] ?? LAB_CASE_LIBRARY[0];
 
       if (selectionMode === "manual") {
-        const manual = getLabCaseById(manualLabId);
+        const manual = labPool.find((item) => item.id === manualLabId) ?? null;
         if (manual && (difficultyFilter === "all" || manual.difficulty === difficultyFilter)) {
           return manual;
         }
@@ -108,29 +165,20 @@ export default function LaboratoryPage() {
       }
 
       if (selectionMode === "contextual_random" && useContextualCase) {
-        const contextual = pickContextualLabCase(activeCaseObj, excludeId);
-        if (
-          contextual &&
-          (difficultyFilter === "all" || contextual.difficulty === difficultyFilter)
-        ) {
-          return contextual;
+        const context = inferLabContextFromCase(activeCaseObj);
+        const contextualPool = basePool.filter((item) => item.context === context);
+        if (contextualPool.length > 0) {
+          return sampleFromPool(contextualPool) ?? contextualPool[0];
         }
       }
 
-      if (selectionMode === "random") {
-        const random = pickRandomLabCase(excludeId);
-        if (random && (difficultyFilter === "all" || random.difficulty === difficultyFilter)) {
-          return random;
-        }
-      }
-
-      return basePool[Math.floor(Math.random() * basePool.length)] ?? LAB_CASE_LIBRARY[0];
+      return sampleFromPool(basePool) ?? basePool[0] ?? labPool[0] ?? LAB_CASE_LIBRARY[0];
     },
-    [activeCaseObj, difficultyFilter, manualLabId, selectionMode, useContextualCase]
+    [activeCaseObj, difficultyFilter, labPool, manualLabId, selectionMode, useContextualCase]
   );
 
   useEffect(() => {
-    if (!LAB_CASE_LIBRARY.length) return;
+    if (!labPool.length) return;
     const next = pickNextLabSet();
     if (next) {
       setLabSet(next);
@@ -139,9 +187,12 @@ export default function LaboratoryPage() {
       }
       clearAnswers();
     }
-  }, [pickNextLabSet, clearAnswers, selectionMode]);
+  }, [labPool.length, pickNextLabSet, clearAnswers, selectionMode]);
 
-  const mainFindingOptions = useMemo(() => getMainFindingOptions(labSet), [labSet]);
+  const mainFindingOptions = useMemo(
+    () => buildMainFindingOptions(labSet, labPool),
+    [labPool, labSet]
+  );
   const showStatusColumn = mode === "practice" || Boolean(result);
   const contextualTag = useContextualCase ? inferLabContextFromCase(activeCaseObj) : null;
 
@@ -264,7 +315,7 @@ export default function LaboratoryPage() {
                 value={manualLabId}
                 onChange={(event) => {
                   setManualLabId(event.target.value);
-                  const manual = getLabCaseById(event.target.value);
+                  const manual = labPool.find((item) => item.id === event.target.value) ?? null;
                   if (manual) {
                     setLabSet(manual);
                     clearAnswers();
@@ -273,7 +324,7 @@ export default function LaboratoryPage() {
                 disabled={selectionMode !== "manual"}
                 className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white disabled:opacity-50"
               >
-                {LAB_CASE_LIBRARY.map((item) => (
+                {labPool.map((item) => (
                   <option key={item.id} value={item.id}>
                     {item.name}
                   </option>
@@ -281,6 +332,12 @@ export default function LaboratoryPage() {
               </select>
             </label>
           </section>
+
+          {poolError && (
+            <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-xs text-amber-100">
+              {poolError}
+            </div>
+          )}
 
           <section className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-black/25 p-4 xl:grid-cols-[1.5fr_1fr_auto]">
             <div>
@@ -305,6 +362,13 @@ export default function LaboratoryPage() {
                 Hallazgo principal esperado: <span className="text-white/85">{labSet.mainFinding}</span>
               </div>
               <div className="mt-1">Alteraciones seleccionadas por ti: {selectedCount}</div>
+              <div className="mt-1">
+                Fuente de casos:{" "}
+                <span className="text-white/85">
+                  {poolLoading ? "Cargando..." : poolSource === "database" ? "Base de datos" : "Biblioteca local"}
+                </span>
+              </div>
+              <div className="mt-1">Casos disponibles en pool: {labPool.length}</div>
             </div>
             <div className="flex items-start justify-end gap-2">
               <button
