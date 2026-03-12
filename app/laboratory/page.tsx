@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import Sidebar from "@/components/Sidebar";
 import {
   LAB_CASE_LIBRARY,
@@ -120,8 +119,6 @@ export default function LaboratoryPage() {
         setPoolSource("local");
         if (!LAB_CASE_LIBRARY.length) {
           setPoolError("No se encontraron casos activos ni respaldo local disponible.");
-        } else if (process.env.NODE_ENV !== "production") {
-          setPoolError("Modo local activo (debug): base de datos sin casos activos.");
         } else {
           setPoolError(null);
         }
@@ -135,9 +132,6 @@ export default function LaboratoryPage() {
               ? `No se pudo cargar laboratorio: ${error.message}.`
               : "No se pudo cargar laboratorio y no hay respaldo local."
           );
-        } else if (process.env.NODE_ENV !== "production") {
-          const detail = error instanceof Error ? error.message : "Error desconocido.";
-          setPoolError(`Modo local activo (debug): ${detail}`);
         } else {
           setPoolError(null);
         }
@@ -171,10 +165,8 @@ export default function LaboratoryPage() {
 
       if (selectionMode === "manual") {
         const manual = labPool.find((item) => item.id === manualLabId) ?? null;
-        if (manual && (difficultyFilter === "all" || manual.difficulty === difficultyFilter)) {
-          return manual;
-        }
-        return basePool[0];
+        if (manual) return manual;
+        return labPool[0] ?? LAB_CASE_LIBRARY[0];
       }
 
       if (selectionMode === "contextual_random" && useContextualCase) {
@@ -328,14 +320,14 @@ export default function LaboratoryPage() {
                 value={manualLabId}
                 onChange={(event) => {
                   setManualLabId(event.target.value);
+                  setSelectionMode("manual");
                   const manual = labPool.find((item) => item.id === event.target.value) ?? null;
                   if (manual) {
                     setLabSet(manual);
                     clearAnswers();
                   }
                 }}
-                disabled={selectionMode !== "manual"}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white disabled:opacity-50"
+                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
               >
                 {labPool.map((item) => (
                   <option key={item.id} value={item.id}>
@@ -343,6 +335,9 @@ export default function LaboratoryPage() {
                   </option>
                 ))}
               </select>
+              <div className="mt-1 text-[11px] text-white/55">
+                Al elegir un set, el modo cambia automáticamente a Manual.
+              </div>
             </label>
           </section>
 
@@ -391,12 +386,6 @@ export default function LaboratoryPage() {
               >
                 Nuevo set
               </button>
-              <Link
-                href="/simulator?tab=ecg"
-                className="rounded-xl border border-cyan-400/35 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-100 hover:bg-cyan-400/20"
-              >
-                Ir a ECG
-              </Link>
             </div>
           </section>
 

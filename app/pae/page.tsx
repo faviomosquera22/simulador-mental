@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Sidebar from "@/components/Sidebar";
-import Link from "next/link";
 import {
   NIC_LIBRARY,
   NOC_LIBRARY,
@@ -597,12 +596,6 @@ export default function PaePage() {
                 >
                   Generar caso
                 </button>
-                <Link
-                  href="/laboratory"
-                  className="rounded-xl border border-cyan-400/35 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-100 hover:bg-cyan-400/20"
-                >
-                  Ir a Laboratorio
-                </Link>
               </div>
             </div>
           </section>
