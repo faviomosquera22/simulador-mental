@@ -83,6 +83,18 @@ const NAV: NavItem[] = [
     ),
   },
   {
+    label: "Gasometría",
+    href: "/gasometry",
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M6 4h12" />
+        <path d="M7 4v7l-3 5a3 3 0 0 0 2.6 4.5h10.8A3 3 0 0 0 20 16l-3-5V4" />
+        <path d="M9 10h6" />
+        <path d="M9 14h6" />
+      </svg>
+    ),
+  },
+  {
     label: "Cálculo clínico",
     href: "/clinical-calculations",
     icon: (
@@ -97,6 +109,44 @@ const NAV: NavItem[] = [
     ),
   },
   {
+    label: "Medicamentos",
+    href: "/medications",
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M8 4h8" />
+        <path d="M9 4v6" />
+        <path d="M15 4v6" />
+        <rect x="6" y="10" width="12" height="10" rx="2" />
+        <path d="M10 15h4" />
+      </svg>
+    ),
+  },
+  {
+    label: "Procedimientos",
+    href: "/procedures",
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M4 20l6-6" />
+        <path d="M14 4l6 6" />
+        <path d="M13 5l6 6" />
+        <path d="M3 21l5-1 10-10-4-4L4 16l-1 5z" />
+      </svg>
+    ),
+  },
+  {
+    label: "Notas clínicas",
+    href: "/clinical-notes",
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M6 3h9l3 3v15H6z" />
+        <path d="M15 3v4h4" />
+        <path d="M9 10h6" />
+        <path d="M9 14h6" />
+        <path d="M9 18h4" />
+      </svg>
+    ),
+  },
+  {
     label: "PAE",
     href: "/pae",
     icon: (
@@ -105,6 +155,15 @@ const NAV: NavItem[] = [
         <path d="M15 3v4h4" />
         <path d="M9 11h6" />
         <path d="M9 15h6" />
+      </svg>
+    ),
+  },
+  {
+    label: "Urgencias",
+    href: "/emergency-simulator",
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" />
       </svg>
     ),
   },
