@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ECG_CONDUCT_OPTIONS,
   ECG_LIBRARY,
@@ -85,6 +85,14 @@ const CONTEXT_SELECTOR_OPTIONS: Array<{ value: "auto" | ECGClinicalContext; labe
   { value: "general_critical", label: "Contexto crítico general" },
 ];
 
+const TRACE_SWEEP_SECONDS = 8.6;
+const TRACE_SCROLL_SPEED = 0.52;
+
+type BrowserAudioWindow = Window &
+  typeof globalThis & {
+    webkitAudioContext?: typeof AudioContext;
+  };
+
 function normalizeText(value: unknown) {
   return String(value ?? "")
     .toLowerCase()
@@ -160,7 +168,7 @@ function ecgSignal(args: {
 }) {
   const { pattern, xNorm, bpm, qrs, irregularity, stShift, lead, phaseSeconds } = args;
   const beatSeconds = 60 / Math.max(20, bpm);
-  const t = phaseSeconds + xNorm * 6.2;
+  const t = phaseSeconds * TRACE_SCROLL_SPEED + xNorm * TRACE_SWEEP_SECONDS;
   const wobble = irregularity * 0.2 * Math.sin(t * 2.1);
   const localRaw = ((t / beatSeconds) % 1 + 1) % 1;
   const local = Math.min(0.999, Math.max(0.001, localRaw + wobble));
@@ -330,18 +338,85 @@ function riskProgression(currentRisk: string, trend: "improves" | "stable" | "de
   return "bajo";
 }
 
+function getAudioContextConstructor() {
+  if (typeof window === "undefined") return null;
+  const win = window as BrowserAudioWindow;
+  return win.AudioContext ?? win.webkitAudioContext ?? null;
+}
+
+function scheduleMonitorPulse(ctx: AudioContext, when: number, accent = 1) {
+  const gain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  const oscMain = ctx.createOscillator();
+  const oscHarmonic = ctx.createOscillator();
+
+  filter.type = "bandpass";
+  filter.frequency.value = 980;
+  filter.Q.value = 2.8;
+
+  oscMain.type = "triangle";
+  oscMain.frequency.setValueAtTime(920, when);
+  oscMain.frequency.exponentialRampToValueAtTime(760, when + 0.055);
+
+  oscHarmonic.type = "sine";
+  oscHarmonic.frequency.setValueAtTime(1340, when);
+  oscHarmonic.frequency.exponentialRampToValueAtTime(980, when + 0.05);
+
+  gain.gain.setValueAtTime(0.0001, when);
+  gain.gain.linearRampToValueAtTime(0.024 * accent, when + 0.006);
+  gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.085);
+
+  oscMain.connect(filter);
+  oscHarmonic.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+
+  oscMain.start(when);
+  oscHarmonic.start(when);
+  oscMain.stop(when + 0.09);
+  oscHarmonic.stop(when + 0.08);
+}
+
+function scheduleMonitorAlarmBurst(ctx: AudioContext, when: number) {
+  [0, 0.22].forEach((offset) => {
+    const gain = ctx.createGain();
+    const osc = ctx.createOscillator();
+    const filter = ctx.createBiquadFilter();
+
+    filter.type = "highpass";
+    filter.frequency.value = 600;
+
+    osc.type = "square";
+    osc.frequency.setValueAtTime(740, when + offset);
+    osc.frequency.exponentialRampToValueAtTime(880, when + offset + 0.09);
+
+    gain.gain.setValueAtTime(0.0001, when + offset);
+    gain.gain.linearRampToValueAtTime(0.016, when + offset + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, when + offset + 0.12);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(when + offset);
+    osc.stop(when + offset + 0.13);
+  });
+}
+
 function MonitorMetric({
   label,
   value,
   unit,
   tone,
   muted,
+  compact,
 }: {
   label: string;
   value: string;
   unit: string;
   tone: "green" | "cyan" | "amber" | "violet" | "orange" | "white";
   muted?: boolean;
+  compact?: boolean;
 }) {
   const toneClass =
     tone === "green"
@@ -357,14 +432,22 @@ function MonitorMetric({
       : "text-white border-white/15 bg-[#0A0F17]";
 
   return (
-    <div className={`rounded-2xl border p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] ${toneClass}`}>
+    <div className={`min-w-0 rounded-2xl border p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] ${toneClass}`}>
       <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.2em] opacity-70">
         <span>{label}</span>
         <span>{muted ? "standby" : "live"}</span>
       </div>
-      <div className="mt-2 flex items-end gap-2">
-        <div className={`font-mono text-3xl font-semibold leading-none ${muted ? "opacity-55" : ""}`}>{value}</div>
-        <div className={`pb-1 text-xs ${muted ? "opacity-50" : "opacity-80"}`}>{unit}</div>
+      <div className={`mt-2 min-w-0 ${compact ? "space-y-1" : "flex items-end gap-2"}`}>
+        <div
+          className={`min-w-0 truncate font-mono font-semibold leading-none ${compact ? "text-[1.65rem]" : "text-3xl"} ${
+            muted ? "opacity-55" : ""
+          }`}
+        >
+          {value}
+        </div>
+        {unit ? (
+          <div className={`${compact ? "text-[11px]" : "pb-1 text-xs"} ${muted ? "opacity-50" : "opacity-80"}`}>{unit}</div>
+        ) : null}
       </div>
     </div>
   );
@@ -679,7 +762,12 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
   const [tick, setTick] = useState(0);
   const [selectionMode, setSelectionMode] = useState<ECGSelectionMode>(ecgConfig.selectionMode);
   const [contextSelector, setContextSelector] = useState<"auto" | ECGClinicalContext>("auto");
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const printSheetRef = useRef<HTMLDivElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const nextBeatTimeRef = useRef(0);
+  const beatCounterRef = useRef(0);
+  const nextAlarmTimeRef = useRef(0);
 
   const caseId = useMemo(
     () => String(caseObject?.id ?? caseObject?.meta?.case_id ?? "default"),
@@ -804,6 +892,35 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
       // ignore
     }
   }, [attempts, caseId]);
+
+  useEffect(() => {
+    if (!open) return;
+    try {
+      const raw = localStorage.getItem("ecgSoundEnabled");
+      if (raw === "false") setSoundEnabled(false);
+      if (raw === "true") setSoundEnabled(true);
+    } catch {
+      // ignore
+    }
+  }, [open]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("ecgSoundEnabled", String(soundEnabled));
+    } catch {
+      // ignore
+    }
+  }, [soundEnabled]);
+
+  useEffect(() => {
+    return () => {
+      const ctx = audioContextRef.current;
+      if (ctx) {
+        void ctx.close().catch(() => undefined);
+        audioContextRef.current = null;
+      }
+    };
+  }, []);
 
   const contextLabel = useMemo(() => getClinicalContextLabel(effectiveContext), [effectiveContext]);
 
@@ -948,6 +1065,97 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     return `${getEcgDifficultyLabel(activeEcg.difficulty)} · ${activeEcg.category}`;
   }, [activeEcg, ecgConfig.showRhythmName]);
 
+  const alarmShouldSound = useMemo(() => {
+    if (!requested || !activeEcg) return false;
+
+    if (activeEcg.waveform.pattern === "vf_chaotic" || activeEcg.waveform.pattern === "asystole_flat") return true;
+    if (trend === "deteriorates") return true;
+    if (activeEcg.probableStability === "critical") return true;
+    if (!derivedVitals) return false;
+
+    return (
+      (derivedVitals.sbp > 0 && derivedVitals.sbp < 90) ||
+      (derivedVitals.spo2 > 0 && derivedVitals.spo2 < 90) ||
+      derivedVitals.hr <= 0
+    );
+  }, [activeEcg, derivedVitals, requested, trend]);
+
+  const ensureAudioContext = useCallback(() => {
+    const ctor = getAudioContextConstructor();
+    if (!ctor) return null;
+
+    if (!audioContextRef.current) {
+      audioContextRef.current = new ctor();
+    }
+
+    const ctx = audioContextRef.current;
+    if (ctx.state === "suspended") {
+      void ctx.resume().catch(() => undefined);
+    }
+
+    return ctx;
+  }, []);
+
+  useEffect(() => {
+    nextBeatTimeRef.current = 0;
+    beatCounterRef.current = 0;
+    nextAlarmTimeRef.current = 0;
+  }, [activeEcg?.id, requested, soundEnabled]);
+
+  useEffect(() => {
+    if (!open || !requested || !activeEcg || !soundEnabled) return;
+
+    const ctx = ensureAudioContext();
+    if (!ctx) return;
+
+    const beatInterval = 60 / Math.max(25, activeEcg.waveform.bpm);
+    const pulsePattern = activeEcg.waveform.pattern;
+    const shouldPulse = pulsePattern !== "vf_chaotic" && pulsePattern !== "asystole_flat";
+
+    const scheduleAudio = () => {
+      if (ctx.state !== "running") return;
+
+      const now = ctx.currentTime;
+      if (nextBeatTimeRef.current <= now) {
+        nextBeatTimeRef.current = now + 0.08;
+        beatCounterRef.current = 0;
+      }
+
+      while (shouldPulse && nextBeatTimeRef.current < now + 0.35) {
+        const beatIndex = beatCounterRef.current;
+        const irregularJitter = activeEcg.waveform.irregularity * 0.18 * Math.sin(beatIndex * 1.71 + 0.42);
+        const accent =
+          pulsePattern === "vt_wide" ? 1.1 : pulsePattern === "hyperk" || pulsePattern === "bundle_branch" ? 0.92 : 1;
+
+        scheduleMonitorPulse(ctx, nextBeatTimeRef.current, accent);
+        nextBeatTimeRef.current += Math.max(0.2, beatInterval * (1 + irregularJitter));
+        beatCounterRef.current += 1;
+      }
+
+      if (!alarmShouldSound) return;
+
+      if (nextAlarmTimeRef.current <= now) {
+        nextAlarmTimeRef.current = now + 0.12;
+      }
+
+      while (nextAlarmTimeRef.current < now + 0.45) {
+        scheduleMonitorAlarmBurst(ctx, nextAlarmTimeRef.current);
+        nextAlarmTimeRef.current += 3.8;
+      }
+    };
+
+    scheduleAudio();
+    const id = window.setInterval(scheduleAudio, 90);
+    return () => window.clearInterval(id);
+  }, [
+    activeEcg,
+    alarmShouldSound,
+    ensureAudioContext,
+    open,
+    requested,
+    soundEnabled,
+  ]);
+
   const handleViewModeChange = (nextMode: ECGViewMode) => {
     if (!activeEcg) {
       setViewMode(nextMode);
@@ -974,6 +1182,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
 
   const handleRequestEcg = () => {
     if (!activeEcg) return;
+    if (soundEnabled) ensureAudioContext();
     setRequested(true);
     setStartedAt(Date.now());
     setEvaluation(null);
@@ -1023,6 +1232,12 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     if (!activeEcg || !requested) return;
     setPrintPhaseSeconds(phaseSeconds);
     setPrintPreviewOpen(true);
+  };
+
+  const handleToggleSound = () => {
+    const next = !soundEnabled;
+    if (next) ensureAudioContext();
+    setSoundEnabled(next);
   };
 
   const handleBrowserPrint = () => {
@@ -1181,8 +1396,8 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
           </div>
         </header>
 
-        <div className="grid min-h-0 flex-1 gap-4 overflow-hidden p-4 lg:grid-cols-[1.65fr_0.95fr]">
-          <section className="flex min-h-0 flex-col rounded-2xl border border-white/10 bg-[#03090F] p-3">
+        <div className="grid shrink-0 gap-4 p-4 lg:grid-cols-[1.65fr_0.95fr] lg:items-start">
+          <section className="rounded-2xl border border-white/10 bg-[#03090F] p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <div className="text-xs text-white/55">Zona central</div>
@@ -1243,17 +1458,17 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
               </div>
             </div>
 
-            <div className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-emerald-300/25 bg-[#03130C] p-3">
+            <div className="mt-3 overflow-hidden rounded-2xl border border-emerald-300/25 bg-[#03130C] p-3">
               {!requested || !activeEcg ? (
-                <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-white/20 bg-black/25 p-6 text-center text-sm text-white/65">
+                <div className="flex h-[240px] items-center justify-center rounded-xl border border-dashed border-white/20 bg-black/25 p-6 text-center text-sm text-white/65">
                   Solicita monitor/ECG para iniciar análisis del trazado dentro del flujo del caso clínico.
                 </div>
               ) : resolvedViewMode === "rhythm_monitor" ? (
-                <div className="h-full min-h-[260px]">
+                <div className="h-[240px] lg:h-[260px]">
                   <EcgLeadStrip lead="II" profile={activeEcg.waveform} phaseSeconds={phaseSeconds} />
                 </div>
               ) : (
-                <div className="grid max-h-full grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid max-h-[380px] grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 xl:grid-cols-3">
                   {visibleLeads.map((lead) => (
                     <div key={lead} className="h-[100px] sm:h-[120px]">
                       <EcgLeadStrip lead={lead} profile={activeEcg.waveform} phaseSeconds={phaseSeconds} compact />
@@ -1283,19 +1498,36 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
                   <div className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/45">Monitor multiparámetro</div>
                   <div className="mt-1 text-sm font-semibold text-white">Signos vitales y estado hemodinámico</div>
                 </div>
-                <div
-                  className={`rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] ${
-                    requested
-                      ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-100"
-                      : "border-white/10 bg-white/5 text-white/65"
-                  }`}
-                >
-                  {requested ? "Live" : "Standby"}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleToggleSound}
+                    className={`rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] ${
+                      soundEnabled
+                        ? "border-cyan-300/25 bg-cyan-300/10 text-cyan-100"
+                        : "border-white/10 bg-white/5 text-white/65"
+                    }`}
+                  >
+                    Sonido {soundEnabled ? "ON" : "OFF"}
+                  </button>
+                  <div
+                    className={`rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] ${
+                      requested
+                        ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-100"
+                        : "border-white/10 bg-white/5 text-white/65"
+                    }`}
+                  >
+                    {requested ? "Live" : "Standby"}
+                  </div>
                 </div>
               </div>
 
               <div className="mt-3">
                 <MonitorLeadPreview profile={activeEcg?.waveform ?? null} phaseSeconds={phaseSeconds} active={requested && !!activeEcg} />
+              </div>
+
+              <div className="mt-2 text-[11px] text-cyan-100/70">
+                Audio del monitor: beep por latido y alarma crítica cuando el caso se deteriora.
               </div>
 
               <div className="mt-3 grid grid-cols-2 gap-2">
@@ -1319,6 +1551,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
                   unit="mmHg"
                   tone="amber"
                   muted={!derivedVitals}
+                  compact
                 />
                 <MonitorMetric
                   label="FR"
@@ -1458,7 +1691,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
           </aside>
         </div>
 
-        <section className="border-t border-white/10 bg-[#0B1220]/90 px-4 py-3">
+        <section className="min-h-0 flex-1 overflow-y-auto border-t border-white/10 bg-[#0B1220]/90 px-4 py-3">
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-[1.2fr_0.8fr]">
             <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
               <div className="text-xs uppercase tracking-wider text-white/50">Zona inferior · Interacciones del estudiante</div>
