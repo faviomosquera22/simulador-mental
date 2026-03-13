@@ -121,6 +121,33 @@ function qrsWidth(profileQrs: "narrow" | "wide") {
   return profileQrs === "wide" ? 0.024 : 0.011;
 }
 
+function getVentricularTachycardiaLeadProfile(lead: string) {
+  const profiles: Record<string, { shoulder: number; main: number; notch: number; terminal: number; phase: number; tWave: number }> =
+    {
+      I: { shoulder: 0.48, main: 0.95, notch: -0.18, terminal: 0.42, phase: -0.006, tWave: 0.18 },
+      II: { shoulder: 0.56, main: 1.12, notch: -0.16, terminal: 0.5, phase: 0, tWave: 0.2 },
+      III: { shoulder: 0.44, main: 0.88, notch: -0.12, terminal: 0.38, phase: 0.004, tWave: 0.16 },
+      aVR: { shoulder: -0.4, main: -0.82, notch: 0.18, terminal: -0.36, phase: -0.01, tWave: 0.18 },
+      aVL: { shoulder: 0.3, main: 0.62, notch: -0.12, terminal: 0.28, phase: -0.008, tWave: 0.14 },
+      aVF: { shoulder: 0.48, main: 0.96, notch: -0.14, terminal: 0.42, phase: 0.002, tWave: 0.18 },
+      V1: { shoulder: -0.3, main: -1.2, notch: 0.3, terminal: -0.72, phase: -0.014, tWave: 0.24 },
+      V2: { shoulder: -0.22, main: -1.05, notch: 0.28, terminal: -0.62, phase: -0.01, tWave: 0.22 },
+      V3: { shoulder: -0.08, main: -0.35, notch: 0.24, terminal: 0.78, phase: -0.004, tWave: 0.18 },
+      V4: { shoulder: 0.22, main: 0.92, notch: -0.22, terminal: 0.68, phase: 0.004, tWave: 0.2 },
+      V5: { shoulder: 0.26, main: 1.02, notch: -0.18, terminal: 0.54, phase: 0.008, tWave: 0.22 },
+      V6: { shoulder: 0.2, main: 0.82, notch: -0.14, terminal: 0.42, phase: 0.012, tWave: 0.18 },
+      V3R: { shoulder: -0.24, main: -0.96, notch: 0.24, terminal: -0.58, phase: -0.012, tWave: 0.2 },
+      V4R: { shoulder: -0.12, main: -0.72, notch: 0.18, terminal: -0.44, phase: -0.008, tWave: 0.18 },
+      V5R: { shoulder: 0.14, main: 0.58, notch: -0.12, terminal: 0.3, phase: 0.004, tWave: 0.14 },
+      V6R: { shoulder: 0.12, main: 0.46, notch: -0.1, terminal: 0.26, phase: 0.008, tWave: 0.12 },
+      V7: { shoulder: 0.18, main: 0.78, notch: -0.12, terminal: 0.48, phase: 0.008, tWave: 0.16 },
+      V8: { shoulder: 0.14, main: 0.68, notch: -0.1, terminal: 0.42, phase: 0.01, tWave: 0.14 },
+      V9: { shoulder: 0.1, main: 0.58, notch: -0.08, terminal: 0.34, phase: 0.012, tWave: 0.12 },
+    };
+
+  return profiles[lead] ?? profiles.II;
+}
+
 function ecgSignal(args: {
   pattern: ECGPattern;
   xNorm: number;
@@ -170,7 +197,17 @@ function ecgSignal(args: {
   }
 
   if (pattern === "vt_wide") {
-    return 1.05 * gauss(local, 0.3, 0.036) - 0.24 * gauss(local, 0.39, 0.04) + baselineWander * 0.25;
+    const vt = getVentricularTachycardiaLeadProfile(lead);
+    const dominant = Math.sign(vt.main || vt.terminal || 1);
+    const wideComplex =
+      vt.shoulder * gauss(local, 0.22 + vt.phase, 0.026) +
+      vt.main * gauss(local, 0.31 + vt.phase, 0.055) +
+      vt.notch * gauss(local, 0.37 + vt.phase, 0.014) +
+      vt.terminal * gauss(local, 0.45 + vt.phase, 0.048);
+    const discordantSt = local > 0.47 + vt.phase && local < 0.6 + vt.phase ? -dominant * 0.07 : 0;
+    const discordantT = -dominant * vt.tWave * gauss(local, 0.67 + vt.phase * 0.3, 0.09);
+
+    return wideComplex + discordantSt + discordantT + baselineWander * 0.12;
   }
 
   if (pattern === "pea_low_amp") {
@@ -271,11 +308,6 @@ function buildWavePath(args: {
   return `M${points.join(" L")}`;
 }
 
-function formatPressure(sbp: number, dbp: number) {
-  if (sbp <= 0 || dbp <= 0) return "No detectable";
-  return `${sbp}/${dbp} mmHg`;
-}
-
 function trendLabel(trend: "improves" | "stable" | "deteriorates") {
   if (trend === "improves") return "Mejora";
   if (trend === "deteriorates") return "Deteriora";
@@ -296,6 +328,102 @@ function riskProgression(currentRisk: string, trend: "improves" | "stable" | "de
   if (nextRank === 2) return "alto";
   if (nextRank === 1) return "moderado";
   return "bajo";
+}
+
+function MonitorMetric({
+  label,
+  value,
+  unit,
+  tone,
+  muted,
+}: {
+  label: string;
+  value: string;
+  unit: string;
+  tone: "green" | "cyan" | "amber" | "violet" | "orange" | "white";
+  muted?: boolean;
+}) {
+  const toneClass =
+    tone === "green"
+      ? "text-[#7BFF9A] border-[#7BFF9A]/20 bg-[#07120C]"
+      : tone === "cyan"
+      ? "text-[#7EDCFF] border-[#7EDCFF]/20 bg-[#06111A]"
+      : tone === "amber"
+      ? "text-[#FFD37A] border-[#FFD37A]/20 bg-[#161006]"
+      : tone === "violet"
+      ? "text-[#B7A6FF] border-[#B7A6FF]/20 bg-[#0F0A1B]"
+      : tone === "orange"
+      ? "text-[#FFB46B] border-[#FFB46B]/20 bg-[#181006]"
+      : "text-white border-white/15 bg-[#0A0F17]";
+
+  return (
+    <div className={`rounded-2xl border p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] ${toneClass}`}>
+      <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.2em] opacity-70">
+        <span>{label}</span>
+        <span>{muted ? "standby" : "live"}</span>
+      </div>
+      <div className="mt-2 flex items-end gap-2">
+        <div className={`font-mono text-3xl font-semibold leading-none ${muted ? "opacity-55" : ""}`}>{value}</div>
+        <div className={`pb-1 text-xs ${muted ? "opacity-50" : "opacity-80"}`}>{unit}</div>
+      </div>
+    </div>
+  );
+}
+
+function MonitorLeadPreview({
+  profile,
+  phaseSeconds,
+  active,
+}: {
+  profile: ECGCase["waveform"] | null;
+  phaseSeconds: number;
+  active: boolean;
+}) {
+  const width = 560;
+  const height = 118;
+  const path = useMemo(
+    () =>
+      profile
+        ? buildWavePath({
+            width,
+            height,
+            lead: "II",
+            profile,
+            phaseSeconds,
+          })
+        : "",
+    [height, phaseSeconds, profile, width]
+  );
+
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-emerald-300/15 bg-[#03070D]">
+      <div
+        className="absolute inset-0 opacity-80"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(41,153,99,0.14) 1px, transparent 1px), linear-gradient(90deg, rgba(41,153,99,0.14) 1px, transparent 1px), linear-gradient(rgba(41,153,99,0.24) 1px, transparent 1px), linear-gradient(90deg, rgba(41,153,99,0.24) 1px, transparent 1px)",
+          backgroundSize: "8px 8px, 8px 8px, 40px 40px, 40px 40px",
+        }}
+      />
+      <div className="relative flex items-center justify-between px-3 pt-2 text-[10px] uppercase tracking-[0.18em] text-emerald-100/75">
+        <span>Lead II</span>
+        <span>{active ? "Monitor activo" : "Sin señal"}</span>
+      </div>
+      <svg viewBox={`0 0 ${width} ${height}`} className="relative h-[92px] w-full">
+        {profile ? (
+          <path d={path} fill="none" stroke="rgba(123,255,154,0.96)" strokeWidth="2.2" strokeLinecap="round" />
+        ) : (
+          <path
+            d={`M 0 ${height / 2} L ${width} ${height / 2}`}
+            fill="none"
+            stroke="rgba(123,255,154,0.35)"
+            strokeWidth="1.5"
+            strokeDasharray="8 6"
+          />
+        )}
+      </svg>
+    </div>
+  );
 }
 
 function EcgLeadStrip({
@@ -1149,57 +1277,94 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
           </section>
 
           <aside className="min-h-0 space-y-3 overflow-y-auto">
-            <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-              <div className="text-xs uppercase tracking-wider text-white/50">Panel lateral derecho</div>
-              <div className="mt-2 text-sm font-semibold">Signos vitales y estado</div>
+            <div className="rounded-[26px] border border-cyan-300/10 bg-[#050A12] p-4 shadow-[0_25px_80px_rgba(0,0,0,0.35)]">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/45">Monitor multiparámetro</div>
+                  <div className="mt-1 text-sm font-semibold text-white">Signos vitales y estado hemodinámico</div>
+                </div>
+                <div
+                  className={`rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] ${
+                    requested
+                      ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-100"
+                      : "border-white/10 bg-white/5 text-white/65"
+                  }`}
+                >
+                  {requested ? "Live" : "Standby"}
+                </div>
+              </div>
 
-              {derivedVitals ? (
-                <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                  <div className="rounded-xl border border-white/10 bg-black/30 p-2.5">
-                    <div className="text-white/55">FC</div>
-                    <div className="mt-1 text-white/90">{derivedVitals.hr <= 0 ? "Sin pulso" : `${derivedVitals.hr} lpm`}</div>
+              <div className="mt-3">
+                <MonitorLeadPreview profile={activeEcg?.waveform ?? null} phaseSeconds={phaseSeconds} active={requested && !!activeEcg} />
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <MonitorMetric
+                  label="FC"
+                  value={derivedVitals ? String(Math.max(0, derivedVitals.hr)) : "--"}
+                  unit="lpm"
+                  tone="green"
+                  muted={!derivedVitals}
+                />
+                <MonitorMetric
+                  label="SpO₂"
+                  value={derivedVitals ? (derivedVitals.spo2 <= 0 ? "--" : String(derivedVitals.spo2)) : "--"}
+                  unit="%"
+                  tone="cyan"
+                  muted={!derivedVitals}
+                />
+                <MonitorMetric
+                  label="PA"
+                  value={derivedVitals ? (derivedVitals.sbp <= 0 || derivedVitals.dbp <= 0 ? "--/--" : `${derivedVitals.sbp}/${derivedVitals.dbp}`) : "--/--"}
+                  unit="mmHg"
+                  tone="amber"
+                  muted={!derivedVitals}
+                />
+                <MonitorMetric
+                  label="FR"
+                  value={derivedVitals ? (derivedVitals.rr <= 0 ? "--" : String(derivedVitals.rr)) : "--"}
+                  unit="rpm"
+                  tone="violet"
+                  muted={!derivedVitals}
+                />
+                <MonitorMetric
+                  label="Temp"
+                  value={derivedVitals ? derivedVitals.temp.toFixed(1) : "--"}
+                  unit="°C"
+                  tone="orange"
+                  muted={!derivedVitals}
+                />
+                <MonitorMetric label="Tiempo" value={timeLabel} unit="" tone="white" muted={!requested} />
+              </div>
+
+              <div className="mt-3 grid gap-2 text-xs text-white/75">
+                <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-white/50">Estado clínico actual</span>
+                    <span className={`rounded-full border px-2 py-1 ${toneByTrend(trend)}`}>{trendLabel(trend)}</span>
                   </div>
-                  <div className="rounded-xl border border-white/10 bg-black/30 p-2.5">
-                    <div className="text-white/55">PA</div>
-                    <div className="mt-1 text-white/90">{formatPressure(derivedVitals.sbp, derivedVitals.dbp)}</div>
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-black/30 p-2.5">
-                    <div className="text-white/55">SpO₂</div>
-                    <div className="mt-1 text-white/90">{derivedVitals.spo2 <= 0 ? "No lectura" : `${derivedVitals.spo2}%`}</div>
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-black/30 p-2.5">
-                    <div className="text-white/55">FR</div>
-                    <div className="mt-1 text-white/90">{derivedVitals.rr <= 0 ? "Apnea" : `${derivedVitals.rr} rpm`}</div>
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-black/30 p-2.5">
-                    <div className="text-white/55">Temp</div>
-                    <div className="mt-1 text-white/90">{derivedVitals.temp.toFixed(1)}°C</div>
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-black/30 p-2.5">
-                    <div className="text-white/55">Temporizador</div>
-                    <div className="mt-1 text-white/90">{timeLabel}</div>
+                  <div className="mt-2 text-sm text-white/90">
+                    {activeEcg ? activeEcg.probableStability.replaceAll("_", " ") : "Sin trazado activo"}
                   </div>
                 </div>
-              ) : (
-                <div className="mt-2 text-xs text-white/65">Sin trazado activo.</div>
-              )}
 
-              {activeEcg && (
-                <>
-                  <div className="mt-3 text-xs text-white/55">Estado clínico actual</div>
-                  <div className="mt-1 text-sm text-white/85">{activeEcg.probableStability.replaceAll("_", " ")}</div>
+                <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
+                  <div className="text-white/50">Riesgo del caso</div>
+                  <div className="mt-2 text-sm text-white/90">{currentRiskLabel}</div>
+                </div>
 
-                  <div className="mt-3 text-xs text-white/55">Síntomas principales</div>
-                  <ul className="mt-1 list-disc space-y-1 pl-5 text-xs text-white/75">
-                    {activeEcg.symptomHints.slice(0, 4).map((hint) => (
-                      <li key={hint}>{hint}</li>
-                    ))}
-                  </ul>
-                </>
-              )}
-
-              <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-2.5 text-xs text-white/65">
-                Riesgo del caso: {currentRiskLabel}
+                <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
+                  <div className="text-white/50">Síntomas principales</div>
+                  {activeEcg ? (
+                    <ul className="mt-2 list-disc space-y-1 pl-5 text-white/85">
+                      {activeEcg.symptomHints.slice(0, 4).map((hint) => (
+                        <li key={hint}>{hint}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="mt-2 text-white/60">Solicita el ECG para activar los datos clínicos del monitor.</div>
+                  )}
+                </div>
               </div>
             </div>
 
