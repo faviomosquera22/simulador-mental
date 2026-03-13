@@ -67,6 +67,8 @@ type AttemptEntry = {
   at: string;
 };
 
+type ECGTrainingMode = "interpretation" | "practice";
+
 const EMPTY_DECISION: DecisionState = {
   interpretation: "",
   stabilityDecision: "",
@@ -751,6 +753,7 @@ function EcgPrintSheet({
   timeLabel,
   contextLabel,
   currentRiskLabel,
+  revealDiagnosis,
 }: {
   ecgCase: ECGCase;
   phaseSeconds: number;
@@ -759,6 +762,7 @@ function EcgPrintSheet({
   timeLabel: string;
   contextLabel: string;
   currentRiskLabel: string;
+  revealDiagnosis: boolean;
 }) {
   const extraLeads = visibleLeads.filter((lead) => !STANDARD_12_LEADS.includes(lead as ECGLead));
 
@@ -767,9 +771,13 @@ function EcgPrintSheet({
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-black/10 pb-4">
         <div>
           <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Hoja de ECG</div>
-          <div className="mt-1 text-2xl font-semibold text-slate-900">{ecgCase.name}</div>
+          <div className="mt-1 text-2xl font-semibold text-slate-900">
+            {revealDiagnosis ? ecgCase.name : "Registro electrocardiográfico"}
+          </div>
           <div className="mt-2 text-sm text-slate-600">
-            Formato de impresión para interpretación clínica.
+            {revealDiagnosis
+              ? "Formato de impresión para interpretación clínica."
+              : "Formato de impresión para interpretación sin diagnóstico revelado."}
           </div>
         </div>
 
@@ -897,6 +905,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
   const [tick, setTick] = useState(0);
   const [selectionMode, setSelectionMode] = useState<ECGSelectionMode>(ecgConfig.selectionMode);
   const [contextSelector, setContextSelector] = useState<"auto" | ECGClinicalContext>("auto");
+  const [trainingMode, setTrainingMode] = useState<ECGTrainingMode>(ecgConfig.showRhythmName ? "practice" : "interpretation");
   const [soundEnabled, setSoundEnabled] = useState(true);
   const printSheetRef = useRef<HTMLDivElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -965,6 +974,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     if (!ecgConfigStable.enabled) return;
     setSelectionMode(ecgConfigStable.selectionMode);
     setContextSelector("auto");
+    setTrainingMode(ecgConfigStable.showRhythmName ? "practice" : "interpretation");
 
     const defaultContext = ecgConfigStable.selectionMode === "contextual_random" ? inferredContext : null;
     const defaultPool = getEcgPoolForContext(ecgConfigStable, defaultContext);
@@ -1204,13 +1214,33 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     [activeEcg, derivedVitals, phaseSeconds, requested, trend]
   );
 
-  const interpretationOptions = useMemo(() => ECG_LIBRARY.map((item) => item.name), []);
-
   const monitorSubtitle = useMemo(() => {
     if (!activeEcg) return "Sin trazado activo";
-    if (ecgConfig.showRhythmName) return activeEcg.name;
+    if (trainingMode === "practice" || selectionMode === "manual") return activeEcg.name;
     return `${getEcgDifficultyLabel(activeEcg.difficulty)} · ${activeEcg.category}`;
-  }, [activeEcg, ecgConfig.showRhythmName]);
+  }, [activeEcg, selectionMode, trainingMode]);
+
+  const revealDiagnosis = useMemo(
+    () => trainingMode === "practice" || selectionMode === "manual",
+    [selectionMode, trainingMode]
+  );
+
+  const interpretationPrompt = revealDiagnosis
+    ? "1. ¿Qué hallazgo del ECG confirma este diagnóstico?"
+    : "1. ¿Qué ritmo o alteración observas?";
+
+  const interpretationPlaceholder = revealDiagnosis
+    ? "Ej: QRS ancho regular, ondas P ausentes, elevación del ST, etc."
+    : "Ej: Fibrilación auricular";
+
+  const interpretationFieldHelp = revealDiagnosis
+    ? "En práctica guiada el diagnóstico ya está revelado; aquí describe el criterio ECG que lo sustenta."
+    : "Este campo es manual y no se autocompleta.";
+
+  const interpretationSuggestionOptions = useMemo(() => {
+    if (revealDiagnosis && activeEcg) return activeEcg.keyFindings;
+    return ECG_LIBRARY.map((item) => item.name);
+  }, [activeEcg, revealDiagnosis]);
 
   const alarmShouldSound = useMemo(() => {
     if (!requested || !activeEcg) return false;
@@ -1432,7 +1462,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     if (!activeEcg || !requested) return;
 
     const input: ECGDecisionInput = {
-      interpretation: decision.interpretation,
+      interpretation: revealDiagnosis && activeEcg ? activeEcg.name : decision.interpretation,
       stabilityDecision: decision.stabilityDecision,
       conductId: decision.conductId,
       requestedAdditionalLeads: decision.requestedAdditionalLeads,
@@ -1558,7 +1588,19 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
               </div>
             </div>
 
-            <div className="mt-3 grid gap-3 xl:grid-cols-[1fr_1fr_1.15fr_0.9fr]">
+            <div className="mt-3 grid gap-3 xl:grid-cols-[0.9fr_1fr_1fr_1.15fr_0.9fr]">
+              <div>
+                <label className="text-xs text-white/60">Modo de resolución</label>
+                <select
+                  value={trainingMode}
+                  onChange={(e) => setTrainingMode(e.target.value as ECGTrainingMode)}
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-sm text-white/85 outline-none"
+                >
+                  <option value="interpretation">Interpretación ciega</option>
+                  <option value="practice">Práctica guiada</option>
+                </select>
+              </div>
+
               <div>
                 <label className="text-xs text-white/60">Tipo de caso</label>
                 <select
@@ -1603,7 +1645,11 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
                   </select>
                 ) : (
                   <div className="mt-1 rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-sm text-white/80">
-                    {activeEcg?.name ?? "Sin ECG seleccionado"}
+                    {!activeEcg
+                      ? "Sin ECG seleccionado"
+                      : revealDiagnosis
+                      ? activeEcg.name
+                      : "ECG oculto para interpretación"}
                   </div>
                 )}
               </div>
@@ -1742,20 +1788,20 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
 
               <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2">
                 <div>
-                  <label className="text-xs text-white/60">1. ¿Qué ritmo o alteración observas?</label>
+                  <label className="text-xs text-white/60">{interpretationPrompt}</label>
                   <input
                     value={decision.interpretation}
                     onChange={(e) => setDecision((prev) => ({ ...prev, interpretation: e.target.value }))}
                     list="ecg-interpretation-options"
                     className="mt-1 w-full rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-sm text-white/85 outline-none"
-                    placeholder="Ej: Fibrilación auricular"
+                    placeholder={interpretationPlaceholder}
                   />
                   <datalist id="ecg-interpretation-options">
-                    {interpretationOptions.map((option) => (
+                    {interpretationSuggestionOptions.map((option) => (
                       <option key={option} value={option} />
                     ))}
                   </datalist>
-                  <div className="mt-1 text-[11px] text-white/50">Este campo es manual y no se autocompleta.</div>
+                  <div className="mt-1 text-[11px] text-white/50">{interpretationFieldHelp}</div>
                 </div>
 
                 <div>
@@ -1818,12 +1864,18 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
               </div>
 
               <div className="mt-2">
-                <label className="text-xs text-white/60">5. Justifica tu decisión clínica</label>
+                <label className="text-xs text-white/60">
+                  {revealDiagnosis ? "5. Explica por qué el ECG corresponde a este diagnóstico" : "5. Justifica tu decisión clínica"}
+                </label>
                 <textarea
                   value={decision.justification}
                   onChange={(e) => setDecision((prev) => ({ ...prev, justification: e.target.value }))}
                   className="mt-1 min-h-[90px] w-full rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-sm text-white/85 outline-none"
-                  placeholder="Incluye hallazgos clave del ECG, estabilidad hemodinámica y por qué eliges la conducta inicial."
+                  placeholder={
+                    revealDiagnosis
+                      ? "Describe los hallazgos del ECG que sostienen el diagnóstico y explica la conducta inicial."
+                      : "Incluye hallazgos clave del ECG, estabilidad hemodinámica y por qué eliges la conducta inicial."
+                  }
                 />
               </div>
 
@@ -1848,7 +1900,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
 
               </div>
 
-              {activeEcg && ecgConfig.showHints && (
+              {activeEcg && ecgConfig.showHints && revealDiagnosis && (
                 <div className="mt-3 rounded-xl border border-cyan-300/25 bg-cyan-300/10 p-2.5 text-xs text-cyan-100">
                   <div className="font-semibold">Pistas opcionales</div>
                   <div className="mt-1">{activeEcg.keyFindings.slice(0, 3).join(" · ")}</div>
@@ -2094,6 +2146,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
                 timeLabel={timeLabel}
                 contextLabel={contextLabel}
                 currentRiskLabel={currentRiskLabel}
+                revealDiagnosis={revealDiagnosis}
               />
             </div>
           </div>
