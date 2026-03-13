@@ -1225,6 +1225,8 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     [selectionMode, trainingMode]
   );
 
+  const canSelectTraceDirectly = trainingMode === "practice" || selectionMode === "manual";
+
   const interpretationPrompt = revealDiagnosis
     ? "1. ¿Qué hallazgo del ECG confirma este diagnóstico?"
     : "1. ¿Qué ritmo o alteración observas?";
@@ -1631,7 +1633,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
 
               <div>
                 <label className="text-xs text-white/60">Trazado seleccionado</label>
-                {selectionMode === "manual" ? (
+                {canSelectTraceDirectly ? (
                   <select
                     value={activeEcg?.id ?? ""}
                     onChange={(e) => handleSelectManual(e.target.value)}
@@ -1660,7 +1662,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
                   onClick={handleRandomEcg}
                   className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-3 py-2 text-left text-sm text-cyan-100"
                 >
-                  Generar caso aleatorio
+                  {trainingMode === "practice" ? "Generar caso" : "Generar caso aleatorio"}
                 </button>
                 <button
                   type="button"
