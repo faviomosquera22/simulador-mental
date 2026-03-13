@@ -262,6 +262,23 @@ export default function DynamicSimulatorPage() {
             </div>
           </header>
 
+          <section className="mt-4 rounded-2xl border border-emerald-400/15 bg-emerald-400/10 p-4">
+            <div className="text-xs uppercase tracking-[0.16em] text-emerald-100/70">Cómo usar este módulo</div>
+            <div className="mt-3 grid gap-3 md:grid-cols-4">
+              {[
+                ["Paso 1", "Lee el estado del paciente"],
+                ["Paso 2", "Busca la fase actual"],
+                ["Paso 3", "Haz clic en una sola acción"],
+                ["Paso 4", "Mira cómo cambia la evolución"],
+              ].map(([title, body]) => (
+                <div key={title} className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                  <div className="text-sm font-semibold text-white">{title}</div>
+                  <div className="mt-1 text-sm text-white/70">{body}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+
           <section className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-[#0B111D]/85 p-4 md:grid-cols-2 xl:grid-cols-9">
             <label className="text-xs text-white/70">
               Modo
@@ -455,6 +472,21 @@ export default function DynamicSimulatorPage() {
           <section className="mt-4 grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
             <div className="space-y-4">
               <div className="rounded-2xl border border-white/10 bg-[#0B101A]/90 p-4">
+                <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/25 p-3">
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.16em] text-white/45">Progreso del caso</div>
+                    <div className="mt-1 text-sm text-white/72">
+                      Has resuelto {selectedActionIds.length} de {scenario.stages.length} fases.
+                    </div>
+                  </div>
+                  <div className="w-40 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-2 rounded-full bg-emerald-300"
+                      style={{ width: `${(selectedActionIds.length / scenario.stages.length) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
                 <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
                   {[
                     { label: "FC", value: `${currentVitals.hr} lpm` },
@@ -491,11 +523,14 @@ export default function DynamicSimulatorPage() {
                 </div>
 
                 {currentStage ? (
-                  <div className="mt-4 rounded-2xl border border-white/10 bg-black/30 p-4">
+                  <div className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <div className="text-xs uppercase tracking-[0.14em] text-white/45">{currentStage.title}</div>
+                        <div className="text-xs uppercase tracking-[0.14em] text-emerald-100/75">Fase actual · responde aquí</div>
                         <div className="mt-2 text-lg font-semibold text-white">{currentStage.prompt}</div>
+                        <div className="mt-1 text-sm text-white/72">
+                          No debes escribir. Elige una sola acción y luego el paciente cambiará de estado.
+                        </div>
                       </div>
                       <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
                         {progressionMode === "realtime" ? formatTimer(timeRemaining) : "Paso guiado"}
@@ -503,14 +538,19 @@ export default function DynamicSimulatorPage() {
                     </div>
 
                     <div className="mt-4 space-y-2">
-                      {currentStage.actions.map((action) => (
+                      {currentStage.actions.map((action, index) => (
                         <button
                           key={action.id}
                           type="button"
                           onClick={() => chooseAction(action.id)}
-                          className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm text-white/82 transition hover:bg-white/10"
+                          className="w-full rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-left text-sm text-white/82 transition hover:bg-white/10"
                         >
-                          <div className="font-medium text-white">{action.label}</div>
+                          <div className="font-medium text-white">
+                            <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-white/5 text-xs text-white/75">
+                              {index + 1}
+                            </span>
+                            {action.label}
+                          </div>
                         </button>
                       ))}
                     </div>

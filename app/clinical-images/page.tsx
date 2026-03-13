@@ -173,6 +173,23 @@ export default function ClinicalImagesPage() {
             </div>
           </header>
 
+          <section className="mt-4 rounded-2xl border border-cyan-400/15 bg-cyan-400/10 p-4">
+            <div className="text-xs uppercase tracking-[0.16em] text-cyan-100/70">Cómo usar este módulo</div>
+            <div className="mt-3 grid gap-3 md:grid-cols-4">
+              {[
+                ["Paso 1", "Observa la referencia y el caso"],
+                ["Paso 2", "Busca la diferencia principal"],
+                ["Paso 3", "Responde en el panel derecho"],
+                ["Paso 4", "Valida y revisa feedback"],
+              ].map(([title, body]) => (
+                <div key={title} className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                  <div className="text-sm font-semibold text-white">{title}</div>
+                  <div className="mt-1 text-sm text-white/70">{body}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+
           <section className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-[#0B111D]/85 p-4 md:grid-cols-2 xl:grid-cols-7">
             <label className="text-xs text-white/70">
               Modo
@@ -341,7 +358,7 @@ export default function ClinicalImagesPage() {
             <div className="rounded-2xl border border-white/10 bg-[#0B101A]/90 p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <div className="text-xs uppercase tracking-[0.14em] text-white/45">Visor clínico</div>
+                  <div className="text-xs uppercase tracking-[0.14em] text-white/45">Paso 1 · Observa la imagen</div>
                   <div className="mt-1 text-lg font-semibold text-white">{caseSet.patientProfile.chiefComplaint}</div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -382,11 +399,14 @@ export default function ClinicalImagesPage() {
 
             <div className="space-y-4">
               <div className="rounded-2xl border border-white/10 bg-[#0B111D]/90 p-4">
-                <div className="text-xs uppercase tracking-[0.14em] text-white/45">Interpretación</div>
-                <div className="mt-2 text-sm text-white/70">{caseSet.questionStem}</div>
+                <div className="text-xs uppercase tracking-[0.14em] text-cyan-100/70">Paso 2 · Responde aquí</div>
+                <div className="mt-2 text-lg font-semibold text-white">{caseSet.questionStem}</div>
+                <div className="mt-1 text-sm text-white/65">
+                  Selecciona una sola interpretación y luego escribe brevemente por qué.
+                </div>
 
                 <div className="mt-4 space-y-2">
-                  {answerOptions.map((option) => (
+                  {answerOptions.map((option, index) => (
                     <button
                       key={option}
                       type="button"
@@ -397,6 +417,9 @@ export default function ClinicalImagesPage() {
                           : "border-white/10 bg-black/30 text-white/78 hover:bg-white/8"
                       }`}
                     >
+                      <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-black/20 text-xs text-white/70">
+                        {index + 1}
+                      </span>
                       {option}
                     </button>
                   ))}
@@ -419,7 +442,7 @@ export default function ClinicalImagesPage() {
                     onClick={validate}
                     className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black"
                   >
-                    Validar respuesta
+                    Paso 3 · Validar respuesta
                   </button>
                   <button
                     type="button"
@@ -444,7 +467,7 @@ export default function ClinicalImagesPage() {
                 <div className="rounded-2xl border border-white/10 bg-[#0B111D]/90 p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <div className="text-xs uppercase tracking-[0.14em] text-white/45">Feedback</div>
+                      <div className="text-xs uppercase tracking-[0.14em] text-cyan-100/70">Paso 4 · Feedback</div>
                       <div className="mt-1 text-lg font-semibold text-white">{result.totalScore}/100</div>
                     </div>
                     <div className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs text-cyan-100">
