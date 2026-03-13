@@ -129,6 +129,10 @@ function qrsWidth(profileQrs: "narrow" | "wide") {
   return profileQrs === "wide" ? 0.024 : 0.011;
 }
 
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
 function getVentricularTachycardiaLeadProfile(lead: string) {
   const profiles: Record<string, { shoulder: number; main: number; notch: number; terminal: number; phase: number; tWave: number }> =
     {
@@ -338,6 +342,69 @@ function riskProgression(currentRisk: string, trend: "improves" | "stable" | "de
   return "bajo";
 }
 
+function getAnimatedMonitorVitals(args: {
+  vitals: ECGCase["baselineVitals"] | ReturnType<typeof deriveVitalsForTrend> | null;
+  ecgCase: ECGCase | null;
+  phaseSeconds: number;
+  trend: "improves" | "stable" | "deteriorates";
+  requested: boolean;
+}) {
+  const { vitals, ecgCase, phaseSeconds, trend, requested } = args;
+  if (!vitals || !ecgCase || !requested) return vitals;
+
+  const pattern = ecgCase.waveform.pattern;
+  if (pattern === "vf_chaotic" || pattern === "asystole_flat") {
+    return {
+      ...vitals,
+      hr: 0,
+      sbp: 0,
+      dbp: 0,
+      spo2: 0,
+      rr: 0,
+      temp: vitals.temp,
+    };
+  }
+
+  const severityFactor =
+    trend === "deteriorates"
+      ? 1.25
+      : trend === "improves"
+      ? 0.7
+      : ecgCase.probableStability === "critical"
+      ? 1.15
+      : ecgCase.probableStability === "unstable"
+      ? 0.95
+      : 0.65;
+
+  const rhythmFactor = clamp(ecgCase.waveform.irregularity * 2.2 + (pattern === "af_irregular" ? 0.9 : 0.4), 0.35, 1.55);
+  const respiratoryPhase = Math.sin(phaseSeconds * 0.34);
+  const hemoPhase = Math.sin(phaseSeconds * 0.17 + 1.1);
+  const beatPhase = Math.sin(phaseSeconds * 1.85 + 0.4);
+
+  const hrVariation = Math.round((2 + severityFactor * 4 + rhythmFactor * 3) * beatPhase + rhythmFactor * 2 * respiratoryPhase);
+  const rrVariation = Math.round((1 + severityFactor * 1.6) * Math.sin(phaseSeconds * 0.22 + 0.8));
+  const spo2Variation = Math.round((severityFactor > 1 ? 2 : 1) * Math.sin(phaseSeconds * 0.18 + 2.2));
+  const sbpVariation = Math.round((3 + severityFactor * 4) * hemoPhase + (pattern === "vt_wide" ? -2 : 0));
+  const dbpVariation = Math.round((2 + severityFactor * 2.5) * Math.sin(phaseSeconds * 0.16 + 1.7));
+  const tempVariation = Math.sin(phaseSeconds * 0.03) * 0.08;
+
+  const hr = vitals.hr > 0 ? Math.max(0, Math.round(vitals.hr + hrVariation)) : 0;
+  const sbp = vitals.sbp > 0 ? Math.max(0, Math.round(vitals.sbp + sbpVariation)) : 0;
+  const dbp = vitals.dbp > 0 ? Math.max(0, Math.round(vitals.dbp + dbpVariation)) : 0;
+  const rr = vitals.rr > 0 ? Math.max(0, Math.round(vitals.rr + rrVariation)) : 0;
+  const spo2 = vitals.spo2 > 0 ? clamp(Math.round(vitals.spo2 + spo2Variation), 0, 100) : 0;
+
+  return {
+    ...vitals,
+    hr,
+    sbp,
+    dbp: dbp > sbp ? Math.max(0, sbp - 8) : dbp,
+    spo2,
+    rr,
+    temp: Number((vitals.temp + tempVariation).toFixed(1)),
+  };
+}
+
 function getAudioContextConstructor() {
   if (typeof window === "undefined") return null;
   const win = window as BrowserAudioWindow;
@@ -504,6 +571,74 @@ function MonitorLeadPreview({
             strokeDasharray="8 6"
           />
         )}
+      </svg>
+    </div>
+  );
+}
+
+function MonitorTrendStrip({
+  color,
+  label,
+  mode,
+  bpm,
+  phaseSeconds,
+  active,
+}: {
+  color: string;
+  label: string;
+  mode: "pleth" | "resp";
+  bpm: number;
+  phaseSeconds: number;
+  active: boolean;
+}) {
+  const width = 560;
+  const height = 72;
+
+  const path = useMemo(() => {
+    const points: string[] = [];
+    const yMid = height * 0.55;
+    const cycleSeconds = mode === "resp" ? 60 / Math.max(8, bpm) : 60 / Math.max(30, bpm);
+    const timeBase = phaseSeconds * (mode === "resp" ? 0.65 : 0.95);
+
+    for (let x = 0; x <= width; x += 3) {
+      const xNorm = x / width;
+      const t = timeBase + xNorm * (mode === "resp" ? 12 : 7);
+      const local = ((t / cycleSeconds) % 1 + 1) % 1;
+
+      const value =
+        !active
+          ? 0
+          : mode === "pleth"
+          ? 0.95 * gauss(local, 0.18, 0.03) +
+            0.46 * gauss(local, 0.28, 0.06) -
+            0.22 * gauss(local, 0.36, 0.015) +
+            0.06 * Math.sin(t * 1.2)
+          : 0.72 * Math.sin(local * Math.PI) - 0.18 * Math.sin(local * Math.PI * 2.2);
+
+      const scale = mode === "pleth" ? height * 0.35 : height * 0.28;
+      const y = yMid - value * scale;
+      points.push(`${x},${y.toFixed(2)}`);
+    }
+
+    return `M${points.join(" L")}`;
+  }, [active, bpm, height, mode, phaseSeconds, width]);
+
+  return (
+    <div className="relative overflow-hidden rounded-xl border border-white/10 bg-black/25">
+      <div
+        className="absolute inset-0 opacity-80"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)",
+          backgroundSize: "12px 12px",
+        }}
+      />
+      <div className="relative flex items-center justify-between px-3 pt-2 text-[10px] uppercase tracking-[0.18em] text-white/65">
+        <span>{label}</span>
+        <span>{active ? "activo" : "standby"}</span>
+      </div>
+      <svg viewBox={`0 0 ${width} ${height}`} className="relative h-[56px] w-full">
+        <path d={path} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" />
       </svg>
     </div>
   );
@@ -1057,6 +1192,18 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     });
   }, [activeEcg, trend]);
 
+  const monitorVitals = useMemo(
+    () =>
+      getAnimatedMonitorVitals({
+        vitals: derivedVitals,
+        ecgCase: activeEcg,
+        phaseSeconds,
+        trend,
+        requested,
+      }),
+    [activeEcg, derivedVitals, phaseSeconds, requested, trend]
+  );
+
   const interpretationOptions = useMemo(() => ECG_LIBRARY.map((item) => item.name), []);
 
   const monitorSubtitle = useMemo(() => {
@@ -1071,14 +1218,14 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     if (activeEcg.waveform.pattern === "vf_chaotic" || activeEcg.waveform.pattern === "asystole_flat") return true;
     if (trend === "deteriorates") return true;
     if (activeEcg.probableStability === "critical") return true;
-    if (!derivedVitals) return false;
+    if (!monitorVitals) return false;
 
     return (
-      (derivedVitals.sbp > 0 && derivedVitals.sbp < 90) ||
-      (derivedVitals.spo2 > 0 && derivedVitals.spo2 < 90) ||
-      derivedVitals.hr <= 0
+      (monitorVitals.sbp > 0 && monitorVitals.sbp < 90) ||
+      (monitorVitals.spo2 > 0 && monitorVitals.spo2 < 90) ||
+      monitorVitals.hr <= 0
     );
-  }, [activeEcg, derivedVitals, requested, trend]);
+  }, [activeEcg, monitorVitals, requested, trend]);
 
   const ensureAudioContext = useCallback(() => {
     const ctor = getAudioContextConstructor();
@@ -1396,7 +1543,103 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
           </div>
         </header>
 
-        <div className="grid shrink-0 gap-4 p-4 lg:grid-cols-[1.65fr_0.95fr] lg:items-start">
+        <section className="border-b border-white/10 bg-[#0C1422]/85 px-4 py-3">
+          <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="text-xs uppercase tracking-[0.18em] text-cyan-100/45">Selección de caso ECG</div>
+                <div className="mt-1 text-sm font-semibold text-white">Configura el caso antes de abrir el monitor</div>
+                <div className="mt-2 text-[11px] text-cyan-100/75">
+                  1) Elige contexto y modo. 2) Genera el caso. 3) Solicita ECG. 4) Interpreta y decide.
+                </div>
+              </div>
+              <div className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] uppercase tracking-[0.16em] text-white/65">
+                Contexto activo: {contextLabel}
+              </div>
+            </div>
+
+            <div className="mt-3 grid gap-3 xl:grid-cols-[1fr_1fr_1.15fr_0.9fr]">
+              <div>
+                <label className="text-xs text-white/60">Tipo de caso</label>
+                <select
+                  value={contextSelector}
+                  onChange={(e) => setContextSelector(e.target.value as "auto" | ECGClinicalContext)}
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-sm text-white/85 outline-none"
+                >
+                  {CONTEXT_SELECTOR_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs text-white/60">Modo de selección de ECG</label>
+                <select
+                  value={selectionMode}
+                  onChange={(e) => handleSelectionModeChange(e.target.value as ECGSelectionMode)}
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-sm text-white/85 outline-none"
+                >
+                  <option value="contextual_random">Aleatorio contextual</option>
+                  <option value="random">Aleatorio libre</option>
+                  <option value="manual">Manual</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs text-white/60">Trazado seleccionado</label>
+                {selectionMode === "manual" ? (
+                  <select
+                    value={activeEcg?.id ?? ""}
+                    onChange={(e) => handleSelectManual(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-sm text-white/85 outline-none"
+                  >
+                    {ECG_LIBRARY.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="mt-1 rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-sm text-white/80">
+                    {activeEcg?.name ?? "Sin ECG seleccionado"}
+                  </div>
+                )}
+              </div>
+
+              <div className="grid gap-2">
+                <button
+                  type="button"
+                  onClick={handleRandomEcg}
+                  className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-3 py-2 text-left text-sm text-cyan-100"
+                >
+                  Generar caso aleatorio
+                </button>
+                <button
+                  type="button"
+                  onClick={handleContinueEvolution}
+                  disabled={!requested}
+                  className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-left text-sm text-white/80 disabled:opacity-50"
+                >
+                  Continuar evolución
+                </button>
+              </div>
+            </div>
+
+            {attempts.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {attempts.slice(0, 4).map((item) => (
+                  <div key={item.id} className="rounded-full border border-white/10 bg-black/25 px-3 py-1.5 text-[11px] text-white/75">
+                    <span className="font-semibold text-white/90">{item.ecgName}</span> · {item.score}/100 · {trendLabel(item.trend)}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        <div className="grid shrink-0 gap-3 px-4 py-3 lg:grid-cols-[1.65fr_0.95fr] lg:items-start">
           <section className="rounded-2xl border border-white/10 bg-[#03090F] p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
@@ -1530,42 +1773,61 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
                 Audio del monitor: beep por latido y alarma crítica cuando el caso se deteriora.
               </div>
 
+              <div className="mt-2 grid gap-2">
+                <MonitorTrendStrip
+                  label="Pleth SpO₂"
+                  color="rgba(126,220,255,0.95)"
+                  mode="pleth"
+                  bpm={monitorVitals?.hr || activeEcg?.waveform.bpm || 60}
+                  phaseSeconds={phaseSeconds}
+                  active={requested && !!activeEcg && (monitorVitals?.spo2 ?? 0) > 0}
+                />
+                <MonitorTrendStrip
+                  label="Resp"
+                  color="rgba(183,166,255,0.95)"
+                  mode="resp"
+                  bpm={monitorVitals?.rr || 14}
+                  phaseSeconds={phaseSeconds}
+                  active={requested && !!activeEcg && (monitorVitals?.rr ?? 0) > 0}
+                />
+              </div>
+
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <MonitorMetric
                   label="FC"
-                  value={derivedVitals ? String(Math.max(0, derivedVitals.hr)) : "--"}
+                  value={monitorVitals ? String(Math.max(0, monitorVitals.hr)) : "--"}
                   unit="lpm"
                   tone="green"
-                  muted={!derivedVitals}
+                  muted={!monitorVitals}
                 />
                 <MonitorMetric
                   label="SpO₂"
-                  value={derivedVitals ? (derivedVitals.spo2 <= 0 ? "--" : String(derivedVitals.spo2)) : "--"}
+                  value={monitorVitals ? (monitorVitals.spo2 <= 0 ? "--" : String(monitorVitals.spo2)) : "--"}
                   unit="%"
                   tone="cyan"
-                  muted={!derivedVitals}
+                  muted={!monitorVitals}
                 />
                 <MonitorMetric
                   label="PA"
-                  value={derivedVitals ? (derivedVitals.sbp <= 0 || derivedVitals.dbp <= 0 ? "--/--" : `${derivedVitals.sbp}/${derivedVitals.dbp}`) : "--/--"}
+                  value={monitorVitals ? (monitorVitals.sbp <= 0 || monitorVitals.dbp <= 0 ? "--/--" : `${monitorVitals.sbp}/${monitorVitals.dbp}`) : "--/--"}
                   unit="mmHg"
                   tone="amber"
-                  muted={!derivedVitals}
+                  muted={!monitorVitals}
                   compact
                 />
                 <MonitorMetric
                   label="FR"
-                  value={derivedVitals ? (derivedVitals.rr <= 0 ? "--" : String(derivedVitals.rr)) : "--"}
+                  value={monitorVitals ? (monitorVitals.rr <= 0 ? "--" : String(monitorVitals.rr)) : "--"}
                   unit="rpm"
                   tone="violet"
-                  muted={!derivedVitals}
+                  muted={!monitorVitals}
                 />
                 <MonitorMetric
                   label="Temp"
-                  value={derivedVitals ? derivedVitals.temp.toFixed(1) : "--"}
+                  value={monitorVitals ? monitorVitals.temp.toFixed(1) : "--"}
                   unit="°C"
                   tone="orange"
-                  muted={!derivedVitals}
+                  muted={!monitorVitals}
                 />
                 <MonitorMetric label="Tiempo" value={timeLabel} unit="" tone="white" muted={!requested} />
               </div>
@@ -1599,94 +1861,6 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
                   )}
                 </div>
               </div>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-              <div className="text-xs uppercase tracking-wider text-white/50">Selección de caso ECG</div>
-              <div className="mt-2 rounded-xl border border-cyan-300/20 bg-cyan-300/5 p-2.5 text-[11px] text-cyan-100">
-                1) Elige tipo de caso y modo. 2) Pulsa &quot;Generar caso aleatorio&quot;. 3) Luego solicita ECG.
-              </div>
-
-              <div className="mt-3 space-y-2">
-                <div>
-                  <label className="text-xs text-white/60">Tipo de caso</label>
-                  <select
-                    value={contextSelector}
-                    onChange={(e) => setContextSelector(e.target.value as "auto" | ECGClinicalContext)}
-                    className="mt-1 w-full rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-sm text-white/85 outline-none"
-                  >
-                    {CONTEXT_SELECTOR_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-xs text-white/60">Modo de selección de ECG</label>
-                  <select
-                    value={selectionMode}
-                    onChange={(e) => handleSelectionModeChange(e.target.value as ECGSelectionMode)}
-                    className="mt-1 w-full rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-sm text-white/85 outline-none"
-                  >
-                    <option value="contextual_random">Aleatorio contextual</option>
-                    <option value="random">Aleatorio libre</option>
-                    <option value="manual">Manual</option>
-                  </select>
-                </div>
-
-                {selectionMode === "manual" && (
-                  <div>
-                    <label className="text-xs text-white/60">Seleccionar trazado manual</label>
-                    <select
-                      value={activeEcg?.id ?? ""}
-                      onChange={(e) => handleSelectManual(e.target.value)}
-                      className="mt-1 w-full rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-sm text-white/85 outline-none"
-                    >
-                      {ECG_LIBRARY.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {item.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-2 text-[11px] text-white/60">
-                Contexto activo: <span className="text-white/85">{contextLabel}</span>
-              </div>
-
-              <div className="mt-2 grid grid-cols-1 gap-2 text-xs">
-                <button
-                  type="button"
-                  onClick={handleRandomEcg}
-                  className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-3 py-2 text-left text-cyan-100"
-                >
-                  Generar caso aleatorio
-                </button>
-                <button
-                  type="button"
-                  onClick={handleContinueEvolution}
-                  disabled={!requested}
-                  className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-left text-white/80 disabled:opacity-50"
-                >
-                  Continuar evolución
-                </button>
-              </div>
-
-              {attempts.length > 0 && (
-                <div className="mt-3 space-y-2">
-                  <div className="text-[11px] text-white/55">Últimos intentos</div>
-                  {attempts.slice(0, 4).map((item) => (
-                    <div key={item.id} className="rounded-lg border border-white/10 bg-black/30 px-2.5 py-2 text-[11px] text-white/75">
-                      <div className="font-semibold text-white/90">{item.ecgName}</div>
-                      <div className="mt-0.5">{item.score}/100 · {trendLabel(item.trend)}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </aside>
         </div>
