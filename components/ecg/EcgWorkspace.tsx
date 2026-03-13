@@ -1639,235 +1639,105 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
           </div>
         </section>
 
-        <div className="grid shrink-0 gap-3 px-4 py-3 lg:grid-cols-[1.65fr_0.95fr] lg:items-start">
-          <section className="rounded-2xl border border-white/10 bg-[#03090F] p-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <div className="text-xs text-white/55">Zona central</div>
-                <div className="text-base font-semibold">{monitorSubtitle}</div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleRequestEcg}
-                  className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-3 py-1.5 text-xs text-cyan-100"
-                >
-                  Solicitar ECG
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleViewModeChange("rhythm_monitor")}
-                  disabled={!canUseRhythmMonitor}
-                  className={`rounded-xl border px-3 py-1.5 text-xs ${
-                    resolvedViewMode === "rhythm_monitor"
-                      ? "border-white/30 bg-white/10 text-white"
-                      : "border-white/10 bg-black/30 text-white/70"
-                  } disabled:opacity-45`}
-                >
-                  Monitor
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleViewModeChange("standard_12_lead")}
-                  disabled={!canUseStandard12Lead}
-                  className={`rounded-xl border px-3 py-1.5 text-xs ${
-                    resolvedViewMode === "standard_12_lead"
-                      ? "border-white/30 bg-white/10 text-white"
-                      : "border-white/10 bg-black/30 text-white/70"
-                  } disabled:opacity-45`}
-                >
-                  12 derivaciones
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleViewModeChange("expanded")}
-                  disabled={!canUseExpanded}
-                  className={`rounded-xl border px-3 py-1.5 text-xs ${
-                    resolvedViewMode === "expanded"
-                      ? "border-white/30 bg-white/10 text-white"
-                      : "border-white/10 bg-black/30 text-white/70"
-                  } disabled:opacity-45`}
-                >
-                  Derivaciones extra
-                </button>
-                <button
-                  type="button"
-                  onClick={handleOpenPrintPreview}
-                  disabled={!requested || !activeEcg}
-                  className="rounded-xl border border-white/15 bg-black/30 px-3 py-1.5 text-xs text-white/80 disabled:opacity-45"
-                >
-                  Imprimir ECG
-                </button>
-              </div>
-            </div>
+        <div className="min-h-0 flex-1 overflow-y-auto border-t border-white/10 bg-[#0B1220]/90 px-4 py-3">
+          <div className="grid min-h-full grid-cols-1 gap-3 xl:grid-cols-[1.65fr_0.95fr] xl:items-start">
+            <div className="space-y-3">
+              <section className="rounded-2xl border border-white/10 bg-[#03090F] p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <div className="text-xs text-white/55">Zona central</div>
+                    <div className="text-base font-semibold">{monitorSubtitle}</div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleRequestEcg}
+                      disabled={!activeEcg}
+                      className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-3 py-1.5 text-xs text-cyan-100 disabled:opacity-45"
+                    >
+                      Solicitar ECG
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleViewModeChange("rhythm_monitor")}
+                      disabled={!canUseRhythmMonitor}
+                      className={`rounded-xl border px-3 py-1.5 text-xs ${
+                        resolvedViewMode === "rhythm_monitor"
+                          ? "border-white/30 bg-white/10 text-white"
+                          : "border-white/10 bg-black/30 text-white/70"
+                      } disabled:opacity-45`}
+                    >
+                      Monitor
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleViewModeChange("standard_12_lead")}
+                      disabled={!canUseStandard12Lead}
+                      className={`rounded-xl border px-3 py-1.5 text-xs ${
+                        resolvedViewMode === "standard_12_lead"
+                          ? "border-white/30 bg-white/10 text-white"
+                          : "border-white/10 bg-black/30 text-white/70"
+                      } disabled:opacity-45`}
+                    >
+                      12 derivaciones
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleViewModeChange("expanded")}
+                      disabled={!canUseExpanded}
+                      className={`rounded-xl border px-3 py-1.5 text-xs ${
+                        resolvedViewMode === "expanded"
+                          ? "border-white/30 bg-white/10 text-white"
+                          : "border-white/10 bg-black/30 text-white/70"
+                      } disabled:opacity-45`}
+                    >
+                      Derivaciones extra
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleOpenPrintPreview}
+                      disabled={!requested || !activeEcg}
+                      className="rounded-xl border border-white/15 bg-black/30 px-3 py-1.5 text-xs text-white/80 disabled:opacity-45"
+                    >
+                      Imprimir ECG
+                    </button>
+                  </div>
+                </div>
 
-            <div className="mt-3 overflow-hidden rounded-2xl border border-emerald-300/25 bg-[#03130C] p-3">
-              {!requested || !activeEcg ? (
-                <div className="flex h-[240px] items-center justify-center rounded-xl border border-dashed border-white/20 bg-black/25 p-6 text-center text-sm text-white/65">
-                  Solicita monitor/ECG para iniciar análisis del trazado dentro del flujo del caso clínico.
-                </div>
-              ) : resolvedViewMode === "rhythm_monitor" ? (
-                <div className="h-[240px] lg:h-[260px]">
-                  <EcgLeadStrip lead="II" profile={activeEcg.waveform} phaseSeconds={phaseSeconds} />
-                </div>
-              ) : (
-                <div className="grid max-h-[380px] grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 xl:grid-cols-3">
-                  {visibleLeads.map((lead) => (
-                    <div key={lead} className="h-[100px] sm:h-[120px]">
-                      <EcgLeadStrip lead={lead} profile={activeEcg.waveform} phaseSeconds={phaseSeconds} compact />
+                <div className="mt-3 overflow-hidden rounded-2xl border border-emerald-300/25 bg-[#03130C] p-3">
+                  {!requested || !activeEcg ? (
+                    <div className="flex h-[240px] items-center justify-center rounded-xl border border-dashed border-white/20 bg-black/25 p-6 text-center text-sm text-white/65">
+                      Solicita monitor/ECG para iniciar análisis del trazado dentro del flujo del caso clínico.
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-white/60">
-              <span className="rounded-full border border-white/15 bg-black/25 px-2.5 py-1">
-                Visualización: {getEcgViewModeLabel(resolvedViewMode)}
-              </span>
-              <span className="rounded-full border border-white/15 bg-black/25 px-2.5 py-1">
-                Derivaciones visibles: {visibleLeads.join(", ")}
-              </span>
-              <span className={`rounded-full border px-2.5 py-1 ${toneByTrend(trend)}`}>
-                Evolución actual: {trendLabel(trend)}
-              </span>
-            </div>
-          </section>
-
-          <aside className="min-h-0 space-y-3 overflow-y-auto">
-            <div className="rounded-[26px] border border-cyan-300/10 bg-[#050A12] p-4 shadow-[0_25px_80px_rgba(0,0,0,0.35)]">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/45">Monitor multiparámetro</div>
-                  <div className="mt-1 text-sm font-semibold text-white">Signos vitales y estado hemodinámico</div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleToggleSound}
-                    className={`rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] ${
-                      soundEnabled
-                        ? "border-cyan-300/25 bg-cyan-300/10 text-cyan-100"
-                        : "border-white/10 bg-white/5 text-white/65"
-                    }`}
-                  >
-                    Sonido {soundEnabled ? "ON" : "OFF"}
-                  </button>
-                  <div
-                    className={`rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] ${
-                      requested
-                        ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-100"
-                        : "border-white/10 bg-white/5 text-white/65"
-                    }`}
-                  >
-                    {requested ? "Live" : "Standby"}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-3">
-                <MonitorLeadPreview profile={activeEcg?.waveform ?? null} phaseSeconds={phaseSeconds} active={requested && !!activeEcg} />
-              </div>
-
-              <div className="mt-2 text-[11px] text-cyan-100/70">
-                Audio del monitor: beep por latido y alarma crítica cuando el caso se deteriora.
-              </div>
-
-              <div className="mt-2 grid gap-2">
-                <MonitorTrendStrip
-                  label="Pleth SpO₂"
-                  color="rgba(126,220,255,0.95)"
-                  mode="pleth"
-                  bpm={monitorVitals?.hr || activeEcg?.waveform.bpm || 60}
-                  phaseSeconds={phaseSeconds}
-                  active={requested && !!activeEcg && (monitorVitals?.spo2 ?? 0) > 0}
-                />
-                <MonitorTrendStrip
-                  label="Resp"
-                  color="rgba(183,166,255,0.95)"
-                  mode="resp"
-                  bpm={monitorVitals?.rr || 14}
-                  phaseSeconds={phaseSeconds}
-                  active={requested && !!activeEcg && (monitorVitals?.rr ?? 0) > 0}
-                />
-              </div>
-
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <MonitorMetric
-                  label="FC"
-                  value={monitorVitals ? String(Math.max(0, monitorVitals.hr)) : "--"}
-                  unit="lpm"
-                  tone="green"
-                  muted={!monitorVitals}
-                />
-                <MonitorMetric
-                  label="SpO₂"
-                  value={monitorVitals ? (monitorVitals.spo2 <= 0 ? "--" : String(monitorVitals.spo2)) : "--"}
-                  unit="%"
-                  tone="cyan"
-                  muted={!monitorVitals}
-                />
-                <MonitorMetric
-                  label="PA"
-                  value={monitorVitals ? (monitorVitals.sbp <= 0 || monitorVitals.dbp <= 0 ? "--/--" : `${monitorVitals.sbp}/${monitorVitals.dbp}`) : "--/--"}
-                  unit="mmHg"
-                  tone="amber"
-                  muted={!monitorVitals}
-                  compact
-                />
-                <MonitorMetric
-                  label="FR"
-                  value={monitorVitals ? (monitorVitals.rr <= 0 ? "--" : String(monitorVitals.rr)) : "--"}
-                  unit="rpm"
-                  tone="violet"
-                  muted={!monitorVitals}
-                />
-                <MonitorMetric
-                  label="Temp"
-                  value={monitorVitals ? monitorVitals.temp.toFixed(1) : "--"}
-                  unit="°C"
-                  tone="orange"
-                  muted={!monitorVitals}
-                />
-                <MonitorMetric label="Tiempo" value={timeLabel} unit="" tone="white" muted={!requested} />
-              </div>
-
-              <div className="mt-3 grid gap-2 text-xs text-white/75">
-                <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-white/50">Estado clínico actual</span>
-                    <span className={`rounded-full border px-2 py-1 ${toneByTrend(trend)}`}>{trendLabel(trend)}</span>
-                  </div>
-                  <div className="mt-2 text-sm text-white/90">
-                    {activeEcg ? activeEcg.probableStability.replaceAll("_", " ") : "Sin trazado activo"}
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
-                  <div className="text-white/50">Riesgo del caso</div>
-                  <div className="mt-2 text-sm text-white/90">{currentRiskLabel}</div>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
-                  <div className="text-white/50">Síntomas principales</div>
-                  {activeEcg ? (
-                    <ul className="mt-2 list-disc space-y-1 pl-5 text-white/85">
-                      {activeEcg.symptomHints.slice(0, 4).map((hint) => (
-                        <li key={hint}>{hint}</li>
-                      ))}
-                    </ul>
+                  ) : resolvedViewMode === "rhythm_monitor" ? (
+                    <div className="h-[240px] lg:h-[260px]">
+                      <EcgLeadStrip lead="II" profile={activeEcg.waveform} phaseSeconds={phaseSeconds} />
+                    </div>
                   ) : (
-                    <div className="mt-2 text-white/60">Solicita el ECG para activar los datos clínicos del monitor.</div>
+                    <div className="grid max-h-[380px] grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 xl:grid-cols-3">
+                      {visibleLeads.map((lead) => (
+                        <div key={lead} className="h-[100px] sm:h-[120px]">
+                          <EcgLeadStrip lead={lead} profile={activeEcg.waveform} phaseSeconds={phaseSeconds} compact />
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
-              </div>
-            </div>
-          </aside>
-        </div>
 
-        <section className="min-h-0 flex-1 overflow-y-auto border-t border-white/10 bg-[#0B1220]/90 px-4 py-3">
-          <div className="grid grid-cols-1 gap-3 xl:grid-cols-[1.2fr_0.8fr]">
-            <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-white/60">
+                  <span className="rounded-full border border-white/15 bg-black/25 px-2.5 py-1">
+                    Visualización: {getEcgViewModeLabel(resolvedViewMode)}
+                  </span>
+                  <span className="rounded-full border border-white/15 bg-black/25 px-2.5 py-1">
+                    Derivaciones visibles: {activeEcg && requested ? visibleLeads.join(", ") : "Sin caso activo"}
+                  </span>
+                  <span className={`rounded-full border px-2.5 py-1 ${toneByTrend(trend)}`}>
+                    Evolución actual: {trendLabel(trend)}
+                  </span>
+                </div>
+              </section>
+
+              <section className="rounded-2xl border border-white/10 bg-black/25 p-3">
               <div className="text-xs uppercase tracking-wider text-white/50">Zona inferior · Interacciones del estudiante</div>
 
               <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2">
@@ -1987,67 +1857,202 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
                   </div>
                 </div>
               )}
+              </section>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
-              <div className="text-xs uppercase tracking-wider text-white/50">Feedback automático</div>
-
-              {!evaluation ? (
-                <div className="mt-2 rounded-xl border border-dashed border-white/20 bg-black/25 p-3 text-xs text-white/60">
-                  El sistema calificará interpretación, gravedad, conducta inicial, velocidad, coherencia y justificación.
-                </div>
-              ) : (
-                <>
-                  <div
-                    className={`mt-2 rounded-xl border px-3 py-2 text-sm ${
-                      outcomeTone(evaluation.outcome) === "emerald"
-                        ? "border-emerald-400/35 bg-emerald-400/10 text-emerald-100"
-                        : outcomeTone(evaluation.outcome) === "cyan"
-                        ? "border-cyan-300/35 bg-cyan-300/10 text-cyan-100"
-                        : outcomeTone(evaluation.outcome) === "amber"
-                        ? "border-amber-400/35 bg-amber-400/10 text-amber-100"
-                        : "border-red-400/35 bg-red-400/10 text-red-100"
-                    }`}
-                  >
-                    Puntaje total: <span className="font-semibold">{evaluation.totalScore}/100</span>
+            <div className="space-y-3">
+              <aside className="rounded-[26px] border border-cyan-300/10 bg-[#050A12] p-4 shadow-[0_25px_80px_rgba(0,0,0,0.35)]">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/45">Monitor multiparámetro</div>
+                    <div className="mt-1 text-sm font-semibold text-white">Signos vitales y estado hemodinámico</div>
                   </div>
-
-                  {!feedbackVisible && !ecgConfig.immediateFeedback ? (
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => setFeedbackVisible(true)}
-                      className="mt-2 rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-xs text-white/85"
+                      onClick={handleToggleSound}
+                      className={`rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] ${
+                        soundEnabled
+                          ? "border-cyan-300/25 bg-cyan-300/10 text-cyan-100"
+                          : "border-white/10 bg-white/5 text-white/65"
+                      }`}
                     >
-                      Ver feedback detallado
+                      Sonido {soundEnabled ? "ON" : "OFF"}
                     </button>
-                  ) : (
-                    <div className="mt-2 space-y-2">
-                      <ScoreRow label="Interpretación" value={evaluation.rubric.interpretation} max={20} />
-                      <ScoreRow label="Gravedad" value={evaluation.rubric.severity} max={20} />
-                      <ScoreRow label="Conducta" value={evaluation.rubric.conduct} max={25} />
-                      <ScoreRow label="Velocidad" value={evaluation.rubric.speed} max={10} />
-                      <ScoreRow label="Coherencia" value={evaluation.rubric.coherence} max={10} />
-                      <ScoreRow label="Justificación" value={evaluation.rubric.justification} max={10} />
-                      <ScoreRow label="Derivaciones" value={evaluation.rubric.additionalLeads} max={5} />
+                    <div
+                      className={`rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] ${
+                        requested
+                          ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-100"
+                          : "border-white/10 bg-white/5 text-white/65"
+                      }`}
+                    >
+                      {requested ? "Live" : "Standby"}
+                    </div>
+                  </div>
+                </div>
 
-                      <div className="rounded-xl border border-white/10 bg-black/35 p-2.5 text-[11px] text-white/75">
-                        <div>{evaluation.feedback.interpretation}</div>
-                        <div className="mt-1">{evaluation.feedback.stability}</div>
-                        <div className="mt-1">{evaluation.feedback.conduct}</div>
-                        <div className="mt-1">{evaluation.feedback.additionalLeads}</div>
-                        <div className="mt-1">{evaluation.feedback.speed}</div>
-                        <div className="mt-1">{evaluation.feedback.justification}</div>
-                        <div className="mt-2 rounded-lg border border-white/10 bg-black/25 px-2 py-1 text-white/85">
-                          {evaluation.feedback.summary}
+                <div className="mt-3">
+                  <MonitorLeadPreview
+                    profile={requested && activeEcg ? activeEcg.waveform : null}
+                    phaseSeconds={phaseSeconds}
+                    active={requested && !!activeEcg}
+                  />
+                </div>
+
+                <div className="mt-2 text-[11px] text-cyan-100/70">
+                  Audio del monitor: beep por latido y alarma crítica cuando el caso se deteriora.
+                </div>
+
+                <div className="mt-2 grid gap-2">
+                  <MonitorTrendStrip
+                    label="Pleth SpO₂"
+                    color="rgba(126,220,255,0.95)"
+                    mode="pleth"
+                    bpm={monitorVitals?.hr || activeEcg?.waveform.bpm || 60}
+                    phaseSeconds={phaseSeconds}
+                    active={requested && !!activeEcg && (monitorVitals?.spo2 ?? 0) > 0}
+                  />
+                  <MonitorTrendStrip
+                    label="Resp"
+                    color="rgba(183,166,255,0.95)"
+                    mode="resp"
+                    bpm={monitorVitals?.rr || 14}
+                    phaseSeconds={phaseSeconds}
+                    active={requested && !!activeEcg && (monitorVitals?.rr ?? 0) > 0}
+                  />
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <MonitorMetric
+                    label="FC"
+                    value={monitorVitals ? String(Math.max(0, monitorVitals.hr)) : "--"}
+                    unit="lpm"
+                    tone="green"
+                    muted={!monitorVitals}
+                  />
+                  <MonitorMetric
+                    label="SpO₂"
+                    value={monitorVitals ? (monitorVitals.spo2 <= 0 ? "--" : String(monitorVitals.spo2)) : "--"}
+                    unit="%"
+                    tone="cyan"
+                    muted={!monitorVitals}
+                  />
+                  <MonitorMetric
+                    label="PA"
+                    value={monitorVitals ? (monitorVitals.sbp <= 0 || monitorVitals.dbp <= 0 ? "--/--" : `${monitorVitals.sbp}/${monitorVitals.dbp}`) : "--/--"}
+                    unit="mmHg"
+                    tone="amber"
+                    muted={!monitorVitals}
+                    compact
+                  />
+                  <MonitorMetric
+                    label="FR"
+                    value={monitorVitals ? (monitorVitals.rr <= 0 ? "--" : String(monitorVitals.rr)) : "--"}
+                    unit="rpm"
+                    tone="violet"
+                    muted={!monitorVitals}
+                  />
+                  <MonitorMetric
+                    label="Temp"
+                    value={monitorVitals ? monitorVitals.temp.toFixed(1) : "--"}
+                    unit="°C"
+                    tone="orange"
+                    muted={!monitorVitals}
+                  />
+                  <MonitorMetric label="Tiempo" value={timeLabel} unit="" tone="white" muted={!requested} />
+                </div>
+
+                <div className="mt-3 grid gap-2 text-xs text-white/75">
+                  <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-white/50">Estado clínico actual</span>
+                      <span className={`rounded-full border px-2 py-1 ${toneByTrend(trend)}`}>{trendLabel(trend)}</span>
+                    </div>
+                    <div className="mt-2 text-sm text-white/90">
+                      {activeEcg ? activeEcg.probableStability.replaceAll("_", " ") : "Sin trazado activo"}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
+                    <div className="text-white/50">Riesgo del caso</div>
+                    <div className="mt-2 text-sm text-white/90">{currentRiskLabel}</div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
+                    <div className="text-white/50">Síntomas principales</div>
+                    {activeEcg ? (
+                      <ul className="mt-2 list-disc space-y-1 pl-5 text-white/85">
+                        {activeEcg.symptomHints.slice(0, 4).map((hint) => (
+                          <li key={hint}>{hint}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="mt-2 text-white/60">Solicita el ECG para activar los datos clínicos del monitor.</div>
+                    )}
+                  </div>
+                </div>
+              </aside>
+
+              <section className="rounded-2xl border border-white/10 bg-black/25 p-3">
+                <div className="text-xs uppercase tracking-wider text-white/50">Feedback automático</div>
+
+                {!evaluation ? (
+                  <div className="mt-2 rounded-xl border border-dashed border-white/20 bg-black/25 p-3 text-xs text-white/60">
+                    El sistema calificará interpretación, gravedad, conducta inicial, velocidad, coherencia y justificación.
+                  </div>
+                ) : (
+                  <>
+                    <div
+                      className={`mt-2 rounded-xl border px-3 py-2 text-sm ${
+                        outcomeTone(evaluation.outcome) === "emerald"
+                          ? "border-emerald-400/35 bg-emerald-400/10 text-emerald-100"
+                          : outcomeTone(evaluation.outcome) === "cyan"
+                          ? "border-cyan-300/35 bg-cyan-300/10 text-cyan-100"
+                          : outcomeTone(evaluation.outcome) === "amber"
+                          ? "border-amber-400/35 bg-amber-400/10 text-amber-100"
+                          : "border-red-400/35 bg-red-400/10 text-red-100"
+                      }`}
+                    >
+                      Puntaje total: <span className="font-semibold">{evaluation.totalScore}/100</span>
+                    </div>
+
+                    {!feedbackVisible && !ecgConfig.immediateFeedback ? (
+                      <button
+                        type="button"
+                        onClick={() => setFeedbackVisible(true)}
+                        className="mt-2 rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-xs text-white/85"
+                      >
+                        Ver feedback detallado
+                      </button>
+                    ) : (
+                      <div className="mt-2 space-y-2">
+                        <ScoreRow label="Interpretación" value={evaluation.rubric.interpretation} max={20} />
+                        <ScoreRow label="Gravedad" value={evaluation.rubric.severity} max={20} />
+                        <ScoreRow label="Conducta" value={evaluation.rubric.conduct} max={25} />
+                        <ScoreRow label="Velocidad" value={evaluation.rubric.speed} max={10} />
+                        <ScoreRow label="Coherencia" value={evaluation.rubric.coherence} max={10} />
+                        <ScoreRow label="Justificación" value={evaluation.rubric.justification} max={10} />
+                        <ScoreRow label="Derivaciones" value={evaluation.rubric.additionalLeads} max={5} />
+
+                        <div className="rounded-xl border border-white/10 bg-black/35 p-2.5 text-[11px] text-white/75">
+                          <div>{evaluation.feedback.interpretation}</div>
+                          <div className="mt-1">{evaluation.feedback.stability}</div>
+                          <div className="mt-1">{evaluation.feedback.conduct}</div>
+                          <div className="mt-1">{evaluation.feedback.additionalLeads}</div>
+                          <div className="mt-1">{evaluation.feedback.speed}</div>
+                          <div className="mt-1">{evaluation.feedback.justification}</div>
+                          <div className="mt-2 rounded-lg border border-white/10 bg-black/25 px-2 py-1 text-white/85">
+                            {evaluation.feedback.summary}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
-                </>
-              )}
+                    )}
+                  </>
+                )}
+              </section>
             </div>
           </div>
-        </section>
+        </div>
       </div>
 
       {printPreviewOpen && activeEcg && (
