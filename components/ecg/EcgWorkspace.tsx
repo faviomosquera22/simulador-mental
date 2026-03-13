@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ECG_CONDUCT_OPTIONS,
   ECG_LIBRARY,
@@ -10,6 +10,7 @@ import {
   type ECGConductId,
   type ECGDecisionInput,
   type ECGDecisionStability,
+  type ECGLead,
   type ECGModuleConfig,
   type ECGPattern,
   type ECGSelectionMode,
@@ -34,6 +35,7 @@ import {
   POSTERIOR_LEADS,
   RIGHT_LEADS,
   resolveEcgViewModeForCase,
+  STANDARD_12_LEADS,
   supportsEcgViewMode,
 } from "@/src/lib/ecgLibrary";
 
@@ -344,6 +346,139 @@ function EcgLeadStrip({
   );
 }
 
+const STANDARD_PRINT_LAYOUT: ECGLead[][] = [
+  ["I", "aVR", "V1", "V4"],
+  ["II", "aVL", "V2", "V5"],
+  ["III", "aVF", "V3", "V6"],
+];
+
+function EcgPaperLead({
+  lead,
+  profile,
+  phaseSeconds,
+  longStrip = false,
+}: {
+  lead: string;
+  profile: ECGCase["waveform"];
+  phaseSeconds: number;
+  longStrip?: boolean;
+}) {
+  const width = longStrip ? 940 : 250;
+  const height = 120;
+  const path = useMemo(
+    () =>
+      buildWavePath({
+        width,
+        height,
+        lead,
+        profile,
+        phaseSeconds,
+      }),
+    [height, lead, phaseSeconds, profile, width]
+  );
+
+  return (
+    <div className="relative overflow-hidden rounded-lg border border-rose-900/10 bg-[#fffdf8]">
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(239,68,68,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(239,68,68,0.12) 1px, transparent 1px), linear-gradient(rgba(244,63,94,0.22) 1px, transparent 1px), linear-gradient(90deg, rgba(244,63,94,0.22) 1px, transparent 1px)",
+          backgroundSize: "4px 4px, 4px 4px, 20px 20px, 20px 20px",
+        }}
+      />
+      <svg viewBox={`0 0 ${width} ${height}`} className="relative h-full w-full">
+        <path d={path} fill="none" stroke="rgba(17,24,39,0.96)" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+      <div className="absolute left-2 top-1 rounded bg-white/80 px-1.5 py-0.5 text-[10px] font-semibold text-slate-700">
+        {lead}
+      </div>
+    </div>
+  );
+}
+
+function EcgPrintSheet({
+  ecgCase,
+  phaseSeconds,
+  visibleLeads,
+  resolvedViewMode,
+  timeLabel,
+  contextLabel,
+  currentRiskLabel,
+}: {
+  ecgCase: ECGCase;
+  phaseSeconds: number;
+  visibleLeads: string[];
+  resolvedViewMode: ECGViewMode;
+  timeLabel: string;
+  contextLabel: string;
+  currentRiskLabel: string;
+}) {
+  const extraLeads = visibleLeads.filter((lead) => !STANDARD_12_LEADS.includes(lead as ECGLead));
+
+  return (
+    <div className="mx-auto w-full max-w-[1180px] rounded-[28px] border border-black/10 bg-[#fffefb] p-5 text-slate-900 shadow-[0_40px_100px_rgba(0,0,0,0.35)]">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-black/10 pb-4">
+        <div>
+          <div className="text-xs uppercase tracking-[0.18em] text-slate-500">Hoja de ECG</div>
+          <div className="mt-1 text-2xl font-semibold text-slate-900">{ecgCase.name}</div>
+          <div className="mt-2 text-sm text-slate-600">
+            Formato de impresión para interpretación clínica.
+          </div>
+        </div>
+
+        <div className="grid gap-1 text-right text-xs text-slate-600">
+          <div>Velocidad: 25 mm/s</div>
+          <div>Ganancia: 10 mm/mV</div>
+          <div>Contexto: {contextLabel}</div>
+          <div>Riesgo actual: {currentRiskLabel}</div>
+          <div>Temporizador del caso: {timeLabel}</div>
+        </div>
+      </div>
+
+      {resolvedViewMode === "rhythm_monitor" ? (
+        <div className="mt-5 space-y-4">
+          <div className="text-sm font-semibold text-slate-700">Tira de ritmo continua</div>
+          <div className="h-[140px]">
+            <EcgPaperLead lead="II" profile={ecgCase.waveform} phaseSeconds={phaseSeconds} longStrip />
+          </div>
+        </div>
+      ) : (
+        <div className="mt-5 space-y-4">
+          <div className="text-sm font-semibold text-slate-700">ECG estándar de 12 derivaciones</div>
+          <div className="grid gap-2 lg:grid-cols-4">
+            {STANDARD_PRINT_LAYOUT.flat().map((lead) => (
+              <div key={lead} className="h-[120px]">
+                <EcgPaperLead lead={lead} profile={ecgCase.waveform} phaseSeconds={phaseSeconds} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {extraLeads.length > 0 && (
+        <div className="mt-5 space-y-3">
+          <div className="text-sm font-semibold text-slate-700">Derivaciones complementarias</div>
+          <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+            {extraLeads.map((lead) => (
+              <div key={lead} className="h-[120px]">
+                <EcgPaperLead lead={lead} profile={ecgCase.waveform} phaseSeconds={phaseSeconds} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-5 space-y-3">
+        <div className="text-sm font-semibold text-slate-700">Tira larga de ritmo</div>
+        <div className="h-[140px]">
+          <EcgPaperLead lead="II" profile={ecgCase.waveform} phaseSeconds={phaseSeconds} longStrip />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ScoreRow({ label, value, max }: { label: string; value: number; max: number }) {
   const pct = Math.max(0, Math.min(100, Math.round((value / Math.max(1, max)) * 100)));
   return (
@@ -405,7 +540,8 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
   const [activeEcg, setActiveEcg] = useState<ECGCase | null>(null);
   const [viewMode, setViewMode] = useState<ECGViewMode>(ecgConfig.viewMode);
   const [requested, setRequested] = useState(false);
-  const [frozen, setFrozen] = useState(false);
+  const [printPreviewOpen, setPrintPreviewOpen] = useState(false);
+  const [printPhaseSeconds, setPrintPhaseSeconds] = useState(0);
   const [decision, setDecision] = useState<DecisionState>(EMPTY_DECISION);
   const [evaluation, setEvaluation] = useState<ReturnType<typeof evaluateEcgDecision> | null>(null);
   const [feedbackVisible, setFeedbackVisible] = useState(ecgConfig.immediateFeedback);
@@ -415,6 +551,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
   const [tick, setTick] = useState(0);
   const [selectionMode, setSelectionMode] = useState<ECGSelectionMode>(ecgConfig.selectionMode);
   const [contextSelector, setContextSelector] = useState<"auto" | ECGClinicalContext>("auto");
+  const printSheetRef = useRef<HTMLDivElement | null>(null);
 
   const caseId = useMemo(
     () => String(caseObject?.id ?? caseObject?.meta?.case_id ?? "default"),
@@ -494,15 +631,15 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     setFeedbackVisible(ecgConfigStable.immediateFeedback);
     setTrend("stable");
     setStartedAt(null);
+    setPrintPreviewOpen(false);
   }, [caseId, ecgConfigStable, inferredContext]);
 
   useEffect(() => {
     if (!open) return;
-    if (frozen) return;
     setTick(Date.now());
     const id = window.setInterval(() => setTick(Date.now()), 110);
     return () => window.clearInterval(id);
-  }, [open, frozen]);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -713,6 +850,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     setStartedAt(Date.now());
     setEvaluation(null);
     setFeedbackVisible(ecgConfig.immediateFeedback);
+    setPrintPreviewOpen(false);
   };
 
   const handleSelectManual = (id: string) => {
@@ -725,6 +863,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     setEvaluation(null);
     setTrend("stable");
     setStartedAt(null);
+    setPrintPreviewOpen(false);
   };
 
   const handleRandomEcg = () => {
@@ -735,6 +874,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     setEvaluation(null);
     setTrend("stable");
     setStartedAt(null);
+    setPrintPreviewOpen(false);
   };
 
   const handleSelectionModeChange = (mode: ECGSelectionMode) => {
@@ -748,6 +888,54 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     setEvaluation(null);
     setTrend("stable");
     setStartedAt(null);
+    setPrintPreviewOpen(false);
+  };
+
+  const handleOpenPrintPreview = () => {
+    if (!activeEcg || !requested) return;
+    setPrintPhaseSeconds(phaseSeconds);
+    setPrintPreviewOpen(true);
+  };
+
+  const handleBrowserPrint = () => {
+    if (!printSheetRef.current || typeof window === "undefined") return;
+
+    const popup = window.open("", "_blank", "width=1280,height=900");
+    if (!popup) return;
+
+    const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+      .map((node) => node.outerHTML)
+      .join("\n");
+
+    popup.document.open();
+    popup.document.write(`
+      <!doctype html>
+      <html lang="es">
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <title>Impresión ECG</title>
+          ${styles}
+          <style>
+            body {
+              margin: 0;
+              padding: 24px;
+              background: #f4f1eb;
+              font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            }
+            @page {
+              margin: 12mm;
+            }
+          </style>
+        </head>
+        <body>
+          ${printSheetRef.current.outerHTML}
+        </body>
+      </html>
+    `);
+    popup.document.close();
+    popup.focus();
+    window.setTimeout(() => popup.print(), 250);
   };
 
   const handleEvaluate = () => {
@@ -801,7 +989,6 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     }
 
     setRequested(true);
-    setFrozen(false);
     setDecision((prev) => ({
       ...EMPTY_DECISION,
       requestedAdditionalLeads: prev.requestedAdditionalLeads,
@@ -809,6 +996,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     setEvaluation(null);
     setFeedbackVisible(ecgConfig.immediateFeedback);
     setStartedAt(Date.now());
+    setPrintPreviewOpen(false);
 
     if (onCaseObjectChange && caseObject) {
       const nextRisk = riskProgression(currentRiskLabel, evalTrend);
@@ -918,10 +1106,11 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setFrozen((prev) => !prev)}
-                  className="rounded-xl border border-white/15 bg-black/30 px-3 py-1.5 text-xs text-white/80"
+                  onClick={handleOpenPrintPreview}
+                  disabled={!requested || !activeEcg}
+                  className="rounded-xl border border-white/15 bg-black/30 px-3 py-1.5 text-xs text-white/80 disabled:opacity-45"
                 >
-                  {frozen ? "Continuar trazado" : "Pausar/congelar"}
+                  Imprimir ECG
                 </button>
               </div>
             </div>
@@ -1288,6 +1477,51 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
           </div>
         </section>
       </div>
+
+      {printPreviewOpen && activeEcg && (
+        <div className="fixed inset-0 z-[140] flex items-start justify-center overflow-y-auto bg-black/75 p-4 sm:p-6">
+          <div className="w-full max-w-[1240px]">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-white/10 bg-[#111827]/95 px-4 py-3 text-white shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+              <div>
+                <div className="text-xs uppercase tracking-[0.18em] text-white/50">Vista de impresión</div>
+                <div className="mt-1 text-base font-semibold">Formato tipo cardiología para interpretación</div>
+                <div className="mt-1 text-xs text-white/65">
+                  Hoja estática a 25 mm/s y 10 mm/mV con tira larga en DII.
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleBrowserPrint}
+                  className="rounded-xl border border-slate-300/20 bg-white px-3 py-2 text-sm font-semibold text-slate-900"
+                >
+                  Imprimir con navegador
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPrintPreviewOpen(false)}
+                  className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white/85"
+                >
+                  Cerrar impresión
+                </button>
+              </div>
+            </div>
+
+            <div ref={printSheetRef}>
+              <EcgPrintSheet
+                ecgCase={activeEcg}
+                phaseSeconds={printPhaseSeconds}
+                visibleLeads={visibleLeads}
+                resolvedViewMode={resolvedViewMode}
+                timeLabel={timeLabel}
+                contextLabel={contextLabel}
+                currentRiskLabel={currentRiskLabel}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
