@@ -18,6 +18,7 @@ import {
   evaluateEcgDecision,
   getAdditionalLeadRequestLabel,
   getClinicalContextLabel,
+  getDefaultAdditionalLeadRequestForCase,
   getDecisionStabilityLabel,
   getDynamicNextEcg,
   getEcgCaseById,
@@ -30,6 +31,10 @@ import {
   leadSetSummary,
   normalizeEcgModuleConfig,
   outcomeTone,
+  POSTERIOR_LEADS,
+  RIGHT_LEADS,
+  resolveEcgViewModeForCase,
+  supportsEcgViewMode,
 } from "@/src/lib/ecgLibrary";
 
 type EcgWorkspaceProps = {
@@ -537,15 +542,128 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
 
   const contextLabel = useMemo(() => getClinicalContextLabel(effectiveContext), [effectiveContext]);
 
+  const canUseRhythmMonitor = useMemo(
+    () =>
+      activeEcg
+        ? supportsEcgViewMode({
+            ecgCase: activeEcg,
+            mode: "rhythm_monitor",
+            allowAdditionalLeads: ecgConfig.allowAdditionalLeads,
+          })
+        : false,
+    [activeEcg, ecgConfig.allowAdditionalLeads]
+  );
+
+  const canUseStandard12Lead = useMemo(
+    () =>
+      activeEcg
+        ? supportsEcgViewMode({
+            ecgCase: activeEcg,
+            mode: "standard_12_lead",
+            allowAdditionalLeads: ecgConfig.allowAdditionalLeads,
+          })
+        : false,
+    [activeEcg, ecgConfig.allowAdditionalLeads]
+  );
+
+  const canUseExpanded = useMemo(
+    () =>
+      activeEcg
+        ? supportsEcgViewMode({
+            ecgCase: activeEcg,
+            mode: "expanded",
+            allowAdditionalLeads: ecgConfig.allowAdditionalLeads,
+          })
+        : false,
+    [activeEcg, ecgConfig.allowAdditionalLeads]
+  );
+
+  const defaultAdditionalLeadRequest = useMemo(
+    () => (activeEcg ? getDefaultAdditionalLeadRequestForCase(activeEcg) : "none"),
+    [activeEcg]
+  );
+
+  const availableAdditionalLeadOptions = useMemo(() => {
+    if (!activeEcg || !canUseExpanded) return ["none"] as ECGAdditionalLeadRequest[];
+
+    const hasRight = RIGHT_LEADS.some((lead) => activeEcg.availableLeads.includes(lead));
+    const hasPosterior = POSTERIOR_LEADS.some((lead) => activeEcg.availableLeads.includes(lead));
+    const next: ECGAdditionalLeadRequest[] = ["none"];
+
+    if (hasRight) next.push("right");
+    if (hasPosterior) next.push("posterior");
+    if (hasRight && hasPosterior) next.push("both");
+
+    return next;
+  }, [activeEcg, canUseExpanded]);
+
+  const resolvedViewMode = useMemo(
+    () =>
+      activeEcg
+        ? resolveEcgViewModeForCase({
+            ecgCase: activeEcg,
+            preferredMode: viewMode,
+            allowAdditionalLeads: ecgConfig.allowAdditionalLeads,
+          })
+        : viewMode,
+    [activeEcg, viewMode, ecgConfig.allowAdditionalLeads]
+  );
+
+  useEffect(() => {
+    if (!activeEcg) return;
+    if (resolvedViewMode !== viewMode) {
+      setViewMode(resolvedViewMode);
+    }
+  }, [activeEcg, resolvedViewMode, viewMode]);
+
+  useEffect(() => {
+    if (!activeEcg) return;
+
+    if (!canUseExpanded && decision.requestedAdditionalLeads !== "none") {
+      setDecision((prev) => ({ ...prev, requestedAdditionalLeads: "none" }));
+      return;
+    }
+
+    if (!availableAdditionalLeadOptions.includes(decision.requestedAdditionalLeads)) {
+      setDecision((prev) => ({
+        ...prev,
+        requestedAdditionalLeads:
+          defaultAdditionalLeadRequest !== "none" && availableAdditionalLeadOptions.includes(defaultAdditionalLeadRequest)
+            ? defaultAdditionalLeadRequest
+            : "none",
+      }));
+      return;
+    }
+
+    if (
+      resolvedViewMode === "expanded" &&
+      canUseExpanded &&
+      decision.requestedAdditionalLeads === "none" &&
+      defaultAdditionalLeadRequest !== "none"
+    ) {
+      setDecision((prev) => ({
+        ...prev,
+        requestedAdditionalLeads: defaultAdditionalLeadRequest,
+      }));
+    }
+  }, [
+    activeEcg,
+    availableAdditionalLeadOptions,
+    canUseExpanded,
+    decision.requestedAdditionalLeads,
+    defaultAdditionalLeadRequest,
+    resolvedViewMode,
+  ]);
+
   const visibleLeads = useMemo(() => {
     if (!activeEcg) return ["II"];
     return getVisibleLeads({
       ecgCase: activeEcg,
-      mode: viewMode,
+      mode: resolvedViewMode,
       allowAdditionalLeads: ecgConfig.allowAdditionalLeads,
       requestedAdditionalLeads: decision.requestedAdditionalLeads,
     });
-  }, [activeEcg, viewMode, ecgConfig.allowAdditionalLeads, decision.requestedAdditionalLeads]);
+  }, [activeEcg, resolvedViewMode, ecgConfig.allowAdditionalLeads, decision.requestedAdditionalLeads]);
 
   const phaseSeconds = useMemo(() => tick / 1000, [tick]);
 
@@ -564,6 +682,30 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     if (ecgConfig.showRhythmName) return activeEcg.name;
     return `${getEcgDifficultyLabel(activeEcg.difficulty)} · ${activeEcg.category}`;
   }, [activeEcg, ecgConfig.showRhythmName]);
+
+  const handleViewModeChange = (nextMode: ECGViewMode) => {
+    if (!activeEcg) {
+      setViewMode(nextMode);
+      return;
+    }
+
+    const supported = supportsEcgViewMode({
+      ecgCase: activeEcg,
+      mode: nextMode,
+      allowAdditionalLeads: ecgConfig.allowAdditionalLeads,
+    });
+
+    if (!supported) return;
+
+    setViewMode(nextMode);
+
+    if (nextMode === "expanded" && decision.requestedAdditionalLeads === "none" && defaultAdditionalLeadRequest !== "none") {
+      setDecision((prev) => ({
+        ...prev,
+        requestedAdditionalLeads: defaultAdditionalLeadRequest,
+      }));
+    }
+  };
 
   const handleRequestEcg = () => {
     if (!activeEcg) return;
@@ -740,32 +882,34 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setViewMode("rhythm_monitor")}
+                  onClick={() => handleViewModeChange("rhythm_monitor")}
+                  disabled={!canUseRhythmMonitor}
                   className={`rounded-xl border px-3 py-1.5 text-xs ${
-                    viewMode === "rhythm_monitor"
+                    resolvedViewMode === "rhythm_monitor"
                       ? "border-white/30 bg-white/10 text-white"
                       : "border-white/10 bg-black/30 text-white/70"
-                  }`}
+                  } disabled:opacity-45`}
                 >
                   Monitor
                 </button>
                 <button
                   type="button"
-                  onClick={() => setViewMode("standard_12_lead")}
+                  onClick={() => handleViewModeChange("standard_12_lead")}
+                  disabled={!canUseStandard12Lead}
                   className={`rounded-xl border px-3 py-1.5 text-xs ${
-                    viewMode === "standard_12_lead"
+                    resolvedViewMode === "standard_12_lead"
                       ? "border-white/30 bg-white/10 text-white"
                       : "border-white/10 bg-black/30 text-white/70"
-                  }`}
+                  } disabled:opacity-45`}
                 >
                   12 derivaciones
                 </button>
                 <button
                   type="button"
-                  onClick={() => setViewMode("expanded")}
-                  disabled={!ecgConfig.allowAdditionalLeads}
+                  onClick={() => handleViewModeChange("expanded")}
+                  disabled={!canUseExpanded}
                   className={`rounded-xl border px-3 py-1.5 text-xs ${
-                    viewMode === "expanded"
+                    resolvedViewMode === "expanded"
                       ? "border-white/30 bg-white/10 text-white"
                       : "border-white/10 bg-black/30 text-white/70"
                   } disabled:opacity-45`}
@@ -787,7 +931,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
                 <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-white/20 bg-black/25 p-6 text-center text-sm text-white/65">
                   Solicita monitor/ECG para iniciar análisis del trazado dentro del flujo del caso clínico.
                 </div>
-              ) : viewMode === "rhythm_monitor" ? (
+              ) : resolvedViewMode === "rhythm_monitor" ? (
                 <div className="h-full min-h-[260px]">
                   <EcgLeadStrip lead="II" profile={activeEcg.waveform} phaseSeconds={phaseSeconds} />
                 </div>
@@ -804,7 +948,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
 
             <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-white/60">
               <span className="rounded-full border border-white/15 bg-black/25 px-2.5 py-1">
-                Visualización: {getEcgViewModeLabel(viewMode)}
+                Visualización: {getEcgViewModeLabel(resolvedViewMode)}
               </span>
               <span className="rounded-full border border-white/15 bg-black/25 px-2.5 py-1">
                 Derivaciones visibles: {visibleLeads.join(", ")}
@@ -1026,13 +1170,19 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
                       }))
                     }
                     className="mt-1 w-full rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-sm text-white/85 outline-none"
-                    disabled={!ecgConfig.allowAdditionalLeads}
+                    disabled={!canUseExpanded}
                   >
-                    <option value="none">{getAdditionalLeadRequestLabel("none")}</option>
-                    <option value="right">{getAdditionalLeadRequestLabel("right")}</option>
-                    <option value="posterior">{getAdditionalLeadRequestLabel("posterior")}</option>
-                    <option value="both">{getAdditionalLeadRequestLabel("both")}</option>
+                    {availableAdditionalLeadOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {getAdditionalLeadRequestLabel(option)}
+                      </option>
+                    ))}
                   </select>
+                  <div className="mt-1 text-[11px] text-white/50">
+                    {canUseExpanded
+                      ? `Set sugerido para este ECG: ${leadSetSummary(defaultAdditionalLeadRequest)}`
+                      : "Este trazado no requiere derivaciones adicionales."}
+                  </div>
                 </div>
               </div>
 

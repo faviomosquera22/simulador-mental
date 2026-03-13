@@ -45,6 +45,7 @@ type DashboardRouteCard = {
 const DASHBOARD_GROUP_ORDER: DashboardModuleGroup[] = [
   "simulacion",
   "diagnostico",
+  "avanzado",
   "practica",
   "seguimiento",
 ];
@@ -52,6 +53,7 @@ const DASHBOARD_GROUP_ORDER: DashboardModuleGroup[] = [
 const GROUP_DESCRIPTIONS: Record<DashboardModuleGroup, string> = {
   simulacion: "Escenarios progresivos, dinámicos y centrados en toma de decisiones.",
   diagnostico: "Interpretación clínica de estudios y monitorización aplicada.",
+  avanzado: "Entrenamiento inmersivo de alto nivel con bibliotecas amplias y mayor realismo clínico.",
   practica: "Habilidades operativas, intervenciones y documentación profesional.",
   seguimiento: "Evaluación, historial y consolidación académica.",
 };
@@ -59,6 +61,7 @@ const GROUP_DESCRIPTIONS: Record<DashboardModuleGroup, string> = {
 const GROUP_PRIMARY_LINKS: Record<DashboardModuleGroup, string> = {
   simulacion: "/cases",
   diagnostico: "/ecg-simulator",
+  avanzado: "/dynamic-simulator",
   practica: "/clinical-calculations",
   seguimiento: "/history",
 };
@@ -230,6 +233,7 @@ function riskBadgeClass(level: StoredSession["riskLevel"]) {
 function groupBadgeClass(group: DashboardModuleGroup) {
   if (group === "simulacion") return "border-cyan-400/20 bg-cyan-400/10 text-cyan-100";
   if (group === "diagnostico") return "border-emerald-400/20 bg-emerald-400/10 text-emerald-100";
+  if (group === "avanzado") return "border-fuchsia-400/20 bg-fuchsia-400/10 text-fuchsia-100";
   if (group === "practica") return "border-orange-400/20 bg-orange-400/10 text-orange-100";
   return "border-slate-300/20 bg-slate-300/10 text-slate-100";
 }
@@ -328,7 +332,7 @@ export default function DashboardPage() {
     ? { href: "/simulator", label: "Reanudar caso", helper: "Continúa entrevista, decisiones y evolución." }
     : { href: "/cases", label: "Generar caso", helper: "Inicia un nuevo escenario clínico para empezar." };
 
-  const quickLaunchModules = useMemo(() => DASHBOARD_NEW_MODULES.slice(0, 5), []);
+  const quickLaunchModules = useMemo(() => DASHBOARD_NEW_MODULES.slice(0, 8), []);
 
   const routeCards = useMemo(() => {
     const byId = new Map(DASHBOARD_MODULES.map((item) => [item.id, item]));
@@ -355,6 +359,16 @@ export default function DashboardPage() {
         note: "Ideal para fortalecer lectura clínica estructurada.",
         accent: "from-emerald-500/18 via-teal-500/10 to-transparent",
         modules: buildModules(["ecg", "laboratory", "gasometry"]),
+      },
+      {
+        id: "advanced",
+        title: "Simulación avanzada e inmersiva",
+        desc: "Entrena RCP, imágenes clínicas, evolución dinámica y escenarios materno-infantiles de mayor complejidad.",
+        href: "/dynamic-simulator",
+        action: "Abrir entrenamiento avanzado",
+        note: "Ruta ideal para consolidar criterio clínico de alto nivel con mayor realismo.",
+        accent: "from-fuchsia-500/18 via-pink-500/10 to-transparent",
+        modules: buildModules(["clinical-images", "rcp-algorithms", "dynamic-simulator", "materno-infantil"]),
       },
       {
         id: "intervention",
@@ -384,7 +398,7 @@ export default function DashboardPage() {
       ? "diagnostic"
       : hasActive
       ? "simulation"
-      : "documentation";
+      : "advanced";
 
     return [...items]
       .map((item) => ({ ...item, recommended: item.id === recommendedId }))
@@ -645,7 +659,7 @@ export default function DashboardPage() {
                   <div className="text-[11px] uppercase tracking-[0.18em] text-cyan-100/72">Banco clínico nuevo</div>
                   <div className="mt-2 text-3xl font-semibold text-white">{DASHBOARD_NEW_BANK_TOTAL}</div>
                   <div className="mt-2 text-xs text-white/60">
-                    Casos y escenarios nuevos en gasometría, urgencias, medicamentos, procedimientos y notas.
+                    Casos y escenarios nuevos en módulos base, medios y avanzados del ecosistema clínico.
                   </div>
                 </div>
               </div>

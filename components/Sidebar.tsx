@@ -70,6 +70,34 @@ const navIcons = {
       <path d="M9 14h6" />
     </svg>
   ),
+  images: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <circle cx="9" cy="10" r="1.8" />
+      <path d="M21 16l-5-5-4 4-2-2-5 5" />
+    </svg>
+  ),
+  rcp: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M12 21s-6.5-4.3-8.6-8A4.8 4.8 0 0 1 7.5 5c1.8 0 3 1 4.5 2.6C13.5 6 14.7 5 16.5 5a4.8 4.8 0 0 1 4.1 8c-2.1 3.7-8.6 8-8.6 8z" />
+      <path d="M9 13h2l1-3 2 6 1-3h2" />
+    </svg>
+  ),
+  dynamic: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M4 12a8 8 0 0 1 14-5" />
+      <path d="M20 12a8 8 0 0 1-14 5" />
+      <path d="M18 4v5h-5" />
+      <path d="M6 20v-5h5" />
+    </svg>
+  ),
+  maternal: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M12 21a4 4 0 0 0 4-4v-2a4 4 0 0 0-8 0v2a4 4 0 0 0 4 4z" />
+      <circle cx="12" cy="7.5" r="3.5" />
+      <path d="M5 19c0-2.8 2.3-5 5-5h4c2.7 0 5 2.2 5 5" />
+    </svg>
+  ),
   calculations: (
     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
       <rect x="4" y="2.5" width="16" height="19" rx="2.5" />
@@ -187,6 +215,15 @@ const NAV_SECTIONS: NavSection[] = [
       { label: "Simulador de ECG", href: "/ecg-simulator", icon: navIcons.ecg },
       { label: "Laboratorio", href: "/laboratory", icon: navIcons.lab },
       { label: "Gasometría", href: "/gasometry", icon: navIcons.gasometry },
+    ],
+  },
+  {
+    title: "Avanzado",
+    items: [
+      { label: "Imágenes clínicas", href: "/clinical-images", icon: navIcons.images },
+      { label: "RCP y algoritmos", href: "/rcp-algorithms", icon: navIcons.rcp },
+      { label: "Simulador dinámico", href: "/dynamic-simulator", icon: navIcons.dynamic },
+      { label: "Materno-infantil", href: "/materno-infantil", icon: navIcons.maternal },
     ],
   },
   {

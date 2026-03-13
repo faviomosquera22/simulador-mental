@@ -1,4 +1,4 @@
-export type DashboardModuleGroup = "simulacion" | "diagnostico" | "practica" | "seguimiento";
+export type DashboardModuleGroup = "simulacion" | "diagnostico" | "avanzado" | "practica" | "seguimiento";
 
 export type DashboardModuleMeta = {
   id: string;
@@ -86,6 +86,54 @@ export const DASHBOARD_MODULES: DashboardModuleMeta[] = [
     highlight: true,
   },
   {
+    id: "clinical-images",
+    label: "Imágenes clínicas",
+    href: "/clinical-images",
+    group: "avanzado",
+    summary: "Radiología básica, lesiones, quemaduras, úlceras y tiras visuales con visor clínico.",
+    accent: "from-sky-500/18 via-cyan-500/8 to-transparent",
+    count: 180,
+    countLabel: "imágenes",
+    status: "Nuevo banco avanzado",
+    highlight: true,
+  },
+  {
+    id: "rcp-algorithms",
+    label: "RCP y algoritmos",
+    href: "/rcp-algorithms",
+    group: "avanzado",
+    summary: "BLS, DEA, FV, TV sin pulso, asistolia, AESP y ABCDE con ciclos de decisión.",
+    accent: "from-red-500/18 via-rose-500/10 to-transparent",
+    count: 180,
+    countLabel: "escenarios",
+    status: "Nuevo banco avanzado",
+    highlight: true,
+  },
+  {
+    id: "dynamic-simulator",
+    label: "Simulador dinámico",
+    href: "/dynamic-simulator",
+    group: "avanzado",
+    summary: "Casos inmersivos con signos vitales, ECG, laboratorio, gasometría y evolución por decisiones.",
+    accent: "from-emerald-500/18 via-cyan-500/8 to-transparent",
+    count: 180,
+    countLabel: "casos",
+    status: "Nuevo banco avanzado",
+    highlight: true,
+  },
+  {
+    id: "materno-infantil",
+    label: "Materno-infantil",
+    href: "/materno-infantil",
+    group: "avanzado",
+    summary: "Escenarios obstétricos, neonatales y pediátricos con decisiones adaptadas a la población.",
+    accent: "from-fuchsia-500/18 via-pink-500/8 to-transparent",
+    count: 180,
+    countLabel: "casos",
+    status: "Nuevo banco avanzado",
+    highlight: true,
+  },
+  {
     id: "calculations",
     label: "Cálculo clínico",
     href: "/clinical-calculations",
@@ -153,6 +201,7 @@ export const DASHBOARD_MODULES: DashboardModuleMeta[] = [
 export const DASHBOARD_GROUP_LABELS: Record<DashboardModuleGroup, string> = {
   simulacion: "Simulación",
   diagnostico: "Diagnóstico",
+  avanzado: "Avanzado",
   practica: "Práctica clínica",
   seguimiento: "Seguimiento",
 };

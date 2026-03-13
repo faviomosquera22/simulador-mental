@@ -1138,6 +1138,61 @@ export function getAdditionalLeadRequestLabel(value: ECGAdditionalLeadRequest) {
   return "Sí: derechas y posteriores";
 }
 
+export function getDefaultAdditionalLeadRequestForCase(ecgCase: ECGCase): ECGAdditionalLeadRequest {
+  if (ecgCase.expectedAdditionalLeads !== "none") return ecgCase.expectedAdditionalLeads;
+
+  const hasRight = RIGHT_LEADS.some((lead) => ecgCase.availableLeads.includes(lead));
+  const hasPosterior = POSTERIOR_LEADS.some((lead) => ecgCase.availableLeads.includes(lead));
+
+  if (hasRight && hasPosterior) return "both";
+  if (hasRight) return "right";
+  if (hasPosterior) return "posterior";
+  return "none";
+}
+
+export function supportsEcgViewMode(args: {
+  ecgCase: ECGCase;
+  mode: ECGViewMode;
+  allowAdditionalLeads: boolean;
+}) {
+  const { ecgCase, mode, allowAdditionalLeads } = args;
+  if (mode === "expanded") {
+    return (
+      allowAdditionalLeads &&
+      ecgCase.viewModes.includes("expanded") &&
+      getDefaultAdditionalLeadRequestForCase(ecgCase) !== "none"
+    );
+  }
+
+  return ecgCase.viewModes.includes(mode);
+}
+
+export function resolveEcgViewModeForCase(args: {
+  ecgCase: ECGCase;
+  preferredMode: ECGViewMode;
+  allowAdditionalLeads: boolean;
+}) {
+  const { ecgCase, preferredMode, allowAdditionalLeads } = args;
+
+  if (supportsEcgViewMode({ ecgCase, mode: preferredMode, allowAdditionalLeads })) {
+    return preferredMode;
+  }
+
+  if (supportsEcgViewMode({ ecgCase, mode: "standard_12_lead", allowAdditionalLeads })) {
+    return "standard_12_lead";
+  }
+
+  if (supportsEcgViewMode({ ecgCase, mode: "rhythm_monitor", allowAdditionalLeads })) {
+    return "rhythm_monitor";
+  }
+
+  if (supportsEcgViewMode({ ecgCase, mode: "expanded", allowAdditionalLeads })) {
+    return "expanded";
+  }
+
+  return ecgCase.viewModes[0] ?? "rhythm_monitor";
+}
+
 export function getVisibleLeads(args: {
   ecgCase: ECGCase;
   mode: ECGViewMode;
@@ -1147,11 +1202,16 @@ export function getVisibleLeads(args: {
   const { ecgCase, mode, allowAdditionalLeads, requestedAdditionalLeads } = args;
   if (mode === "rhythm_monitor") return ["II"] as ECGLead[];
 
-  const base = [...STANDARD_12_LEADS.filter((lead) => ecgCase.availableLeads.includes(lead))];
+  const base = [...STANDARD_12_LEADS];
   if (mode === "standard_12_lead" || !allowAdditionalLeads) return base;
 
-  const includeRight = requestedAdditionalLeads === "right" || requestedAdditionalLeads === "both";
-  const includePosterior = requestedAdditionalLeads === "posterior" || requestedAdditionalLeads === "both";
+  const effectiveRequest =
+    requestedAdditionalLeads === "none"
+      ? getDefaultAdditionalLeadRequestForCase(ecgCase)
+      : requestedAdditionalLeads;
+
+  const includeRight = effectiveRequest === "right" || effectiveRequest === "both";
+  const includePosterior = effectiveRequest === "posterior" || effectiveRequest === "both";
   const right = includeRight ? RIGHT_LEADS.filter((lead) => ecgCase.availableLeads.includes(lead)) : [];
   const posterior = includePosterior ? POSTERIOR_LEADS.filter((lead) => ecgCase.availableLeads.includes(lead)) : [];
 
