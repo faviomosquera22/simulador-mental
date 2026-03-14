@@ -25,6 +25,13 @@ type IndicatorPlanRow = {
   active: boolean;
 };
 
+type TaxonomyMeta = {
+  domainCode: string;
+  domainLabel: string;
+  classCode: string;
+  classLabel: string;
+};
+
 const SCALE_OPTIONS: ScaleValue[] = [1, 2, 3, 4, 5];
 const SECTION_CARD =
   "rounded-[28px] border border-white/10 bg-[#09111f]/92 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.28)]";
@@ -122,6 +129,220 @@ function scoreTone(score: number) {
   if (score >= 35) return "border-sky-400/35 bg-sky-400/12 text-sky-100";
   if (score >= 18) return "border-amber-400/35 bg-amber-400/12 text-amber-100";
   return "border-white/15 bg-white/5 text-white/70";
+}
+
+function createTaxonomyMeta(
+  domainCode: string,
+  domainLabel: string,
+  classCode: string,
+  classLabel: string
+): TaxonomyMeta {
+  return { domainCode, domainLabel, classCode, classLabel };
+}
+
+function inferNocTaxonomy(outcome: NocOutcome | null): TaxonomyMeta {
+  if (!outcome) return createTaxonomyMeta("", "", "", "");
+
+  const code = Number(outcome.code);
+  const text = normalizeSearch(outcome.label);
+
+  if (/control del riesgo|prevencion|seguridad|conducta preventiva|riesgo/.test(text)) {
+    return createTaxonomyMeta("IV", "Conocimiento y conducta de salud", "T", "Control del riesgo y seguridad");
+  }
+
+  if (/conocimiento|educacion|aprendizaje/.test(text)) {
+    return createTaxonomyMeta("IV", "Conocimiento y conducta de salud", "R", "Conocimiento sobre la salud");
+  }
+
+  if (/autocontrol|automanejo|conducta|adherencia|cumplimiento/.test(text)) {
+    return createTaxonomyMeta("IV", "Conocimiento y conducta de salud", "Q", "Conducta de salud");
+  }
+
+  if (/sintoma|dolor|nausea|fatiga|malestar/.test(text)) {
+    return createTaxonomyMeta("IV", "Conocimiento y conducta de salud", "S", "Control de síntomas");
+  }
+
+  if (/familia|cuidador|parental|crianza|lactancia/.test(text)) {
+    return createTaxonomyMeta("VI", "Salud familiar", "V", "Estado de salud familiar");
+  }
+
+  if (/comunidad|comunitaria|poblacion|salud publica/.test(text)) {
+    return createTaxonomyMeta("VII", "Salud comunitaria", "Y", "Bienestar comunitario");
+  }
+
+  if (/ansiedad|depres|afrontamiento|duelo|miedo|autoestima|estres|espiritual|soledad/.test(text)) {
+    return createTaxonomyMeta("III", "Salud psicosocial", "O", "Bienestar psicológico");
+  }
+
+  if (/interaccion|rol|apoyo social|relacion|violencia/.test(text)) {
+    return createTaxonomyMeta("III", "Salud psicosocial", "P", "Adaptación psicosocial");
+  }
+
+  if (/satisfaccion|calidad de vida|salud personal|bienestar general/.test(text)) {
+    return createTaxonomyMeta("V", "Salud percibida", "U", "Salud y calidad de vida percibida");
+  }
+
+  if (/movilidad|deambul|transfer|caminar|actividad|ejercicio|marcha/.test(text)) {
+    return createTaxonomyMeta("I", "Salud funcional", "C", "Movilidad");
+  }
+
+  if (/autocuidado|bano|higiene|vestido|alimentacion independiente/.test(text)) {
+    return createTaxonomyMeta("I", "Salud funcional", "D", "Autocuidado");
+  }
+
+  if (/energia|resistencia|sueno|descanso|fatiga/.test(text) || (code >= 1 && code <= 399)) {
+    return createTaxonomyMeta("I", "Salud funcional", "A", "Mantenimiento de la energía");
+  }
+
+  if (/crecimiento|desarrollo/.test(text)) {
+    return createTaxonomyMeta("I", "Salud funcional", "B", "Crecimiento y desarrollo");
+  }
+
+  if (/respir|ventila|gaseoso|oxigen|cardi|hemodin|perfusion|circula/.test(text)) {
+    return createTaxonomyMeta("II", "Salud fisiológica", "E", "Cardiopulmonar");
+  }
+
+  if (/urin|intestinal|elimin|renal|diuresis|continencia/.test(text)) {
+    return createTaxonomyMeta("II", "Salud fisiológica", "F", "Eliminación");
+  }
+
+  if (/liquido|hidrat|electrol|potasio|sodio/.test(text)) {
+    return createTaxonomyMeta("II", "Salud fisiológica", "G", "Líquidos y electrólitos");
+  }
+
+  if (/infecc|inmun|sepsis/.test(text)) {
+    return createTaxonomyMeta("II", "Salud fisiológica", "H", "Respuesta inmune");
+  }
+
+  if (/gluc|metabol|diabet|endocr|peso|nutricion metabolica/.test(text)) {
+    return createTaxonomyMeta("II", "Salud fisiológica", "I", "Regulación metabólica");
+  }
+
+  if (/conciencia|orientacion|memoria|neurol|cogn/.test(text)) {
+    return createTaxonomyMeta("II", "Salud fisiológica", "J", "Neurocognitiva");
+  }
+
+  if (/nutric|deglu|digest|gastro|nausea|vomito|apetito/.test(text)) {
+    return createTaxonomyMeta("II", "Salud fisiológica", "K", "Digestión y nutrición");
+  }
+
+  if (/piel|herida|cicatr|tejid|ulcera|mucosa/.test(text)) {
+    return createTaxonomyMeta("II", "Salud fisiológica", "L", "Integridad tisular");
+  }
+
+  if (/visual|audicion|sensorial/.test(text)) {
+    return createTaxonomyMeta("II", "Salud fisiológica", "M", "Función sensorial");
+  }
+
+  if (/temper|termorreg|fiebre|hiperterm/.test(text)) {
+    return createTaxonomyMeta("II", "Salud fisiológica", "N", "Termorregulación");
+  }
+
+  if (code >= 1601 && code <= 1999) {
+    return createTaxonomyMeta("IV", "Conocimiento y conducta de salud", "Q", "Conducta de salud");
+  }
+
+  if (code >= 1200 && code <= 1599) {
+    return createTaxonomyMeta("III", "Salud psicosocial", "O", "Bienestar psicológico");
+  }
+
+  return createTaxonomyMeta("II", "Salud fisiológica", "I", "Regulación fisiológica");
+}
+
+function inferNicTaxonomy(intervention: NicIntervention | null): TaxonomyMeta {
+  if (!intervention) return createTaxonomyMeta("", "", "", "");
+
+  const text = normalizeSearch(intervention.label);
+
+  if (/control de infecciones|infecc|aislamiento|precauc|caida|seguridad|proteccion|vigilancia|riesgo/.test(text)) {
+    return createTaxonomyMeta("4", "Seguridad", "V", "Control de riesgos");
+  }
+
+  if (/resucit|reanim|paro|crisis|emergenc|triage|desastre/.test(text)) {
+    return createTaxonomyMeta("4", "Seguridad", "W", "Cuidados en crisis");
+  }
+
+  if (/familia|cuidador|lactancia|parental|crianza|apoyo familiar/.test(text)) {
+    return createTaxonomyMeta("5", "Familia", "X", "Cuidados familiares");
+  }
+
+  if (/comunidad|comunitaria|salud publica|poblacion|vigilancia epidemiologica/.test(text)) {
+    return createTaxonomyMeta("7", "Comunidad", "b", "Salud comunitaria");
+  }
+
+  if (/ensenanza|educacion|asesoramiento|orientacion|informacion/.test(text)) {
+    return createTaxonomyMeta("3", "Conductual", "S", "Educación del paciente");
+  }
+
+  if (/ansiedad|apoyo emocional|afrontamiento|escucha|comunicacion|conducta|terapia/.test(text)) {
+    return createTaxonomyMeta("3", "Conductual", "R", "Facilitación del afrontamiento");
+  }
+
+  if (/movilidad|deambul|posicion|ejercicio|actividad|descanso|sueno/.test(text)) {
+    return createTaxonomyMeta("1", "Fisiológico: básico", "A", "Control de la actividad y el ejercicio");
+  }
+
+  if (/elimin|urin|intestinal|continencia|sonda/.test(text)) {
+    return createTaxonomyMeta("1", "Fisiológico: básico", "B", "Control de la eliminación");
+  }
+
+  if (/inmovilidad|transferencia|yeso|traccion/.test(text)) {
+    return createTaxonomyMeta("1", "Fisiológico: básico", "C", "Control de la inmovilidad");
+  }
+
+  if (/nutric|aliment|deglu|dieta/.test(text)) {
+    return createTaxonomyMeta("1", "Fisiológico: básico", "D", "Apoyo nutricional");
+  }
+
+  if (/confort|dolor|masaje|relajacion/.test(text)) {
+    return createTaxonomyMeta("1", "Fisiológico: básico", "E", "Promoción del confort físico");
+  }
+
+  if (/autocuidado|higiene|bano|vestido|aseo/.test(text)) {
+    return createTaxonomyMeta("1", "Fisiológico: básico", "F", "Facilitación del autocuidado");
+  }
+
+  if (/electrol|acido|base|hidrat|liquido/.test(text)) {
+    return createTaxonomyMeta("2", "Fisiológico: complejo", "G", "Control electrolítico y acidobásico");
+  }
+
+  if (/medic|farmac|sedac|analges|quimio|insulina/.test(text)) {
+    return createTaxonomyMeta("2", "Fisiológico: complejo", "H", "Control farmacológico");
+  }
+
+  if (/neurol|convulsion|conciencia|cogn|presion intracraneal/.test(text)) {
+    return createTaxonomyMeta("2", "Fisiológico: complejo", "I", "Control neurológico");
+  }
+
+  if (/perioperator|quirurg|anestesia/.test(text)) {
+    return createTaxonomyMeta("2", "Fisiológico: complejo", "J", "Cuidados perioperatorios");
+  }
+
+  if (/respir|oxigen|ventil|via aerea|aspiracion/.test(text)) {
+    return createTaxonomyMeta("2", "Fisiológico: complejo", "K", "Control respiratorio");
+  }
+
+  if (/piel|herida|cicatr|ulcera|curacion|drenaje/.test(text)) {
+    return createTaxonomyMeta("2", "Fisiológico: complejo", "L", "Control de la piel y heridas");
+  }
+
+  if (/temper|termorreg|fiebre/.test(text)) {
+    return createTaxonomyMeta("2", "Fisiológico: complejo", "M", "Termorregulación");
+  }
+
+  if (/hemodinam|perfusion|circula|choque|cardiac|hemorrag/.test(text)) {
+    return createTaxonomyMeta("2", "Fisiológico: complejo", "N", "Control de la perfusión tisular");
+  }
+
+  if (/gestion|coordinacion|alta|derivacion|caso|documentacion/.test(text)) {
+    return createTaxonomyMeta("6", "Sistema sanitario", "Z", "Gestión del sistema sanitario");
+  }
+
+  if (/registro|informat|reporte|comunicacion interprofesional/.test(text)) {
+    return createTaxonomyMeta("6", "Sistema sanitario", "a", "Gestión de la información");
+  }
+
+  return createTaxonomyMeta("2", "Fisiológico: complejo", "H", "Intervención fisiológica compleja");
 }
 
 export default function PaeAssistantPage() {
@@ -260,6 +481,16 @@ export default function PaeAssistantPage() {
   const selectedNic = useMemo(
     () => NIC_LIBRARY.find((item) => item.id === selectedNicId) ?? null,
     [selectedNicId]
+  );
+
+  const nocTaxonomy = useMemo(
+    () => inferNocTaxonomy(selectedNoc),
+    [selectedNoc]
+  );
+
+  const nicTaxonomy = useMemo(
+    () => inferNicTaxonomy(selectedNic),
+    [selectedNic]
   );
 
   const availableIndicators = useMemo(
@@ -1003,12 +1234,22 @@ export default function PaeAssistantPage() {
                       </div>
                       <div className="border-b border-black px-2 py-2">
                         <div className="font-bold uppercase">Dominio:</div>
-                        <div className="mt-1 min-h-[28px]">{printValue(formatCatalogLabel(selectedNoc?.domain ?? ""))}</div>
+                        <div className="mt-1 min-h-[28px]">
+                          {printValue(
+                            selectedNoc
+                              ? `Dominio ${nocTaxonomy.domainCode} · ${nocTaxonomy.domainLabel} · NOC ${selectedNoc.code}`
+                              : ""
+                          )}
+                        </div>
                       </div>
                       <div className="border-b border-black px-2 py-2">
                         <div className="font-bold uppercase">Clase:</div>
                         <div className="mt-1 min-h-[28px]">
-                          {printValue(selectedNoc ? `Código ${selectedNoc.code}` : "")}
+                          {printValue(
+                            selectedNoc
+                              ? `Clase ${nocTaxonomy.classCode} · ${nocTaxonomy.classLabel}`
+                              : ""
+                          )}
                         </div>
                       </div>
                       <div className="border-b border-black px-2 py-2">
@@ -1056,11 +1297,23 @@ export default function PaeAssistantPage() {
                       </div>
                       <div className="border-b border-black px-2 py-2">
                         <div className="font-bold uppercase">Dominio:</div>
-                        <div className="mt-1 min-h-[28px]">{printValue(selectedNic ? "Taxonomía NIC" : "")}</div>
+                        <div className="mt-1 min-h-[28px]">
+                          {printValue(
+                            selectedNic
+                              ? `Campo ${nicTaxonomy.domainCode} · ${nicTaxonomy.domainLabel} · NIC ${selectedNic.code}`
+                              : ""
+                          )}
+                        </div>
                       </div>
                       <div className="border-b border-black px-2 py-2">
                         <div className="font-bold uppercase">Clase:</div>
-                        <div className="mt-1 min-h-[28px]">{printValue(formatCatalogLabel(selectedNic?.classLabel ?? ""))}</div>
+                        <div className="mt-1 min-h-[28px]">
+                          {printValue(
+                            selectedNic
+                              ? `Clase ${nicTaxonomy.classCode} · ${nicTaxonomy.classLabel}`
+                              : ""
+                          )}
+                        </div>
                       </div>
                       <div className="border-b border-black px-2 py-2">
                         <div className="font-bold uppercase">Etiqueta:</div>
