@@ -12,6 +12,7 @@ import {
   getSuggestedNocOptions,
   inferPaeContextFromText,
   suggestPaeTaxonomyBundles,
+  type NandaDiagnosis,
   type NicIntervention,
   type NocOutcome,
 } from "@/src/lib/paeIntelligent";
@@ -110,6 +111,14 @@ function scaleLabel(value: ScaleValue) {
   return "5 · Óptimo";
 }
 
+function formatPreviewList(items: string[], max = 2) {
+  return items
+    .filter(Boolean)
+    .slice(0, max)
+    .map((item) => formatCatalogLabel(item))
+    .join(" · ");
+}
+
 function defaultOutcomeIndicators(outcome: NocOutcome | null) {
   if (!outcome) return [];
   if (outcome.indicators.length) return outcome.indicators.slice(0, 5);
@@ -146,6 +155,49 @@ function scoreTone(score: number) {
   if (score >= 35) return "border-sky-400/35 bg-sky-400/12 text-sky-100";
   if (score >= 18) return "border-amber-400/35 bg-amber-400/12 text-amber-100";
   return "border-white/15 bg-white/5 text-white/70";
+}
+
+function buildNandaDescription(item: NandaDiagnosis | null) {
+  if (!item) return "";
+
+  const characteristics = formatPreviewList(item.definingCharacteristics, 2);
+  const relatedFactors = formatPreviewList(item.relatedFactors, 2);
+
+  if (characteristics && relatedFactors) {
+    return `Diagnóstico de enfermería orientado a ${formatCatalogLabel(item.label).toLowerCase()}. Suele reconocerse por ${characteristics} y se relaciona con ${relatedFactors}.`;
+  }
+
+  if (characteristics) {
+    return `Diagnóstico de enfermería orientado a ${formatCatalogLabel(item.label).toLowerCase()}. Se apoya en hallazgos como ${characteristics}.`;
+  }
+
+  if (relatedFactors) {
+    return `Diagnóstico de enfermería orientado a ${formatCatalogLabel(item.label).toLowerCase()}. Considera factores asociados como ${relatedFactors}.`;
+  }
+
+  return `Diagnóstico de enfermería enfocado en ${formatCatalogLabel(item.label).toLowerCase()} dentro de ${formatCatalogLabel(item.domain).toLowerCase()}.`;
+}
+
+function buildNocDescription(item: NocOutcome | null) {
+  if (!item) return "";
+
+  const indicators = formatPreviewList(item.indicators, 3);
+  if (indicators) {
+    return `Resultado esperado para valorar ${formatCatalogLabel(item.label).toLowerCase()}. Puede medirse con indicadores como ${indicators}.`;
+  }
+
+  return `Resultado NOC utilizado para medir la evolución clínica de ${formatCatalogLabel(item.label).toLowerCase()}.`;
+}
+
+function buildNicDescription(item: NicIntervention | null) {
+  if (!item) return "";
+
+  const activities = formatPreviewList(item.activities, 3);
+  if (activities) {
+    return `Intervención de enfermería dirigida a ${formatCatalogLabel(item.label).toLowerCase()}. Suele incluir actividades como ${activities}.`;
+  }
+
+  return `Intervención NIC orientada a ${formatCatalogLabel(item.label).toLowerCase()} con acciones planificadas de enfermería.`;
 }
 
 function createTaxonomyMeta(
@@ -536,6 +588,21 @@ export default function PaeAssistantPage() {
   const activeSuggestion = useMemo(
     () => taxonomySuggestions.find((item) => item.nanda.id === selectedNandaId) ?? null,
     [selectedNandaId, taxonomySuggestions]
+  );
+
+  const selectedNandaDescription = useMemo(
+    () => buildNandaDescription(selectedNanda),
+    [selectedNanda]
+  );
+
+  const selectedNocDescription = useMemo(
+    () => buildNocDescription(selectedNoc),
+    [selectedNoc]
+  );
+
+  const selectedNicDescription = useMemo(
+    () => buildNicDescription(selectedNic),
+    [selectedNic]
   );
 
   const evaluationText = useMemo(
@@ -1039,6 +1106,9 @@ export default function PaeAssistantPage() {
                         <div className="mt-2 text-xs text-white/60">
                           {formatCatalogLabel(selectedNanda.domain)} · {formatCatalogLabel(selectedNanda.classLabel)}
                         </div>
+                        <div className="mt-3 rounded-2xl border border-cyan-400/15 bg-cyan-400/8 px-3 py-3 text-sm leading-6 text-white/78">
+                          {selectedNandaDescription}
+                        </div>
 
                         <div className="mt-3 flex flex-wrap gap-2">
                           {(activeSuggestion?.supportingSigns.length
@@ -1106,6 +1176,20 @@ export default function PaeAssistantPage() {
                         );
                       })}
                     </div>
+
+                    {selectedNoc && (
+                      <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
+                        <div className="text-sm font-semibold text-white">
+                          Seleccionado: {selectedNoc.code} · {formatCatalogLabel(selectedNoc.label)}
+                        </div>
+                        <div className="mt-2 text-xs text-white/60">
+                          Dominio {nocTaxonomy.domainCode} · {nocTaxonomy.domainLabel} · Clase {nocTaxonomy.classCode}
+                        </div>
+                        <div className="mt-3 rounded-2xl border border-emerald-400/15 bg-emerald-400/8 px-3 py-3 text-sm leading-6 text-white/78">
+                          {selectedNocDescription}
+                        </div>
+                      </div>
+                    )}
 
                     {!!availableIndicators.length && (
                       <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
@@ -1238,6 +1322,20 @@ export default function PaeAssistantPage() {
                         );
                       })}
                     </div>
+
+                    {selectedNic && (
+                      <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
+                        <div className="text-sm font-semibold text-white">
+                          Seleccionado: {selectedNic.code} · {formatCatalogLabel(selectedNic.label)}
+                        </div>
+                        <div className="mt-2 text-xs text-white/60">
+                          Campo {nicTaxonomy.domainCode} · {nicTaxonomy.domainLabel} · Clase {nicTaxonomy.classCode}
+                        </div>
+                        <div className="mt-3 rounded-2xl border border-fuchsia-400/15 bg-fuchsia-400/8 px-3 py-3 text-sm leading-6 text-white/78">
+                          {selectedNicDescription}
+                        </div>
+                      </div>
+                    )}
 
                     {!!availableActivities.length && (
                       <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
