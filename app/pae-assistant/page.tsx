@@ -384,6 +384,9 @@ export default function PaeAssistantPage() {
   const [evaluationStatus, setEvaluationStatus] = useState<(typeof EVALUATION_PRESETS)[number]["id"]>("pendiente");
   const [evaluationNote, setEvaluationNote] = useState("");
   const [activeStep, setActiveStep] = useState<AssistantStep>("data");
+  const [showAllNandaCatalog, setShowAllNandaCatalog] = useState(false);
+  const [showAllNocCatalog, setShowAllNocCatalog] = useState(false);
+  const [showAllNicCatalog, setShowAllNicCatalog] = useState(false);
 
   const deferredMedicalDiagnosis = useDeferredValue(medicalDiagnosis);
   const deferredAssessmentSummary = useDeferredValue(assessmentSummary);
@@ -416,19 +419,28 @@ export default function PaeAssistantPage() {
     [assistantQuery, inferredContext]
   );
 
+  const nandaCatalogBase = useMemo(
+    () => uniqueById([...taxonomySuggestions.map((item) => item.nanda), ...getNandaByContext("all")]),
+    [taxonomySuggestions]
+  );
+
   const filteredNandaOptions = useMemo(() => {
     const query = normalizeSearch(deferredNandaQuery);
-    const base = uniqueById([...taxonomySuggestions.map((item) => item.nanda), ...nandaPool]);
-    if (!query) return base.slice(0, 10);
-
-    return base
-      .filter((item) =>
+    if (query) {
+      return nandaCatalogBase.filter((item) =>
         [item.code, item.label, item.domain, item.classLabel].some((field) =>
           normalizeSearch(field).includes(query)
         )
-      )
-      .slice(0, 10);
-  }, [deferredNandaQuery, nandaPool, taxonomySuggestions]);
+      );
+    }
+
+    if (showAllNandaCatalog) {
+      return nandaCatalogBase;
+    }
+
+    const base = uniqueById([...taxonomySuggestions.map((item) => item.nanda), ...nandaPool]);
+    return base.slice(0, 10);
+  }, [deferredNandaQuery, nandaCatalogBase, nandaPool, showAllNandaCatalog, taxonomySuggestions]);
 
   const selectedNanda = useMemo(
     () => NANDA_LIBRARY.find((item) => item.id === selectedNandaId) ?? null,
@@ -464,32 +476,32 @@ export default function PaeAssistantPage() {
 
     const query = normalizeSearch(deferredNocQuery);
     const base = uniqueById([...suggestedNocOptions, ...NOC_LIBRARY]);
-    if (!query) return base.slice(0, 8);
-
-    return base
-      .filter((item) =>
+    if (query) {
+      return base.filter((item) =>
         [item.code, item.label, item.domain, ...item.indicators].some((field) =>
           normalizeSearch(field).includes(query)
         )
-      )
-      .slice(0, 8);
-  }, [deferredNocQuery, selectedNanda, suggestedNocOptions]);
+      );
+    }
+
+    return showAllNocCatalog ? base : base.slice(0, 8);
+  }, [deferredNocQuery, selectedNanda, showAllNocCatalog, suggestedNocOptions]);
 
   const filteredNicOptions = useMemo(() => {
     if (!selectedNanda) return [];
 
     const query = normalizeSearch(deferredNicQuery);
     const base = uniqueById([...suggestedNicOptions, ...NIC_LIBRARY]);
-    if (!query) return base.slice(0, 8);
-
-    return base
-      .filter((item) =>
+    if (query) {
+      return base.filter((item) =>
         [item.code, item.label, item.classLabel, ...item.activities].some((field) =>
           normalizeSearch(field).includes(query)
         )
-      )
-      .slice(0, 8);
-  }, [deferredNicQuery, selectedNanda, suggestedNicOptions]);
+      );
+    }
+
+    return showAllNicCatalog ? base : base.slice(0, 8);
+  }, [deferredNicQuery, selectedNanda, showAllNicCatalog, suggestedNicOptions]);
 
   const selectedNoc = useMemo(
     () => NOC_LIBRARY.find((item) => item.id === selectedNocId) ?? null,
@@ -670,6 +682,9 @@ export default function PaeAssistantPage() {
     setSelectedActivities([]);
     setEvaluationStatus("pendiente");
     setEvaluationNote("");
+    setShowAllNandaCatalog(false);
+    setShowAllNocCatalog(false);
+    setShowAllNicCatalog(false);
     setActiveStep("data");
   }
 
@@ -980,7 +995,18 @@ export default function PaeAssistantPage() {
                       className="mt-4 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
                     />
 
-                    <div className="mt-3 space-y-2">
+                    <div className="mt-3 flex items-center justify-between gap-3 text-[11px] text-white/55">
+                      <span>Mostrando {filteredNandaOptions.length} de {NANDA_LIBRARY.length} códigos NANDA</span>
+                      <button
+                        type="button"
+                        onClick={() => setShowAllNandaCatalog((current) => !current)}
+                        className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/75 transition hover:border-white/20"
+                      >
+                        {showAllNandaCatalog ? "Solo sugeridos" : "Ver catálogo completo"}
+                      </button>
+                    </div>
+
+                    <div className="mt-3 max-h-[360px] space-y-2 overflow-y-auto pr-1">
                       {filteredNandaOptions.map((item) => {
                         const active = item.id === selectedNandaId;
                         return (
@@ -1045,7 +1071,18 @@ export default function PaeAssistantPage() {
                       className="mt-4 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
                     />
 
-                    <div className="mt-3 space-y-2">
+                    <div className="mt-3 flex items-center justify-between gap-3 text-[11px] text-white/55">
+                      <span>Mostrando {filteredNocOptions.length} de {NOC_LIBRARY.length} códigos NOC</span>
+                      <button
+                        type="button"
+                        onClick={() => setShowAllNocCatalog((current) => !current)}
+                        className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/75 transition hover:border-white/20"
+                      >
+                        {showAllNocCatalog ? "Solo sugeridos" : "Ver catálogo completo"}
+                      </button>
+                    </div>
+
+                    <div className="mt-3 max-h-[320px] space-y-2 overflow-y-auto pr-1">
                       {filteredNocOptions.map((item) => {
                         const active = item.id === selectedNocId;
                         return (
@@ -1166,7 +1203,18 @@ export default function PaeAssistantPage() {
                       className="mt-4 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
                     />
 
-                    <div className="mt-3 space-y-2">
+                    <div className="mt-3 flex items-center justify-between gap-3 text-[11px] text-white/55">
+                      <span>Mostrando {filteredNicOptions.length} de {NIC_LIBRARY.length} códigos NIC</span>
+                      <button
+                        type="button"
+                        onClick={() => setShowAllNicCatalog((current) => !current)}
+                        className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/75 transition hover:border-white/20"
+                      >
+                        {showAllNicCatalog ? "Solo sugeridos" : "Ver catálogo completo"}
+                      </button>
+                    </div>
+
+                    <div className="mt-3 max-h-[320px] space-y-2 overflow-y-auto pr-1">
                       {filteredNicOptions.map((item) => {
                         const active = item.id === selectedNicId;
                         return (
