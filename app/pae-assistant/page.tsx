@@ -32,9 +32,13 @@ type TaxonomyMeta = {
   classLabel: string;
 };
 
+type AssistantStep = "data" | "suggestions" | "nanda" | "noc" | "nic" | "evaluation";
+
 const SCALE_OPTIONS: ScaleValue[] = [1, 2, 3, 4, 5];
 const SECTION_CARD =
   "rounded-[28px] border border-white/10 bg-[#09111f]/92 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.28)]";
+const STEP_WINDOW_CLASS =
+  "rounded-[28px] border border-white/10 bg-[#09111f]/96 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.28)]";
 const EVALUATION_PRESETS = [
   {
     id: "pendiente",
@@ -57,6 +61,19 @@ const EVALUATION_PRESETS = [
     template: "Meta no consolidada; se requiere reevaluación y continuidad del plan de atención.",
   },
 ] as const;
+const ASSISTANT_STEPS: Array<{
+  id: AssistantStep;
+  label: string;
+  shortLabel: string;
+  helper: string;
+}> = [
+  { id: "data", label: "Datos y motivo clínico", shortLabel: "Datos", helper: "Paciente, diagnóstico y contexto base." },
+  { id: "suggestions", label: "Sugerencias automáticas", shortLabel: "Ayuda", helper: "Paquetes sugeridos con NANDA, NOC y NIC." },
+  { id: "nanda", label: "Diagnóstico NANDA", shortLabel: "NANDA", helper: "Confirma el diagnóstico de enfermería." },
+  { id: "noc", label: "Resultado NOC", shortLabel: "NOC", helper: "Selecciona resultado e indicadores." },
+  { id: "nic", label: "Intervención NIC", shortLabel: "NIC", helper: "Activa las actividades que usarás." },
+  { id: "evaluation", label: "Evaluación y salida", shortLabel: "Cierre", helper: "Completa evaluación e imprime el formato." },
+];
 
 function normalizeSearch(value: string) {
   return String(value)
@@ -366,6 +383,7 @@ export default function PaeAssistantPage() {
   const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
   const [evaluationStatus, setEvaluationStatus] = useState<(typeof EVALUATION_PRESETS)[number]["id"]>("pendiente");
   const [evaluationNote, setEvaluationNote] = useState("");
+  const [activeStep, setActiveStep] = useState<AssistantStep>("data");
 
   const deferredMedicalDiagnosis = useDeferredValue(medicalDiagnosis);
   const deferredAssessmentSummary = useDeferredValue(assessmentSummary);
@@ -569,6 +587,91 @@ export default function PaeAssistantPage() {
 
   const selectedIndicatorRows = indicatorRows.filter((item) => item.active).slice(0, 5);
   const selectedActivityRows = selectedActivities.slice(0, 6);
+  const activeStepIndex = ASSISTANT_STEPS.findIndex((item) => item.id === activeStep);
+  const activeStepMeta = ASSISTANT_STEPS[activeStepIndex] ?? ASSISTANT_STEPS[0];
+  const canGoBack = activeStepIndex > 0;
+  const canGoForward = activeStepIndex < ASSISTANT_STEPS.length - 1;
+  const stepProgress = ((activeStepIndex + 1) / ASSISTANT_STEPS.length) * 100;
+
+  const stepState = useMemo<Record<AssistantStep, { complete: boolean; summary: string }>>(
+    () => ({
+      data: {
+        complete: Boolean(medicalDiagnosis.trim() && patientName.trim()),
+        summary: medicalDiagnosis.trim() || "Completa datos básicos",
+      },
+      suggestions: {
+        complete: Boolean(taxonomySuggestions.length),
+        summary: taxonomySuggestions[0]
+          ? `${taxonomySuggestions[0].nanda.code} sugerido`
+          : "Sin sugerencias aún",
+      },
+      nanda: {
+        complete: Boolean(selectedNanda),
+        summary: selectedNanda ? `${selectedNanda.code} ${formatCatalogLabel(selectedNanda.label)}` : "Sin NANDA",
+      },
+      noc: {
+        complete: Boolean(selectedNoc && selectedIndicatorRows.length),
+        summary: selectedNoc ? `${selectedNoc.code} ${formatCatalogLabel(selectedNoc.label)}` : "Sin NOC",
+      },
+      nic: {
+        complete: Boolean(selectedNic && selectedActivityRows.length),
+        summary: selectedNic ? `${selectedNic.code} ${formatCatalogLabel(selectedNic.label)}` : "Sin NIC",
+      },
+      evaluation: {
+        complete: Boolean(evaluationText.trim()),
+        summary: evaluationText.trim() || "Pendiente de evaluación",
+      },
+    }),
+    [
+      evaluationText,
+      medicalDiagnosis,
+      patientName,
+      selectedActivityRows.length,
+      selectedIndicatorRows.length,
+      selectedNic,
+      selectedNanda,
+      selectedNoc,
+      taxonomySuggestions,
+    ]
+  );
+
+  function goToStep(step: AssistantStep) {
+    setActiveStep(step);
+  }
+
+  function goToPreviousStep() {
+    if (!canGoBack) return;
+    setActiveStep(ASSISTANT_STEPS[activeStepIndex - 1].id);
+  }
+
+  function goToNextStep() {
+    if (!canGoForward) return;
+    setActiveStep(ASSISTANT_STEPS[activeStepIndex + 1].id);
+  }
+
+  function resetAssistantForm() {
+    setPatientName("");
+    setPatientAge("");
+    setClinicalRecord("");
+    setBedNumber("");
+    setInternName("");
+    setMedicalDiagnosis("");
+    setAssessmentSummary("");
+    setPharmacologicGroup("");
+    setDietType("");
+    setNandaQuery("");
+    setNocQuery("");
+    setNicQuery("");
+    setSelectedNandaId("");
+    setSelectedNocId("");
+    setSelectedNicId("");
+    setLastNandaSeeded("");
+    setIndicatorRows([]);
+    setSelectedActivities([]);
+    setEvaluationStatus("pendiente");
+    setEvaluationNote("");
+    setActiveStep("data");
+  }
 
   return (
     <div className="min-h-screen bg-[#050816] text-white">
@@ -606,528 +709,615 @@ export default function PaeAssistantPage() {
                 <section className={SECTION_CARD}>
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <h2 className="text-base font-semibold text-white">1. Datos y motivo clínico</h2>
-                      <p className="mt-1 text-xs text-white/60">
-                        El texto que escribas aquí alimenta las sugerencias automáticas.
-                      </p>
-                    </div>
-                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white/55">
-                      Formato PDF
-                    </span>
-                  </div>
-
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    <label className="text-xs text-white/70">
-                      Nombre
-                      <input
-                        type="text"
-                        value={patientName}
-                        onChange={(event) => setPatientName(event.target.value)}
-                        className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
-                      />
-                    </label>
-                    <label className="text-xs text-white/70">
-                      Edad
-                      <input
-                        type="text"
-                        value={patientAge}
-                        onChange={(event) => setPatientAge(event.target.value)}
-                        className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
-                      />
-                    </label>
-                    <label className="text-xs text-white/70">
-                      Nº H clínica
-                      <input
-                        type="text"
-                        value={clinicalRecord}
-                        onChange={(event) => setClinicalRecord(event.target.value)}
-                        className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
-                      />
-                    </label>
-                    <label className="text-xs text-white/70">
-                      Cama #
-                      <input
-                        type="text"
-                        value={bedNumber}
-                        onChange={(event) => setBedNumber(event.target.value)}
-                        className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
-                      />
-                    </label>
-                  </div>
-
-                  <label className="mt-4 block text-xs text-white/70">
-                    Diagnóstico médico o problema principal
-                    <textarea
-                      value={medicalDiagnosis}
-                      onChange={(event) => setMedicalDiagnosis(event.target.value)}
-                      rows={3}
-                      placeholder="Ej. neumonía con hipoxemia, dolor postoperatorio, riesgo de infección..."
-                      className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white outline-none transition focus:border-cyan-400/50"
-                    />
-                  </label>
-
-                  <label className="mt-3 block text-xs text-white/70">
-                    Hallazgos o valoración breve
-                    <textarea
-                      value={assessmentSummary}
-                      onChange={(event) => setAssessmentSummary(event.target.value)}
-                      rows={3}
-                      placeholder="Ej. disnea, SpO2 88%, dolor 8/10, herida quirúrgica limpia..."
-                      className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white outline-none transition focus:border-cyan-400/50"
-                    />
-                  </label>
-
-                  <div className="mt-4 grid gap-3">
-                    <label className="text-xs text-white/70">
-                      Tratamiento farmacológico / grupos
-                      <input
-                        type="text"
-                        value={pharmacologicGroup}
-                        onChange={(event) => setPharmacologicGroup(event.target.value)}
-                        className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
-                      />
-                    </label>
-                    <label className="text-xs text-white/70">
-                      Tipo de dieta
-                      <input
-                        type="text"
-                        value={dietType}
-                        onChange={(event) => setDietType(event.target.value)}
-                        className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
-                      />
-                    </label>
-                    <label className="text-xs text-white/70">
-                      Nombre del interno/a
-                      <input
-                        type="text"
-                        value={internName}
-                        onChange={(event) => setInternName(event.target.value)}
-                        className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
-                      />
-                    </label>
-                  </div>
-                </section>
-
-                <section className={SECTION_CARD}>
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <h2 className="text-base font-semibold text-white">2. Sugerencias automáticas</h2>
-                      <p className="mt-1 text-xs text-white/60">
-                        Selecciona una propuesta completa o usa las listas manuales más abajo.
-                      </p>
+                      <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">
+                        Llenado guiado
+                      </div>
+                      <h2 className="mt-1 text-base font-semibold text-white">
+                        Paso {activeStepIndex + 1} de {ASSISTANT_STEPS.length}
+                      </h2>
+                      <p className="mt-1 text-xs text-white/60">{activeStepMeta.helper}</p>
                     </div>
                     <div className="rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-[11px] text-cyan-100">
-                      {assistantQuery ? getPaeContextLabel(inferredContext) : "Sin contexto"}
+                      {Math.round(stepProgress)}%
                     </div>
                   </div>
 
-                  <div className="mt-4 space-y-3">
-                    {taxonomySuggestions.map((item) => {
-                      const selected = item.nanda.id === selectedNandaId;
-                      return (
-                        <button
-                          key={item.nanda.id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedNandaId(item.nanda.id);
-                            setSelectedNocId(item.nocOptions[0]?.id ?? "");
-                            setSelectedNicId(item.nicOptions[0]?.id ?? "");
-                          }}
-                          className={`w-full rounded-[24px] border p-4 text-left transition ${
-                            selected
-                              ? "border-cyan-400/55 bg-cyan-400/12 shadow-[0_0_0_1px_rgba(56,189,248,0.2)]"
-                              : "border-white/10 bg-black/25 hover:border-white/20 hover:bg-white/5"
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <div className="text-sm font-semibold text-white">
-                                {item.nanda.code} · {formatCatalogLabel(item.nanda.label)}
-                              </div>
-                              <div className="mt-1 text-[11px] uppercase tracking-[0.16em] text-white/45">
-                                {formatCatalogLabel(item.nanda.domain)} · {formatCatalogLabel(item.nanda.classLabel)}
-                              </div>
-                            </div>
-                            <span
-                              className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${scoreTone(item.score)}`}
-                            >
-                              {item.score} pts
-                            </span>
-                          </div>
-
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {item.matchedTerms.slice(0, 4).map((term) => (
-                              <span
-                                key={term}
-                                className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-white/75"
-                              >
-                                {term}
-                              </span>
-                            ))}
-                          </div>
-
-                          <div className="mt-3 grid gap-2 text-xs text-white/65">
-                            <div>
-                              <span className="font-medium text-white/82">NOC:</span>{" "}
-                              {item.nocOptions
-                                .slice(0, 2)
-                                .map((option) => `${option.code} ${formatCatalogLabel(option.label)}`)
-                                .join(" · ")}
-                            </div>
-                            <div>
-                              <span className="font-medium text-white/82">NIC:</span>{" "}
-                              {item.nicOptions
-                                .slice(0, 2)
-                                .map((option) => `${option.code} ${formatCatalogLabel(option.label)}`)
-                                .join(" · ")}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-
-                    {!taxonomySuggestions.length && (
-                      <div className="rounded-[24px] border border-dashed border-white/12 bg-black/20 px-4 py-5 text-sm text-white/55">
-                        Escribe el diagnóstico o algunos hallazgos para activar sugerencias más precisas.
-                      </div>
-                    )}
-                  </div>
-                </section>
-
-                <section className={SECTION_CARD}>
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <h2 className="text-base font-semibold text-white">3. Diagnóstico NANDA</h2>
-                      <p className="mt-1 text-xs text-white/60">Puedes aceptar la sugerencia o cambiarla manualmente.</p>
-                    </div>
-                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/60">
-                      Lista rápida
-                    </span>
+                  <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/6">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-sky-400 to-emerald-400 transition-all"
+                      style={{ width: `${stepProgress}%` }}
+                    />
                   </div>
 
-                  <input
-                    type="text"
-                    value={nandaQuery}
-                    onChange={(event) => setNandaQuery(event.target.value)}
-                    placeholder="Buscar NANDA por código, etiqueta, dominio..."
-                    className="mt-4 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
-                  />
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    {ASSISTANT_STEPS.map((step, index) => {
+                      const active = step.id === activeStep;
+                      const complete = stepState[step.id].complete;
 
-                  <div className="mt-3 space-y-2">
-                    {filteredNandaOptions.map((item) => {
-                      const active = item.id === selectedNandaId;
                       return (
                         <button
-                          key={item.id}
+                          key={step.id}
                           type="button"
-                          onClick={() => setSelectedNandaId(item.id)}
-                          className={`w-full rounded-2xl border px-3 py-3 text-left transition ${
+                          onClick={() => goToStep(step.id)}
+                          className={`rounded-2xl border px-3 py-3 text-left transition ${
                             active
                               ? "border-cyan-400/55 bg-cyan-400/12"
-                              : "border-white/10 bg-black/25 hover:border-white/20 hover:bg-white/5"
+                              : complete
+                              ? "border-emerald-400/25 bg-emerald-400/10"
+                              : "border-white/10 bg-white/5 hover:border-white/20"
                           }`}
                         >
-                          <div className="text-sm font-medium text-white">
-                            {item.code} · {formatCatalogLabel(item.label)}
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-semibold text-white">
+                              {index + 1}. {step.shortLabel}
+                            </span>
+                            <span className="text-[10px] uppercase tracking-[0.18em] text-white/45">
+                              {complete ? "listo" : "editar"}
+                            </span>
                           </div>
-                          <div className="mt-1 text-xs text-white/55">
-                            {formatCatalogLabel(item.domain)} · {formatCatalogLabel(item.classLabel)}
+                          <div className="mt-1 text-[11px] text-white/55 line-clamp-2">
+                            {stepState[step.id].summary}
                           </div>
                         </button>
                       );
                     })}
                   </div>
-
-                  {selectedNanda && (
-                    <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
-                      <div className="text-sm font-semibold text-white">
-                        Seleccionado: {selectedNanda.code} · {formatCatalogLabel(selectedNanda.label)}
-                      </div>
-                      <div className="mt-2 text-xs text-white/60">
-                        {formatCatalogLabel(selectedNanda.domain)} · {formatCatalogLabel(selectedNanda.classLabel)}
-                      </div>
-
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {(activeSuggestion?.supportingSigns.length
-                          ? activeSuggestion.supportingSigns
-                          : selectedNanda.definingCharacteristics.slice(0, 4)
-                        ).map((sign) => (
-                          <span
-                            key={sign}
-                            className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-white/75"
-                          >
-                            {formatCatalogLabel(sign)}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </section>
 
-                <section className={SECTION_CARD}>
-                  <h2 className="text-base font-semibold text-white">4. Resultado NOC</h2>
-                  <p className="mt-1 text-xs text-white/60">Elige una etiqueta y ajusta valoración/meta por indicador.</p>
+                {activeStep === "data" && (
+                  <section className={STEP_WINDOW_CLASS}>
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <h2 className="text-base font-semibold text-white">1. Datos y motivo clínico</h2>
+                        <p className="mt-1 text-xs text-white/60">
+                          Completa la base del caso y el PDF se actualizará a la derecha.
+                        </p>
+                      </div>
+                      <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white/55">
+                        Ventana 1
+                      </span>
+                    </div>
 
-                  <input
-                    type="text"
-                    value={nocQuery}
-                    onChange={(event) => setNocQuery(event.target.value)}
-                    placeholder="Buscar NOC por código, etiqueta o indicador..."
-                    className="mt-4 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
-                  />
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <label className="text-xs text-white/70">
+                        Nombre
+                        <input
+                          type="text"
+                          value={patientName}
+                          onChange={(event) => setPatientName(event.target.value)}
+                          className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                        />
+                      </label>
+                      <label className="text-xs text-white/70">
+                        Edad
+                        <input
+                          type="text"
+                          value={patientAge}
+                          onChange={(event) => setPatientAge(event.target.value)}
+                          className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                        />
+                      </label>
+                      <label className="text-xs text-white/70">
+                        Nº H clínica
+                        <input
+                          type="text"
+                          value={clinicalRecord}
+                          onChange={(event) => setClinicalRecord(event.target.value)}
+                          className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                        />
+                      </label>
+                      <label className="text-xs text-white/70">
+                        Cama #
+                        <input
+                          type="text"
+                          value={bedNumber}
+                          onChange={(event) => setBedNumber(event.target.value)}
+                          className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                        />
+                      </label>
+                    </div>
 
-                  <div className="mt-3 space-y-2">
-                    {filteredNocOptions.map((item) => {
-                      const active = item.id === selectedNocId;
-                      return (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => setSelectedNocId(item.id)}
-                          className={`w-full rounded-2xl border px-3 py-3 text-left transition ${
-                            active
-                              ? "border-emerald-400/55 bg-emerald-400/12"
-                              : "border-white/10 bg-black/25 hover:border-white/20 hover:bg-white/5"
-                          }`}
-                        >
-                          <div className="text-sm font-medium text-white">
-                            {item.code} · {formatCatalogLabel(item.label)}
-                          </div>
-                          <div className="mt-1 text-xs text-white/55">{formatCatalogLabel(item.domain)}</div>
-                        </button>
-                      );
-                    })}
-                  </div>
+                    <label className="mt-4 block text-xs text-white/70">
+                      Diagnóstico médico o problema principal
+                      <textarea
+                        value={medicalDiagnosis}
+                        onChange={(event) => setMedicalDiagnosis(event.target.value)}
+                        rows={3}
+                        placeholder="Ej. neumonía con hipoxemia, dolor postoperatorio, riesgo de infección..."
+                        className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                      />
+                    </label>
 
-                  {!!availableIndicators.length && (
-                    <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
-                      <div className="text-sm font-semibold text-white">Indicadores</div>
-                      <div className="mt-3 space-y-3">
-                        {indicatorRows.map((row) => (
-                          <div key={row.label} className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                            <label className="flex items-start gap-3">
-                              <input
-                                type="checkbox"
-                                checked={row.active}
-                                onChange={() =>
-                                  setIndicatorRows((current) =>
-                                    current.map((item) =>
-                                      item.label === row.label ? { ...item, active: !item.active } : item
-                                    )
-                                  )
-                                }
-                                className="mt-1 h-4 w-4 rounded border-white/20 bg-black/20 text-cyan-400"
-                              />
-                              <div className="flex-1">
-                                <div className="text-sm text-white/88">{formatCatalogLabel(row.label)}</div>
-                                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                                  <label className="text-[11px] uppercase tracking-[0.16em] text-white/45">
-                                    Valoración
-                                    <select
-                                      value={row.assessment}
-                                      onChange={(event) =>
-                                        setIndicatorRows((current) =>
-                                          current.map((item) =>
-                                            item.label === row.label
-                                              ? {
-                                                  ...item,
-                                                  assessment: Number(event.target.value) as ScaleValue,
-                                                }
-                                              : item
-                                          )
-                                        )
-                                      }
-                                      className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none"
-                                    >
-                                      {SCALE_OPTIONS.map((value) => (
-                                        <option key={value} value={value}>
-                                          {scaleLabel(value)}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  </label>
-                                  <label className="text-[11px] uppercase tracking-[0.16em] text-white/45">
-                                    Meta
-                                    <select
-                                      value={row.goal}
-                                      onChange={(event) =>
-                                        setIndicatorRows((current) =>
-                                          current.map((item) =>
-                                            item.label === row.label
-                                              ? {
-                                                  ...item,
-                                                  goal: Number(event.target.value) as ScaleValue,
-                                                }
-                                              : item
-                                          )
-                                        )
-                                      }
-                                      className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none"
-                                    >
-                                      {SCALE_OPTIONS.map((value) => (
-                                        <option key={value} value={value}>
-                                          {scaleLabel(value)}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  </label>
+                    <label className="mt-3 block text-xs text-white/70">
+                      Hallazgos o valoración breve
+                      <textarea
+                        value={assessmentSummary}
+                        onChange={(event) => setAssessmentSummary(event.target.value)}
+                        rows={3}
+                        placeholder="Ej. disnea, SpO2 88%, dolor 8/10, herida quirúrgica limpia..."
+                        className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                      />
+                    </label>
+
+                    <div className="mt-4 grid gap-3">
+                      <label className="text-xs text-white/70">
+                        Tratamiento farmacológico / grupos
+                        <input
+                          type="text"
+                          value={pharmacologicGroup}
+                          onChange={(event) => setPharmacologicGroup(event.target.value)}
+                          className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                        />
+                      </label>
+                      <label className="text-xs text-white/70">
+                        Tipo de dieta
+                        <input
+                          type="text"
+                          value={dietType}
+                          onChange={(event) => setDietType(event.target.value)}
+                          className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                        />
+                      </label>
+                      <label className="text-xs text-white/70">
+                        Nombre del interno/a
+                        <input
+                          type="text"
+                          value={internName}
+                          onChange={(event) => setInternName(event.target.value)}
+                          className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                        />
+                      </label>
+                    </div>
+                  </section>
+                )}
+
+                {activeStep === "suggestions" && (
+                  <section className={STEP_WINDOW_CLASS}>
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <h2 className="text-base font-semibold text-white">2. Sugerencias automáticas</h2>
+                        <p className="mt-1 text-xs text-white/60">
+                          Elige una propuesta y luego la afinas en las siguientes ventanitas.
+                        </p>
+                      </div>
+                      <div className="rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-[11px] text-cyan-100">
+                        {assistantQuery ? getPaeContextLabel(inferredContext) : "Sin contexto"}
+                      </div>
+                    </div>
+
+                    <div className="mt-4 space-y-3">
+                      {taxonomySuggestions.map((item) => {
+                        const selected = item.nanda.id === selectedNandaId;
+                        return (
+                          <button
+                            key={item.nanda.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedNandaId(item.nanda.id);
+                              setSelectedNocId(item.nocOptions[0]?.id ?? "");
+                              setSelectedNicId(item.nicOptions[0]?.id ?? "");
+                              goToStep("nanda");
+                            }}
+                            className={`w-full rounded-[24px] border p-4 text-left transition ${
+                              selected
+                                ? "border-cyan-400/55 bg-cyan-400/12 shadow-[0_0_0_1px_rgba(56,189,248,0.2)]"
+                                : "border-white/10 bg-black/25 hover:border-white/20 hover:bg-white/5"
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <div className="text-sm font-semibold text-white">
+                                  {item.nanda.code} · {formatCatalogLabel(item.nanda.label)}
+                                </div>
+                                <div className="mt-1 text-[11px] uppercase tracking-[0.16em] text-white/45">
+                                  {formatCatalogLabel(item.nanda.domain)} · {formatCatalogLabel(item.nanda.classLabel)}
                                 </div>
                               </div>
-                            </label>
-                          </div>
-                        ))}
+                              <span
+                                className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${scoreTone(item.score)}`}
+                              >
+                                {item.score} pts
+                              </span>
+                            </div>
+
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {item.matchedTerms.slice(0, 4).map((term) => (
+                                <span
+                                  key={term}
+                                  className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-white/75"
+                                >
+                                  {term}
+                                </span>
+                              ))}
+                            </div>
+
+                            <div className="mt-3 grid gap-2 text-xs text-white/65">
+                              <div>
+                                <span className="font-medium text-white/82">NOC:</span>{" "}
+                                {item.nocOptions
+                                  .slice(0, 2)
+                                  .map((option) => `${option.code} ${formatCatalogLabel(option.label)}`)
+                                  .join(" · ")}
+                              </div>
+                              <div>
+                                <span className="font-medium text-white/82">NIC:</span>{" "}
+                                {item.nicOptions
+                                  .slice(0, 2)
+                                  .map((option) => `${option.code} ${formatCatalogLabel(option.label)}`)
+                                  .join(" · ")}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+
+                      {!taxonomySuggestions.length && (
+                        <div className="rounded-[24px] border border-dashed border-white/12 bg-black/20 px-4 py-5 text-sm text-white/55">
+                          Completa el paso 1 con diagnóstico y hallazgos para activar sugerencias más precisas.
+                        </div>
+                      )}
+                    </div>
+                  </section>
+                )}
+
+                {activeStep === "nanda" && (
+                  <section className={STEP_WINDOW_CLASS}>
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <h2 className="text-base font-semibold text-white">3. Diagnóstico NANDA</h2>
+                        <p className="mt-1 text-xs text-white/60">Acepta la sugerencia o cambia el diagnóstico manualmente.</p>
+                      </div>
+                      <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/60">
+                        Lista rápida
+                      </span>
+                    </div>
+
+                    <input
+                      type="text"
+                      value={nandaQuery}
+                      onChange={(event) => setNandaQuery(event.target.value)}
+                      placeholder="Buscar NANDA por código, etiqueta, dominio..."
+                      className="mt-4 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                    />
+
+                    <div className="mt-3 space-y-2">
+                      {filteredNandaOptions.map((item) => {
+                        const active = item.id === selectedNandaId;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => setSelectedNandaId(item.id)}
+                            className={`w-full rounded-2xl border px-3 py-3 text-left transition ${
+                              active
+                                ? "border-cyan-400/55 bg-cyan-400/12"
+                                : "border-white/10 bg-black/25 hover:border-white/20 hover:bg-white/5"
+                            }`}
+                          >
+                            <div className="text-sm font-medium text-white">
+                              {item.code} · {formatCatalogLabel(item.label)}
+                            </div>
+                            <div className="mt-1 text-xs text-white/55">
+                              {formatCatalogLabel(item.domain)} · {formatCatalogLabel(item.classLabel)}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {selectedNanda && (
+                      <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
+                        <div className="text-sm font-semibold text-white">
+                          Seleccionado: {selectedNanda.code} · {formatCatalogLabel(selectedNanda.label)}
+                        </div>
+                        <div className="mt-2 text-xs text-white/60">
+                          {formatCatalogLabel(selectedNanda.domain)} · {formatCatalogLabel(selectedNanda.classLabel)}
+                        </div>
+
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {(activeSuggestion?.supportingSigns.length
+                            ? activeSuggestion.supportingSigns
+                            : selectedNanda.definingCharacteristics.slice(0, 4)
+                          ).map((sign) => (
+                            <span
+                              key={sign}
+                              className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-white/75"
+                            >
+                              {formatCatalogLabel(sign)}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </section>
+                )}
+
+                {activeStep === "noc" && (
+                  <section className={STEP_WINDOW_CLASS}>
+                    <h2 className="text-base font-semibold text-white">4. Resultado NOC</h2>
+                    <p className="mt-1 text-xs text-white/60">Elige una etiqueta y ajusta valoración/meta por indicador.</p>
+
+                    <input
+                      type="text"
+                      value={nocQuery}
+                      onChange={(event) => setNocQuery(event.target.value)}
+                      placeholder="Buscar NOC por código, etiqueta o indicador..."
+                      className="mt-4 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                    />
+
+                    <div className="mt-3 space-y-2">
+                      {filteredNocOptions.map((item) => {
+                        const active = item.id === selectedNocId;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => setSelectedNocId(item.id)}
+                            className={`w-full rounded-2xl border px-3 py-3 text-left transition ${
+                              active
+                                ? "border-emerald-400/55 bg-emerald-400/12"
+                                : "border-white/10 bg-black/25 hover:border-white/20 hover:bg-white/5"
+                            }`}
+                          >
+                            <div className="text-sm font-medium text-white">
+                              {item.code} · {formatCatalogLabel(item.label)}
+                            </div>
+                            <div className="mt-1 text-xs text-white/55">
+                              {formatCatalogLabel(item.domain)} · Clase {inferNocTaxonomy(item).classCode}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {!!availableIndicators.length && (
+                      <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
+                        <div className="text-sm font-semibold text-white">Indicadores</div>
+                        <div className="mt-3 space-y-3">
+                          {indicatorRows.map((row) => (
+                            <div key={row.label} className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                              <label className="flex items-start gap-3">
+                                <input
+                                  type="checkbox"
+                                  checked={row.active}
+                                  onChange={() =>
+                                    setIndicatorRows((current) =>
+                                      current.map((item) =>
+                                        item.label === row.label ? { ...item, active: !item.active } : item
+                                      )
+                                    )
+                                  }
+                                  className="mt-1 h-4 w-4 rounded border-white/20 bg-black/20 text-cyan-400"
+                                />
+                                <div className="flex-1">
+                                  <div className="text-sm text-white/88">{formatCatalogLabel(row.label)}</div>
+                                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                                    <label className="text-[11px] uppercase tracking-[0.16em] text-white/45">
+                                      Valoración
+                                      <select
+                                        value={row.assessment}
+                                        onChange={(event) =>
+                                          setIndicatorRows((current) =>
+                                            current.map((item) =>
+                                              item.label === row.label
+                                                ? {
+                                                    ...item,
+                                                    assessment: Number(event.target.value) as ScaleValue,
+                                                  }
+                                                : item
+                                            )
+                                          )
+                                        }
+                                        className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none"
+                                      >
+                                        {SCALE_OPTIONS.map((value) => (
+                                          <option key={value} value={value}>
+                                            {scaleLabel(value)}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </label>
+                                    <label className="text-[11px] uppercase tracking-[0.16em] text-white/45">
+                                      Meta
+                                      <select
+                                        value={row.goal}
+                                        onChange={(event) =>
+                                          setIndicatorRows((current) =>
+                                            current.map((item) =>
+                                              item.label === row.label
+                                                ? {
+                                                    ...item,
+                                                    goal: Number(event.target.value) as ScaleValue,
+                                                  }
+                                                : item
+                                            )
+                                          )
+                                        }
+                                        className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none"
+                                      >
+                                        {SCALE_OPTIONS.map((value) => (
+                                          <option key={value} value={value}>
+                                            {scaleLabel(value)}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </label>
+                                  </div>
+                                </div>
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </section>
+                )}
+
+                {activeStep === "nic" && (
+                  <section className={STEP_WINDOW_CLASS}>
+                    <h2 className="text-base font-semibold text-white">5. Intervención NIC</h2>
+                    <p className="mt-1 text-xs text-white/60">Selecciona una NIC y deja activas solo las actividades que usarás.</p>
+
+                    <input
+                      type="text"
+                      value={nicQuery}
+                      onChange={(event) => setNicQuery(event.target.value)}
+                      placeholder="Buscar NIC por código, etiqueta o actividad..."
+                      className="mt-4 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                    />
+
+                    <div className="mt-3 space-y-2">
+                      {filteredNicOptions.map((item) => {
+                        const active = item.id === selectedNicId;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => setSelectedNicId(item.id)}
+                            className={`w-full rounded-2xl border px-3 py-3 text-left transition ${
+                              active
+                                ? "border-fuchsia-400/55 bg-fuchsia-400/12"
+                                : "border-white/10 bg-black/25 hover:border-white/20 hover:bg-white/5"
+                            }`}
+                          >
+                            <div className="text-sm font-medium text-white">
+                              {item.code} · {formatCatalogLabel(item.label)}
+                            </div>
+                            <div className="mt-1 text-xs text-white/55">
+                              Campo {inferNicTaxonomy(item).domainCode} · Clase {inferNicTaxonomy(item).classCode}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {!!availableActivities.length && (
+                      <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
+                        <div className="text-sm font-semibold text-white">Actividades</div>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {availableActivities.map((activity) => {
+                            const active = selectedActivities.includes(activity);
+                            return (
+                              <button
+                                key={activity}
+                                type="button"
+                                onClick={() =>
+                                  setSelectedActivities((current) =>
+                                    current.includes(activity)
+                                      ? current.filter((item) => item !== activity)
+                                      : [...current, activity]
+                                  )
+                                }
+                                className={`rounded-2xl border px-3 py-2 text-left text-xs transition ${
+                                  active
+                                    ? "border-fuchsia-400/55 bg-fuchsia-400/14 text-white"
+                                    : "border-white/10 bg-white/5 text-white/70 hover:border-white/20"
+                                }`}
+                              >
+                                {formatCatalogLabel(activity)}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </section>
+                )}
+
+                {activeStep === "evaluation" && (
+                  <section className={STEP_WINDOW_CLASS}>
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <h2 className="text-base font-semibold text-white">6. Evaluación y salida</h2>
+                        <p className="mt-1 text-xs text-white/60">Cierra el PAE y genera el mismo formato listo para imprimir.</p>
+                      </div>
+                      <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/60">
+                        Poca escritura
                       </div>
                     </div>
-                  )}
-                </section>
 
-                <section className={SECTION_CARD}>
-                  <h2 className="text-base font-semibold text-white">5. Intervención NIC</h2>
-                  <p className="mt-1 text-xs text-white/60">Selecciona una NIC y deja activas solo las actividades que usarás.</p>
-
-                  <input
-                    type="text"
-                    value={nicQuery}
-                    onChange={(event) => setNicQuery(event.target.value)}
-                    placeholder="Buscar NIC por código, etiqueta o actividad..."
-                    className="mt-4 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
-                  />
-
-                  <div className="mt-3 space-y-2">
-                    {filteredNicOptions.map((item) => {
-                      const active = item.id === selectedNicId;
-                      return (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {EVALUATION_PRESETS.map((option) => (
                         <button
-                          key={item.id}
+                          key={option.id}
                           type="button"
-                          onClick={() => setSelectedNicId(item.id)}
-                          className={`w-full rounded-2xl border px-3 py-3 text-left transition ${
-                            active
-                              ? "border-fuchsia-400/55 bg-fuchsia-400/12"
-                              : "border-white/10 bg-black/25 hover:border-white/20 hover:bg-white/5"
+                          onClick={() => setEvaluationStatus(option.id)}
+                          className={`rounded-full border px-3 py-1.5 text-xs transition ${
+                            evaluationStatus === option.id
+                              ? "border-cyan-400/55 bg-cyan-400/12 text-cyan-100"
+                              : "border-white/10 bg-white/5 text-white/70 hover:border-white/20"
                           }`}
                         >
-                          <div className="text-sm font-medium text-white">
-                            {item.code} · {formatCatalogLabel(item.label)}
-                          </div>
-                          <div className="mt-1 text-xs text-white/55">{formatCatalogLabel(item.classLabel)}</div>
+                          {option.label}
                         </button>
-                      );
-                    })}
-                  </div>
-
-                  {!!availableActivities.length && (
-                    <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
-                      <div className="text-sm font-semibold text-white">Actividades</div>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {availableActivities.map((activity) => {
-                          const active = selectedActivities.includes(activity);
-                          return (
-                            <button
-                              key={activity}
-                              type="button"
-                              onClick={() =>
-                                setSelectedActivities((current) =>
-                                  current.includes(activity)
-                                    ? current.filter((item) => item !== activity)
-                                    : [...current, activity]
-                                )
-                              }
-                              className={`rounded-2xl border px-3 py-2 text-left text-xs transition ${
-                                active
-                                  ? "border-fuchsia-400/55 bg-fuchsia-400/14 text-white"
-                                  : "border-white/10 bg-white/5 text-white/70 hover:border-white/20"
-                              }`}
-                            >
-                              {formatCatalogLabel(activity)}
-                            </button>
-                          );
-                        })}
-                      </div>
+                      ))}
                     </div>
-                  )}
-                </section>
+
+                    <label className="mt-4 block text-xs text-white/70">
+                      Nota breve opcional
+                      <textarea
+                        value={evaluationNote}
+                        onChange={(event) => setEvaluationNote(event.target.value)}
+                        rows={3}
+                        placeholder="Ej. tolera oxigenoterapia, se educa sobre signos de alarma, continúa vigilancia..."
+                        className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                      />
+                    </label>
+
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={() => window.print()}
+                        className="rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-cyan-100"
+                      >
+                        Imprimir / PDF
+                      </button>
+                      <button
+                        type="button"
+                        onClick={resetAssistantForm}
+                        className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-white/78 transition hover:border-white/20 hover:bg-white/8"
+                      >
+                        Reiniciar
+                      </button>
+                    </div>
+                  </section>
+                )}
 
                 <section className={SECTION_CARD}>
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <h2 className="text-base font-semibold text-white">6. Evaluación y salida</h2>
-                      <p className="mt-1 text-xs text-white/60">Deja una evaluación rápida y genera el mismo formato para imprimir.</p>
+                      <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">
+                        Navegación
+                      </div>
+                      <div className="mt-1 text-sm font-semibold text-white">{activeStepMeta.label}</div>
                     </div>
                     <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/60">
-                      Poca escritura
+                      Vista viva
                     </div>
                   </div>
 
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {EVALUATION_PRESETS.map((option) => (
-                      <button
-                        key={option.id}
-                        type="button"
-                        onClick={() => setEvaluationStatus(option.id)}
-                        className={`rounded-full border px-3 py-1.5 text-xs transition ${
-                          evaluationStatus === option.id
-                            ? "border-cyan-400/55 bg-cyan-400/12 text-cyan-100"
-                            : "border-white/10 bg-white/5 text-white/70 hover:border-white/20"
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  <label className="mt-4 block text-xs text-white/70">
-                    Nota breve opcional
-                    <textarea
-                      value={evaluationNote}
-                      onChange={(event) => setEvaluationNote(event.target.value)}
-                      rows={3}
-                      placeholder="Ej. tolera oxigenoterapia, se educa sobre signos de alarma, continúa vigilancia..."
-                      className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white outline-none transition focus:border-cyan-400/50"
-                    />
-                  </label>
-
-                  <div className="mt-4 flex flex-wrap gap-3">
+                  <div className="mt-4 flex gap-3">
                     <button
                       type="button"
-                      onClick={() => window.print()}
-                      className="rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-cyan-100"
+                      onClick={goToPreviousStep}
+                      disabled={!canGoBack}
+                      className="flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-40 hover:border-white/20"
                     >
-                      Imprimir / PDF
+                      Anterior
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
-                        setPatientName("");
-                        setPatientAge("");
-                        setClinicalRecord("");
-                        setBedNumber("");
-                        setInternName("");
-                        setMedicalDiagnosis("");
-                        setAssessmentSummary("");
-                        setPharmacologicGroup("");
-                        setDietType("");
-                        setNandaQuery("");
-                        setNocQuery("");
-                        setNicQuery("");
-                        setSelectedNandaId("");
-                        setSelectedNocId("");
-                        setSelectedNicId("");
-                        setLastNandaSeeded("");
-                        setIndicatorRows([]);
-                        setSelectedActivities([]);
-                        setEvaluationStatus("pendiente");
-                        setEvaluationNote("");
-                      }}
-                      className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-white/78 transition hover:border-white/20 hover:bg-white/8"
+                      onClick={goToNextStep}
+                      disabled={!canGoForward}
+                      className="flex-1 rounded-2xl bg-cyan-100 px-4 py-2.5 text-sm font-semibold text-black transition disabled:cursor-not-allowed disabled:opacity-40 hover:bg-white"
                     >
-                      Reiniciar
+                      Siguiente
                     </button>
                   </div>
                 </section>
               </aside>
 
-              <section className="overflow-x-auto rounded-[30px] border border-white/10 bg-[#07101d] p-3 sm:p-5">
+              <section className="overflow-x-auto rounded-[30px] border border-white/10 bg-[#07101d] p-3 sm:p-5 xl:sticky xl:top-5 xl:self-start">
                 <div className="no-print mb-4 flex items-center justify-between gap-3 px-2">
                   <div>
                     <h2 className="text-base font-semibold text-white">Vista final del formato</h2>
