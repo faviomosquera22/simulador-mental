@@ -64,6 +64,22 @@ export function normalizeNumericInput(value: string): number | null {
   return parsed;
 }
 
+function roundValue(value: number, decimals = 2) {
+  return Number(value.toFixed(decimals));
+}
+
+function concentrationPercentToMgPerMl(percent: number) {
+  return percent * 10;
+}
+
+function difficultyByIndex(index: number): CalculationDifficulty {
+  return index % 3 === 0 ? "basic" : index % 3 === 1 ? "intermediate" : "advanced";
+}
+
+function typeByIndex(index: number): CalculationExerciseType {
+  return index % 3 === 0 ? "single" : index % 3 === 1 ? "mini_case" : "quick_test";
+}
+
 function toleranceBounds(expected: number, tolerance: CalculationTolerance) {
   if (tolerance.kind === "absolute") {
     return {
@@ -79,7 +95,7 @@ function toleranceBounds(expected: number, tolerance: CalculationTolerance) {
   };
 }
 
-export const CLINICAL_CALCULATION_EXERCISES: ClinicalCalculationExercise[] = [
+const BASE_CLINICAL_CALCULATION_EXERCISES: ClinicalCalculationExercise[] = [
   {
     id: "dose_mgkg_pediatric",
     title: "Dosis por peso (mg/kg/dosis)",
@@ -327,6 +343,239 @@ export const CLINICAL_CALCULATION_EXERCISES: ClinicalCalculationExercise[] = [
     stepByStep: ["92 / 2.89 = 31.83", "IMC aproximado: 31.8 kg/m²."],
     commonErrors: ["Redondear en exceso y perder precisión."],
   },
+];
+
+function buildPercentMedicationExercises(): ClinicalCalculationExercise[] {
+  const exercises: ClinicalCalculationExercise[] = [];
+
+  const directConfigs = [
+    { medication: "Lidocaína", concentration: 1, context: "infiltración local" },
+    { medication: "Lidocaína", concentration: 2, context: "procedimiento menor" },
+    { medication: "Gluconato de calcio", concentration: 10, context: "administración titulada" },
+    { medication: "Sulfato de magnesio", concentration: 20, context: "preparación de impregnación" },
+    { medication: "Dextrosa", concentration: 10, context: "corrección glucémica" },
+    { medication: "Dextrosa", concentration: 50, context: "bolo concentrado" },
+  ] as const;
+
+  const weightConfigs = [
+    { medication: "Lidocaína", concentration: 1, dosePerKgBase: 2.5, context: "preparación anestésica" },
+    { medication: "Lidocaína", concentration: 2, dosePerKgBase: 3, context: "bloqueo local" },
+    { medication: "Gluconato de calcio", concentration: 10, dosePerKgBase: 12, context: "infusión educativa" },
+    { medication: "Sulfato de magnesio", concentration: 20, dosePerKgBase: 18, context: "cálculo guiado" },
+    { medication: "Dextrosa", concentration: 10, dosePerKgBase: 20, context: "aporte glucosado" },
+  ] as const;
+
+  const dilutionConfigs = [
+    { medication: "Lidocaína", stockPercent: 2, targetPercent: 1 },
+    { medication: "Lidocaína", stockPercent: 2, targetPercent: 0.5 },
+    { medication: "Dextrosa", stockPercent: 50, targetPercent: 10 },
+    { medication: "Dextrosa", stockPercent: 50, targetPercent: 12.5 },
+    { medication: "Sulfato de magnesio", stockPercent: 20, targetPercent: 4 },
+    { medication: "Sulfato de magnesio", stockPercent: 20, targetPercent: 10 },
+  ] as const;
+
+  const mixtureConfigs = [
+    { medication: "Dextrosa", lowPercent: 5, highPercent: 50, targetPercent: 10 },
+    { medication: "Dextrosa", lowPercent: 10, highPercent: 50, targetPercent: 12.5 },
+    { medication: "Dextrosa", lowPercent: 10, highPercent: 50, targetPercent: 15 },
+    { medication: "Sulfato de magnesio", lowPercent: 10, highPercent: 20, targetPercent: 15 },
+    { medication: "Bicarbonato de sodio", lowPercent: 4.2, highPercent: 8.4, targetPercent: 6.3 },
+  ] as const;
+
+  const activeDoseConfigs = [
+    { medication: "Lidocaína", concentration: 1 },
+    { medication: "Lidocaína", concentration: 2 },
+    { medication: "Gluconato de calcio", concentration: 10 },
+    { medication: "Sulfato de magnesio", concentration: 20 },
+    { medication: "Dextrosa", concentration: 10 },
+    { medication: "Dextrosa", concentration: 50 },
+  ] as const;
+
+  for (let index = 0; index < 30; index += 1) {
+    const direct = directConfigs[index % directConfigs.length];
+    const directVolumeMl = roundValue(1 + (index % 6) * 0.5 + Math.floor(index / 6) * 0.25, 2);
+    const directRequiredMg = roundValue(concentrationPercentToMgPerMl(direct.concentration) * directVolumeMl, 1);
+    exercises.push({
+      id: `dose_percent_direct_${String(index + 1).padStart(3, "0")}`,
+      title: `${direct.medication} al ${direct.concentration}%: calcular volumen`,
+      category: "dose_medication",
+      difficulty: difficultyByIndex(index),
+      type: typeByIndex(index),
+      statement: `Durante una ${direct.context}, se requieren ${directRequiredMg} mg de ${direct.medication}. Dispones de una solución al ${direct.concentration}%. ¿Cuántos mL debes cargar?`,
+      patientData: [
+        { label: "Medicamento", value: `${direct.medication} al ${direct.concentration}%` },
+        { label: "Dosis requerida", value: `${directRequiredMg} mg` },
+      ],
+      answerUnit: "mL",
+      formula: "Volumen (mL) = mg requeridos / (concentración % x 10 mg/mL)",
+      correctAnswer: directVolumeMl,
+      tolerance: { kind: "absolute", value: 0.05 },
+      hints: [
+        "Convierte primero la concentración porcentual a mg/mL.",
+        "Recuerda: 1% equivale a 10 mg/mL.",
+      ],
+      stepByStep: [
+        `${direct.concentration}% = ${concentrationPercentToMgPerMl(direct.concentration)} mg/mL`,
+        `${directRequiredMg} / ${concentrationPercentToMgPerMl(direct.concentration)} = ${directVolumeMl}`,
+        `Respuesta final: ${directVolumeMl} mL.`,
+      ],
+      commonErrors: [
+        "Olvidar que 1% equivale a 10 mg/mL.",
+        "Multiplicar por la concentración en vez de dividir.",
+      ],
+    });
+
+    const weightBased = weightConfigs[index % weightConfigs.length];
+    const weightKg = 8 + (index % 10) * 4 + Math.floor(index / 10) * 2;
+    const dosePerKg = roundValue(weightBased.dosePerKgBase + (index % 3) * 0.5, 1);
+    const totalMg = roundValue(weightKg * dosePerKg, 1);
+    const weightBasedVolumeMl = roundValue(totalMg / concentrationPercentToMgPerMl(weightBased.concentration), 2);
+    exercises.push({
+      id: `dose_percent_weight_${String(index + 1).padStart(3, "0")}`,
+      title: `${weightBased.medication} al ${weightBased.concentration}% por peso`,
+      category: "dose_medication",
+      difficulty: difficultyByIndex(index + 1),
+      type: typeByIndex(index + 1),
+      statement: `Paciente de ${weightKg} kg. En ${weightBased.context} se prescribe ${weightBased.medication} a ${dosePerKg} mg/kg. La presentación disponible es ${weightBased.concentration}%. ¿Cuántos mL corresponden a la dosis total?`,
+      patientData: [
+        { label: "Peso", value: `${weightKg} kg` },
+        { label: "Prescripción", value: `${dosePerKg} mg/kg` },
+        { label: "Presentación", value: `${weightBased.concentration}%` },
+      ],
+      answerUnit: "mL",
+      formula: "Volumen (mL) = (mg/kg x peso) / (concentración % x 10 mg/mL)",
+      correctAnswer: weightBasedVolumeMl,
+      tolerance: { kind: "absolute", value: 0.08 },
+      hints: [
+        "Primero obtén la dosis total en mg.",
+        "Luego divide entre la concentración expresada en mg/mL.",
+      ],
+      stepByStep: [
+        `Dosis total = ${weightKg} x ${dosePerKg} = ${totalMg} mg`,
+        `${weightBased.concentration}% = ${concentrationPercentToMgPerMl(weightBased.concentration)} mg/mL`,
+        `${totalMg} / ${concentrationPercentToMgPerMl(weightBased.concentration)} = ${weightBasedVolumeMl} mL`,
+      ],
+      commonErrors: [
+        "Responder en mg cuando el ejercicio pide mL.",
+        "No convertir la solución porcentual a mg/mL.",
+      ],
+    });
+
+    const dilution = dilutionConfigs[index % dilutionConfigs.length];
+    const finalVolumeMl = 20 + (index % 6) * 10 + Math.floor(index / 6) * 5;
+    const stockVolumeMl = roundValue((finalVolumeMl * dilution.targetPercent) / dilution.stockPercent, 2);
+    const diluentVolumeMl = roundValue(finalVolumeMl - stockVolumeMl, 2);
+    exercises.push({
+      id: `dose_percent_dilution_${String(index + 1).padStart(3, "0")}`,
+      title: `${dilution.medication}: dilución desde ${dilution.stockPercent}%`,
+      category: "dose_medication",
+      difficulty: difficultyByIndex(index + 2),
+      type: typeByIndex(index + 2),
+      statement: `Debes preparar ${finalVolumeMl} mL de ${dilution.medication} al ${dilution.targetPercent}% a partir de una solución stock al ${dilution.stockPercent}%. ¿Cuántos mL de la solución concentrada necesitas antes de completar con diluyente?`,
+      patientData: [
+        { label: "Concentración final", value: `${dilution.targetPercent}%` },
+        { label: "Stock disponible", value: `${dilution.stockPercent}%` },
+        { label: "Volumen final", value: `${finalVolumeMl} mL` },
+      ],
+      answerUnit: "mL de stock",
+      formula: "Stock (mL) = (concentración final x volumen final) / concentración stock",
+      correctAnswer: stockVolumeMl,
+      tolerance: { kind: "absolute", value: 0.08 },
+      hints: [
+        "Usa la ecuación C1 x V1 = C2 x V2.",
+        "El diluyente completa el volumen final restante.",
+      ],
+      stepByStep: [
+        `V1 = (${dilution.targetPercent} x ${finalVolumeMl}) / ${dilution.stockPercent} = ${stockVolumeMl} mL`,
+        `Diluyente = ${finalVolumeMl} - ${stockVolumeMl} = ${diluentVolumeMl} mL`,
+        `Respuesta final: ${stockVolumeMl} mL de solución stock.`,
+      ],
+      commonErrors: [
+        "Invertir concentración final con concentración stock.",
+        "Responder el volumen de diluyente en vez del stock.",
+      ],
+    });
+
+    const mixture = mixtureConfigs[index % mixtureConfigs.length];
+    const mixtureVolumeMl = 60 + (index % 5) * 30 + Math.floor(index / 5) * 5;
+    const highVolumeMl = roundValue(
+      (mixtureVolumeMl * (mixture.targetPercent - mixture.lowPercent)) / (mixture.highPercent - mixture.lowPercent),
+      2
+    );
+    const lowVolumeMl = roundValue(mixtureVolumeMl - highVolumeMl, 2);
+    exercises.push({
+      id: `dose_percent_mix_${String(index + 1).padStart(3, "0")}`,
+      title: `${mixture.medication}: mezcla de concentraciones`,
+      category: "dose_medication",
+      difficulty: difficultyByIndex(index + 3),
+      type: typeByIndex(index + 3),
+      statement: `Necesitas preparar ${mixtureVolumeMl} mL de ${mixture.medication} al ${mixture.targetPercent}% mezclando ${mixture.lowPercent}% y ${mixture.highPercent}%. ¿Cuántos mL de la presentación al ${mixture.highPercent}% debes usar?`,
+      patientData: [
+        { label: "Concentración baja", value: `${mixture.lowPercent}%` },
+        { label: "Concentración alta", value: `${mixture.highPercent}%` },
+        { label: "Objetivo", value: `${mixture.targetPercent}% en ${mixtureVolumeMl} mL` },
+      ],
+      answerUnit: `mL al ${mixture.highPercent}%`,
+      formula: "Volumen alta concentración = V final x (C objetivo - C baja) / (C alta - C baja)",
+      correctAnswer: highVolumeMl,
+      tolerance: { kind: "absolute", value: 0.1 },
+      hints: [
+        "La concentración objetivo debe quedar entre la baja y la alta.",
+        "Aplica una regla de mezcla o aligación.",
+      ],
+      stepByStep: [
+        `Volumen alta = ${mixtureVolumeMl} x (${mixture.targetPercent} - ${mixture.lowPercent}) / (${mixture.highPercent} - ${mixture.lowPercent}) = ${highVolumeMl} mL`,
+        `Volumen baja = ${mixtureVolumeMl} - ${highVolumeMl} = ${lowVolumeMl} mL`,
+        `Respuesta final: ${highVolumeMl} mL de la solución más concentrada.`,
+      ],
+      commonErrors: [
+        "Usar la diferencia al revés y obtener un volumen negativo.",
+        "Responder el volumen de la solución menos concentrada.",
+      ],
+    });
+
+    const activeDose = activeDoseConfigs[index % activeDoseConfigs.length];
+    const administeredMl = roundValue(0.8 + (index % 6) * 0.6 + Math.floor(index / 6) * 0.15, 2);
+    const activeMg = roundValue(administeredMl * concentrationPercentToMgPerMl(activeDose.concentration), 1);
+    exercises.push({
+      id: `dose_percent_active_${String(index + 1).padStart(3, "0")}`,
+      title: `${activeDose.medication} al ${activeDose.concentration}%: mg administrados`,
+      category: "dose_medication",
+      difficulty: difficultyByIndex(index + 4),
+      type: typeByIndex(index + 4),
+      statement: `Se administran ${administeredMl} mL de ${activeDose.medication} al ${activeDose.concentration}%. ¿Cuántos mg de principio activo recibió el paciente?`,
+      patientData: [
+        { label: "Volumen administrado", value: `${administeredMl} mL` },
+        { label: "Concentración", value: `${activeDose.concentration}%` },
+      ],
+      answerUnit: "mg",
+      formula: "mg administrados = mL x (concentración % x 10 mg/mL)",
+      correctAnswer: activeMg,
+      tolerance: { kind: "absolute", value: 0.1 },
+      hints: [
+        "Convierte el porcentaje a mg/mL antes de multiplicar.",
+        "1% equivale a 10 mg por mL.",
+      ],
+      stepByStep: [
+        `${activeDose.concentration}% = ${concentrationPercentToMgPerMl(activeDose.concentration)} mg/mL`,
+        `${administeredMl} x ${concentrationPercentToMgPerMl(activeDose.concentration)} = ${activeMg} mg`,
+        `Respuesta final: ${activeMg} mg.`,
+      ],
+      commonErrors: [
+        "Responder en mL cuando el ejercicio pide mg.",
+        "Tratar el porcentaje como si fuera mg/mL directo.",
+      ],
+    });
+  }
+
+  return exercises;
+}
+
+const PERCENT_MEDICATION_EXERCISES = buildPercentMedicationExercises();
+
+export const CLINICAL_CALCULATION_EXERCISES: ClinicalCalculationExercise[] = [
+  ...BASE_CLINICAL_CALCULATION_EXERCISES,
+  ...PERCENT_MEDICATION_EXERCISES,
 ];
 
 export function getCalculationExerciseById(id: string) {

@@ -188,6 +188,16 @@ export const DASHBOARD_MODULES: DashboardModuleMeta[] = [
     status: "Flujo guiado y autónomo",
   },
   {
+    id: "pae-assistant",
+    label: "PAE asistido",
+    href: "/pae-assistant",
+    group: "practica",
+    summary: "Sugiere NANDA, NOC y NIC por listas rápidas y genera el formato institucional listo para imprimir.",
+    accent: "from-cyan-500/16 via-teal-500/8 to-transparent",
+    status: "Nuevo asistente educativo",
+    highlight: true,
+  },
+  {
     id: "caces",
     label: "CACES",
     href: "/caces",

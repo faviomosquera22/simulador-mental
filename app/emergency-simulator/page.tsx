@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Sidebar from "@/components/Sidebar";
+import MultiparameterMonitor from "@/components/advanced/MultiparameterMonitor";
 import {
   EMERGENCY_SCENARIOS,
   applyEmergencyVitals,
@@ -339,6 +340,24 @@ export default function EmergencySimulatorPage() {
             </div>
 
             <aside className="space-y-3">
+              <MultiparameterMonitor
+                accent="cyan"
+                title="Monitor multiparámetro"
+                subtitle="Signos dinámicos con oscilación realista según la evolución del caso."
+                vitals={currentVitals}
+                statusLabel={lastAction ? "Reevaluación tras intervención" : "Valoración inicial"}
+                timeLabel={mode === "evaluation" ? formatTimer(timeRemaining) : "Libre"}
+                stageLabel={`Paso ${Math.min(currentStageIndex + 1, scenario.stages.length)}/${scenario.stages.length}`}
+                badges={[emergencyTypeLabel(scenario.type), emergencyDifficultyLabel(scenario.difficulty)]}
+                alerts={[scenario.priorityLabel]}
+                detailItems={[
+                  { label: "Paciente", value: `${scenario.patient.age} años · ${scenario.patient.sex === "female" ? "Femenino" : scenario.patient.sex === "male" ? "Masculino" : "No especificado"}` },
+                  { label: "Motivo", value: scenario.patient.chiefComplaint },
+                  { label: "Entorno", value: scenario.context },
+                ]}
+                footerNote="El monitor responde con pequeñas variaciones dentro de rangos clínicos plausibles sin alterar la lógica del puntaje."
+              />
+
               {mode === "practice" && lastAction && !result && (
                 <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4">
                   <h3 className="text-sm font-semibold text-cyan-100">Feedback inmediato</h3>

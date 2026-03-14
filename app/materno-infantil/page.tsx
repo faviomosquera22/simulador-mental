@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Sidebar from "@/components/Sidebar";
+import MultiparameterMonitor from "@/components/advanced/MultiparameterMonitor";
 import {
   MATERNO_INFANT_LIBRARY,
   applyMaternoInfantVitals,
@@ -437,21 +438,27 @@ export default function MaternoInfantilPage() {
                   </div>
                 </div>
 
-                <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
-                  {[
-                    { label: "FC", value: `${currentVitals.hr} lpm` },
-                    { label: "PA", value: formatAdvancedPressure(currentVitals.sbp, currentVitals.dbp) },
-                    { label: "SpO₂", value: `${currentVitals.spo2}%` },
-                    { label: "FR", value: currentVitals.rr <= 0 ? "Apnea" : `${currentVitals.rr} rpm` },
-                    { label: "Temp", value: `${currentVitals.temp.toFixed(1)}°C` },
-                    { label: "Tiempo", value: mode === "evaluation" ? formatTimer(timeRemaining) : "Libre" },
-                  ].map((item) => (
-                    <div key={item.label} className="rounded-2xl border border-white/10 bg-black/30 p-3">
-                      <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">{item.label}</div>
-                      <div className="mt-2 text-base font-semibold text-white">{item.value}</div>
-                    </div>
-                  ))}
-                </div>
+                <MultiparameterMonitor
+                  accent="fuchsia"
+                  title="Monitor multiparámetro"
+                  subtitle="Signos móviles y tendencias adaptadas a población obstétrica, neonatal o pediátrica."
+                  vitals={currentVitals}
+                  statusLabel={currentStatus}
+                  timeLabel={mode === "evaluation" ? formatTimer(timeRemaining) : "Libre"}
+                  stageLabel={`Etapa ${Math.min(currentStageIndex + 1, scenario.stages.length)}/${scenario.stages.length}`}
+                  badges={[
+                    maternoInfantPopulationLabel(scenario.population),
+                    maternoInfantDifficultyLabel(scenario.difficulty),
+                    maternoInfantContextLabel(scenario.context),
+                  ]}
+                  alerts={scenario.alerts}
+                  detailItems={[
+                    { label: "Paciente", value: `${scenario.patientProfile.name} · ${scenario.patientProfile.ageLabel ?? `${scenario.patientProfile.age} años`}` },
+                    { label: "Entorno", value: scenario.patientProfile.setting ?? "No especificado" },
+                    { label: "PA actual", value: formatAdvancedPressure(currentVitals.sbp, currentVitals.dbp) },
+                  ]}
+                  footerNote="Las variaciones del monitor son visuales y ayudan a percibir tendencia clínica sin alterar el avance del escenario."
+                />
 
                 <div className="mt-4 grid gap-3 md:grid-cols-[1.1fr_0.9fr]">
                   <div className="rounded-2xl border border-fuchsia-400/20 bg-fuchsia-400/10 p-4">

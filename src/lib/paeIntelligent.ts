@@ -132,6 +132,15 @@ export type NicIntervention = {
   activities: string[];
 };
 
+export type PaeTaxonomySuggestion = {
+  nanda: NandaDiagnosis;
+  score: number;
+  matchedTerms: string[];
+  supportingSigns: string[];
+  nocOptions: NocOutcome[];
+  nicOptions: NicIntervention[];
+};
+
 function normalizeText(value: unknown) {
   return String(value ?? "")
     .toLowerCase()
@@ -140,6 +149,80 @@ function normalizeText(value: unknown) {
     .replace(/[^a-z0-9\s]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function compactText(value: unknown) {
+  return normalizeText(value).replace(/\s+/g, "");
+}
+
+const SPANISH_STOPWORDS = new Set([
+  "a",
+  "al",
+  "ante",
+  "bajo",
+  "con",
+  "contra",
+  "de",
+  "del",
+  "desde",
+  "durante",
+  "el",
+  "ella",
+  "en",
+  "entre",
+  "es",
+  "esta",
+  "este",
+  "ha",
+  "hacia",
+  "hasta",
+  "la",
+  "las",
+  "lo",
+  "los",
+  "más",
+  "mas",
+  "no",
+  "o",
+  "para",
+  "pero",
+  "por",
+  "que",
+  "se",
+  "segun",
+  "sin",
+  "sobre",
+  "su",
+  "sus",
+  "tras",
+  "un",
+  "una",
+  "uno",
+  "y",
+]);
+
+function includesLooseText(haystack: unknown, needle: unknown) {
+  const normalizedHaystack = normalizeText(haystack);
+  const normalizedNeedle = normalizeText(needle);
+  if (!normalizedHaystack || !normalizedNeedle) return false;
+  if (normalizedHaystack.includes(normalizedNeedle)) return true;
+  return compactText(normalizedHaystack).includes(compactText(normalizedNeedle));
+}
+
+function extractMeaningfulTerms(value: unknown) {
+  return Array.from(
+    new Set(
+      normalizeText(value)
+        .split(" ")
+        .filter((term) => term.length >= 3 && !SPANISH_STOPWORDS.has(term))
+    )
+  );
+}
+
+function collectMatchedTerms(terms: string[], texts: Array<unknown>) {
+  if (!terms.length || !texts.length) return [];
+  const haystack = texts.map((item) => normalizeText(item)).filter(Boolean).join(" ");
+  return terms.filter((term) => includesLooseText(haystack, term));
 }
 
 function uniqueById<T extends { id: string }>(items: T[]) {
@@ -155,6 +238,98 @@ function overlapByWords(text: string, keys: string[]) {
   const base = normalizeText(text);
   if (!base) return 0;
   return keys.filter((key) => base.includes(normalizeText(key))).length;
+}
+
+function inferPaeContextFromNormalizedText(text: string): PaeClinicalContext {
+  if (/(neumon|disnea|respir|hipox|oxigen|asma|bronco|epoc|ventil)/.test(text)) return "respiratory";
+  if (/(infecc|fiebre|sepsis|pielonef|cistitis|urin|herida|celulitis)/.test(text)) return "infection";
+  if (/(glucosa|diabet|ceto|hiperosmolar|metabol|insulin|hipogluc)/.test(text)) return "metabolic";
+  if (/(renal|creatin|oliguria|potasio|nefro|diali|diuresis)/.test(text)) return "renal";
+  if (/(postoperator|postquir|cirugia|quirurg|incision|recuperacion)/.test(text)) return "postoperative";
+  return "general";
+}
+
+function getContextHintTerms(context: PaeClinicalContext) {
+  if (context === "respiratory") return ["respir", "ventil", "gase", "oxigen", "pulmon"];
+  if (context === "infection") return ["infecc", "fiebre", "sepsis", "herida", "aislamiento"];
+  if (context === "metabolic") return ["gluc", "insulin", "metabol", "cet", "nutric"];
+  if (context === "renal") return ["renal", "diures", "potasio", "creatin", "liquido"];
+  if (context === "postoperative") return ["postoperator", "quirurg", "incision", "dolor", "recuper"];
+  return ["seguridad", "confort", "movilidad", "dolor"];
+}
+
+function rankNocOptions(args: {
+  nanda: NandaDiagnosis;
+  diagnosisText?: string;
+  limit: number;
+}) {
+  const { nanda, diagnosisText, limit } = args;
+  const terms = Array.from(
+    new Set([
+      ...extractMeaningfulTerms(diagnosisText),
+      ...extractMeaningfulTerms(nanda.label),
+      ...extractMeaningfulTerms(nanda.domain),
+      ...extractMeaningfulTerms(nanda.classLabel),
+      ...extractMeaningfulTerms(nanda.definingCharacteristics.join(" ")),
+      ...extractMeaningfulTerms(nanda.relatedFactors.join(" ")),
+      ...getContextHintTerms(nanda.contexts[0] ?? "general"),
+    ])
+  );
+
+  const ranked = NOC_LIBRARY.map((item) => {
+    const labelMatches = collectMatchedTerms(terms, [item.label, item.domain]);
+    const indicatorMatches = collectMatchedTerms(terms, item.indicators);
+    const score =
+      labelMatches.length * 7 +
+      indicatorMatches.length * 5 +
+      (includesLooseText(item.label, nanda.label) ? 12 : 0) +
+      (item.indicators.length ? 4 : 0);
+
+    return { item, score };
+  })
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score || a.item.code.localeCompare(b.item.code));
+
+  if (ranked.length) return ranked.slice(0, limit).map(({ item }) => item);
+
+  return NOC_LIBRARY.slice(0, limit);
+}
+
+function rankNicOptions(args: {
+  nanda: NandaDiagnosis;
+  diagnosisText?: string;
+  limit: number;
+}) {
+  const { nanda, diagnosisText, limit } = args;
+  const terms = Array.from(
+    new Set([
+      ...extractMeaningfulTerms(diagnosisText),
+      ...extractMeaningfulTerms(nanda.label),
+      ...extractMeaningfulTerms(nanda.domain),
+      ...extractMeaningfulTerms(nanda.classLabel),
+      ...extractMeaningfulTerms(nanda.definingCharacteristics.join(" ")),
+      ...extractMeaningfulTerms(nanda.relatedFactors.join(" ")),
+      ...getContextHintTerms(nanda.contexts[0] ?? "general"),
+    ])
+  );
+
+  const ranked = NIC_LIBRARY.map((item) => {
+    const labelMatches = collectMatchedTerms(terms, [item.label, item.classLabel]);
+    const activityMatches = collectMatchedTerms(terms, item.activities);
+    const score =
+      labelMatches.length * 7 +
+      activityMatches.length * 5 +
+      (includesLooseText(item.label, nanda.label) ? 10 : 0) +
+      (item.activities.length ? 4 : 0);
+
+    return { item, score };
+  })
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score || a.item.code.localeCompare(b.item.code));
+
+  if (ranked.length) return ranked.slice(0, limit).map(({ item }) => item);
+
+  return NIC_LIBRARY.slice(0, limit);
 }
 
 export const PAE_TEMPLATE_LIBRARY: PaeTemplate[] = [
@@ -593,9 +768,14 @@ export function getPaeTemplateById(id: string) {
   return PAE_TEMPLATE_LIBRARY.find((item) => item.id === id) ?? null;
 }
 
+export function inferPaeContextFromText(text: string): PaeClinicalContext {
+  return inferPaeContextFromNormalizedText(normalizeText(text));
+}
+
 export function inferPaeContextFromCase(caseObject: any): PaeClinicalContext {
-  const text = normalizeText(
-    [
+  return inferPaeContextFromNormalizedText(
+    normalizeText(
+      [
       caseObject?.meta?.title,
       caseObject?.meta?.category,
       caseObject?.chief_complaint,
@@ -603,15 +783,9 @@ export function inferPaeContextFromCase(caseObject: any): PaeClinicalContext {
       caseObject?.patient_profile?.context,
       caseObject?.meta?.dx_id,
       caseObject?.meta?.dsm_tag,
-    ].join(" ")
+      ].join(" ")
+    )
   );
-
-  if (/(neumon|disnea|respir|hipox|oxigen)/.test(text)) return "respiratory";
-  if (/(infecc|fiebre|sepsis|pielonef|cistitis|urin)/.test(text)) return "infection";
-  if (/(glucosa|diabet|ceto|hiperosmolar|metabol)/.test(text)) return "metabolic";
-  if (/(renal|creatin|oliguria|potasio|nefro)/.test(text)) return "renal";
-  if (/(postoperator|postquir|cirugia|quirurg)/.test(text)) return "postoperative";
-  return "general";
 }
 
 export function pickContextualPaeTemplate(caseObject: any, excludeId?: string) {
@@ -750,6 +924,111 @@ export function getNicByNandaIds(selectedNandaIds: string[]) {
   return NIC_LIBRARY.filter(
     (item) => !item.linkedNandaIds.length || item.linkedNandaIds.some((id) => set.has(id))
   );
+}
+
+export function getSuggestedNocOptions(args: {
+  nanda: NandaDiagnosis;
+  diagnosisText?: string;
+  limit?: number;
+}) {
+  return rankNocOptions({
+    nanda: args.nanda,
+    diagnosisText: args.diagnosisText,
+    limit: Math.max(1, args.limit ?? 6),
+  });
+}
+
+export function getSuggestedNicOptions(args: {
+  nanda: NandaDiagnosis;
+  diagnosisText?: string;
+  limit?: number;
+}) {
+  return rankNicOptions({
+    nanda: args.nanda,
+    diagnosisText: args.diagnosisText,
+    limit: Math.max(1, args.limit ?? 6),
+  });
+}
+
+export function suggestPaeTaxonomyBundles(args: {
+  diagnosisText: string;
+  context?: PaeTemplateContextFilter;
+  limit?: number;
+}): PaeTaxonomySuggestion[] {
+  const diagnosisText = String(args.diagnosisText ?? "");
+  const limit = Math.max(1, args.limit ?? 6);
+  const detectedContext =
+    args.context && args.context !== "all" ? args.context : inferPaeContextFromText(diagnosisText);
+  const queryTerms = extractMeaningfulTerms(diagnosisText);
+  const templateHints = PAE_TEMPLATE_LIBRARY.filter((template) => {
+    if (detectedContext !== "general" && template.context !== detectedContext) return false;
+    return collectMatchedTerms(queryTerms, [
+      template.name,
+      template.patient.chiefComplaint,
+      template.patient.medicalDiagnosis,
+      ...template.diagnoses.map((diagnosis) => diagnosis.diagnosticLabel),
+    ]).length > 0;
+  });
+
+  const pool = args.context && args.context !== "all" ? getNandaByContext(args.context) : getNandaByContext(detectedContext);
+
+  const ranked = pool
+    .map((item) => {
+      const labelMatches = collectMatchedTerms(queryTerms, [item.label, item.domain, item.classLabel]);
+      const characteristicMatches = collectMatchedTerms(queryTerms, item.definingCharacteristics);
+      const factorMatches = collectMatchedTerms(queryTerms, item.relatedFactors);
+      const templateBonus = templateHints.some((template) =>
+        template.diagnoses.some(
+          (diagnosis) =>
+            includesLooseText(diagnosis.diagnosticLabel, item.label) ||
+            includesLooseText(item.label, diagnosis.diagnosticLabel)
+        )
+      )
+        ? 12
+        : 0;
+      const contextBonus = item.contexts.includes(detectedContext) ? 18 : 0;
+      const score =
+        contextBonus +
+        templateBonus +
+        labelMatches.length * 10 +
+        characteristicMatches.length * 7 +
+        factorMatches.length * 5;
+
+      return {
+        nanda: item,
+        score,
+        matchedTerms: Array.from(new Set([...labelMatches, ...characteristicMatches, ...factorMatches])).slice(0, 6),
+        supportingSigns: uniqueById(
+          [...item.definingCharacteristics, ...item.relatedFactors]
+            .filter((entry) => collectMatchedTerms(queryTerms, [entry]).length > 0)
+            .map((entry, index) => ({ id: `${item.id}_${index}_${entry}`, label: entry }))
+        )
+          .map((entry) => entry.label)
+          .slice(0, 4),
+      };
+    })
+    .sort((a, b) => b.score - a.score || a.nanda.code.localeCompare(b.nanda.code));
+
+  const filteredRanked = ranked.filter((item, index) => item.score > 0 || index < limit);
+
+  return filteredRanked.slice(0, limit).map((item) => ({
+    nanda: item.nanda,
+    score: item.score,
+    matchedTerms: item.matchedTerms,
+    supportingSigns: item.supportingSigns.length
+      ? item.supportingSigns
+      : item.nanda.definingCharacteristics.slice(0, 3),
+    nocOptions: getSuggestedNocOptions({
+      nanda: item.nanda,
+      diagnosisText,
+      limit: 4,
+    }),
+    nicOptions: getSuggestedNicOptions({
+      nanda: item.nanda,
+      diagnosisText,
+      limit: 4,
+    }),
+  }));
 }
 
 export function validateTaxonomySelection(args: {

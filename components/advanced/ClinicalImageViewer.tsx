@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ClinicalImageCase } from "@/src/lib/clinicalImagesModule";
 
 type ClinicalImageViewerProps = {
@@ -38,9 +38,11 @@ type RenderPreset =
 function RectHighlight({
   region,
   visible,
+  active,
 }: {
   region: ClinicalImageCase["highlightRegions"][number];
   visible: boolean;
+  active: boolean;
 }) {
   if (!visible) return null;
   return (
@@ -51,11 +53,21 @@ function RectHighlight({
         width={region.width}
         height={region.height}
         rx="3"
-        fill="rgba(34,211,238,0.08)"
-        stroke="rgba(125,211,252,0.95)"
-        strokeWidth="1.4"
-        strokeDasharray="4 3"
+        fill={active ? "rgba(34,211,238,0.14)" : "rgba(34,211,238,0.08)"}
+        stroke={active ? "rgba(165,243,252,0.98)" : "rgba(125,211,252,0.95)"}
+        strokeWidth={active ? "1.8" : "1.4"}
+        strokeDasharray={active ? "6 3" : "4 3"}
       />
+      {active ? (
+        <circle
+          cx={region.x + region.width / 2}
+          cy={region.y + region.height / 2}
+          r={Math.min(region.width, region.height) * 0.22}
+          fill="rgba(34,211,238,0.12)"
+          stroke="rgba(165,243,252,0.85)"
+          strokeWidth="1.2"
+        />
+      ) : null}
       <text x={region.x} y={Math.max(8, region.y - 2)} fill="rgba(186,230,253,0.95)" fontSize="4.2">
         {region.label}
       </text>
@@ -390,26 +402,42 @@ function renderPreset(preset: RenderPreset) {
 
 export default function ClinicalImageViewer(props: ClinicalImageViewerProps) {
   const { caseSet, zoom, showHighlights } = props;
+  const [selectedHighlightIndex, setSelectedHighlightIndex] = useState(0);
 
   const visuals = useMemo(() => resolveVisuals(caseSet), [caseSet]);
   const comparisonHints = useMemo(() => caseSet.keyFindings.slice(0, 3), [caseSet.keyFindings]);
+  const activeHighlight = caseSet.highlightRegions[selectedHighlightIndex] ?? caseSet.highlightRegions[0] ?? null;
+
+  useEffect(() => {
+    setSelectedHighlightIndex(0);
+  }, [caseSet.id]);
 
   return (
     <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#050A11]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.12),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(248,113,113,0.10),transparent_34%)]" />
+      <div className="absolute inset-0 opacity-20 mix-blend-screen [background-image:linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:18px_18px]" />
       <div className="absolute right-4 top-4 z-10 rounded-full border border-white/10 bg-black/30 px-3 py-1 text-[11px] text-white/72">
         Zoom {Math.round(zoom * 100)}%
       </div>
       <div className="absolute left-4 top-4 z-10 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[11px] text-cyan-100">
         Esquema educativo
       </div>
+      {showHighlights ? (
+        <div className="absolute bottom-4 left-4 z-10 rounded-full border border-cyan-300/20 bg-black/35 px-3 py-1 text-[11px] text-cyan-100">
+          Interactivo: toca una zona resaltada
+        </div>
+      ) : null}
 
       <div className="relative grid gap-4 p-4 lg:grid-cols-2">
         <div className="rounded-[24px] border border-white/10 bg-black/25 p-3">
           <FrameLabel title="Referencia" subtitle={visuals.referenceTitle} />
           <div className="relative aspect-square overflow-hidden rounded-[20px] border border-white/10 bg-[#091019] shadow-[0_20px_50px_rgba(0,0,0,0.4)]">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.08),transparent_30%),radial-gradient(circle_at_70%_70%,rgba(148,163,184,0.08),transparent_35%)]" />
             <div className="absolute inset-0 flex items-center justify-center p-4" style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}>
               {renderPreset(visuals.referencePreset)}
+            </div>
+            <div className="absolute inset-x-5 bottom-5 rounded-2xl border border-white/10 bg-black/45 px-3 py-2 text-[11px] text-white/68 backdrop-blur">
+              Referencia base para comparar continuidad, densidad y bordes.
             </div>
           </div>
         </div>
@@ -417,14 +445,58 @@ export default function ClinicalImageViewer(props: ClinicalImageViewerProps) {
         <div className="rounded-[24px] border border-cyan-400/15 bg-black/25 p-3">
           <FrameLabel title="Caso actual" subtitle={visuals.caseTitle} />
           <div className="relative aspect-square overflow-hidden rounded-[20px] border border-cyan-400/15 bg-[#091019] shadow-[0_20px_50px_rgba(0,0,0,0.4)]">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(34,211,238,0.08),transparent_30%),radial-gradient(circle_at_70%_75%,rgba(248,113,113,0.10),transparent_34%)]" />
             <div className="absolute inset-0 flex items-center justify-center p-4" style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}>
               {renderPreset(visuals.casePreset)}
             </div>
             <svg viewBox="0 0 100 100" className="pointer-events-none absolute inset-0 h-full w-full">
-              {caseSet.highlightRegions.map((region) => (
-                <RectHighlight key={`${region.label}-${region.x}-${region.y}`} region={region} visible={showHighlights} />
+              {caseSet.highlightRegions.map((region, index) => (
+                <RectHighlight
+                  key={`${region.label}-${region.x}-${region.y}`}
+                  region={region}
+                  visible={showHighlights}
+                  active={selectedHighlightIndex === index}
+                />
               ))}
             </svg>
+            {showHighlights ? (
+              <div className="absolute inset-0">
+                {caseSet.highlightRegions.map((region, index) => (
+                  <button
+                    key={`region-${region.label}-${index}`}
+                    type="button"
+                    onClick={() => setSelectedHighlightIndex(index)}
+                    className={`absolute rounded-[14px] transition ${
+                      selectedHighlightIndex === index
+                        ? "bg-cyan-300/10 ring-2 ring-cyan-200/85 ring-offset-2 ring-offset-transparent"
+                        : "bg-transparent hover:bg-cyan-300/6"
+                    }`}
+                    style={{
+                      left: `${region.x}%`,
+                      top: `${region.y}%`,
+                      width: `${region.width}%`,
+                      height: `${region.height}%`,
+                    }}
+                    aria-label={`Enfocar ${region.label}`}
+                  >
+                    <span
+                      className={`absolute -right-2 -top-2 inline-flex h-6 w-6 items-center justify-center rounded-full border text-[11px] font-semibold ${
+                        selectedHighlightIndex === index
+                          ? "border-cyan-200/80 bg-cyan-200 text-[#041018]"
+                          : "border-cyan-300/30 bg-[#04111A] text-cyan-100"
+                      }`}
+                    >
+                      {index + 1}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            <div className="absolute inset-x-5 bottom-5 rounded-2xl border border-cyan-400/15 bg-black/55 px-3 py-2 text-[11px] text-white/70 backdrop-blur">
+              {showHighlights && activeHighlight
+                ? `Zona enfocada: ${activeHighlight.label}`
+                : "Activa la revisión para marcar diferencias clínicas clave."}
+            </div>
           </div>
         </div>
       </div>
@@ -439,12 +511,39 @@ export default function ClinicalImageViewer(props: ClinicalImageViewerProps) {
               </span>
             ))}
           </div>
+          {showHighlights && caseSet.highlightRegions.length ? (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {caseSet.highlightRegions.map((region, index) => (
+                <button
+                  key={`chip-${region.label}-${index}`}
+                  type="button"
+                  onClick={() => setSelectedHighlightIndex(index)}
+                  className={`rounded-full border px-3 py-1 text-xs transition ${
+                    selectedHighlightIndex === index
+                      ? "border-cyan-300/35 bg-cyan-300/12 text-cyan-50"
+                      : "border-white/10 bg-white/5 text-white/72 hover:bg-white/10"
+                  }`}
+                >
+                  Zona {index + 1}: {region.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
         <div className="rounded-2xl border border-white/10 bg-black/25 p-3 text-sm text-white/68">
           <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Guía visual</div>
           <div className="mt-2">
             {showHighlights ? caseSet.feedback.highlightHint : "Compara la referencia con el caso y decide cuál es el hallazgo dominante."}
           </div>
+          {showHighlights && activeHighlight ? (
+            <div className="mt-3 rounded-2xl border border-cyan-300/15 bg-cyan-300/10 p-3 text-xs text-cyan-50">
+              <div className="uppercase tracking-[0.18em] text-cyan-100/70">Hallazgo enfocado</div>
+              <div className="mt-1 text-sm font-semibold text-white">{activeHighlight.label}</div>
+              <div className="mt-1 text-cyan-50/85">
+                Ubica la diferencia en esa región y contrástala con la imagen de referencia.
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

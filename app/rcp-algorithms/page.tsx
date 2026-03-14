@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Sidebar from "@/components/Sidebar";
+import MultiparameterMonitor from "@/components/advanced/MultiparameterMonitor";
 import {
   RCP_ALGORITHM_LIBRARY,
   applyResuscitationVitals,
@@ -384,32 +385,28 @@ export default function RcpAlgorithmsPage() {
                   </div>
                 </div>
 
-                <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
-                  {[
-                    { label: "FC", value: currentVitals.hr <= 0 ? "Sin pulso" : `${currentVitals.hr} lpm` },
-                    { label: "PA", value: formatAdvancedPressure(currentVitals.sbp, currentVitals.dbp) },
-                    { label: "SpO₂", value: currentVitals.spo2 <= 0 ? "No lectura" : `${currentVitals.spo2}%` },
-                    { label: "FR", value: currentVitals.rr <= 0 ? "Apnea" : `${currentVitals.rr} rpm` },
-                    { label: "Temp", value: `${currentVitals.temp.toFixed(1)}°C` },
-                    { label: "Ciclo", value: `${Math.min(currentStageIndex + 1, scenario.stages.length)}/${scenario.stages.length}` },
-                  ].map((item) => (
-                    <div key={item.label} className="rounded-2xl border border-white/10 bg-black/30 p-3">
-                      <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">{item.label}</div>
-                      <div className="mt-2 text-base font-semibold text-white">{item.value}</div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-4 grid gap-3 md:grid-cols-2">
-                  <div className="rounded-2xl border border-red-400/20 bg-red-400/10 p-4">
-                    <div className="text-xs uppercase tracking-[0.18em] text-red-100/70">Ritmo actual</div>
-                    <div className="mt-2 text-xl font-semibold text-white">{currentRhythm}</div>
-                  </div>
-                  <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4">
-                    <div className="text-xs uppercase tracking-[0.18em] text-cyan-100/70">Estado</div>
-                    <div className="mt-2 text-xl font-semibold text-white">{currentStatus}</div>
-                  </div>
-                </div>
+                <MultiparameterMonitor
+                  accent="red"
+                  title="Monitor multiparámetro"
+                  subtitle="Ritmo, perfusión y ventilación con comportamiento visual de escenario crítico."
+                  vitals={currentVitals}
+                  rhythmLabel={currentRhythm}
+                  statusLabel={currentStatus}
+                  timeLabel={mode === "evaluation" ? formatTimer(timeRemaining) : "Libre"}
+                  stageLabel={`Ciclo ${Math.min(currentStageIndex + 1, scenario.stages.length)}/${scenario.stages.length}`}
+                  badges={[
+                    resuscitationCategoryLabel(scenario.category),
+                    resuscitationDifficultyLabel(scenario.difficulty),
+                    resuscitationContextLabel(scenario.context),
+                  ]}
+                  alerts={scenario.keyFindings}
+                  detailItems={[
+                    { label: "Paciente", value: `${scenario.patientProfile.name} · ${scenario.patientProfile.age} años` },
+                    { label: "Entorno", value: scenario.patientProfile.setting ?? "No especificado" },
+                    { label: "PA actual", value: formatAdvancedPressure(currentVitals.sbp, currentVitals.dbp) },
+                  ]}
+                  footerNote="En ritmos sin pulso el monitor cae a trazados y lecturas críticas para reforzar el algoritmo correcto."
+                />
 
                 {currentStage ? (
                   <div className="mt-4 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4">

@@ -98,6 +98,21 @@ function evaluateCalcExpression(value: string) {
   return Number(result.toFixed(10)).toString();
 }
 
+function mergeExercisePools(
+  primary: ClinicalCalculationExercise[],
+  secondary: ClinicalCalculationExercise[]
+) {
+  const merged = new Map<string, ClinicalCalculationExercise>();
+
+  [...primary, ...secondary].forEach((exercise) => {
+    if (!merged.has(exercise.id)) {
+      merged.set(exercise.id, exercise);
+    }
+  });
+
+  return Array.from(merged.values());
+}
+
 export default function ClinicalCalculationsPage() {
   const [mode, setMode] = useState<CalculationMode>("practice");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
@@ -106,7 +121,7 @@ export default function ClinicalCalculationsPage() {
   const [exercisePool, setExercisePool] = useState<ClinicalCalculationExercise[]>(
     CLINICAL_CALCULATION_EXERCISES
   );
-  const [poolSource, setPoolSource] = useState<"database" | "local">("local");
+  const [poolSource, setPoolSource] = useState<"database" | "local" | "combined">("local");
   const [poolLoading, setPoolLoading] = useState(false);
   const [poolError, setPoolError] = useState<string | null>(null);
   const [exercise, setExercise] = useState<ClinicalCalculationExercise>(
@@ -182,9 +197,10 @@ export default function ClinicalCalculationsPage() {
         if (!mounted) return;
 
         if (fromDb.length > 0) {
-          setExercisePool(fromDb);
-          setPoolSource("database");
-          const next = fromDb[Math.floor(Math.random() * fromDb.length)];
+          const mergedPool = mergeExercisePools(fromDb, localFallback);
+          setExercisePool(mergedPool);
+          setPoolSource(mergedPool.length > fromDb.length ? "combined" : "database");
+          const next = mergedPool[Math.floor(Math.random() * mergedPool.length)];
           setExercise(next);
           setAnswerInput("");
           setResult(null);
@@ -308,7 +324,7 @@ export default function ClinicalCalculationsPage() {
             <div>
               <h1 className="text-2xl font-semibold">Cálculo clínico</h1>
               <p className="mt-1 text-sm text-white/70">
-                Practica dosis, infusión, balance hídrico e IMC con validación automática y explicación.
+                Practica dosis, formulaciones al %, infusión, balance hídrico e IMC con validación automática y explicación.
               </p>
             </div>
 
@@ -382,7 +398,7 @@ export default function ClinicalCalculationsPage() {
               <div className="mt-1 text-sm font-semibold text-white/90">{filteredCount} ejercicios disponibles</div>
               <div className="mt-1">Tipo: {getExerciseTypeLabel(exercise.type)}</div>
               <div className="mt-1">
-                Fuente: {poolLoading ? "Cargando..." : poolSource === "database" ? "Base de datos" : "Local"}
+                Fuente: {poolLoading ? "Cargando..." : poolSource === "combined" ? "Base de datos + local" : poolSource === "database" ? "Base de datos" : "Local"}
               </div>
             </div>
 

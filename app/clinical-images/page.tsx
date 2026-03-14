@@ -56,6 +56,7 @@ export default function ClinicalImagesPage() {
   const [selectedAnswer, setSelectedAnswer] = useState("");
   const [justification, setJustification] = useState("");
   const [result, setResult] = useState<ReturnType<typeof evaluateClinicalImageCase> | null>(null);
+  const canReviewHighlights = mode === "practice" || Boolean(result);
 
   useEffect(() => {
     try {
@@ -125,9 +126,15 @@ export default function ClinicalImagesPage() {
   }, [clearInputs, pickNextCase, selectionMode]);
 
   useEffect(() => {
-    if (mode === "evaluation") {
+    if (mode === "evaluation" && !result) {
       setShowHighlights(false);
-    } else if (!result) {
+    } else if (mode === "practice" && !result) {
+      setShowHighlights(true);
+    }
+  }, [mode, result]);
+
+  useEffect(() => {
+    if (mode === "evaluation" && result) {
       setShowHighlights(true);
     }
   }, [mode, result]);
@@ -379,21 +386,23 @@ export default function ClinicalImagesPage() {
                       type="checkbox"
                       checked={showHighlights}
                       onChange={(event) => setShowHighlights(event.target.checked)}
-                      disabled={mode === "evaluation"}
+                      disabled={!canReviewHighlights}
                     />
-                    Resaltar hallazgos
+                    {canReviewHighlights ? "Resaltar hallazgos" : "Disponible tras validar"}
                   </label>
                 </div>
               </div>
 
               <div className="mt-4">
-                <ClinicalImageViewer caseSet={caseSet} zoom={zoom} showHighlights={showHighlights && mode === "practice"} />
+                <ClinicalImageViewer caseSet={caseSet} zoom={zoom} showHighlights={showHighlights && canReviewHighlights} />
               </div>
 
               <div className="mt-3 rounded-2xl border border-white/10 bg-black/25 p-3 text-xs text-white/65">
                 {mode === "practice"
                   ? `Pista visual: ${caseSet.feedback.highlightHint}`
-                  : "Modo evaluación activo: la imagen se muestra sin pistas ni resaltados."}
+                  : result
+                  ? "Revisión desbloqueada: ahora puedes activar los hallazgos para contrastar tu respuesta."
+                  : "Modo evaluación activo: valida primero para desbloquear la revisión visual."}
               </div>
             </div>
 

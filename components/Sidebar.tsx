@@ -233,6 +233,7 @@ const NAV_SECTIONS: NavSection[] = [
       { label: "Medicamentos", href: "/medications", icon: navIcons.medications },
       { label: "Procedimientos", href: "/procedures", icon: navIcons.procedures },
       { label: "Notas clínicas", href: "/clinical-notes", icon: navIcons.notes },
+      { label: "PAE asistido", href: "/pae-assistant", icon: navIcons.pae },
       { label: "PAE", href: "/pae", icon: navIcons.pae },
     ],
   },

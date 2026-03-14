@@ -395,5 +395,308 @@ begin
   end loop;
 end $$;
 
+-- Extra seed: 150 medication-percentage exercises for dilution, volume and mixing.
+do $$
+declare
+  i integer;
+  subtype integer;
+  v_diff text;
+  v_type text;
+  a numeric;
+  b numeric;
+  c numeric;
+  d numeric;
+  v_title text;
+  v_statement text;
+  v_formula text;
+  v_answer_unit text;
+  v_correct numeric;
+  v_tol_kind text;
+  v_tol_value numeric;
+  v_patient_data jsonb;
+  v_hints text[];
+  v_steps text[];
+  v_common text[];
+  v_external_id text;
+  v_medication text;
+begin
+  for i in 1..150
+  loop
+    subtype := ((i - 1) % 5) + 1;
+    v_diff := case when i % 3 = 1 then 'basic' when i % 3 = 2 then 'intermediate' else 'advanced' end;
+    v_type := case when i % 3 = 1 then 'single' when i % 3 = 2 then 'mini_case' else 'quick_test' end;
+    v_external_id := 'dose_percent_extra_' || lpad(i::text, 4, '0');
+    v_tol_kind := 'absolute';
+
+    if subtype = 1 then
+      v_medication := case (i % 6)
+        when 0 then 'Lidocaína'
+        when 1 then 'Lidocaína'
+        when 2 then 'Gluconato de calcio'
+        when 3 then 'Sulfato de magnesio'
+        when 4 then 'Dextrosa'
+        else 'Dextrosa'
+      end;
+      a := case (i % 6)
+        when 0 then 1
+        when 1 then 2
+        when 2 then 10
+        when 3 then 20
+        when 4 then 10
+        else 50
+      end;
+      b := round((1 + ((i - 1) % 6) * 0.5 + floor((i - 1) / 6) * 0.12)::numeric, 2); -- mL
+      c := round((a * 10 * b)::numeric, 1); -- mg
+      v_title := v_medication || ' al ' || a || '%: calcular volumen';
+      v_statement := 'Se requieren ' || c || ' mg de ' || v_medication || '. Dispones de una solución al ' || a || '%. ¿Cuántos mL debes cargar?';
+      v_formula := 'Volumen (mL) = mg requeridos / (concentración % x 10 mg/mL)';
+      v_answer_unit := 'mL';
+      v_correct := b;
+      v_tol_value := 0.05;
+      v_patient_data := jsonb_build_array(
+        jsonb_build_object('label', 'Medicamento', 'value', v_medication || ' al ' || a || '%'),
+        jsonb_build_object('label', 'Dosis requerida', 'value', c || ' mg')
+      );
+      v_hints := array['1% equivale a 10 mg/mL.', 'Divide mg requeridos para mg/mL.'];
+      v_steps := array[
+        a || '% = ' || (a * 10) || ' mg/mL',
+        c || ' / ' || (a * 10) || ' = ' || b,
+        'Respuesta final: ' || b || ' mL.'
+      ];
+      v_common := array['Olvidar convertir % a mg/mL.', 'Multiplicar en lugar de dividir.'];
+
+    elsif subtype = 2 then
+      v_medication := case (i % 5)
+        when 0 then 'Lidocaína'
+        when 1 then 'Lidocaína'
+        when 2 then 'Gluconato de calcio'
+        when 3 then 'Sulfato de magnesio'
+        else 'Dextrosa'
+      end;
+      a := case (i % 5)
+        when 0 then 1
+        when 1 then 2
+        when 2 then 10
+        when 3 then 20
+        else 10
+      end; -- %
+      b := (8 + ((i - 1) % 10) * 4 + floor((i - 1) / 10) * 2)::numeric; -- kg
+      c := case (i % 5)
+        when 0 then 2.5
+        when 1 then 3
+        when 2 then 12
+        when 3 then 18
+        else 20
+      end + (((i - 1) % 3) * 0.5); -- mg/kg
+      d := round((b * c)::numeric, 1); -- mg total
+      v_title := v_medication || ' al ' || a || '% por peso';
+      v_statement := 'Paciente de ' || b || ' kg. Prescripción: ' || c || ' mg/kg de ' || v_medication || '. Presentación disponible al ' || a || '%. ¿Cuántos mL corresponden a la dosis total?';
+      v_formula := 'Volumen (mL) = (mg/kg x peso) / (concentración % x 10 mg/mL)';
+      v_answer_unit := 'mL';
+      v_correct := round((d / (a * 10))::numeric, 2);
+      v_tol_value := 0.08;
+      v_patient_data := jsonb_build_array(
+        jsonb_build_object('label', 'Peso', 'value', b || ' kg'),
+        jsonb_build_object('label', 'Prescripción', 'value', c || ' mg/kg'),
+        jsonb_build_object('label', 'Presentación', 'value', a || '%')
+      );
+      v_hints := array['Primero calcula mg totales.', 'Luego divide para mg/mL.'];
+      v_steps := array[
+        'Dosis total = ' || b || ' x ' || c || ' = ' || d || ' mg',
+        a || '% = ' || (a * 10) || ' mg/mL',
+        d || ' / ' || (a * 10) || ' = ' || v_correct || ' mL'
+      ];
+      v_common := array['No convertir la concentración.', 'Responder en mg en vez de mL.'];
+
+    elsif subtype = 3 then
+      v_medication := case (i % 6)
+        when 0 then 'Lidocaína'
+        when 1 then 'Lidocaína'
+        when 2 then 'Dextrosa'
+        when 3 then 'Dextrosa'
+        when 4 then 'Sulfato de magnesio'
+        else 'Sulfato de magnesio'
+      end;
+      a := case (i % 6)
+        when 0 then 2
+        when 1 then 2
+        when 2 then 50
+        when 3 then 50
+        when 4 then 20
+        else 20
+      end; -- stock
+      b := case (i % 6)
+        when 0 then 1
+        when 1 then 0.5
+        when 2 then 10
+        when 3 then 12.5
+        when 4 then 4
+        else 10
+      end; -- target
+      c := (20 + ((i - 1) % 6) * 10 + floor((i - 1) / 6) * 2)::numeric; -- final volume
+      d := round(((c * b) / a)::numeric, 2); -- stock mL
+      v_title := v_medication || ': dilución desde ' || a || '%';
+      v_statement := 'Debes preparar ' || c || ' mL de ' || v_medication || ' al ' || b || '% a partir de una solución stock al ' || a || '%. ¿Cuántos mL de la solución concentrada necesitas antes de completar con diluyente?';
+      v_formula := 'Stock (mL) = (concentración final x volumen final) / concentración stock';
+      v_answer_unit := 'mL de stock';
+      v_correct := d;
+      v_tol_value := 0.08;
+      v_patient_data := jsonb_build_array(
+        jsonb_build_object('label', 'Concentración final', 'value', b || '%'),
+        jsonb_build_object('label', 'Stock', 'value', a || '%'),
+        jsonb_build_object('label', 'Volumen final', 'value', c || ' mL')
+      );
+      v_hints := array['Usa C1 x V1 = C2 x V2.', 'El diluyente completa el volumen final.'];
+      v_steps := array[
+        'V1 = (' || b || ' x ' || c || ') / ' || a,
+        'V1 = ' || d || ' mL',
+        'Respuesta final: ' || d || ' mL de stock.'
+      ];
+      v_common := array['Invertir concentración final con stock.', 'Responder diluyente en vez de stock.'];
+
+    elsif subtype = 4 then
+      v_medication := case (i % 5)
+        when 0 then 'Dextrosa'
+        when 1 then 'Dextrosa'
+        when 2 then 'Dextrosa'
+        when 3 then 'Sulfato de magnesio'
+        else 'Bicarbonato de sodio'
+      end;
+      a := case (i % 5)
+        when 0 then 5
+        when 1 then 10
+        when 2 then 10
+        when 3 then 10
+        else 4.2
+      end; -- low
+      b := case (i % 5)
+        when 0 then 50
+        when 1 then 50
+        when 2 then 50
+        when 3 then 20
+        else 8.4
+      end; -- high
+      c := case (i % 5)
+        when 0 then 10
+        when 1 then 12.5
+        when 2 then 15
+        when 3 then 15
+        else 6.3
+      end; -- target
+      d := (60 + ((i - 1) % 5) * 30 + floor((i - 1) / 5) * 2)::numeric; -- final volume
+      v_title := v_medication || ': mezcla de concentraciones';
+      v_statement := 'Necesitas preparar ' || d || ' mL de ' || v_medication || ' al ' || c || '% mezclando ' || a || '% y ' || b || '%. ¿Cuántos mL de la presentación al ' || b || '% debes usar?';
+      v_formula := 'Volumen concentración alta = V final x (C objetivo - C baja) / (C alta - C baja)';
+      v_answer_unit := 'mL de alta concentración';
+      v_correct := round((d * (c - a) / (b - a))::numeric, 2);
+      v_tol_value := 0.1;
+      v_patient_data := jsonb_build_array(
+        jsonb_build_object('label', 'Concentración baja', 'value', a || '%'),
+        jsonb_build_object('label', 'Concentración alta', 'value', b || '%'),
+        jsonb_build_object('label', 'Objetivo', 'value', c || '% en ' || d || ' mL')
+      );
+      v_hints := array['La concentración objetivo debe quedar entre ambas.', 'Aplica una regla de mezcla.'];
+      v_steps := array[
+        'V alta = ' || d || ' x (' || c || ' - ' || a || ') / (' || b || ' - ' || a || ')',
+        'V alta = ' || v_correct || ' mL',
+        'Respuesta final: ' || v_correct || ' mL.'
+      ];
+      v_common := array['Usar las diferencias al revés.', 'Responder el volumen de la solución menos concentrada.'];
+
+    else
+      v_medication := case (i % 6)
+        when 0 then 'Lidocaína'
+        when 1 then 'Lidocaína'
+        when 2 then 'Gluconato de calcio'
+        when 3 then 'Sulfato de magnesio'
+        when 4 then 'Dextrosa'
+        else 'Dextrosa'
+      end;
+      a := case (i % 6)
+        when 0 then 1
+        when 1 then 2
+        when 2 then 10
+        when 3 then 20
+        when 4 then 10
+        else 50
+      end; -- %
+      b := round((0.8 + ((i - 1) % 6) * 0.6 + floor((i - 1) / 6) * 0.08)::numeric, 2); -- mL
+      c := round((b * a * 10)::numeric, 1); -- mg
+      v_title := v_medication || ' al ' || a || '%: mg administrados';
+      v_statement := 'Se administran ' || b || ' mL de ' || v_medication || ' al ' || a || '%. ¿Cuántos mg de principio activo recibió el paciente?';
+      v_formula := 'mg administrados = mL x (concentración % x 10 mg/mL)';
+      v_answer_unit := 'mg';
+      v_correct := c;
+      v_tol_value := 0.1;
+      v_patient_data := jsonb_build_array(
+        jsonb_build_object('label', 'Volumen administrado', 'value', b || ' mL'),
+        jsonb_build_object('label', 'Concentración', 'value', a || '%')
+      );
+      v_hints := array['Primero convierte % a mg/mL.', 'Luego multiplica por el volumen.'];
+      v_steps := array[
+        a || '% = ' || (a * 10) || ' mg/mL',
+        b || ' x ' || (a * 10) || ' = ' || c || ' mg',
+        'Respuesta final: ' || c || ' mg.'
+      ];
+      v_common := array['Responder en mL en vez de mg.', 'Tomar el porcentaje como mg/mL directo.'];
+    end if;
+
+    insert into public.clinical_calculation_exercises (
+      external_id,
+      title,
+      category,
+      difficulty,
+      exercise_type,
+      statement,
+      patient_data,
+      answer_unit,
+      formula,
+      correct_answer,
+      tolerance_kind,
+      tolerance_value,
+      hints,
+      step_by_step,
+      common_errors,
+      is_active
+    )
+    values (
+      v_external_id,
+      v_title,
+      'dose_medication',
+      v_diff,
+      v_type,
+      v_statement,
+      v_patient_data,
+      v_answer_unit,
+      v_formula,
+      v_correct,
+      v_tol_kind,
+      v_tol_value,
+      v_hints,
+      v_steps,
+      v_common,
+      true
+    )
+    on conflict (external_id) do update
+    set
+      title = excluded.title,
+      category = excluded.category,
+      difficulty = excluded.difficulty,
+      exercise_type = excluded.exercise_type,
+      statement = excluded.statement,
+      patient_data = excluded.patient_data,
+      answer_unit = excluded.answer_unit,
+      formula = excluded.formula,
+      correct_answer = excluded.correct_answer,
+      tolerance_kind = excluded.tolerance_kind,
+      tolerance_value = excluded.tolerance_value,
+      hints = excluded.hints,
+      step_by_step = excluded.step_by_step,
+      common_errors = excluded.common_errors,
+      is_active = excluded.is_active,
+      updated_at = now();
+  end loop;
+end $$;
+
 -- Optional check:
 -- select category, count(*) from public.clinical_calculation_exercises group by category order by category;
