@@ -353,12 +353,12 @@ export default function DashboardPage() {
       {
         id: "diagnostic",
         title: "Diagnóstico y monitorización",
-        desc: "Integra ECG, laboratorio y gasometría para interpretar antes de decidir conducta.",
+        desc: "Integra ECG, ecografía, laboratorio y gasometría para interpretar antes de decidir conducta.",
         href: "/ecg-simulator",
         action: "Ir a diagnóstico",
         note: "Ideal para fortalecer lectura clínica estructurada.",
         accent: "from-emerald-500/18 via-teal-500/10 to-transparent",
-        modules: buildModules(["ecg", "laboratory", "gasometry"]),
+        modules: buildModules(["ecg", "ultrasound", "laboratory", "gasometry"]),
       },
       {
         id: "advanced",
@@ -495,6 +495,12 @@ export default function DashboardPage() {
                       className="rounded-xl border border-white/15 bg-black/20 px-4 py-2.5 text-sm text-white/82 hover:bg-white/5"
                     >
                       Abrir ECG
+                    </Link>
+                    <Link
+                      href="/ultrasound-simulator"
+                      className="rounded-xl border border-white/15 bg-black/20 px-4 py-2.5 text-sm text-white/82 hover:bg-white/5"
+                    >
+                      Abrir eco
                     </Link>
                     <Link
                       href="/laboratory"

@@ -70,6 +70,14 @@ const navIcons = {
       <path d="M9 14h6" />
     </svg>
   ),
+  ultrasound: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="5" y="5" width="14" height="14" rx="2" />
+      <path d="M9 9c2.5 1.7 2.5 4.3 0 6" />
+      <path d="M12 8c3.8 2.4 3.8 5.6 0 8" />
+      <path d="M15 10.5c1.6 1.1 1.6 1.9 0 3" />
+    </svg>
+  ),
   images: (
     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
       <rect x="3" y="4" width="18" height="16" rx="2" />
@@ -214,6 +222,7 @@ const NAV_SECTIONS: NavSection[] = [
     title: "Diagnóstico",
     items: [
       { label: "Simulador de ECG", href: "/ecg-simulator", icon: navIcons.ecg },
+      { label: "Simulador de ecografía", href: "/ultrasound-simulator", icon: navIcons.ultrasound },
       { label: "Laboratorio", href: "/laboratory", icon: navIcons.lab },
       { label: "Gasometría", href: "/gasometry", icon: navIcons.gasometry },
     ],

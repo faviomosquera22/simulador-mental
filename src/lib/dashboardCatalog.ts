@@ -65,6 +65,18 @@ export const DASHBOARD_MODULES: DashboardModuleMeta[] = [
     highlight: true,
   },
   {
+    id: "ultrasound",
+    label: "Simulador de ecografía",
+    href: "/ultrasound-simulator",
+    group: "diagnostico",
+    summary: "Eco obstétrica, cardíaca, renal y hepatobiliar con visor comparativo y feedback clínico.",
+    accent: "from-cyan-500/18 via-teal-500/10 to-transparent",
+    count: 240,
+    countLabel: "estudios",
+    status: "Banco ampliado",
+    highlight: true,
+  },
+  {
     id: "laboratory",
     label: "Laboratorio",
     href: "/laboratory",
