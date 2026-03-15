@@ -101,9 +101,6 @@ function RectHighlight({
           strokeWidth="1.2"
         />
       ) : null}
-      <text x={region.x} y={Math.max(8, region.y - 2)} fill="rgba(186,230,253,0.95)" fontSize="4.2">
-        {region.label}
-      </text>
     </>
   );
 }
@@ -580,17 +577,25 @@ export default function UltrasoundViewer(props: UltrasoundViewerProps) {
     <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#050A11]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.12),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(248,113,113,0.10),transparent_34%)]" />
       <div className="absolute inset-0 opacity-20 mix-blend-screen [background-image:linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:18px_18px]" />
-      <div className="absolute right-4 top-4 z-10 rounded-full border border-white/10 bg-black/30 px-3 py-1 text-[11px] text-white/72">
-        Zoom {Math.round(zoom * 100)}%
-      </div>
-      <div className="absolute left-4 top-4 z-10 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[11px] text-cyan-100">
-        Esquema ecografico educativo
-      </div>
-      {showHighlights ? (
-        <div className="absolute bottom-4 left-4 z-10 rounded-full border border-cyan-300/20 bg-black/35 px-3 py-1 text-[11px] text-cyan-100">
-          Interactivo: enfoca una zona sonografica
+
+      <div className="relative flex flex-wrap items-center justify-between gap-2 border-b border-white/10 bg-black/20 px-4 py-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[11px] text-cyan-100">
+            Esquema ecografico educativo
+          </span>
+          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/68">
+            Ayudas visuales discretas
+          </span>
+          {showHighlights ? (
+            <span className="rounded-full border border-cyan-300/20 bg-black/35 px-3 py-1 text-[11px] text-cyan-100">
+              Interactivo: enfoca una zona sonografica
+            </span>
+          ) : null}
         </div>
-      ) : null}
+        <div className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-[11px] text-white/72">
+          Zoom {Math.round(zoom * 100)}%
+        </div>
+      </div>
 
       <div className="relative grid gap-4 p-4 lg:grid-cols-2">
         <div className="rounded-[24px] border border-white/10 bg-black/25 p-3">
@@ -600,10 +605,10 @@ export default function UltrasoundViewer(props: UltrasoundViewerProps) {
             <div className="absolute inset-0 flex items-center justify-center p-4" style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}>
               {renderPreset(visuals.referencePreset)}
             </div>
-            <SignalOverlay signals={visuals.referenceSignals} visible={true} />
-            <div className="absolute inset-x-5 bottom-5 rounded-2xl border border-white/10 bg-black/45 px-3 py-2 text-[11px] text-white/68 backdrop-blur">
-              Compara anatomia, ecos brillantes, zonas anecoicas y continuidad de bordes.
-            </div>
+            <SignalOverlay signals={visuals.referenceSignals} visible={showHighlights} />
+          </div>
+          <div className="mt-3 rounded-2xl border border-white/10 bg-black/30 px-3 py-2 text-[11px] text-white/68">
+            Compara anatomia, ecos brillantes, zonas anecoicas y continuidad de bordes.
           </div>
         </div>
 
@@ -658,11 +663,11 @@ export default function UltrasoundViewer(props: UltrasoundViewerProps) {
                 ))}
               </div>
             ) : null}
-            <div className="absolute inset-x-5 bottom-5 rounded-2xl border border-cyan-400/15 bg-black/55 px-3 py-2 text-[11px] text-white/70 backdrop-blur">
-              {showHighlights && activeHighlight
-                ? `Zona enfocada: ${activeHighlight.label}`
-                : "Valida primero o activa la revision para comparar la ventana ecografica."}
-            </div>
+          </div>
+          <div className="mt-3 rounded-2xl border border-cyan-400/15 bg-black/30 px-3 py-2 text-[11px] text-white/70">
+            {showHighlights && activeHighlight
+              ? `Zona enfocada: ${activeHighlight.label}`
+              : "Valida primero o activa la revision para comparar la ventana ecografica."}
           </div>
         </div>
       </div>
