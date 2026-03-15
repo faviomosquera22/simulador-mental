@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import UltrasoundViewer from "@/components/advanced/UltrasoundViewer";
+import { getAuthFetchHeaders } from "@/src/lib/clientAuth";
 import {
   ULTRASOUND_LIBRARY,
   evaluateUltrasoundCase,
@@ -21,6 +23,13 @@ type SelectionMode = "manual" | "random" | "contextual_random";
 type UsageMode = "integrated_case" | "standalone";
 type DifficultyFilter = AdvancedDifficulty | "all";
 type CategoryFilter = UltrasoundCategory | "all";
+type GeneratedPreview = {
+  imageDataUrl: string;
+  mimeType: string;
+  prompt: string;
+  modelUsed: string;
+  providerText: string;
+};
 
 function parseActiveCase(raw: string | null) {
   if (!raw) return null;
@@ -57,6 +66,9 @@ export default function UltrasoundSimulatorPage() {
   const [selectedAnswer, setSelectedAnswer] = useState("");
   const [justification, setJustification] = useState("");
   const [result, setResult] = useState<ReturnType<typeof evaluateUltrasoundCase> | null>(null);
+  const [generatedPreview, setGeneratedPreview] = useState<GeneratedPreview | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState("");
   const canReviewHighlights = mode === "practice" || Boolean(result);
 
   useEffect(() => {
@@ -152,6 +164,12 @@ export default function UltrasoundSimulatorPage() {
     }
   }, [mode, result]);
 
+  useEffect(() => {
+    setGeneratedPreview(null);
+    setPreviewError("");
+    setPreviewLoading(false);
+  }, [caseSet.id]);
+
   function loadNewCase() {
     const next = pickNextCase(caseSet.id);
     if (!next) return;
@@ -168,6 +186,48 @@ export default function UltrasoundSimulatorPage() {
         justification,
       })
     );
+  }
+
+  async function generateAiPreview() {
+    setPreviewLoading(true);
+    setPreviewError("");
+
+    try {
+      const headers = await getAuthFetchHeaders({ "Content-Type": "application/json" });
+      const response = await fetch("/api/ai/generate-ultrasound-image", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          caseSet: {
+            title: caseSet.title,
+            category: caseSet.category,
+            subcategory: caseSet.subcategory,
+            clinicalSummary: caseSet.clinicalSummary,
+            scanPlane: caseSet.scanPlane,
+            keyFindings: caseSet.keyFindings,
+            correctAnswer: caseSet.correctAnswer,
+            patientProfile: {
+              age: caseSet.patientProfile.age,
+              sex: caseSet.patientProfile.sex,
+              chiefComplaint: caseSet.patientProfile.chiefComplaint,
+              gestationalAgeWeeks: caseSet.patientProfile.gestationalAgeWeeks,
+            },
+          },
+        }),
+      });
+
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(String(payload?.detail ?? "No se pudo generar la imagen de prueba."));
+      }
+
+      setGeneratedPreview(payload as GeneratedPreview);
+    } catch (error: any) {
+      setGeneratedPreview(null);
+      setPreviewError(String(error?.message ?? "Error generando la imagen de prueba."));
+    } finally {
+      setPreviewLoading(false);
+    }
   }
 
   return (
@@ -368,6 +428,14 @@ export default function UltrasoundSimulatorPage() {
             <div className="flex items-start justify-end gap-2">
               <button
                 type="button"
+                onClick={generateAiPreview}
+                disabled={previewLoading}
+                className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-2 text-sm text-cyan-50 hover:bg-cyan-300/15 disabled:cursor-wait disabled:opacity-70"
+              >
+                {previewLoading ? "Generando preview IA..." : "Generar preview IA"}
+              </button>
+              <button
+                type="button"
                 onClick={loadNewCase}
                 className="rounded-xl border border-white/15 bg-black/35 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
               >
@@ -411,6 +479,53 @@ export default function UltrasoundSimulatorPage() {
               <div className="mt-4">
                 <UltrasoundViewer caseSet={caseSet} zoom={zoom} showHighlights={showHighlights && canReviewHighlights} />
               </div>
+
+              {previewError ? (
+                <div className="mt-4 rounded-2xl border border-red-400/20 bg-red-400/10 p-3 text-sm text-red-100">
+                  {previewError}
+                </div>
+              ) : null}
+
+              {generatedPreview ? (
+                <div className="mt-4 rounded-2xl border border-cyan-400/15 bg-black/25 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <div className="text-xs uppercase tracking-[0.14em] text-cyan-100/70">Preview IA experimental</div>
+                      <div className="mt-1 text-sm text-white/72">
+                        Imagen sintetica generada con {generatedPreview.modelUsed}. Sirve para explorar estilo visual, no como referencia diagnostica.
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setGeneratedPreview(null)}
+                      className="rounded-xl border border-white/15 bg-black/25 px-3 py-2 text-xs text-white/75"
+                    >
+                      Ocultar preview
+                    </button>
+                  </div>
+
+                  <div className="mt-4 overflow-hidden rounded-[20px] border border-white/10 bg-[#050A11]">
+                    <Image
+                      src={generatedPreview.imageDataUrl}
+                      alt={`Preview IA para ${caseSet.title}`}
+                      width={960}
+                      height={960}
+                      unoptimized
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+
+                  <details className="mt-3 rounded-2xl border border-white/10 bg-black/20 p-3 text-xs text-white/65">
+                    <summary className="cursor-pointer text-white/80">Ver prompt usado</summary>
+                    <div className="mt-2 whitespace-pre-wrap leading-5">{generatedPreview.prompt}</div>
+                    {generatedPreview.providerText ? (
+                      <div className="mt-3 rounded-xl border border-white/10 bg-black/25 p-3 text-white/60">
+                        Texto devuelto por el modelo: {generatedPreview.providerText}
+                      </div>
+                    ) : null}
+                  </details>
+                </div>
+              ) : null}
 
               <div className="mt-3 rounded-2xl border border-white/10 bg-black/25 p-3 text-xs text-white/65">
                 {mode === "practice"
