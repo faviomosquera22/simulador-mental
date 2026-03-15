@@ -22,6 +22,27 @@ type RenderPreset =
   | "biliary_normal"
   | "biliary_stones";
 
+type ScanSignal = {
+  label: string;
+  x: number;
+  y: number;
+  targetX: number;
+  targetY: number;
+  tone?: "neutral" | "focus";
+};
+
+type ViewerVisuals = {
+  referencePreset: RenderPreset;
+  casePreset: RenderPreset;
+  referenceTitle: string;
+  caseTitle: string;
+  orientationChip: string;
+  depthLabels: string[];
+  referenceSignals: ScanSignal[];
+  caseSignals: ScanSignal[];
+  microLegend: string[];
+};
+
 const ULTRASOUND_SPECKLES = [
   { cx: 18, cy: 20, rx: 1.3, ry: 0.8, opacity: 0.18 },
   { cx: 24, cy: 28, rx: 1.5, ry: 0.9, opacity: 0.14 },
@@ -98,13 +119,81 @@ function FrameLabel({ title, subtitle }: { title: string; subtitle: string }) {
   );
 }
 
+function approxTextWidth(label: string) {
+  return Math.max(10, Math.min(24, label.length * 2.25 + 5));
+}
+
+function SignalOverlay({
+  signals,
+  visible,
+}: {
+  signals: ScanSignal[];
+  visible: boolean;
+}) {
+  if (!visible || !signals.length) return null;
+
+  return (
+    <svg viewBox="0 0 100 100" className="pointer-events-none absolute inset-0 h-full w-full">
+      {signals.map((signal, index) => {
+        const width = approxTextWidth(signal.label);
+        const isFocus = signal.tone === "focus";
+        const boxX = Math.max(4, Math.min(96 - width, signal.x));
+        const boxY = Math.max(6, Math.min(94, signal.y));
+
+        return (
+          <g key={`${signal.label}-${index}`}>
+            <line
+              x1={signal.targetX}
+              y1={signal.targetY}
+              x2={boxX + 2}
+              y2={boxY - 1.2}
+              stroke={isFocus ? "rgba(165,243,252,0.72)" : "rgba(226,232,240,0.42)"}
+              strokeWidth={isFocus ? "0.9" : "0.7"}
+              strokeDasharray={isFocus ? "2 1.5" : "1.5 1.5"}
+            />
+            <circle
+              cx={signal.targetX}
+              cy={signal.targetY}
+              r={isFocus ? "1.3" : "1"}
+              fill={isFocus ? "rgba(165,243,252,0.82)" : "rgba(226,232,240,0.55)"}
+            />
+            <rect
+              x={boxX}
+              y={boxY - 5}
+              width={width}
+              height="6.8"
+              rx="2.6"
+              fill={isFocus ? "rgba(3,18,25,0.82)" : "rgba(2,6,10,0.72)"}
+              stroke={isFocus ? "rgba(165,243,252,0.34)" : "rgba(226,232,240,0.16)"}
+              strokeWidth="0.45"
+            />
+            <text
+              x={boxX + 2.2}
+              y={boxY - 0.3}
+              fill={isFocus ? "rgba(207,250,254,0.98)" : "rgba(226,232,240,0.82)"}
+              fontSize="3"
+              letterSpacing="0.15"
+            >
+              {signal.label}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
 function UltrasoundCanvas({
   scanId,
   badge,
+  orientationChip,
+  depthLabels,
   children,
 }: {
   scanId: string;
   badge: string;
+  orientationChip: string;
+  depthLabels: string[];
   children: ReactNode;
 }) {
   return (
@@ -158,11 +247,23 @@ function UltrasoundCanvas({
       <text x="12" y="14" fill="#A5F3FC" fontSize="4" letterSpacing="0.7">
         {badge}
       </text>
+      <rect x="65.5" y="8" width="20" height="6.8" rx="3.2" fill="rgba(3,10,16,0.7)" stroke="rgba(125,211,252,0.22)" strokeWidth="0.5" />
+      <path d="M68.5 11.4 H73" stroke="#A5F3FC" strokeWidth="0.9" strokeLinecap="round" opacity="0.82" />
+      <circle cx="68.5" cy="11.4" r="1" fill="#A5F3FC" opacity="0.9" />
+      <text x="74.8" y="12.7" fill="#CFFAFE" fontSize="3.1" letterSpacing="0.18">
+        {orientationChip}
+      </text>
+      <text x="11" y="90.5" fill="#64748B" fontSize="2.8" letterSpacing="0.24">
+        near
+      </text>
+      <text x="74.8" y="90.5" fill="#64748B" fontSize="2.8" letterSpacing="0.24">
+        deep
+      </text>
       {[22, 38, 54, 70, 86].map((y, index) => (
         <g key={`${scanId}-mark-${index}`}>
           <line x1="86" y1={y} x2="90" y2={y} stroke="#94A3B8" strokeWidth="0.7" opacity="0.6" />
-          <text x="80" y={y + 1.4} fill="#64748B" fontSize="2.8">
-            {index + 1}
+          <text x="76.5" y={y + 1.4} fill="#64748B" fontSize="2.8">
+            {depthLabels[index] ?? index + 1}
           </text>
         </g>
       ))}
@@ -205,10 +306,11 @@ function FetusFigure({ orientation }: { orientation: "diagonal" | "cephalic" | "
 
 function ObstetricScan({ variant }: { variant: "reference" | "singleton" | "cephalic" | "breech" }) {
   return (
-    <UltrasoundCanvas scanId={`ob-${variant}`} badge="OB">
+    <UltrasoundCanvas scanId={`ob-${variant}`} badge="OB" orientationChip="LONG" depthLabels={["3", "6", "9", "12", "15"]}>
       <ellipse cx="50" cy="58" rx="27" ry="20" fill="#434C54" opacity="0.34" />
       <ellipse cx="50" cy="58" rx="22.5" ry="16.5" fill="#111820" opacity="0.92" stroke="#9CA3AF" strokeWidth="0.7" strokeOpacity="0.55" />
       <ellipse cx="50" cy="58" rx="16" ry="11" fill="#070B10" opacity="0.95" />
+      <ellipse cx="50" cy="58" rx="23.8" ry="17.6" fill="none" stroke="#E2E8F0" strokeWidth="0.5" strokeOpacity="0.16" strokeDasharray="2 2" />
       {variant === "reference" ? (
         <>
           <ellipse cx="50" cy="58" rx="8.5" ry="6.4" fill="#1F2933" opacity="0.86" />
@@ -230,7 +332,7 @@ function CardiacScan({ variant }: { variant: "normal" | "effusion" | "lowEf" }) 
   const myocardiumPath = "M32 38 Q42 26 58 30 Q68 36 66 52 Q63 68 48 70 Q33 67 30 54 Q28 45 32 38Z";
 
   return (
-    <UltrasoundCanvas scanId={`cardiac-${variant}`} badge="ECHO">
+    <UltrasoundCanvas scanId={`cardiac-${variant}`} badge="ECHO" orientationChip="S4C" depthLabels={["4", "8", "12", "16", "20"]}>
       {variant === "effusion" ? <path d={outerPath} fill="#02060A" opacity="0.94" /> : null}
       <path
         d={myocardiumPath}
@@ -252,6 +354,7 @@ function CardiacScan({ variant }: { variant: "normal" | "effusion" | "lowEf" }) 
       <ellipse cx="37" cy="45" rx="6.8" ry="5.4" fill="#070A10" opacity="0.82" />
       <path d="M46 40 L51 60" stroke="#DCE3E8" strokeWidth="0.95" opacity="0.42" />
       <path d="M42 50 Q49 46 57 48" stroke="#DCE3E8" strokeWidth="0.9" opacity="0.32" fill="none" />
+      <path d={outerPath} fill="none" stroke="#E2E8F0" strokeWidth="0.5" strokeOpacity="0.12" strokeDasharray="2 2" />
       {variant === "effusion" ? (
         <>
           <path d={outerPath} fill="none" stroke="#CBD5E1" strokeWidth="1" strokeOpacity="0.46" />
@@ -270,9 +373,10 @@ function CardiacScan({ variant }: { variant: "normal" | "effusion" | "lowEf" }) 
 
 function RenalScan({ variant }: { variant: "normal" | "hydronephrosis" }) {
   return (
-    <UltrasoundCanvas scanId={`renal-${variant}`} badge="RENAL">
+    <UltrasoundCanvas scanId={`renal-${variant}`} badge="RENAL" orientationChip="LONG" depthLabels={["2", "4", "6", "8", "10"]}>
       <path d="M33 28 Q20 46 29 66 Q38 82 57 78 Q77 73 79 52 Q81 35 65 25 Q49 18 33 28Z" fill="#7C8792" opacity="0.5" />
       <path d="M38 32 Q28 46 35 62 Q42 74 56 70 Q70 66 71 52 Q72 39 61 31 Q50 24 38 32Z" fill="#404A54" opacity="0.68" />
+      <path d="M38 32 Q28 46 35 62 Q42 74 56 70 Q70 66 71 52 Q72 39 61 31 Q50 24 38 32Z" fill="none" stroke="#E2E8F0" strokeWidth="0.5" strokeOpacity="0.16" strokeDasharray="2 2" />
       <ellipse cx="52" cy="50" rx="9" ry="14" fill="#D5DCE2" opacity="0.38" />
       {variant === "hydronephrosis" ? (
         <>
@@ -295,7 +399,7 @@ function RenalScan({ variant }: { variant: "normal" | "hydronephrosis" }) {
 
 function BiliaryScan({ variant }: { variant: "normal" | "stones" }) {
   return (
-    <UltrasoundCanvas scanId={`biliary-${variant}`} badge="RUQ">
+    <UltrasoundCanvas scanId={`biliary-${variant}`} badge="RUQ" orientationChip="OBL" depthLabels={["2", "4", "6", "8", "10"]}>
       <path d="M18 30 Q42 18 78 30 L76 70 Q48 82 20 68 Z" fill="#5F6870" opacity="0.26" />
       <path
         d="M56 32 Q68 41 66 57 Q65 72 54 73 Q43 74 40 61 Q38 46 47 36 Q52 31 56 32Z"
@@ -326,42 +430,110 @@ function resolveVisuals(caseSet: UltrasoundCase) {
         casePreset: "ob_singleton" as RenderPreset,
         referenceTitle: "Saco gestacional de referencia",
         caseTitle: "Caso con polo fetal y viabilidad",
-      };
+        orientationChip: "LONG",
+        depthLabels: ["3", "6", "9", "12", "15"],
+        referenceSignals: [
+          { label: "miometrio", x: 18, y: 44, targetX: 26, targetY: 59 },
+          { label: "saco", x: 69, y: 42, targetX: 58, targetY: 57 },
+        ],
+        caseSignals: [
+          { label: "saco", x: 68, y: 40, targetX: 58, targetY: 57 },
+          { label: "polo", x: 62, y: 28, targetX: 56, targetY: 48, tone: "focus" },
+        ],
+        microLegend: ["Anecoico", "Miometrio", "Polo fetal", "Borde regular"],
+      } satisfies ViewerVisuals;
     case "ob_breech":
       return {
         referencePreset: "ob_cephalic" as RenderPreset,
         casePreset: "ob_breech" as RenderPreset,
         referenceTitle: "Referencia con presentacion cefalica",
         caseTitle: "Caso con eje fetal invertido",
-      };
+        orientationChip: "LONG",
+        depthLabels: ["4", "8", "12", "16", "20"],
+        referenceSignals: [
+          { label: "cabeza", x: 62, y: 76, targetX: 52, targetY: 68 },
+          { label: "tronco", x: 22, y: 47, targetX: 44, targetY: 52 },
+        ],
+        caseSignals: [
+          { label: "cabeza", x: 64, y: 20, targetX: 56, targetY: 32, tone: "focus" },
+          { label: "pelvis", x: 21, y: 72, targetX: 51, targetY: 72 },
+        ],
+        microLegend: ["Orientacion fetal", "Cabeza", "Pelvis", "Eje longitudinal"],
+      } satisfies ViewerVisuals;
     case "cardiac_pericardial_effusion":
       return {
         referencePreset: "cardiac_normal" as RenderPreset,
         casePreset: "cardiac_effusion" as RenderPreset,
         referenceTitle: "Ventana cardiaca sin liquido libre",
         caseTitle: "Caso con halo anecoico pericardico",
-      };
+        orientationChip: "S4C",
+        depthLabels: ["4", "8", "12", "16", "20"],
+        referenceSignals: [
+          { label: "VI", x: 26, y: 67, targetX: 47, targetY: 53 },
+          { label: "VD", x: 14, y: 38, targetX: 37, targetY: 45 },
+          { label: "pericardio", x: 62, y: 26, targetX: 64, targetY: 34 },
+        ],
+        caseSignals: [
+          { label: "VI", x: 24, y: 67, targetX: 47, targetY: 53 },
+          { label: "borde", x: 62, y: 21, targetX: 67, targetY: 37 },
+          { label: "espacio libre", x: 18, y: 28, targetX: 28, targetY: 47, tone: "focus" },
+        ],
+        microLegend: ["Cavidad", "Pericardio", "Espacio anecoico", "Contorno cardiaco"],
+      } satisfies ViewerVisuals;
     case "cardiac_low_ejection_fraction":
       return {
         referencePreset: "cardiac_normal" as RenderPreset,
         casePreset: "cardiac_low_ef" as RenderPreset,
         referenceTitle: "Contractilidad de referencia",
         caseTitle: "Caso con cavidad amplia y baja contraccion",
-      };
+        orientationChip: "PLAX",
+        depthLabels: ["4", "8", "12", "16", "20"],
+        referenceSignals: [
+          { label: "VI", x: 27, y: 68, targetX: 47, targetY: 53 },
+          { label: "contractilidad", x: 60, y: 20, targetX: 50, targetY: 45 },
+        ],
+        caseSignals: [
+          { label: "VI amplio", x: 62, y: 27, targetX: 47, targetY: 52, tone: "focus" },
+          { label: "poco cambio", x: 20, y: 72, targetX: 52, targetY: 58 },
+        ],
+        microLegend: ["Cavidad", "Contraccion", "Diametro", "Hipocinesia"],
+      } satisfies ViewerVisuals;
     case "renal_hydronephrosis":
       return {
         referencePreset: "renal_normal" as RenderPreset,
         casePreset: "renal_hydronephrosis" as RenderPreset,
         referenceTitle: "Seno renal sin dilatacion",
         caseTitle: "Caso con pelvis y calices dilatados",
-      };
+        orientationChip: "LONG",
+        depthLabels: ["2", "4", "6", "8", "10"],
+        referenceSignals: [
+          { label: "corteza", x: 16, y: 34, targetX: 38, targetY: 42 },
+          { label: "seno", x: 64, y: 42, targetX: 52, targetY: 49 },
+        ],
+        caseSignals: [
+          { label: "pelvis", x: 62, y: 34, targetX: 52, targetY: 48, tone: "focus" },
+          { label: "calices", x: 22, y: 64, targetX: 48, targetY: 56 },
+        ],
+        microLegend: ["Corteza", "Seno renal", "Zona anecoica", "Dilatacion"],
+      } satisfies ViewerVisuals;
     case "biliary_cholelithiasis":
       return {
         referencePreset: "biliary_normal" as RenderPreset,
         casePreset: "biliary_stones" as RenderPreset,
         referenceTitle: "Vesicula sin ecos dependientes",
         caseTitle: "Caso con calculos y sombra posterior",
-      };
+        orientationChip: "OBL",
+        depthLabels: ["2", "4", "6", "8", "10"],
+        referenceSignals: [
+          { label: "vesicula", x: 19, y: 33, targetX: 54, targetY: 46 },
+          { label: "higado", x: 18, y: 56, targetX: 32, targetY: 39 },
+        ],
+        caseSignals: [
+          { label: "eco brillante", x: 62, y: 36, targetX: 54, targetY: 50, tone: "focus" },
+          { label: "sombra", x: 66, y: 72, targetX: 49, targetY: 66 },
+        ],
+        microLegend: ["Luz vesicular", "Eco brillante", "Sombra", "Parenquima"],
+      } satisfies ViewerVisuals;
   }
 }
 
@@ -428,6 +600,7 @@ export default function UltrasoundViewer(props: UltrasoundViewerProps) {
             <div className="absolute inset-0 flex items-center justify-center p-4" style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}>
               {renderPreset(visuals.referencePreset)}
             </div>
+            <SignalOverlay signals={visuals.referenceSignals} visible={true} />
             <div className="absolute inset-x-5 bottom-5 rounded-2xl border border-white/10 bg-black/45 px-3 py-2 text-[11px] text-white/68 backdrop-blur">
               Compara anatomia, ecos brillantes, zonas anecoicas y continuidad de bordes.
             </div>
@@ -441,6 +614,7 @@ export default function UltrasoundViewer(props: UltrasoundViewerProps) {
             <div className="absolute inset-0 flex items-center justify-center p-4" style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}>
               {renderPreset(visuals.casePreset)}
             </div>
+            <SignalOverlay signals={visuals.caseSignals} visible={showHighlights} />
             <svg viewBox="0 0 100 100" className="pointer-events-none absolute inset-0 h-full w-full">
               {caseSet.highlightRegions.map((region, index) => (
                 <RectHighlight
@@ -500,6 +674,11 @@ export default function UltrasoundViewer(props: UltrasoundViewerProps) {
             {comparisonHints.map((hint) => (
               <span key={hint} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/78">
                 {hint}
+              </span>
+            ))}
+            {visuals.microLegend.map((item) => (
+              <span key={item} className="rounded-full border border-cyan-400/15 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-50/90">
+                {item}
               </span>
             ))}
           </div>
