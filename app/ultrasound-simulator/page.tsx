@@ -240,7 +240,7 @@ export default function UltrasoundSimulatorPage() {
             <div>
               <h1 className="text-2xl font-semibold">Simulador de ecografia</h1>
               <p className="mt-1 text-sm text-white/70">
-                Practica obstetrica, ecocardiografia, renal y abdomen hepatobiliar con visor comparativo.
+                Practica obstetrica, ecocardiografia, renal, hepatobiliar y FAST / E-FAST con visor comparativo.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs text-white/70">
@@ -258,7 +258,7 @@ export default function UltrasoundSimulatorPage() {
             <div className="mt-3 grid gap-3 md:grid-cols-4">
               {[
                 ["Paso 1", "Compara referencia y caso"],
-                ["Paso 2", "Ubica ecos, sombras y cavidades"],
+                ["Paso 2", "Ubica ecos, liquido libre, pleura o cavidades"],
                 ["Paso 3", "Responde con la interpretacion"],
                 ["Paso 4", "Valida y revisa feedback"],
               ].map(([title, body]) => (
@@ -337,6 +337,7 @@ export default function UltrasoundSimulatorPage() {
                 <option value="cardiaca">Ecocardiografia</option>
                 <option value="renal">Renal</option>
                 <option value="abdomen">Abdomen hepatobiliar</option>
+                <option value="trauma">FAST / E-FAST</option>
               </select>
             </label>
 
@@ -353,6 +354,7 @@ export default function UltrasoundSimulatorPage() {
                 <option value="cardiac">Cardiaco</option>
                 <option value="renal">Renal</option>
                 <option value="abdominal">Abdominal</option>
+                <option value="trauma">Trauma</option>
               </select>
             </label>
 
@@ -362,7 +364,7 @@ export default function UltrasoundSimulatorPage() {
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
-                placeholder="embarazo, derrame, hidronefrosis..."
+                placeholder="embarazo, derrame, hidronefrosis, FAST..."
               />
             </label>
           </section>

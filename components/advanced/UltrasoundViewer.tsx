@@ -20,7 +20,16 @@ type RenderPreset =
   | "renal_normal"
   | "renal_hydronephrosis"
   | "biliary_normal"
-  | "biliary_stones";
+  | "biliary_stones"
+  | "fast_ruq_normal"
+  | "fast_ruq_fluid"
+  | "fast_luq_normal"
+  | "fast_luq_fluid"
+  | "fast_pelvis_normal"
+  | "fast_pelvis_fluid"
+  | "lung_normal"
+  | "lung_pneumothorax"
+  | "lung_hemothorax";
 
 type ScanSignal = {
   label: string;
@@ -185,14 +194,20 @@ function UltrasoundCanvas({
   badge,
   orientationChip,
   depthLabels,
+  beamShape = "sector",
   children,
 }: {
   scanId: string;
   badge: string;
   orientationChip: string;
   depthLabels: string[];
+  beamShape?: "sector" | "linear";
   children: ReactNode;
 }) {
+  const isLinear = beamShape === "linear";
+  const scanWindowPath = "M18 10 Q50 5 82 10 L90 86 Q50 96 10 86 Z";
+  const clipId = `clip-${scanId}`;
+
   return (
     <svg viewBox="0 0 100 100" className="h-full w-full">
       <defs>
@@ -205,16 +220,20 @@ function UltrasoundCanvas({
           <stop offset="55%" stopColor="#CBD5E1" stopOpacity="0.06" />
           <stop offset="100%" stopColor="#0F172A" stopOpacity="0.02" />
         </radialGradient>
-        <clipPath id={`sector-${scanId}`}>
-          <path d="M18 10 Q50 5 82 10 L90 86 Q50 96 10 86 Z" />
+        <clipPath id={clipId}>
+          {isLinear ? <rect x="14" y="12" width="72" height="74" rx="6" /> : <path d={scanWindowPath} />}
         </clipPath>
       </defs>
 
       <rect width="100" height="100" fill={`url(#screen-${scanId})`} />
       <rect x="6" y="5" width="88" height="90" rx="8" fill="#04070B" stroke="#2B3946" strokeWidth="1.1" />
-      <path d="M18 10 Q50 5 82 10 L90 86 Q50 96 10 86 Z" fill={`url(#beam-${scanId})`} stroke="#31404D" strokeWidth="1" />
+      {isLinear ? (
+        <rect x="14" y="12" width="72" height="74" rx="6" fill={`url(#beam-${scanId})`} stroke="#31404D" strokeWidth="1" />
+      ) : (
+        <path d={scanWindowPath} fill={`url(#beam-${scanId})`} stroke="#31404D" strokeWidth="1" />
+      )}
 
-      <g clipPath={`url(#sector-${scanId})`}>
+      <g clipPath={`url(#${clipId})`}>
         <rect x="10" y="8" width="80" height="82" fill="#050A11" opacity="0.9" />
         {ULTRASOUND_SPECKLES.map((speckle, index) => (
           <ellipse
@@ -227,20 +246,40 @@ function UltrasoundCanvas({
             opacity={speckle.opacity}
           />
         ))}
-        {[24, 38, 52, 66, 80].map((y, index) => (
-          <path
-            key={`${scanId}-depth-${index}`}
-            d={`M18 ${y} Q50 ${y + 5} 82 ${y}`}
-            stroke="#CBD5E1"
-            strokeWidth="0.5"
-            opacity="0.07"
-            fill="none"
-          />
-        ))}
+        {isLinear
+          ? [24, 36, 48, 60, 72].map((y, index) => (
+              <line
+                key={`${scanId}-depth-${index}`}
+                x1="16"
+                y1={y}
+                x2="84"
+                y2={y}
+                stroke="#CBD5E1"
+                strokeWidth="0.5"
+                opacity="0.07"
+              />
+            ))
+          : [24, 38, 52, 66, 80].map((y, index) => (
+              <path
+                key={`${scanId}-depth-${index}`}
+                d={`M18 ${y} Q50 ${y + 5} 82 ${y}`}
+                stroke="#CBD5E1"
+                strokeWidth="0.5"
+                opacity="0.07"
+                fill="none"
+              />
+            ))}
         <g opacity="0.95">{children}</g>
       </g>
 
-      <path d="M40 7 Q50 3 60 7" stroke="#7DD3FC" strokeWidth="1" opacity="0.45" />
+      {isLinear ? (
+        <>
+          <path d="M24 8 H76" stroke="#7DD3FC" strokeWidth="1" opacity="0.55" />
+          <path d="M27 10 H73" stroke="#7DD3FC" strokeWidth="0.7" opacity="0.3" />
+        </>
+      ) : (
+        <path d="M40 7 Q50 3 60 7" stroke="#7DD3FC" strokeWidth="1" opacity="0.45" />
+      )}
       <text x="12" y="14" fill="#A5F3FC" fontSize="4" letterSpacing="0.7">
         {badge}
       </text>
@@ -419,6 +458,134 @@ function BiliaryScan({ variant }: { variant: "normal" | "stones" }) {
   );
 }
 
+function FastQuadrantScan({ side, fluid }: { side: "ruq" | "luq"; fluid: boolean }) {
+  const mirrored = side === "luq";
+
+  return (
+    <UltrasoundCanvas
+      scanId={`fast-${side}-${fluid ? "fluid" : "normal"}`}
+      badge={side === "ruq" ? "RUQ" : "LUQ"}
+      orientationChip={side === "ruq" ? "RUQ" : "LUQ"}
+      depthLabels={["4", "8", "12", "16", "20"]}
+    >
+      <g transform={mirrored ? "translate(100 0) scale(-1 1)" : undefined}>
+        <path d="M16 24 Q36 18 58 24 Q67 34 66 58 Q62 73 46 81 Q24 78 16 60 Q12 41 16 24Z" fill="#65707A" opacity="0.46" />
+        <path
+          d="M16 24 Q36 18 58 24 Q67 34 66 58"
+          fill="none"
+          stroke="#E2E8F0"
+          strokeWidth="0.55"
+          strokeOpacity="0.16"
+          strokeDasharray="2 2"
+        />
+        <path d="M58 38 Q68 31 77 34 Q84 42 82 56 Q79 68 69 71 Q57 71 52 60 Q49 49 58 38Z" fill="#59636C" opacity="0.62" />
+        <path d="M61 41 Q69 36 76 39 Q80 45 79 55 Q76 64 68 66 Q58 65 56 57 Q54 49 61 41Z" fill="#121A22" opacity="0.9" />
+        <ellipse cx="68" cy="52" rx="7.2" ry="11" fill="#E2E8F0" opacity="0.14" />
+        <path d="M18 24 Q49 14 83 22" stroke="#E2E8F0" strokeWidth="0.82" opacity="0.62" fill="none" />
+        <path d="M25 46 Q49 41 73 48" stroke="#CBD5E1" strokeWidth="0.65" opacity="0.22" fill="none" />
+        {fluid ? (
+          <>
+            <path
+              d="M46 43 Q56 39 60 45 Q59 54 49 58 Q43 53 46 43Z"
+              fill="#02060B"
+              opacity="0.96"
+              stroke="#A5F3FC"
+              strokeWidth="0.45"
+              strokeOpacity="0.28"
+            />
+            <path d="M46 42 Q55 38 61 45" stroke="#CFFAFE" strokeWidth="0.55" opacity="0.34" fill="none" />
+          </>
+        ) : null}
+      </g>
+    </UltrasoundCanvas>
+  );
+}
+
+function PelvicFastScan({ fluid }: { fluid: boolean }) {
+  return (
+    <UltrasoundCanvas scanId={`pelvis-${fluid ? "fluid" : "normal"}`} badge="PELV" orientationChip="PELV" depthLabels={["4", "8", "12", "16", "20"]}>
+      <ellipse cx="50" cy="44" rx="28" ry="16" fill="#57616A" opacity="0.24" />
+      <path d="M31 35 Q50 27 69 35 Q74 48 66 68 Q52 78 36 69 Q27 52 31 35Z" fill="#48515A" opacity="0.46" />
+      <path
+        d="M38 44 Q50 40 62 44 Q65 58 57 68 Q50 72 43 68 Q35 58 38 44Z"
+        fill="#060A10"
+        opacity="0.96"
+        stroke="#CBD5E1"
+        strokeWidth="0.8"
+        strokeOpacity="0.56"
+      />
+      <ellipse cx="50" cy="56" rx="8" ry="11.8" fill="#081019" opacity="0.54" />
+      <path d="M34 42 Q50 35 66 42" stroke="#E2E8F0" strokeWidth="0.55" opacity="0.18" fill="none" />
+      {fluid ? (
+        <>
+          <path
+            d="M29 31 Q50 24 71 31 Q69 39 61 44 Q50 47 39 44 Q31 39 29 31Z"
+            fill="#02060A"
+            opacity="0.95"
+            stroke="#A5F3FC"
+            strokeWidth="0.45"
+            strokeOpacity="0.3"
+          />
+          <path d="M33 33 Q50 28 67 33" stroke="#CFFAFE" strokeWidth="0.55" opacity="0.28" fill="none" />
+        </>
+      ) : null}
+    </UltrasoundCanvas>
+  );
+}
+
+function LungScan({ variant }: { variant: "normal" | "pneumothorax" | "hemothorax" }) {
+  const pleuralLineOpacity = variant === "pneumothorax" ? 0.92 : 0.82;
+  const aLineOpacity = variant === "pneumothorax" ? 0.28 : 0.16;
+
+  return (
+    <UltrasoundCanvas
+      scanId={`lung-${variant}`}
+      badge="EFAST"
+      orientationChip={variant === "hemothorax" ? "BASE" : "ANT"}
+      depthLabels={["2", "4", "6", "8", "10"]}
+      beamShape="linear"
+    >
+      <path d="M22 14 Q27 23 24 38" stroke="#010408" strokeWidth="8" opacity="0.95" strokeLinecap="round" />
+      <path d="M48 14 Q53 23 50 38" stroke="#010408" strokeWidth="8" opacity="0.95" strokeLinecap="round" />
+      <path d="M74 14 Q79 23 76 38" stroke="#010408" strokeWidth="8" opacity="0.95" strokeLinecap="round" />
+      <path d="M18 28 H82" stroke="#E2E8F0" strokeWidth="1.1" opacity={pleuralLineOpacity} />
+      {[42, 54, 66].map((y, index) => (
+        <path key={`aline-${variant}-${index}`} d={`M16 ${y} H84`} stroke="#CBD5E1" strokeWidth="0.7" opacity={aLineOpacity} />
+      ))}
+
+      {variant === "normal" ? (
+        <>
+          <path d="M30 28 L27 80" stroke="#E2E8F0" strokeWidth="1.2" opacity="0.26" />
+          <path d="M56 28 L59 80" stroke="#E2E8F0" strokeWidth="1.1" opacity="0.22" />
+          <path d="M18 30 H82" stroke="#A5F3FC" strokeWidth="0.6" opacity="0.24" strokeDasharray="2 2" />
+        </>
+      ) : null}
+
+      {variant === "pneumothorax" ? (
+        <>
+          <path d="M18 28 H82" stroke="#CFFAFE" strokeWidth="0.5" opacity="0.16" strokeDasharray="1.4 1.4" />
+          <path d="M22 34 H78" stroke="#02060A" strokeWidth="1.5" opacity="0.24" />
+        </>
+      ) : null}
+
+      {variant === "hemothorax" ? (
+        <>
+          <path d="M18 66 Q50 58 82 66" stroke="#E2E8F0" strokeWidth="0.9" opacity="0.66" fill="none" />
+          <path
+            d="M20 48 Q50 42 80 48 L80 66 Q50 58 20 66 Z"
+            fill="#03080C"
+            opacity="0.96"
+            stroke="#A5F3FC"
+            strokeWidth="0.45"
+            strokeOpacity="0.26"
+          />
+          <path d="M29 39 Q44 32 58 40 Q54 48 43 50 Q33 48 29 39Z" fill="#72808A" opacity="0.46" />
+        </>
+      ) : null}
+    </UltrasoundCanvas>
+  );
+}
+
 function resolveVisuals(caseSet: UltrasoundCase) {
   switch (caseSet.imagePreset) {
     case "ob_singleton_viable":
@@ -531,6 +698,122 @@ function resolveVisuals(caseSet: UltrasoundCase) {
         ],
         microLegend: ["Luz vesicular", "Eco brillante", "Sombra", "Parenquima"],
       } satisfies ViewerVisuals;
+    case "fast_ruq_free_fluid":
+      return {
+        referencePreset: "fast_ruq_normal" as RenderPreset,
+        casePreset: "fast_ruq_fluid" as RenderPreset,
+        referenceTitle: "Ventana hepatorrenal sin liquido libre",
+        caseTitle: "Caso con coleccion anecoica en Morrison",
+        orientationChip: "RUQ",
+        depthLabels: ["4", "8", "12", "16", "20"],
+        referenceSignals: [
+          { label: "higado", x: 18, y: 28, targetX: 32, targetY: 36 },
+          { label: "rinon", x: 62, y: 46, targetX: 68, targetY: 52 },
+          { label: "morrison", x: 60, y: 26, targetX: 53, targetY: 44 },
+        ],
+        caseSignals: [
+          { label: "higado", x: 18, y: 28, targetX: 32, targetY: 36 },
+          { label: "liquido", x: 60, y: 25, targetX: 52, targetY: 47, tone: "focus" },
+          { label: "rinon", x: 63, y: 48, targetX: 68, targetY: 52 },
+        ],
+        microLegend: ["Higado", "Rinon", "Morrison", "Liquido libre"],
+      } satisfies ViewerVisuals;
+    case "fast_luq_free_fluid":
+      return {
+        referencePreset: "fast_luq_normal" as RenderPreset,
+        casePreset: "fast_luq_fluid" as RenderPreset,
+        referenceTitle: "Ventana esplenorrenal sin separacion",
+        caseTitle: "Caso con liquido en cuadrante superior izquierdo",
+        orientationChip: "LUQ",
+        depthLabels: ["4", "8", "12", "16", "20"],
+        referenceSignals: [
+          { label: "bazo", x: 20, y: 27, targetX: 34, targetY: 36 },
+          { label: "rinon", x: 60, y: 46, targetX: 68, targetY: 52 },
+          { label: "receso", x: 61, y: 26, targetX: 53, targetY: 44 },
+        ],
+        caseSignals: [
+          { label: "bazo", x: 20, y: 27, targetX: 34, targetY: 36 },
+          { label: "liquido", x: 60, y: 26, targetX: 52, targetY: 47, tone: "focus" },
+          { label: "rinon", x: 62, y: 48, targetX: 68, targetY: 52 },
+        ],
+        microLegend: ["Bazo", "Rinon", "Espacio esplenorrenal", "Liquido libre"],
+      } satisfies ViewerVisuals;
+    case "fast_pelvis_free_fluid":
+      return {
+        referencePreset: "fast_pelvis_normal" as RenderPreset,
+        casePreset: "fast_pelvis_fluid" as RenderPreset,
+        referenceTitle: "Pelvis con vejiga sin liquido perivesical",
+        caseTitle: "Caso con coleccion dependiente en fondo de saco",
+        orientationChip: "PELV",
+        depthLabels: ["4", "8", "12", "16", "20"],
+        referenceSignals: [
+          { label: "vejiga", x: 60, y: 45, targetX: 50, targetY: 52 },
+          { label: "pelvis", x: 16, y: 34, targetX: 39, targetY: 42 },
+        ],
+        caseSignals: [
+          { label: "vejiga", x: 60, y: 48, targetX: 50, targetY: 52 },
+          { label: "liquido", x: 46, y: 18, targetX: 50, targetY: 33, tone: "focus" },
+          { label: "fondo", x: 18, y: 28, targetX: 39, targetY: 39 },
+        ],
+        microLegend: ["Vejiga", "Fondo de saco", "Coleccion", "Dependiente"],
+      } satisfies ViewerVisuals;
+    case "fast_pericardial_effusion":
+      return {
+        referencePreset: "cardiac_normal" as RenderPreset,
+        casePreset: "cardiac_effusion" as RenderPreset,
+        referenceTitle: "Subxifoidea sin liquido pericardico",
+        caseTitle: "Caso con hemopericardio probable",
+        orientationChip: "SUBX",
+        depthLabels: ["4", "8", "12", "16", "20"],
+        referenceSignals: [
+          { label: "corazon", x: 22, y: 68, targetX: 47, targetY: 53 },
+          { label: "pericardio", x: 61, y: 25, targetX: 64, targetY: 34 },
+        ],
+        caseSignals: [
+          { label: "corazon", x: 22, y: 68, targetX: 47, targetY: 53 },
+          { label: "halo", x: 61, y: 23, targetX: 67, targetY: 37, tone: "focus" },
+          { label: "subxifoidea", x: 14, y: 31, targetX: 31, targetY: 45 },
+        ],
+        microLegend: ["Subxifoidea", "Pericardio", "Halo anecoico", "Trauma"],
+      } satisfies ViewerVisuals;
+    case "efast_pneumothorax":
+      return {
+        referencePreset: "lung_normal" as RenderPreset,
+        casePreset: "lung_pneumothorax" as RenderPreset,
+        referenceTitle: "Pleura anterior con sliding conservado",
+        caseTitle: "Caso con linea pleural fija",
+        orientationChip: "ANT",
+        depthLabels: ["2", "4", "6", "8", "10"],
+        referenceSignals: [
+          { label: "pleura", x: 56, y: 18, targetX: 50, targetY: 28 },
+          { label: "b-lines", x: 16, y: 56, targetX: 30, targetY: 55 },
+        ],
+        caseSignals: [
+          { label: "pleura fija", x: 54, y: 17, targetX: 50, targetY: 28, tone: "focus" },
+          { label: "a-lines", x: 60, y: 48, targetX: 58, targetY: 54 },
+          { label: "sin sliding", x: 18, y: 34, targetX: 36, targetY: 28 },
+        ],
+        microLegend: ["Pleura", "Sliding", "Lineas A", "Neumotorax"],
+      } satisfies ViewerVisuals;
+    case "efast_hemothorax":
+      return {
+        referencePreset: "lung_normal" as RenderPreset,
+        casePreset: "lung_hemothorax" as RenderPreset,
+        referenceTitle: "Pleura basal sin coleccion dependiente",
+        caseTitle: "Caso con liquido pleural traumatico",
+        orientationChip: "BASE",
+        depthLabels: ["2", "4", "6", "8", "10"],
+        referenceSignals: [
+          { label: "pleura", x: 56, y: 18, targetX: 50, targetY: 28 },
+          { label: "diafragma", x: 17, y: 65, targetX: 34, targetY: 66 },
+        ],
+        caseSignals: [
+          { label: "diafragma", x: 18, y: 72, targetX: 34, targetY: 66 },
+          { label: "coleccion", x: 58, y: 52, targetX: 52, targetY: 56, tone: "focus" },
+          { label: "pulmon", x: 23, y: 34, targetX: 42, targetY: 40 },
+        ],
+        microLegend: ["Pleura", "Diafragma", "Coleccion", "Hemotorax"],
+      } satisfies ViewerVisuals;
   }
 }
 
@@ -558,6 +841,24 @@ function renderPreset(preset: RenderPreset) {
       return <BiliaryScan variant="normal" />;
     case "biliary_stones":
       return <BiliaryScan variant="stones" />;
+    case "fast_ruq_normal":
+      return <FastQuadrantScan side="ruq" fluid={false} />;
+    case "fast_ruq_fluid":
+      return <FastQuadrantScan side="ruq" fluid />;
+    case "fast_luq_normal":
+      return <FastQuadrantScan side="luq" fluid={false} />;
+    case "fast_luq_fluid":
+      return <FastQuadrantScan side="luq" fluid />;
+    case "fast_pelvis_normal":
+      return <PelvicFastScan fluid={false} />;
+    case "fast_pelvis_fluid":
+      return <PelvicFastScan fluid />;
+    case "lung_normal":
+      return <LungScan variant="normal" />;
+    case "lung_pneumothorax":
+      return <LungScan variant="pneumothorax" />;
+    case "lung_hemothorax":
+      return <LungScan variant="hemothorax" />;
   }
 }
 

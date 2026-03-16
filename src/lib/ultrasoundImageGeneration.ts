@@ -50,6 +50,57 @@ function categoryDirective(input: UltrasoundImageInput) {
     ].join(" ");
   }
 
+  if (input.category === "trauma") {
+    const subcategory = input.subcategory.toLowerCase();
+    const plane = input.scanPlane.toLowerCase();
+
+    if (subcategory.includes("morrison") || plane.includes("hepatorrenal")) {
+      return [
+        "Produce a FAST right upper quadrant ultrasound frame in grayscale B-mode.",
+        "Show liver, right kidney, diaphragm, and Morison pouch with realistic abdominal sonographic grain.",
+        "Depict an anechoic fluid stripe between liver and kidney when the case is positive.",
+      ].join(" ");
+    }
+
+    if (subcategory.includes("esplenorrenal") || plane.includes("esplenorrenal")) {
+      return [
+        "Produce a FAST left upper quadrant ultrasound frame in grayscale B-mode.",
+        "Show spleen, left kidney, diaphragm, and splenorenal recess with realistic abdominal texture.",
+        "Depict an anechoic fluid collection around the splenorenal interface when the case is positive.",
+      ].join(" ");
+    }
+
+    if (subcategory.includes("pelv")) {
+      return [
+        "Produce a suprapubic FAST pelvic ultrasound frame in grayscale B-mode.",
+        "Show urinary bladder as the acoustic window and dependent pelvic recesses with realistic texture.",
+        "Depict free fluid as an anechoic dependent collection outside the bladder lumen when the case is positive.",
+      ].join(" ");
+    }
+
+    if (subcategory.includes("pericard")) {
+      return [
+        "Produce a subxiphoid FAST pericardial ultrasound frame in grayscale B-mode.",
+        "Show the heart in a focused trauma view using a sector probe appearance.",
+        "Depict an anechoic rim around the heart when hemopericardium is described.",
+      ].join(" ");
+    }
+
+    if (subcategory.includes("neumotorax")) {
+      return [
+        "Produce an anterior thoracic E-FAST pleural ultrasound frame in grayscale B-mode.",
+        "Use a linear probe appearance with ribs, pleural line, and horizontal reverberation artifacts.",
+        "If pneumothorax is described, show a fixed pleural line without vertical artifacts or sliding cues.",
+      ].join(" ");
+    }
+
+    return [
+      "Produce a basal thoracic E-FAST ultrasound frame in grayscale B-mode.",
+      "Show diaphragm, pleural space, and adjacent compressed lung with realistic acoustic texture.",
+      "If hemothorax is described, depict an anechoic pleural collection above the diaphragm.",
+    ].join(" ");
+  }
+
   if (input.category === "renal") {
     return [
       "Produce a longitudinal renal ultrasound frame in grayscale B-mode.",

@@ -17,11 +17,11 @@ import {
   type ModeCompatibility,
 } from "./advancedModuleUtils";
 
-export type UltrasoundCategory = "obstetricia" | "cardiaca" | "renal" | "abdomen";
+export type UltrasoundCategory = "obstetricia" | "cardiaca" | "renal" | "abdomen" | "trauma";
 
-export type UltrasoundContext = "maternal" | "cardiac" | "renal" | "abdominal" | "general";
+export type UltrasoundContext = "maternal" | "cardiac" | "renal" | "abdominal" | "trauma" | "general";
 
-export type UltrasoundProbe = "convex" | "sectorial";
+export type UltrasoundProbe = "convex" | "sectorial" | "lineal";
 
 export type UltrasoundPreset =
   | "ob_singleton_viable"
@@ -29,7 +29,13 @@ export type UltrasoundPreset =
   | "cardiac_pericardial_effusion"
   | "cardiac_low_ejection_fraction"
   | "renal_hydronephrosis"
-  | "biliary_cholelithiasis";
+  | "biliary_cholelithiasis"
+  | "fast_ruq_free_fluid"
+  | "fast_luq_free_fluid"
+  | "fast_pelvis_free_fluid"
+  | "fast_pericardial_effusion"
+  | "efast_pneumothorax"
+  | "efast_hemothorax";
 
 export type UltrasoundCase = {
   id: string;
@@ -221,6 +227,138 @@ const ULTRASOUND_PRESET_TEMPLATES: Record<UltrasoundPreset, UltrasoundPresetTemp
     tags: ["ecografia", "abdomen", "vesicula", "colelitiasis"],
     highlightRegions: [{ x: 50, y: 48, width: 16, height: 24, label: "Calculos y sombra posterior" }],
   },
+  fast_ruq_free_fluid: {
+    category: "trauma",
+    context: "trauma",
+    probe: "convex",
+    scanPlane: "FAST hepatorrenal (Morrison)",
+    keyFindings: [
+      "lamina anecoica en espacio hepatorrenal",
+      "liquido libre dependiente entre higado y rinon",
+      "fast positivo en morrison",
+    ],
+    correctAnswer: "FAST positivo en espacio hepatorrenal",
+    expectedOutcome: "Tratar como liquido libre intrabdominal en trauma y correlacionar con estabilidad hemodinamica.",
+    distractors: ["FAST negativo", "Colecistitis aguda", "Quiste hepatico aislado"],
+    feedback: {
+      explanation: "La coleccion anecoica entre higado y rinon corresponde a liquido libre en la bolsa de Morrison.",
+      expectedConduct: "Integrar con trauma abdominal, perfusion y necesidad de escalamiento quirurgico o tomografico segun estabilidad.",
+      highlightHint: "Sigue el receso hepatorrenal y busca una banda negra dependiente donde normalmente no debe haber separacion.",
+    },
+    questionStem: "¿Cual es la interpretacion FAST principal en esta ventana hepatorrenal?",
+    tags: ["ecografia", "trauma", "fast", "morrison", "liquido_libre"],
+    highlightRegions: [{ x: 45, y: 39, width: 20, height: 18, label: "Liquido en Morrison" }],
+  },
+  fast_luq_free_fluid: {
+    category: "trauma",
+    context: "trauma",
+    probe: "convex",
+    scanPlane: "FAST esplenorrenal",
+    keyFindings: [
+      "lamina anecoica periesplenica",
+      "separacion del espacio esplenorrenal",
+      "fast positivo en cuadrante superior izquierdo",
+    ],
+    correctAnswer: "FAST positivo en espacio esplenorrenal",
+    expectedOutcome: "Asumir liquido libre abdominal izquierdo y correlacionar con trauma esplenico o hemoperitoneo.",
+    distractors: ["FAST negativo", "Infarto esplenico", "Rinon izquierdo sin alteraciones"],
+    feedback: {
+      explanation: "La coleccion anecoica adyacente a bazo y rinon izquierdo sugiere liquido libre en la ventana esplenorrenal.",
+      expectedConduct: "Relacionar con mecanismo traumatico, signos de shock y necesidad de imagen o cirugia urgente.",
+      highlightHint: "Compara la interfaz entre bazo y rinon: el liquido libre crea una banda negra dependiente.",
+    },
+    questionStem: "¿Cual es la interpretacion FAST principal en esta ventana esplenorrenal?",
+    tags: ["ecografia", "trauma", "fast", "esplenorrenal", "hemoperitoneo"],
+    highlightRegions: [{ x: 34, y: 41, width: 22, height: 18, label: "Liquido esplenorrenal" }],
+  },
+  fast_pelvis_free_fluid: {
+    category: "trauma",
+    context: "trauma",
+    probe: "convex",
+    scanPlane: "FAST pelvis suprapubica",
+    keyFindings: [
+      "coleccion anecoica en fondo de saco",
+      "liquido libre pelvico dependiente",
+      "vejiga utilizada como ventana sonografica",
+    ],
+    correctAnswer: "FAST positivo en fondo de saco pelvico",
+    expectedOutcome: "Interpretar como liquido libre pelvico en trauma y correlacionar con compromiso intraabdominal.",
+    distractors: ["Pelvis sin liquido libre", "Globo vesical simple", "Quiste pelvico aislado"],
+    feedback: {
+      explanation: "El liquido libre pelvico aparece como coleccion anecoica dependiente alrededor o detras de la vejiga.",
+      expectedConduct: "Relacionar con mecanismo traumatico y decidir conducta de trauma segun estabilidad y hallazgos asociados.",
+      highlightHint: "Ubica primero la vejiga y busca una banda negra dependiente fuera de su luz.",
+    },
+    questionStem: "¿Que hallazgo FAST domina la ventana pelvica?",
+    tags: ["ecografia", "trauma", "fast", "pelvis", "fondo_de_saco"],
+    highlightRegions: [{ x: 33, y: 28, width: 34, height: 20, label: "Liquido libre pelvico" }],
+  },
+  fast_pericardial_effusion: {
+    category: "trauma",
+    context: "trauma",
+    probe: "sectorial",
+    scanPlane: "FAST subxifoideo pericardico",
+    keyFindings: [
+      "halo anecoico pericardico traumatico",
+      "liquido rodeando el corazon",
+      "sospecha de hemopericardio",
+    ],
+    correctAnswer: "Hemopericardio probable en FAST subxifoideo",
+    expectedOutcome: "Correlacionar con inestabilidad y actuar como tamponamiento traumatico hasta demostrar lo contrario.",
+    distractors: ["FAST pericardico negativo", "Funcion sistolica normal", "Derrame pleural aislado"],
+    feedback: {
+      explanation: "La banda anecoica alrededor del corazon en trauma sugiere hemopericardio o derrame pericardico traumatico.",
+      expectedConduct: "Integrar con hipotension y trauma toracico para priorizar cirugia o drenaje emergente segun protocolo.",
+      highlightHint: "Sigue el contorno cardiaco y busca un halo negro por fuera del miocardio en la ventana subxifoidea.",
+    },
+    questionStem: "¿Que hallazgo FAST subxifoideo sugiere compromiso pericardico traumatico?",
+    tags: ["ecografia", "trauma", "fast", "subxifoideo", "hemopericardio"],
+    highlightRegions: [{ x: 28, y: 24, width: 44, height: 44, label: "Liquido pericardico traumatico" }],
+  },
+  efast_pneumothorax: {
+    category: "trauma",
+    context: "trauma",
+    probe: "lineal",
+    scanPlane: "E-FAST toracico anterior",
+    keyFindings: [
+      "linea pleural fija sin deslizamiento",
+      "ausencia de lung sliding",
+      "predominio de lineas a sin artefactos verticales",
+    ],
+    correctAnswer: "Neumotorax con ausencia de lung sliding",
+    expectedOutcome: "Correlacionar con compromiso ventilatorio y tratar como neumotorax traumatico segun el estado clinico.",
+    distractors: ["Lung sliding conservado", "Hemotorax dependiente", "Edema intersticial difuso"],
+    feedback: {
+      explanation: "La ausencia de deslizamiento pleural con lineas A predominantes sugiere neumotorax en la ventana anterior.",
+      expectedConduct: "Integrar con saturacion, mecanica ventilatoria y necesidad de descompresion o drenaje pleural.",
+      highlightHint: "Fijate en la linea pleural: si permanece rigida y no ves artefactos verticales, piensa en neumotorax.",
+    },
+    questionStem: "¿Que hallazgo E-FAST toracico explica mejor esta ventana pleural?",
+    tags: ["ecografia", "trauma", "efast", "neumotorax", "pleura"],
+    highlightRegions: [{ x: 24, y: 24, width: 50, height: 18, label: "Pleura sin sliding" }],
+  },
+  efast_hemothorax: {
+    category: "trauma",
+    context: "trauma",
+    probe: "convex",
+    scanPlane: "E-FAST toracico basal",
+    keyFindings: [
+      "coleccion anecoica supradiafragmatica",
+      "liquido pleural dependiente",
+      "ocupacion compatible con hemotorax",
+    ],
+    correctAnswer: "Hemotorax con coleccion pleural dependiente",
+    expectedOutcome: "Correlacionar con trauma toracico y considerar drenaje pleural segun estabilidad y mecanica respiratoria.",
+    distractors: ["Neumotorax anterior", "Ventana toracica normal", "Consolidacion basal aislada"],
+    feedback: {
+      explanation: "La coleccion anecoica sobre el diafragma y fuera del parenquima pulmonar es compatible con hemotorax.",
+      expectedConduct: "Integrar con trauma, expansion toracica y necesidad de tubo de torax o escalamiento inmediato.",
+      highlightHint: "Ubica el diafragma y busca una banda anecoica dependiente por encima de el, no dentro del abdomen.",
+    },
+    questionStem: "¿Que hallazgo E-FAST toracico domina esta ventana basal?",
+    tags: ["ecografia", "trauma", "efast", "hemotorax", "pleura"],
+    highlightRegions: [{ x: 32, y: 52, width: 34, height: 22, label: "Coleccion pleural" }],
+  },
 };
 
 function uniqueStrings(values: string[]) {
@@ -260,6 +398,444 @@ function createBaseUltrasoundCase(seed: UltrasoundSeed): UltrasoundCase {
     highlightRegions: seed.highlightRegions ?? template.highlightRegions,
   };
 }
+
+type TraumaScenarioSeed = {
+  idSuffix: string;
+  titleSuffix: string;
+  clinicalContext: string;
+  patientProfile: AdvancedPatientProfile;
+  difficulty: AdvancedDifficulty;
+  tags?: string[];
+};
+
+type TraumaPresetBuilder = {
+  imagePreset: Extract<
+    UltrasoundPreset,
+    | "fast_ruq_free_fluid"
+    | "fast_luq_free_fluid"
+    | "fast_pelvis_free_fluid"
+    | "fast_pericardial_effusion"
+    | "efast_pneumothorax"
+    | "efast_hemothorax"
+  >;
+  titlePrefix: string;
+  subcategory: string;
+  summaryFocus: string;
+  tags: string[];
+};
+
+const TRAUMA_ABDOMINAL_SCENARIOS: TraumaScenarioSeed[] = [
+  {
+    idSuffix: "moto",
+    titleSuffix: "tras colision en motocicleta",
+    clinicalContext: "Trauma cerrado de abdomen con dolor en flanco derecho y taquicardia en la sala de trauma",
+    patientProfile: {
+      name: "Diego R.",
+      age: 27,
+      sex: "male",
+      chiefComplaint: "Dolor abdominal tras colision en motocicleta",
+      setting: "Sala de trauma",
+    },
+    difficulty: "intermediate",
+    tags: ["mecanismo_alta_energia", "trauma_cerrado"],
+  },
+  {
+    idSuffix: "choque-frontal",
+    titleSuffix: "tras choque frontal de automovil",
+    clinicalContext: "Politrauma con dolor abdominal difuso y sensibilidad en cuadrantes superiores durante valoracion primaria",
+    patientProfile: {
+      name: "Marina C.",
+      age: 34,
+      sex: "female",
+      chiefComplaint: "Dolor abdominal difuso despues de choque vehicular",
+      setting: "Shock room",
+    },
+    difficulty: "intermediate",
+    tags: ["choque_vehicular", "valoracion_primaria"],
+  },
+  {
+    idSuffix: "atropellamiento",
+    titleSuffix: "tras atropellamiento",
+    clinicalContext: "Paciente politraumatizado con dolor abdominal bajo e hipotension limtrofe en reevaluacion FAST",
+    patientProfile: {
+      name: "Ruben M.",
+      age: 48,
+      sex: "male",
+      chiefComplaint: "Dolor abdominal y mareo luego de atropellamiento",
+      setting: "Area critica",
+    },
+    difficulty: "advanced",
+    tags: ["politrauma", "hipotension"],
+  },
+  {
+    idSuffix: "caida-altura",
+    titleSuffix: "tras caida de altura moderada",
+    clinicalContext: "Trauma toracoabdominal con dolor en costado izquierdo y vigilancia seriada por mecanismo contuso",
+    patientProfile: {
+      name: "Lucia P.",
+      age: 29,
+      sex: "female",
+      chiefComplaint: "Dolor en costado tras caida de altura",
+      setting: "Observacion de urgencias",
+    },
+    difficulty: "intermediate",
+    tags: ["caida", "trauma_contuso"],
+  },
+  {
+    idSuffix: "golpe-hcd",
+    titleSuffix: "tras golpe directo en hipocondrio derecho",
+    clinicalContext: "Contusion abdominal focal con defensa localizada y necesidad de descartar liquido libre",
+    patientProfile: {
+      name: "Victor H.",
+      age: 22,
+      sex: "male",
+      chiefComplaint: "Golpe en abdomen derecho durante actividad fisica",
+      setting: "Urgencias generales",
+    },
+    difficulty: "basic",
+    tags: ["golpe_directo", "hipocondrio_derecho"],
+  },
+  {
+    idSuffix: "golpe-hci",
+    titleSuffix: "tras golpe directo en hipocondrio izquierdo",
+    clinicalContext: "Trauma focal en cuadrante superior izquierdo con dolor progresivo y taquicardia compensadora",
+    patientProfile: {
+      name: "Natalia G.",
+      age: 31,
+      sex: "female",
+      chiefComplaint: "Dolor en costado izquierdo tras golpe directo",
+      setting: "Emergencia quirurgica",
+    },
+    difficulty: "intermediate",
+    tags: ["hipocondrio_izquierdo", "dolor_progresivo"],
+  },
+  {
+    idSuffix: "deportivo",
+    titleSuffix: "tras trauma deportivo de alta energia",
+    clinicalContext: "Trauma abdominal durante actividad deportiva con dolor persistente, nauseas y necesidad de descarte rapido",
+    patientProfile: {
+      name: "Kevin S.",
+      age: 19,
+      sex: "male",
+      chiefComplaint: "Dolor abdominal posterior a choque deportivo",
+      setting: "Unidad de urgencias",
+    },
+    difficulty: "basic",
+    tags: ["deporte", "impacto"],
+  },
+  {
+    idSuffix: "laboral",
+    titleSuffix: "tras aplastamiento abdominal laboral",
+    clinicalContext: "Aplastamiento de tronco con dolor abdominal severo y reevaluacion seriada por riesgo de hemoperitoneo",
+    patientProfile: {
+      name: "Cesar L.",
+      age: 44,
+      sex: "male",
+      chiefComplaint: "Dolor abdominal intenso luego de accidente laboral",
+      setting: "Trauma laboral",
+    },
+    difficulty: "advanced",
+    tags: ["aplastamiento", "accidente_laboral"],
+  },
+  {
+    idSuffix: "arma-blanca",
+    titleSuffix: "tras herida cortopunzante abdominal",
+    clinicalContext: "Trauma penetrante de abdomen con estabilidad relativa y necesidad de valorar liquido libre de forma inmediata",
+    patientProfile: {
+      name: "Paola N.",
+      age: 26,
+      sex: "female",
+      chiefComplaint: "Herida cortopunzante en abdomen",
+      setting: "Sala de trauma",
+    },
+    difficulty: "advanced",
+    tags: ["trauma_penetrante", "arma_blanca"],
+  },
+  {
+    idSuffix: "sin-cinturon",
+    titleSuffix: "en pasajero sin cinturon",
+    clinicalContext: "Trauma abdominal por desaceleracion con dolor suprapubico y sensibilidad difusa en contexto vehicular",
+    patientProfile: {
+      name: "Javier T.",
+      age: 37,
+      sex: "male",
+      chiefComplaint: "Dolor abdominal despues de accidente vehicular",
+      setting: "Shock room",
+    },
+    difficulty: "intermediate",
+    tags: ["desaceleracion", "vehicular"],
+  },
+  {
+    idSuffix: "bicicleta",
+    titleSuffix: "tras impacto de manubrio de bicicleta",
+    clinicalContext: "Trauma focal infraumbilical con nausea y dolor en aumento durante la observacion inicial",
+    patientProfile: {
+      name: "Marta V.",
+      age: 24,
+      sex: "female",
+      chiefComplaint: "Dolor bajo abdominal tras accidente en bicicleta",
+      setting: "Observacion traumatologica",
+    },
+    difficulty: "basic",
+    tags: ["bicicleta", "dolor_suprapubico"],
+  },
+  {
+    idSuffix: "reevaluacion",
+    titleSuffix: "durante reevaluacion seriada de politrauma",
+    clinicalContext: "Paciente con traumatismo multiple y descenso de la presion arterial durante el control FAST repetido",
+    patientProfile: {
+      name: "Oscar D.",
+      age: 56,
+      sex: "male",
+      chiefComplaint: "Reevaluacion por trauma multiple con hipotension",
+      setting: "Area critica de trauma",
+    },
+    difficulty: "advanced",
+    tags: ["reevaluacion", "inestabilidad"],
+  },
+];
+
+const TRAUMA_THORACIC_SCENARIOS: TraumaScenarioSeed[] = [
+  {
+    idSuffix: "precordial",
+    titleSuffix: "tras herida penetrante precordial",
+    clinicalContext: "Trauma toracico penetrante con hipotension y disnea en valoracion E-FAST inmediata",
+    patientProfile: {
+      name: "Sergio B.",
+      age: 29,
+      sex: "male",
+      chiefComplaint: "Dolor toracico y disnea tras herida precordial",
+      setting: "Sala de trauma",
+    },
+    difficulty: "advanced",
+    tags: ["precordial", "inestabilidad_hemodinamica"],
+  },
+  {
+    idSuffix: "vehicular",
+    titleSuffix: "tras trauma toracico cerrado vehicular",
+    clinicalContext: "Colision de alta energia con dolor toracico, taquipnea y necesidad de descartar lesion pleural o pericardica",
+    patientProfile: {
+      name: "Andrea F.",
+      age: 33,
+      sex: "female",
+      chiefComplaint: "Disnea y dolor toracico luego de choque vehicular",
+      setting: "Shock room",
+    },
+    difficulty: "intermediate",
+    tags: ["torax_cerrado", "vehicular"],
+  },
+  {
+    idSuffix: "caida",
+    titleSuffix: "tras caida con impacto toracico",
+    clinicalContext: "Trauma toracico por caida con saturacion en descenso y reevaluacion ecografica al ingreso",
+    patientProfile: {
+      name: "Rafael Q.",
+      age: 61,
+      sex: "male",
+      chiefComplaint: "Dolor costal y dificultad respiratoria",
+      setting: "Emergencia medica",
+    },
+    difficulty: "intermediate",
+    tags: ["caida", "hipoxemia"],
+  },
+  {
+    idSuffix: "deportivo",
+    titleSuffix: "tras contusion toracica deportiva",
+    clinicalContext: "Impacto toracico durante actividad deportiva con dolor pleuritico y disnea leve progresiva",
+    patientProfile: {
+      name: "Elena A.",
+      age: 21,
+      sex: "female",
+      chiefComplaint: "Dolor pleuritico despues de impacto deportivo",
+      setting: "Urgencias generales",
+    },
+    difficulty: "basic",
+    tags: ["deporte", "pleuritico"],
+  },
+  {
+    idSuffix: "hemitx-izq",
+    titleSuffix: "tras herida por arma blanca en hemitorax izquierdo",
+    clinicalContext: "Trauma penetrante con taquicardia y asimetria ventilatoria en evaluacion ecografica toracica",
+    patientProfile: {
+      name: "Mario U.",
+      age: 38,
+      sex: "male",
+      chiefComplaint: "Herida toracica izquierda con disnea",
+      setting: "Trauma mayor",
+    },
+    difficulty: "advanced",
+    tags: ["hemitorax_izquierdo", "arma_blanca"],
+  },
+  {
+    idSuffix: "explosion",
+    titleSuffix: "tras explosion con dolor pleuritico",
+    clinicalContext: "Lesion toracica por onda expansiva con dolor respiratorio y sospecha de lesion pleural aguda",
+    patientProfile: {
+      name: "Noemi J.",
+      age: 42,
+      sex: "female",
+      chiefComplaint: "Disnea y dolor toracico tras explosion",
+      setting: "Sala de observacion critica",
+    },
+    difficulty: "advanced",
+    tags: ["explosion", "onda_expansiva"],
+  },
+  {
+    idSuffix: "fracturas-costales",
+    titleSuffix: "con fracturas costales multiples",
+    clinicalContext: "Trauma costal con dolor severo, respiracion superficial y necesidad de descartar neumotorax o hemotorax",
+    patientProfile: {
+      name: "Hector P.",
+      age: 57,
+      sex: "male",
+      chiefComplaint: "Dolor costal intenso y dificultad para respirar",
+      setting: "Unidad de trauma",
+    },
+    difficulty: "intermediate",
+    tags: ["fracturas_costales", "respiracion_superficial"],
+  },
+  {
+    idSuffix: "compresion",
+    titleSuffix: "tras compresion toracica laboral",
+    clinicalContext: "Compresion de torax en accidente laboral con desaturacion leve y reevaluacion pleural bedside",
+    patientProfile: {
+      name: "Camila E.",
+      age: 36,
+      sex: "female",
+      chiefComplaint: "Compresion toracica con dolor y falta de aire",
+      setting: "Trauma laboral",
+    },
+    difficulty: "intermediate",
+    tags: ["compresion_toracica", "bedside"],
+  },
+  {
+    idSuffix: "toracoabdominal",
+    titleSuffix: "tras trauma toracoabdominal con hipotension",
+    clinicalContext: "Compromiso respiratorio y hemodinamico luego de trauma mixto con necesidad de E-FAST extendido completo",
+    patientProfile: {
+      name: "Gabriel I.",
+      age: 46,
+      sex: "male",
+      chiefComplaint: "Trauma toracoabdominal con hipotension",
+      setting: "Shock room",
+    },
+    difficulty: "advanced",
+    tags: ["toracoabdominal", "shock"],
+  },
+  {
+    idSuffix: "politrauma",
+    titleSuffix: "durante reanimacion de politrauma",
+    clinicalContext: "Paciente politraumatizado intubado con empeoramiento ventilatorio durante reevaluacion ecografica",
+    patientProfile: {
+      name: "Valeria Z.",
+      age: 31,
+      sex: "female",
+      chiefComplaint: "Empeoramiento ventilatorio en politrauma",
+      setting: "Area critica de trauma",
+    },
+    difficulty: "advanced",
+    tags: ["politrauma", "ventilacion"],
+  },
+  {
+    idSuffix: "manubrio",
+    titleSuffix: "tras impacto de manubrio en torax",
+    clinicalContext: "Trauma toracico focal con dolor anterior y necesidad de buscar signos pleurales de forma rapida",
+    patientProfile: {
+      name: "Bruno K.",
+      age: 24,
+      sex: "male",
+      chiefComplaint: "Golpe en torax y disnea leve",
+      setting: "Urgencias traumatologicas",
+    },
+    difficulty: "basic",
+    tags: ["torax_anterior", "bicicleta"],
+  },
+  {
+    idSuffix: "rural",
+    titleSuffix: "tras accidente rural con disnea progresiva",
+    clinicalContext: "Trauma toracico demorado con aumento de disnea y reevaluacion por posible lesion pleuropulmonar",
+    patientProfile: {
+      name: "Teresa W.",
+      age: 63,
+      sex: "female",
+      chiefComplaint: "Disnea progresiva despues de accidente rural",
+      setting: "Sala de emergencia rural",
+    },
+    difficulty: "intermediate",
+    tags: ["disnea_progresiva", "traslado"],
+  },
+];
+
+const TRAUMA_ABDOMINAL_BUILDERS: TraumaPresetBuilder[] = [
+  {
+    imagePreset: "fast_ruq_free_fluid",
+    titlePrefix: "FAST con Morrison positivo",
+    subcategory: "fast_morrison_positivo",
+    summaryFocus: "La ventana hepatorrenal sugiere liquido libre dependiente entre higado y rinon.",
+    tags: ["fast", "morrison", "trauma_abdominal"],
+  },
+  {
+    imagePreset: "fast_luq_free_fluid",
+    titlePrefix: "FAST con liquido esplenorrenal",
+    subcategory: "fast_esplenorrenal_positivo",
+    summaryFocus: "La ventana esplenorrenal muestra una coleccion anecoica compatible con hemoperitoneo.",
+    tags: ["fast", "esplenorrenal", "trauma_abdominal"],
+  },
+  {
+    imagePreset: "fast_pelvis_free_fluid",
+    titlePrefix: "FAST pelvico positivo",
+    subcategory: "fast_pelvico_positivo",
+    summaryFocus: "La ventana suprapubica muestra liquido libre dependiente alrededor del fondo de saco.",
+    tags: ["fast", "pelvis", "trauma_abdominal"],
+  },
+];
+
+const TRAUMA_THORACIC_BUILDERS: TraumaPresetBuilder[] = [
+  {
+    imagePreset: "fast_pericardial_effusion",
+    titlePrefix: "FAST subxifoideo con hemopericardio probable",
+    subcategory: "fast_hemopericardio_probable",
+    summaryFocus: "La ventana pericardica muestra liquido anecoico rodeando el corazon en contexto traumatico.",
+    tags: ["fast", "pericardio", "trauma_toracico"],
+  },
+  {
+    imagePreset: "efast_pneumothorax",
+    titlePrefix: "E-FAST con neumotorax traumatico",
+    subcategory: "efast_neumotorax",
+    summaryFocus: "La ventana pleural anterior muestra ausencia de lung sliding con patron compatible con neumotorax.",
+    tags: ["efast", "neumotorax", "pleura"],
+  },
+  {
+    imagePreset: "efast_hemothorax",
+    titlePrefix: "E-FAST con hemotorax",
+    subcategory: "efast_hemotorax",
+    summaryFocus: "La ventana toracica basal muestra coleccion pleural dependiente compatible con hemotorax.",
+    tags: ["efast", "hemotorax", "pleura"],
+  },
+];
+
+function buildGeneratedTraumaSeeds(
+  builders: TraumaPresetBuilder[],
+  scenarios: TraumaScenarioSeed[]
+): UltrasoundSeed[] {
+  return builders.flatMap((builder) =>
+    scenarios.map((scenario) => ({
+      id: `us-${builder.subcategory}-${scenario.idSuffix}`,
+      title: `${builder.titlePrefix} ${scenario.titleSuffix}`,
+      imagePreset: builder.imagePreset,
+      subcategory: builder.subcategory,
+      difficulty: scenario.difficulty,
+      clinicalSummary: `${scenario.clinicalContext}. ${builder.summaryFocus}`,
+      patientProfile: scenario.patientProfile,
+      tags: [...builder.tags, ...(scenario.tags ?? [])],
+    }))
+  );
+}
+
+const ULTRASOUND_TRAUMA_CASE_SEEDS: UltrasoundSeed[] = [
+  ...buildGeneratedTraumaSeeds(TRAUMA_ABDOMINAL_BUILDERS, TRAUMA_ABDOMINAL_SCENARIOS),
+  ...buildGeneratedTraumaSeeds(TRAUMA_THORACIC_BUILDERS, TRAUMA_THORACIC_SCENARIOS),
+];
 
 const ULTRASOUND_CASE_SEEDS: UltrasoundSeed[] = [
   {
@@ -1235,8 +1811,10 @@ const ULTRASOUND_CASE_SEEDS: UltrasoundSeed[] = [
   },
 ];
 
-const BASE_ULTRASOUND_CASES: UltrasoundCase[] = ULTRASOUND_CASE_SEEDS.map(createBaseUltrasoundCase);
-const ULTRASOUND_LIBRARY_SIZE = Math.max(240, ADVANCED_MODULE_LIBRARY_SIZE);
+const BASE_ULTRASOUND_CASES: UltrasoundCase[] = [...ULTRASOUND_CASE_SEEDS, ...ULTRASOUND_TRAUMA_CASE_SEEDS].map(
+  createBaseUltrasoundCase
+);
+const ULTRASOUND_LIBRARY_SIZE = Math.max(320, ADVANCED_MODULE_LIBRARY_SIZE);
 
 const ULTRASOUND_CONTEXT_SUFFIXES = [
   "Control durante turno matutino",
@@ -1278,6 +1856,7 @@ export function ultrasoundCategoryLabel(category: UltrasoundCategory) {
   if (category === "obstetricia") return "Obstetrica";
   if (category === "cardiaca") return "Ecocardiografia";
   if (category === "renal") return "Renal";
+  if (category === "trauma") return "FAST / E-FAST";
   return "Abdomen hepatobiliar";
 }
 
@@ -1286,10 +1865,12 @@ export function ultrasoundContextLabel(context: UltrasoundContext) {
   if (context === "cardiac") return "Cardiaco";
   if (context === "renal") return "Renal";
   if (context === "abdominal") return "Abdominal";
+  if (context === "trauma") return "Trauma";
   return "General";
 }
 
 export function ultrasoundProbeLabel(probe: UltrasoundProbe) {
+  if (probe === "lineal") return "Lineal";
   if (probe === "convex") return "Convexo";
   return "Sectorial";
 }
@@ -1305,6 +1886,18 @@ export function inferUltrasoundContext(caseObject: any): UltrasoundContext {
     ].join(" ")
   );
 
+  if (
+    text.includes("trauma") ||
+    text.includes("accidente") ||
+    text.includes("colision") ||
+    text.includes("politrauma") ||
+    text.includes("atropell") ||
+    text.includes("arma blanca") ||
+    text.includes("herida") ||
+    text.includes("caida")
+  ) {
+    return "trauma";
+  }
   if (text.includes("embaraz") || text.includes("gesta") || text.includes("fetal") || text.includes("obstet")) return "maternal";
   if (text.includes("cardi") || text.includes("choque") || text.includes("shock") || text.includes("hipotens") || text.includes("ortopnea")) return "cardiac";
   if (text.includes("renal") || text.includes("flanco") || text.includes("hematur") || text.includes("colico")) return "renal";
