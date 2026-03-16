@@ -276,12 +276,14 @@ function MetricTile({
   unit,
   tone,
   muted,
+  compactValue = false,
 }: {
   label: string;
   value: string;
   unit: string;
   tone: "green" | "cyan" | "amber" | "violet" | "orange" | "white";
   muted?: boolean;
+  compactValue?: boolean;
 }) {
   const toneClass =
     tone === "green"
@@ -297,14 +299,14 @@ function MetricTile({
       : "border-white/10 bg-[#0A0F17] text-white";
 
   return (
-    <div className={`rounded-2xl border p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ${toneClass}`}>
-      <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em] opacity-70">
+    <div className={`rounded-2xl border px-3 py-3 min-h-[88px] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ${toneClass} ${muted ? "opacity-55" : ""}`}>
+      <div className="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.18em] opacity-70">
         <span>{label}</span>
-        <span>{muted ? "mute" : "live"}</span>
+        <span className="shrink-0 text-[10px] opacity-70">{muted ? "mute" : "live"}</span>
       </div>
       <div className="mt-2 flex items-end gap-2">
-        <div className={`font-mono text-[1.9rem] font-semibold leading-none ${muted ? "opacity-55" : ""}`}>{value}</div>
-        {unit ? <div className="pb-1 text-xs opacity-75">{unit}</div> : null}
+        <div className={`font-mono font-semibold leading-none ${compactValue ? "text-2xl" : "text-[30px]"}`}>{value}</div>
+        {unit ? <div className="shrink-0 pb-1 text-xs opacity-75">{unit}</div> : null}
       </div>
     </div>
   );
@@ -415,72 +417,46 @@ export default function MultiparameterMonitor(props: MultiparameterMonitorProps)
         </div>
       </div>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[1.45fr_0.85fr]">
-        <div className="space-y-3">
-          <div className="relative overflow-hidden rounded-2xl border border-emerald-300/15 bg-[#03070D]">
-            <div
-              className="absolute inset-0 opacity-80"
-              style={{
-                backgroundImage:
-                  "linear-gradient(rgba(41,153,99,0.14) 1px, transparent 1px), linear-gradient(90deg, rgba(41,153,99,0.14) 1px, transparent 1px), linear-gradient(rgba(41,153,99,0.24) 1px, transparent 1px), linear-gradient(90deg, rgba(41,153,99,0.24) 1px, transparent 1px)",
-                backgroundSize: "8px 8px, 8px 8px, 40px 40px, 40px 40px",
-              }}
-            />
-            <div className="relative flex items-center justify-between px-3 pt-2 text-[10px] uppercase tracking-[0.18em] text-emerald-100/75">
-              <span>Lead II</span>
-              <span>{rhythmLabel ?? "Monitor activo"}</span>
-            </div>
-            <svg viewBox="0 0 640 140" className="relative h-[108px] w-full">
-              <path d={ecgPath} fill="none" stroke="rgba(123,255,154,0.96)" strokeWidth="2.25" strokeLinecap="round" />
-            </svg>
-          </div>
-
-          <div className="grid gap-2 md:grid-cols-2">
-            <TrendStrip label="Pleth SpO₂" path={plethPath} color="rgba(126,220,255,0.96)" active={liveVitals.spo2 > 0 && liveVitals.hr > 0} />
-            <TrendStrip label="Resp" path={respPath} color="rgba(183,166,255,0.96)" active={liveVitals.rr > 0} />
-          </div>
-
-          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-            <MetricTile label="FC" value={liveVitals.hr <= 0 ? "--" : String(liveVitals.hr)} unit="lpm" tone="green" muted={liveVitals.hr <= 0} />
-            <MetricTile label="SpO₂" value={liveVitals.spo2 <= 0 ? "--" : String(liveVitals.spo2)} unit="%" tone="cyan" muted={liveVitals.spo2 <= 0} />
-            <MetricTile
-              label="PA"
-              value={liveVitals.sbp <= 0 || liveVitals.dbp <= 0 ? "--/--" : `${liveVitals.sbp}/${liveVitals.dbp}`}
-              unit="mmHg"
-              tone="amber"
-              muted={liveVitals.sbp <= 0 || liveVitals.dbp <= 0}
-            />
-            <MetricTile label="FR" value={liveVitals.rr <= 0 ? "--" : String(liveVitals.rr)} unit="rpm" tone="violet" muted={liveVitals.rr <= 0} />
-            <MetricTile label="Temp" value={liveVitals.temp.toFixed(1)} unit="°C" tone="orange" />
-            <MetricTile label="Tiempo" value={timeLabel ?? "Live"} unit="" tone="white" />
-          </div>
-        </div>
-
-        <div className="space-y-3">
+      <div className="mt-4 space-y-4">
+        <div className="grid gap-3 xl:grid-cols-[0.9fr_1.1fr_0.9fr]">
           <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
             <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">Estado clínico</div>
-            <div className="mt-2 text-lg font-semibold text-white">{statusLabel ?? (pattern === "asystole" ? "Sin perfusión efectiva" : "Monitorización continua")}</div>
-            <div className="mt-2 rounded-2xl border border-white/10 bg-black/25 px-3 py-2 text-sm text-white/72">
-              {rhythmLabel ? `Ritmo: ${rhythmLabel}` : "Ritmo organizado con tendencias hemodinámicas dinámicas."}
+            <div className="mt-2 text-lg font-semibold text-white">
+              {statusLabel ?? (pattern === "asystole" ? "Sin perfusión efectiva" : "Monitorización continua")}
+            </div>
+            <div className="mt-2 text-sm leading-6 text-white/70">
+              {pattern === "asystole"
+                ? "Paciente en condición crítica. Verificar respuesta clínica, perfusión y necesidad de soporte vital inmediato."
+                : "Seguimiento en tiempo real del estado hemodinámico y respiratorio según la evolución del caso."}
+            </div>
+            <div className="mt-3 rounded-2xl border border-white/10 bg-black/25 px-3 py-2 text-sm text-white/72">
+              {rhythmLabel ? `Ritmo actual: ${rhythmLabel}` : "Ritmo organizado con tendencias hemodinámicas dinámicas."}
             </div>
           </div>
 
-          {detailItems.length ? (
-            <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-              <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">Contexto</div>
-              <div className="mt-3 grid gap-2">
+          <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+            <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">Contexto del paciente</div>
+            {detailItems.length ? (
+              <div className="mt-3 grid grid-cols-2 gap-3 2xl:grid-cols-3">
                 {detailItems.map((item) => (
-                  <div key={`${item.label}-${item.value}`} className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-sm">
+                  <div
+                    key={`${item.label}-${item.value}`}
+                    className="flex items-start justify-between gap-3 rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-sm"
+                  >
                     <span className="text-white/55">{item.label}</span>
                     <span className="text-right text-white/88">{item.value}</span>
                   </div>
                 ))}
               </div>
-            </div>
-          ) : null}
+            ) : (
+              <div className="mt-3 rounded-xl border border-dashed border-white/10 bg-black/15 px-3 py-3 text-sm text-white/55">
+                Sin datos contextuales cargados para este caso.
+              </div>
+            )}
+          </div>
 
           <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-            <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">Alertas dinámicas</div>
+            <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">Alertas prioritarias</div>
             <div className="mt-3 flex flex-wrap gap-2">
               {mergedAlerts.map((alert) => (
                 <span
@@ -494,6 +470,56 @@ export default function MultiparameterMonitor(props: MultiparameterMonitorProps)
                   {alert}
                 </span>
               ))}
+            </div>
+            <div className="mt-3 text-sm leading-6 text-white/62">
+              Revisa primero los cambios de perfusión, oxigenación, ventilación y temperatura antes de intervenir.
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4 xl:grid-cols-[1.45fr_0.85fr]">
+          <div className="space-y-3">
+            <div className="relative overflow-hidden rounded-2xl border border-emerald-300/15 bg-[#03070D]">
+              <div
+                className="absolute inset-0 opacity-80"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(rgba(41,153,99,0.14) 1px, transparent 1px), linear-gradient(90deg, rgba(41,153,99,0.14) 1px, transparent 1px), linear-gradient(rgba(41,153,99,0.24) 1px, transparent 1px), linear-gradient(90deg, rgba(41,153,99,0.24) 1px, transparent 1px)",
+                  backgroundSize: "8px 8px, 8px 8px, 40px 40px, 40px 40px",
+                }}
+              />
+              <div className="relative flex items-center justify-between px-3 pt-2 text-[10px] uppercase tracking-[0.18em] text-emerald-100/75">
+                <span>ECG · Derivación II</span>
+                <span>{rhythmLabel ?? "Monitor activo"}</span>
+              </div>
+              <svg viewBox="0 0 640 140" className="relative h-[120px] w-full">
+                <path d={ecgPath} fill="none" stroke="rgba(123,255,154,0.96)" strokeWidth="2.25" strokeLinecap="round" />
+              </svg>
+            </div>
+
+            <div className="grid gap-2 md:grid-cols-2">
+              <TrendStrip label="Pleth SpO₂" path={plethPath} color="rgba(126,220,255,0.96)" active={liveVitals.spo2 > 0 && liveVitals.hr > 0} />
+              <TrendStrip label="Respiración" path={respPath} color="rgba(183,166,255,0.96)" active={liveVitals.rr > 0} />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+              <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">Signos vitales</div>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <MetricTile label="FC" value={liveVitals.hr <= 0 ? "--" : String(liveVitals.hr)} unit="lpm" tone="green" muted={liveVitals.hr <= 0} />
+                <MetricTile label="SpO₂" value={liveVitals.spo2 <= 0 ? "--" : String(liveVitals.spo2)} unit="%" tone="cyan" muted={liveVitals.spo2 <= 0} />
+                <MetricTile
+                  label="PA"
+                  value={liveVitals.sbp <= 0 || liveVitals.dbp <= 0 ? "--/--" : `${liveVitals.sbp}/${liveVitals.dbp}`}
+                  unit="mmHg"
+                  tone="amber"
+                  muted={liveVitals.sbp <= 0 || liveVitals.dbp <= 0}
+                />
+                <MetricTile label="FR" value={liveVitals.rr <= 0 ? "--" : String(liveVitals.rr)} unit="rpm" tone="violet" muted={liveVitals.rr <= 0} />
+                <MetricTile label="Temp" value={liveVitals.temp.toFixed(1)} unit="°C" tone="orange" />
+                <MetricTile label="Tiempo" value={timeLabel ?? "Live"} unit="" tone="white" compactValue />
+              </div>
             </div>
           </div>
         </div>
