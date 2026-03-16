@@ -437,14 +437,16 @@ export default function MultiparameterMonitor(props: MultiparameterMonitorProps)
           <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
             <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">Contexto del paciente</div>
             {detailItems.length ? (
-              <div className="mt-3 grid grid-cols-2 gap-3 2xl:grid-cols-3">
+              <div className="mt-3 grid gap-3">
                 {detailItems.map((item) => (
                   <div
                     key={`${item.label}-${item.value}`}
-                    className="flex items-start justify-between gap-3 rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-sm"
+                    className="rounded-xl border border-white/10 bg-black/25 px-3 py-3 text-sm"
                   >
-                    <span className="text-white/55">{item.label}</span>
-                    <span className="text-right text-white/88">{item.value}</span>
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="shrink-0 text-[12px] uppercase tracking-[0.12em] text-white/50">{item.label}</span>
+                      <span className="min-w-0 max-w-[70%] text-right leading-6 text-white/88 break-words">{item.value}</span>
+                    </div>
                   </div>
                 ))}
               </div>

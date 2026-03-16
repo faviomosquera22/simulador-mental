@@ -228,8 +228,8 @@ export default function EmergencySimulatorPage() {
             </label>
           </section>
 
-          <section className="mt-4 grid gap-4 xl:grid-cols-[1.55fr_1fr]">
-            <div className="space-y-4">
+          <section className="mt-4 space-y-4">
+            <div className="rounded-2xl border border-white/10 bg-[#0B111D]/90 p-4">
               <div className="rounded-2xl border border-white/10 bg-[#0B101A]/90 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
@@ -254,21 +254,29 @@ export default function EmergencySimulatorPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 grid gap-3 md:grid-cols-3 xl:grid-cols-6">
-                  {[
-                    { label: "FC", value: `${currentVitals.hr} lpm` },
-                    { label: "PA", value: `${currentVitals.sbp}/${currentVitals.dbp} mmHg` },
-                    { label: "SpO2", value: `${currentVitals.spo2}%` },
-                    { label: "FR", value: `${currentVitals.rr} rpm` },
-                    { label: "Temp", value: `${currentVitals.temp.toFixed(1)} °C` },
-                    { label: "Paso", value: `${Math.min(currentStageIndex + 1, scenario.stages.length)}/${scenario.stages.length}` },
-                  ].map((item) => (
-                    <div key={item.label} className="rounded-xl border border-white/10 bg-black/30 p-3">
-                      <div className="text-xs text-white/50">{item.label}</div>
-                      <div className="mt-1 text-sm font-medium text-white/90">{item.value}</div>
-                    </div>
-                  ))}
-                </div>
+              </div>
+
+              <div className="mt-4">
+                <MultiparameterMonitor
+                  accent="cyan"
+                  title="Monitor multiparámetro"
+                  subtitle="Monitor continuo con ECG, curvas y contexto clínico para seguimiento del caso."
+                  vitals={currentVitals}
+                  statusLabel={lastAction ? "Reevaluación tras intervención" : "Valoración inicial"}
+                  timeLabel={mode === "evaluation" ? formatTimer(timeRemaining) : "Libre"}
+                  stageLabel={`Paso ${Math.min(currentStageIndex + 1, scenario.stages.length)}/${scenario.stages.length}`}
+                  badges={[emergencyTypeLabel(scenario.type), emergencyDifficultyLabel(scenario.difficulty)]}
+                  alerts={[scenario.priorityLabel]}
+                  detailItems={[
+                    {
+                      label: "Paciente",
+                      value: `${scenario.patient.age} años · ${scenario.patient.sex === "female" ? "Femenino" : scenario.patient.sex === "male" ? "Masculino" : "No especificado"}`,
+                    },
+                    { label: "Motivo de consulta", value: scenario.patient.chiefComplaint },
+                    { label: "Contexto clínico", value: scenario.context },
+                  ]}
+                  footerNote="Los signos principales permanecen visibles arriba en el escenario actual; este monitor complementa el seguimiento continuo."
+                />
               </div>
 
               {revealedStudies.length > 0 && (
@@ -337,73 +345,70 @@ export default function EmergencySimulatorPage() {
                   </>
                 )}
               </div>
+
             </div>
 
-            <aside className="space-y-3">
-              <MultiparameterMonitor
-                accent="cyan"
-                title="Monitor multiparámetro"
-                subtitle="Signos dinámicos con oscilación realista según la evolución del caso."
-                vitals={currentVitals}
-                statusLabel={lastAction ? "Reevaluación tras intervención" : "Valoración inicial"}
-                timeLabel={mode === "evaluation" ? formatTimer(timeRemaining) : "Libre"}
-                stageLabel={`Paso ${Math.min(currentStageIndex + 1, scenario.stages.length)}/${scenario.stages.length}`}
-                badges={[emergencyTypeLabel(scenario.type), emergencyDifficultyLabel(scenario.difficulty)]}
-                alerts={[scenario.priorityLabel]}
-                detailItems={[
-                  { label: "Paciente", value: `${scenario.patient.age} años · ${scenario.patient.sex === "female" ? "Femenino" : scenario.patient.sex === "male" ? "Masculino" : "No especificado"}` },
-                  { label: "Motivo", value: scenario.patient.chiefComplaint },
-                  { label: "Entorno", value: scenario.context },
-                ]}
-                footerNote="El monitor responde con pequeñas variaciones dentro de rangos clínicos plausibles sin alterar la lógica del puntaje."
-              />
-
-              {mode === "practice" && lastAction && !result && (
-                <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4">
-                  <h3 className="text-sm font-semibold text-cyan-100">Feedback inmediato</h3>
-                  <div className="mt-2 text-sm text-cyan-100/90">{lastAction.explanation}</div>
-                </div>
-              )}
-
-              {result ? (
-                <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="text-sm font-semibold text-white">Resultado final</div>
-                    <div className="rounded-full border border-cyan-400/35 bg-cyan-400/10 px-2.5 py-1 text-xs text-cyan-100">
-                      {result.totalScore}/{result.maxScore}
-                    </div>
+            <div className="grid gap-4 xl:grid-cols-[1.25fr_0.95fr]">
+              <div className="space-y-4">
+                {mode === "practice" && lastAction && !result && (
+                  <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4">
+                    <h3 className="text-sm font-semibold text-cyan-100">Feedback inmediato</h3>
+                    <div className="mt-2 text-sm text-cyan-100/90">{lastAction.explanation}</div>
                   </div>
+                )}
 
-                  <div className="mt-3 space-y-2 text-sm text-white/80">
-                    {result.stageFeedback.map((item) => (
-                      <div key={`${item.stageTitle}-${item.actionLabel}`} className="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-                        <div className="font-medium text-white/90">{item.stageTitle}</div>
-                        <div className="mt-1 text-white/75">{item.actionLabel}</div>
-                        <div className="mt-1 text-xs text-white/55">{item.explanation}</div>
+                {result ? (
+                  <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="text-sm font-semibold text-white">Resultado final</div>
+                      <div className="rounded-full border border-cyan-400/35 bg-cyan-400/10 px-2.5 py-1 text-xs text-cyan-100">
+                        {result.totalScore}/{result.maxScore}
                       </div>
-                    ))}
-                    <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-white/85">
-                      {result.summary}
                     </div>
-                    <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-100">
-                      {scenario.finalTeaching}
+
+                    <div className="mt-3 space-y-2 text-sm text-white/80">
+                      {result.stageFeedback.map((item) => (
+                        <div key={`${item.stageTitle}-${item.actionLabel}`} className="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+                          <div className="font-medium text-white/90">{item.stageTitle}</div>
+                          <div className="mt-1 text-white/75">{item.actionLabel}</div>
+                          <div className="mt-1 text-xs text-white/55">{item.explanation}</div>
+                        </div>
+                      ))}
+                      <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-white/85">
+                        {result.summary}
+                      </div>
+                      <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-100">
+                        {scenario.finalTeaching}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ) : (
+                ) : (
+                  <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+                    <h3 className="text-sm font-semibold text-white">Estado del caso</h3>
+                    <div className="mt-2 text-sm text-white/75">
+                      {mode === "practice"
+                        ? "Puedes ver estudios solicitados y recibir feedback por paso."
+                        : "El escenario se puntúa al final. En evaluación el tiempo sí cuenta."}
+                    </div>
+                    <div className="mt-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/65">
+                      Integraciones activas: ECG, Laboratorio y Gasometría se muestran dentro del caso cuando los solicitas.
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <aside className="space-y-3">
                 <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-                  <h3 className="text-sm font-semibold text-white">Estado del caso</h3>
+                  <h3 className="text-sm font-semibold text-white">Resumen operativo</h3>
                   <div className="mt-2 text-sm text-white/75">
-                    {mode === "practice"
-                      ? "Puedes ver estudios solicitados y recibir feedback por paso."
-                      : "El escenario se puntúa al final. En evaluación el tiempo sí cuenta."}
+                    Mantén visible el monitor, revisa los estudios ya liberados y continúa resolviendo el escenario por etapas.
                   </div>
                   <div className="mt-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/65">
-                    Integraciones activas: ECG, Laboratorio y Gasometría se muestran dentro del caso cuando los solicitas.
+                    Este panel queda disponible para próximas tarjetas de apoyo clínico, checklist o ayudas del tutor.
                   </div>
                 </div>
-              )}
-            </aside>
+              </aside>
+            </div>
           </section>
         </main>
       </div>
