@@ -13,6 +13,7 @@ import type {
 } from "./types";
 import { CACES_EXPANDED_QUESTION_BANK } from "./cacesExpanded";
 import { CACES_IMPORTED_PDF_BANK, CACES_SCORE_MAMA_GYNE_BANK } from "./cacesPdfImported";
+import { CACES_SPECIAL_COLLECTION_BANK } from "./cacesSpecialCollections";
 
 type LegacyDifficultyFilter = "all" | "basic" | "intermediate" | "advanced";
 
@@ -129,6 +130,12 @@ export function alignQuestionToEhepManual(question: CacesQuestion): CacesQuestio
 }
 
 export const CACES_CATEGORIES = [
+  "Score MAMÁ",
+  "Cuidados críticos",
+  "Urgencias",
+  "Laboratorios clínicos",
+  "Esenciales CACES",
+  "Alta dificultad CACES",
   "Fundamentos del cuidado enfermero",
   "Mujer, recién nacido, niño y adolescente",
   "Adulto y adulto mayor",
@@ -1957,6 +1964,7 @@ const CACES_SUPPLEMENTAL_BANK: CacesQuestion[] = (() => {
 export const CACES_QUESTION_BANK: CacesQuestion[] = dedupeCacesQuestions(
   dedupeCacesQuestionsByStem(
     [
+      ...CACES_SPECIAL_COLLECTION_BANK,
       ...CACES_CORE_QUESTION_BANK,
       ...CACES_EXTRA_CLINICAL_CASE_BANK,
       ...CACES_EXPANDED_QUESTION_BANK,
