@@ -12,7 +12,7 @@ import type {
   QuizQuestion,
 } from "./types";
 import { CACES_EXPANDED_QUESTION_BANK } from "./cacesExpanded";
-import { CACES_IMPORTED_PDF_BANK } from "./cacesPdfImported";
+import { CACES_IMPORTED_PDF_BANK, CACES_SCORE_MAMA_GYNE_BANK } from "./cacesPdfImported";
 
 type LegacyDifficultyFilter = "all" | "basic" | "intermediate" | "advanced";
 
@@ -1959,6 +1959,7 @@ export const CACES_QUESTION_BANK: CacesQuestion[] = dedupeCacesQuestions(
       ...CACES_EXTRA_CLINICAL_CASE_BANK,
       ...CACES_EXPANDED_QUESTION_BANK,
       ...CACES_SUPPLEMENTAL_BANK,
+      ...CACES_SCORE_MAMA_GYNE_BANK,
       ...CACES_IMPORTED_PDF_BANK,
     ].map(alignQuestionToEhepManual)
   )
