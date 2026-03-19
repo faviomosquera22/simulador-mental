@@ -1,5 +1,5 @@
 import type { CacesQuestion } from "./types";
-import { buildCacesQuestionKey, dedupeCacesQuestions } from "./caces";
+import { buildCacesProgressKey, dedupeCacesQuestions } from "./caces";
 
 const GENERATED_KEY = "cacesGeneratedBank:v1";
 const SEEN_KEYS = "cacesSeenKeys:v1";
@@ -69,8 +69,7 @@ export function markSeenCacesQuestions(questions: CacesQuestion[]) {
   const existing = getSeenCacesQuestionKeys();
   const next = normalizeSeenKeys([
     ...existing,
-    ...questions.map((q) => buildCacesQuestionKey(q)),
+    ...questions.map((q) => buildCacesProgressKey(q)),
   ]);
   localStorage.setItem(SEEN_KEYS, JSON.stringify(next));
 }
-

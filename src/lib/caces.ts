@@ -1916,10 +1916,11 @@ const CACES_SUPPLEMENTAL_BANK: CacesQuestion[] = (() => {
       id: `caces-sup-case-${String(serial).padStart(3, "0")}`,
       component: seed.component,
       subcomponent: seed.subcomponent,
-      topic: `${seed.topic} - caso complementario`,
+      topic: seed.topic,
+      sourceGroup: buildCacesQuestionKey(seed),
       category: seed.category,
       type: "caso_clinico",
-      question: `Caso clínico complementario ${serial}: ${scenario}. ¿Cuál es la conducta inicial más adecuada de enfermería?`,
+      question: `Caso clínico: ${scenario}. ¿Cuál es la conducta inicial más adecuada de enfermería?`,
       options: caseOptions,
       correctAnswer: seed.correctAnswer,
       explanation: seed.explanation,
@@ -1936,7 +1937,8 @@ const CACES_SUPPLEMENTAL_BANK: CacesQuestion[] = (() => {
         id: `caces-sup-dir-${String(i * SUPPLEMENT_DIRECT_PER_CASE + templateIdx + 1).padStart(3, "0")}`,
         component: seed.component,
         subcomponent: seed.subcomponent,
-        topic: `${seed.topic} - práctica adicional ${templateIdx + 1}`,
+        topic: seed.topic,
+        sourceGroup: buildCacesQuestionKey(seed),
         category: seed.category,
         type: "directa",
         question: stemBuilder(seed),
@@ -1959,8 +1961,8 @@ export const CACES_QUESTION_BANK: CacesQuestion[] = dedupeCacesQuestions(
       ...CACES_EXTRA_CLINICAL_CASE_BANK,
       ...CACES_EXPANDED_QUESTION_BANK,
       ...CACES_SUPPLEMENTAL_BANK,
-      ...CACES_SCORE_MAMA_GYNE_BANK,
       ...CACES_IMPORTED_PDF_BANK,
+      ...CACES_SCORE_MAMA_GYNE_BANK,
     ].map(alignQuestionToEhepManual)
   )
 );
@@ -1983,6 +1985,28 @@ export function buildCacesQuestionKey(
     .map((opt) => normalizeCacesText(String(opt?.text ?? "")))
     .join("|");
   return `${stem}::${optionStem}`.slice(0, MAX_QUESTION_KEY_CHARS);
+}
+
+export function buildCacesProgressKey(
+  question: Pick<CacesQuestion, "question" | "options"> & Partial<Pick<CacesQuestion, "sourceGroup">>
+) {
+  const group = normalizeCacesText(String(question.sourceGroup ?? ""));
+  if (group) return group.slice(0, MAX_QUESTION_KEY_CHARS);
+  return buildCacesQuestionKey(question);
+}
+
+function dedupeCacesQuestionsForAttempt(input: CacesQuestion[]) {
+  const out: CacesQuestion[] = [];
+  const seen = new Set<string>();
+
+  for (const question of input) {
+    const key = buildCacesProgressKey(question);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(question);
+  }
+
+  return out;
 }
 
 export function dedupeCacesQuestions(input: CacesQuestion[]) {
@@ -2122,7 +2146,7 @@ export function filterCacesQuestionBank(filters?: CacesFilter, bank: CacesQuesti
 }
 
 export function sampleCacesQuestions(input: CacesQuestion[], size: number) {
-  const pool = dedupeCacesQuestions(input);
+  const pool = dedupeCacesQuestionsForAttempt(input);
   const out: CacesQuestion[] = [];
   const target = Math.max(0, Math.min(pool.length, Math.trunc(size)));
 
@@ -2137,9 +2161,9 @@ export function sampleCacesQuestionsPrioritizingUnseen(args: {
   seenQuestionKeys?: Set<string>;
 }) {
   const { input, size, seenQuestionKeys = new Set<string>() } = args;
-  const pool = dedupeCacesQuestions(input);
-  const unseen = pool.filter((q) => !seenQuestionKeys.has(buildCacesQuestionKey(q)));
-  const seen = pool.filter((q) => seenQuestionKeys.has(buildCacesQuestionKey(q)));
+  const pool = dedupeCacesQuestionsForAttempt(input);
+  const unseen = pool.filter((q) => !seenQuestionKeys.has(buildCacesProgressKey(q)));
+  const seen = pool.filter((q) => seenQuestionKeys.has(buildCacesProgressKey(q)));
 
   const target = Math.max(0, Math.min(pool.length, Math.trunc(size)));
   const pickUnseen = sampleCacesQuestions(unseen, target);
@@ -2166,7 +2190,7 @@ export function sampleCacesQuestionsBalancedByCategory(args: {
     categoryOrder = [],
   } = args;
 
-  const pool = dedupeCacesQuestions(input);
+  const pool = dedupeCacesQuestionsForAttempt(input);
   const target = Math.max(0, Math.min(pool.length, Math.trunc(size)));
   if (target <= 0) {
     return {
@@ -2186,7 +2210,7 @@ export function sampleCacesQuestionsBalancedByCategory(args: {
     const existing =
       grouped.get(question.category) ??
       { unseen: [] as CacesQuestion[], seen: [] as CacesQuestion[], selected: 0 };
-    const key = buildCacesQuestionKey(question);
+    const key = buildCacesProgressKey(question);
     if (seenQuestionKeys.has(key)) existing.seen.push(question);
     else existing.unseen.push(question);
     grouped.set(question.category, existing);

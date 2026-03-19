@@ -38,20 +38,73 @@ function resolveImportedReference(item: RawImportedQuestion) {
 }
 
 function normalizeImportedTopic(item: RawImportedQuestion) {
-  const raw = String(item.topic ?? "").trim();
-  if (item.source !== "score_mama_2025") return raw;
-
-  return raw.replace(/^\d+\s+7\.1\s+/i, "7.1 ");
+  return String(item.topic ?? "").trim();
 }
 
-function cleanTopicLabel(value: string) {
-  const compact = String(value ?? "")
+function stripImportedNoise(value: string) {
+  let compact = String(value ?? "")
     .replace(/…/g, "")
     .replace(/\s+/g, " ")
     .trim();
 
-  if (!compact) return "manejo obstétrico basado en Score MAMÁ";
+  compact = compact
+    .replace(/^(?:\d+\.\s*){2,}/, "")
+    .replace(/^\d+\.\d+\s+/, "")
+    .replace(/^\d+\s+/, "")
+    .replace(
+      /^(?:desarrollo\s+)?7\.1\s+protocolo score mamá,\s*evaluación,\s*registro y manejo$/i,
+      "evaluación, registro y manejo del protocolo Score MAMÁ"
+    )
+    .replace(
+      /^16\s+7\.1\s+protocolo score mamá,\s*evaluación,\s*registro y manejo$/i,
+      "evaluación, registro y manejo del protocolo Score MAMÁ"
+    )
+    .replace(/^(?:desarrollo\s+)?7\.1\s+/i, "")
+    .trim();
+
+  return compact;
+}
+
+function cleanTopicLabel(value: string) {
+  const compact = stripImportedNoise(value);
+
+  if (!compact) return "tema clínico importado";
   return compact.length > 120 ? `${compact.slice(0, 117).trim()}...` : compact;
+}
+
+function isScoreMamaCaseItem(item: RawImportedQuestion) {
+  return /^caso de entrenamiento obstétrico:/i.test(String(item.question ?? "").trim());
+}
+
+function resolveImportedType(item: RawImportedQuestion): RawImportedQuestion["type"] {
+  if (item.source === "score_mama_2025" && isScoreMamaCaseItem(item)) {
+    return "caso_clinico";
+  }
+
+  return item.type;
+}
+
+function buildScoreMamaSourceGroup(item: RawImportedQuestion) {
+  return `score_mama_2025:${cleanTopicLabel(normalizeImportedTopic(item))
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()}`;
+}
+
+function buildImportedQuestionStem(item: RawImportedQuestion) {
+  if (item.source !== "score_mama_2025") {
+    return stripImportedNoise(String(item.question ?? "").trim());
+  }
+
+  const topicLabel = cleanTopicLabel(normalizeImportedTopic(item));
+  if (resolveImportedType(item) === "caso_clinico") {
+    return `Caso clínico obstétrico: con base en Score MAMÁ 2025, identifica la afirmación correcta sobre ${topicLabel}.`;
+  }
+
+  return `Según el protocolo Score MAMÁ 2025, ¿cuál enunciado es correcto sobre ${topicLabel}?`;
 }
 
 function scoreMamaGynePriority(item: RawImportedQuestion) {
@@ -97,16 +150,32 @@ function scoreMamaGynePriority(item: RawImportedQuestion) {
   return score;
 }
 
-function buildGyneQuestionStem(item: RawImportedQuestion, serial: number) {
+function buildGyneQuestionStem(item: RawImportedQuestion) {
   const topicLabel = cleanTopicLabel(normalizeImportedTopic(item));
-  if (item.type === "caso_clinico") {
-    return `Caso clínico obstétrico ${serial}: en ginecología y salud sexual, según Score MAMÁ 2025, identifica la afirmación correcta sobre ${topicLabel}.`;
+  if (resolveImportedType(item) === "caso_clinico") {
+    return `Caso clínico obstétrico: en ginecología y salud sexual, según Score MAMÁ 2025, identifica la afirmación correcta sobre ${topicLabel}.`;
   }
 
   return `En ginecología y salud sexual, según el protocolo Score MAMÁ 2025, ¿cuál enunciado es correcto sobre ${topicLabel}?`;
 }
 
-function option(id: CacesOptionId, text: string, isCorrect: boolean): CacesQuestionOption {
+function buildImportedOption(
+  item: RawImportedQuestion,
+  id: CacesOptionId,
+  text: string,
+  isCorrect: boolean
+): CacesQuestionOption {
+  if (item.source === "score_mama_2025") {
+    const topicLabel = cleanTopicLabel(normalizeImportedTopic(item));
+    return {
+      id,
+      text,
+      rationale: isCorrect
+        ? `Es la alternativa que mejor coincide con el protocolo Score MAMÁ 2025 para ${topicLabel}.`
+        : `No es la alternativa priorizada por el protocolo Score MAMÁ 2025 para ${topicLabel}.`,
+    };
+  }
+
   if (isCorrect) {
     return {
       id,
@@ -122,25 +191,34 @@ function option(id: CacesOptionId, text: string, isCorrect: boolean): CacesQuest
   };
 }
 
+function buildImportedExplanation(item: RawImportedQuestion) {
+  if (item.source === "score_mama_2025") {
+    const topicLabel = cleanTopicLabel(normalizeImportedTopic(item));
+    return `La respuesta correcta es la que coincide con el protocolo oficial Score MAMÁ 2025 para ${topicLabel}.`;
+  }
+
+  return "Pregunta importada desde banco PDF CACES; se mantiene la alternativa de referencia del documento fuente.";
+}
+
 const LETTERS: CacesOptionId[] = ["A", "B", "C", "D"];
 
 export const CACES_IMPORTED_PDF_BANK: CacesQuestion[] = (rawImportedQuestions as RawImportedQuestion[]).map((item) => {
   const builtOptions = LETTERS.map((letter, idx) =>
-    option(letter, String(item.options[idx] ?? ""), idx === 0)
+    buildImportedOption(item, letter, String(item.options[idx] ?? ""), idx === 0)
   ) as [CacesQuestionOption, CacesQuestionOption, CacesQuestionOption, CacesQuestionOption];
 
   return {
     id: item.id,
     component: item.category,
     subcomponent: resolveImportedSubcomponent(item),
-    topic: normalizeImportedTopic(item),
+    topic: cleanTopicLabel(normalizeImportedTopic(item)),
+    sourceGroup: item.source === "score_mama_2025" ? buildScoreMamaSourceGroup(item) : item.id,
     category: item.category,
-    type: item.type,
-    question: item.question,
+    type: resolveImportedType(item),
+    question: buildImportedQuestionStem(item),
     options: builtOptions,
     correctAnswer: "A",
-    explanation:
-      "Pregunta importada desde banco PDF CACES; se mantiene la alternativa de referencia del documento fuente.",
+    explanation: buildImportedExplanation(item),
     difficulty: item.difficulty,
     tags: item.tags,
     references: [resolveImportedReference(item)],
@@ -155,9 +233,9 @@ export const CACES_SCORE_MAMA_GYNE_BANK: CacesQuestion[] = (rawImportedQuestions
     return String(a.id).localeCompare(String(b.id), "es", { numeric: true, sensitivity: "base" });
   })
   .slice(0, SCORE_MAMA_GYNE_TARGET)
-  .map((item, idx) => {
+  .map((item) => {
     const builtOptions = LETTERS.map((letter, optionIdx) =>
-      option(letter, String(item.options[optionIdx] ?? ""), optionIdx === 0)
+      buildImportedOption(item, letter, String(item.options[optionIdx] ?? ""), optionIdx === 0)
     ) as [CacesQuestionOption, CacesQuestionOption, CacesQuestionOption, CacesQuestionOption];
 
     return {
@@ -165,13 +243,13 @@ export const CACES_SCORE_MAMA_GYNE_BANK: CacesQuestion[] = (rawImportedQuestions
       component: GYNE_CATEGORY,
       subcomponent: SCORE_MAMA_2025_SUBCOMPONENT,
       topic: `Score MAMÁ 2025 - ${cleanTopicLabel(normalizeImportedTopic(item))}`,
+      sourceGroup: buildScoreMamaSourceGroup(item),
       category: GYNE_CATEGORY,
-      type: item.type,
-      question: buildGyneQuestionStem(item, idx + 1),
+      type: resolveImportedType(item),
+      question: buildGyneQuestionStem(item),
       options: builtOptions,
       correctAnswer: "A",
-      explanation:
-        "Pregunta derivada del protocolo oficial Score MAMÁ 2025, reubicada para práctica focalizada en ginecología y salud sexual.",
+      explanation: `Pregunta derivada del protocolo oficial Score MAMÁ 2025 para práctica focalizada en ginecología y salud sexual sobre ${cleanTopicLabel(normalizeImportedTopic(item))}.`,
       difficulty: item.difficulty,
       tags: [...new Set([...(item.tags ?? []), "score_mama_2025", "ginecologia_salud_sexual"])],
       references: [SCORE_MAMA_2025_REFERENCE],

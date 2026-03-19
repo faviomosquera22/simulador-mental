@@ -339,6 +339,7 @@ export type CacesQuestion = {
   component: string;
   subcomponent: string;
   topic: string;
+  sourceGroup?: string;
   category: string;
   type: CacesQuestionType;
   question: string;

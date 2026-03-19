@@ -7,6 +7,7 @@ import Sidebar from "@/components/Sidebar";
 import {
   CACES_QUESTION_BANK,
   CACES_CATEGORIES,
+  buildCacesProgressKey,
   buildCacesQuestionKey,
   dedupeCacesQuestions,
   deriveQuestionCountByMode,
@@ -83,6 +84,11 @@ function getModeLabel(mode: CacesPracticeMode | string) {
   if (value === "simulacro_80" || value === "simulacro_maximo") return "Simulacro de 80";
   if (value === "simulacro_100") return "Simulacro de 100";
   return "Simulacro de 120";
+}
+
+function getOptionById(question: CacesQuestion | null | undefined, optionId: CacesOptionId | null) {
+  if (!question || !optionId) return null;
+  return question.options.find((opt) => opt.id === optionId) ?? null;
 }
 
 export default function SimulatorCacesPage() {
@@ -237,7 +243,7 @@ export default function SimulatorCacesPage() {
   const unseenFilteredCount = useMemo(
     () =>
       filteredQuestions.filter(
-        (q) => !seenQuestionKeys.has(buildCacesQuestionKey(q))
+        (q) => !seenQuestionKeys.has(buildCacesProgressKey(q))
       ).length,
     [filteredQuestions, seenQuestionKeys]
   );
@@ -473,7 +479,7 @@ export default function SimulatorCacesPage() {
     while (enableAIDynamicBank && count > 0 && generationRounds < 3) {
       const currentSeen = new Set(getSeenCacesQuestionKeys());
       const unseenNow = candidatePool.filter(
-        (q) => !currentSeen.has(buildCacesQuestionKey(q))
+        (q) => !currentSeen.has(buildCacesProgressKey(q))
       ).length;
       if (candidatePool.length >= count && unseenNow >= count) break;
 
@@ -715,11 +721,15 @@ export default function SimulatorCacesPage() {
     const answer = attempt.responses[currentQuestion.id];
     const selected = answer?.selected ?? null;
     const isCorrect = selected !== null && selected === currentQuestion.correctAnswer;
+    const selectedOptionData = getOptionById(currentQuestion, selected);
+    const correctOptionData = getOptionById(currentQuestion, currentQuestion.correctAnswer);
 
     return {
       selected,
       isCorrect,
       correctAnswer: currentQuestion.correctAnswer,
+      selectedOptionData,
+      correctOptionData,
     };
   }, [attempt, currentQuestion]);
 
@@ -1289,7 +1299,37 @@ export default function SimulatorCacesPage() {
                           <div className="font-semibold">
                             {immediateFeedback.isCorrect ? "Respuesta correcta" : "Respuesta incorrecta"}
                           </div>
-                          <div className="mt-1 text-white/85">{currentQuestion?.explanation}</div>
+                          {immediateFeedback.selectedOptionData && (
+                            <div className="mt-2 rounded-xl border border-white/10 bg-black/20 p-3 text-white/85">
+                              <div>
+                                Tu elección:
+                                {" "}
+                                <span className="font-semibold">
+                                  {immediateFeedback.selectedOptionData.id}. {immediateFeedback.selectedOptionData.text}
+                                </span>
+                              </div>
+                              <div className="mt-1 text-xs text-white/75">
+                                {immediateFeedback.isCorrect
+                                  ? `Es correcta porque ${immediateFeedback.selectedOptionData.rationale}`
+                                  : `No es la mejor respuesta porque ${immediateFeedback.selectedOptionData.rationale}`}
+                              </div>
+                            </div>
+                          )}
+                          {immediateFeedback.correctOptionData && (
+                            <div className="mt-2 rounded-xl border border-white/10 bg-black/20 p-3 text-white/85">
+                              <div>
+                                Respuesta esperada:
+                                {" "}
+                                <span className="font-semibold">
+                                  {immediateFeedback.correctOptionData.id}. {immediateFeedback.correctOptionData.text}
+                                </span>
+                              </div>
+                              <div className="mt-1 text-xs text-white/75">
+                                Se considera correcta porque {immediateFeedback.correctOptionData.rationale}
+                              </div>
+                            </div>
+                          )}
+                          <div className="mt-2 text-white/85">{currentQuestion?.explanation}</div>
                           <div className="mt-2 space-y-1 text-xs text-white/80">
                             {currentQuestion?.options.map((opt) => (
                               <div key={`feedback-${opt.id}`}>
@@ -1493,9 +1533,19 @@ export default function SimulatorCacesPage() {
                           <div className="mt-2 text-white/75">
                             Tu respuesta: {getOptionLabel(q, r.selected)}
                           </div>
+                          {r.selected && getOptionById(q, r.selected) && (
+                            <div className="mt-1 text-xs text-amber-100/90">
+                              Por qué estuvo mal: {getOptionById(q, r.selected)?.rationale}
+                            </div>
+                          )}
                           <div className="mt-1 text-emerald-100">
                             Respuesta correcta: {getOptionLabel(q, r.correct)}
                           </div>
+                          {getOptionById(q, r.correct) && (
+                            <div className="mt-1 text-xs text-emerald-100/90">
+                              Por qué era la correcta: {getOptionById(q, r.correct)?.rationale}
+                            </div>
+                          )}
                           <div className="mt-2 text-white/70">{q.explanation}</div>
                         </div>
                       );
