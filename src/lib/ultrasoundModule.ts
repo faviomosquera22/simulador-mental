@@ -37,6 +37,14 @@ export type UltrasoundPreset =
   | "efast_pneumothorax"
   | "efast_hemothorax";
 
+export type UltrasoundRealAssets = {
+  referenceSrc?: string;
+  caseSrc?: string;
+  referenceAlt?: string;
+  caseAlt?: string;
+  fit?: "contain" | "cover";
+};
+
 export type UltrasoundCase = {
   id: string;
   title: string;
@@ -60,6 +68,7 @@ export type UltrasoundCase = {
   tags: string[];
   modeCompatibility: ModeCompatibility;
   imagePreset: UltrasoundPreset;
+  realImageAssets?: UltrasoundRealAssets;
   questionStem: string;
   optionPool: string[];
   highlightRegions: Array<{ x: number; y: number; width: number; height: number; label: string }>;

@@ -53,6 +53,14 @@ export type ClinicalImagePreset =
   | "dipstick_uti"
   | "dipstick_ketosis";
 
+export type ClinicalImageRealAssets = {
+  referenceSrc?: string;
+  caseSrc?: string;
+  referenceAlt?: string;
+  caseAlt?: string;
+  fit?: "contain" | "cover";
+};
+
 export type ClinicalImageCase = {
   id: string;
   title: string;
@@ -74,6 +82,7 @@ export type ClinicalImageCase = {
   tags: string[];
   modeCompatibility: ModeCompatibility;
   imagePreset: ClinicalImagePreset;
+  realImageAssets?: ClinicalImageRealAssets;
   questionStem: string;
   optionPool: string[];
   highlightRegions: Array<{ x: number; y: number; width: number; height: number; label: string }>;
@@ -96,12 +105,12 @@ export type ClinicalImageInterpretationResult = {
 const BASE_CLINICAL_IMAGE_CASES: ClinicalImageCase[] = [
   {
     id: "img-cxr-pneumonia",
-    title: "Radiografía de tórax con consolidación basal",
+    title: "Radiografía de tórax con consolidación lobar derecha",
     category: "radiologia_torax",
     subcategory: "neumonia_lobar",
     difficulty: "basic",
     context: "respiratory",
-    clinicalSummary: "Paciente con fiebre, tos productiva y crépitos en base derecha.",
+    clinicalSummary: "Paciente con fiebre, tos productiva y crépitos en hemitórax derecho.",
     patientProfile: {
       name: "Carlos V.",
       age: 62,
@@ -109,26 +118,33 @@ const BASE_CLINICAL_IMAGE_CASES: ClinicalImageCase[] = [
       chiefComplaint: "Fiebre, tos y disnea leve",
       setting: "Urgencias respiratorias",
     },
-    keyFindings: ["opacidad alveolar basal derecha", "broncofonía aumentada", "sin neumotórax"],
-    correctAnswer: "Consolidación compatible con neumonía basal derecha",
+    keyFindings: ["opacidad alveolar derecha focal", "broncograma aéreo parcial", "sin neumotórax"],
+    correctAnswer: "Consolidación compatible con neumonía lobar derecha",
     expectedOutcome: "Correlacionar con clínica infecciosa e iniciar conducta para neumonía.",
     distractors: ["Derrame pleural masivo", "Edema agudo pulmonar", "Radiografía sin hallazgos agudos"],
     feedback: {
       explanation: "La consolidación focal con clínica infecciosa orienta a neumonía adquirida en la comunidad.",
       expectedConduct: "Relacionar con signos infecciosos, priorizar antibiótico y seguimiento respiratorio.",
-      highlightHint: "Busca una opacidad densa focal en base pulmonar derecha.",
+      highlightHint: "Busca una opacidad focal densa en el pulmón derecho, por debajo de la cisura menor.",
     },
     tags: ["torax", "respiratorio", "infeccion", "rayos x"],
     modeCompatibility: "both",
     imagePreset: "cxr_pneumonia",
+    realImageAssets: {
+      referenceSrc: "/medical-assets/clinical-images/radiologia_torax/reference-cxr-normal.jpg",
+      caseSrc: "/medical-assets/clinical-images/radiologia_torax/case-cxr-pneumonia.jpg",
+      referenceAlt: "Radiografía de tórax posteroanterior normal usada como referencia",
+      caseAlt: "Radiografía de tórax con consolidación lobar derecha compatible con neumonía",
+      fit: "contain",
+    },
     questionStem: "¿Cuál es el hallazgo principal de la imagen?",
     optionPool: [
-      "Consolidación compatible con neumonía basal derecha",
+      "Consolidación compatible con neumonía lobar derecha",
       "Derrame pleural masivo",
       "Edema agudo pulmonar",
       "Radiografía sin hallazgos agudos",
     ],
-    highlightRegions: [{ x: 58, y: 58, width: 18, height: 18, label: "Consolidación focal" }],
+    highlightRegions: [{ x: 13, y: 49, width: 26, height: 23, label: "Consolidación focal" }],
   },
   {
     id: "img-cxr-edema",
@@ -157,6 +173,11 @@ const BASE_CLINICAL_IMAGE_CASES: ClinicalImageCase[] = [
     tags: ["torax", "insuficiencia_cardiaca", "edema", "urgencias"],
     modeCompatibility: "both",
     imagePreset: "cxr_pulmonary_edema",
+    realImageAssets: {
+      referenceSrc: "/medical-assets/clinical-images/radiologia_torax/reference-cxr-normal.jpg",
+      referenceAlt: "Radiografía de tórax normal usada como patrón de comparación",
+      fit: "contain",
+    },
     questionStem: "¿Qué interpretación radiológica es la más probable?",
     optionPool: [
       "Patrón compatible con edema agudo pulmonar",
@@ -173,7 +194,7 @@ const BASE_CLINICAL_IMAGE_CASES: ClinicalImageCase[] = [
     subcategory: "derrame_pleural",
     difficulty: "intermediate",
     context: "respiratory",
-    clinicalSummary: "Dolor pleurítico y disminución del murmullo vesicular en base izquierda.",
+    clinicalSummary: "Dolor pleurítico y disminución del murmullo vesicular en hemitórax derecho.",
     patientProfile: {
       name: "Elena M.",
       age: 55,
@@ -181,30 +202,37 @@ const BASE_CLINICAL_IMAGE_CASES: ClinicalImageCase[] = [
       chiefComplaint: "Disnea y dolor pleurítico",
       setting: "Hospitalización",
     },
-    keyFindings: ["borramiento del seno costofrénico izquierdo", "menisco pleural", "atelectasia basal adyacente"],
-    correctAnswer: "Derrame pleural izquierdo",
+    keyFindings: ["nivel pleural dependiente", "ocupación del espacio pleural derecho", "compresión pulmonar adyacente"],
+    correctAnswer: "Derrame pleural derecho",
     expectedOutcome: "Correlacionar con etiología del derrame y definir conducta diagnóstica/terapéutica.",
     distractors: ["Neumonía bilateral", "Neumotórax a tensión", "Tórax normal"],
     feedback: {
       explanation: "El menisco y el borramiento del seno costofrénico son característicos de derrame pleural.",
       expectedConduct: "Definir causa probable, cuantía y necesidad de drenaje o estudio adicional.",
-      highlightHint: "Fíjate en el seno costofrénico y el nivel ascendente del líquido.",
+      highlightHint: "En esta proyección el líquido se ve como una banda dependiente con nivel en el hemitórax derecho.",
     },
     tags: ["torax", "pleura", "derrame", "disnea"],
     modeCompatibility: "both",
     imagePreset: "cxr_pleural_effusion",
+    realImageAssets: {
+      referenceSrc: "/medical-assets/clinical-images/radiologia_torax/reference-cxr-normal.jpg",
+      caseSrc: "/medical-assets/clinical-images/radiologia_torax/case-cxr-effusion.jpg",
+      referenceAlt: "Radiografía de tórax normal usada como referencia visual",
+      caseAlt: "Radiografía con derrame pleural derecho en proyección lateral",
+      fit: "contain",
+    },
     questionStem: "¿Qué hallazgo describe mejor la imagen?",
-    optionPool: ["Derrame pleural izquierdo", "Neumonía bilateral", "Neumotórax a tensión", "Tórax normal"],
-    highlightRegions: [{ x: 17, y: 67, width: 26, height: 16, label: "Líquido pleural" }],
+    optionPool: ["Derrame pleural derecho", "Neumonía bilateral", "Neumotórax a tensión", "Tórax normal"],
+    highlightRegions: [{ x: 28, y: 42, width: 34, height: 34, label: "Líquido pleural" }],
   },
   {
     id: "img-cxr-pneumothorax",
-    title: "Radiografía con neumotórax",
+    title: "Radiografía con neumotórax apical izquierdo",
     category: "radiologia_torax",
     subcategory: "neumotorax",
     difficulty: "advanced",
     context: "respiratory",
-    clinicalSummary: "Dolor torácico súbito y disminución marcada del murmullo en hemitórax derecho.",
+    clinicalSummary: "Dolor torácico súbito y disminución marcada del murmullo en hemitórax izquierdo.",
     patientProfile: {
       name: "Javier S.",
       age: 29,
@@ -212,21 +240,28 @@ const BASE_CLINICAL_IMAGE_CASES: ClinicalImageCase[] = [
       chiefComplaint: "Dolor torácico y disnea súbita",
       setting: "Emergencia",
     },
-    keyFindings: ["línea pleural visible", "ausencia de trama vascular periférica", "colapso pulmonar parcial"],
-    correctAnswer: "Neumotórax derecho",
+    keyFindings: ["línea pleural apical visible", "ausencia de trama vascular periférica", "hiperclaridad apical izquierda"],
+    correctAnswer: "Neumotórax izquierdo",
     expectedOutcome: "Valorar gravedad, correlacionar con clínica y definir descompresión si se deteriora.",
     distractors: ["Edema pulmonar", "Derrame pleural derecho", "Consolidación basal"],
     feedback: {
       explanation: "La ausencia de marcas vasculares periféricas con línea pleural define neumotórax.",
       expectedConduct: "Correlacionar con estabilidad hemodinámica y necesidad de drenaje urgente.",
-      highlightHint: "Busca una línea pleural con hiperclaridad periférica sin trama vascular.",
+      highlightHint: "Busca la línea pleural en el vértice izquierdo y la zona periférica más negra sin trama vascular.",
     },
     tags: ["torax", "neumotorax", "trauma", "critico"],
     modeCompatibility: "both",
     imagePreset: "cxr_pneumothorax",
+    realImageAssets: {
+      referenceSrc: "/medical-assets/clinical-images/radiologia_torax/reference-cxr-normal.jpg",
+      caseSrc: "/medical-assets/clinical-images/radiologia_torax/case-cxr-pneumothorax.jpg",
+      referenceAlt: "Radiografía de tórax normal usada para comparar el ápice pulmonar",
+      caseAlt: "Radiografía de tórax con neumotórax apical izquierdo sutil",
+      fit: "contain",
+    },
     questionStem: "¿Cuál es el hallazgo radiológico dominante?",
-    optionPool: ["Neumotórax derecho", "Edema pulmonar", "Derrame pleural derecho", "Consolidación basal"],
-    highlightRegions: [{ x: 67, y: 20, width: 18, height: 52, label: "Línea pleural" }],
+    optionPool: ["Neumotórax izquierdo", "Edema pulmonar", "Derrame pleural derecho", "Consolidación basal"],
+    highlightRegions: [{ x: 53, y: 3, width: 24, height: 28, label: "Línea pleural" }],
   },
   {
     id: "img-fracture-radius",

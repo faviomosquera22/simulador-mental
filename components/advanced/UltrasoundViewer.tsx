@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { ultrasoundCategoryLabel, ultrasoundDifficultyLabel, ultrasoundProbeLabel, type UltrasoundCase } from "@/src/lib/ultrasoundModule";
 
@@ -140,6 +141,38 @@ function MetaChip({
       : "border-white/10 bg-white/5 text-white/72";
 
   return <span className={`rounded-full border px-3 py-1 text-[11px] ${tones}`}>{label}</span>;
+}
+
+function AssetCanvas({
+  src,
+  alt,
+  fit = "contain",
+  visible,
+  zoom,
+  onError,
+}: {
+  src: string;
+  alt: string;
+  fit?: "contain" | "cover";
+  visible: boolean;
+  zoom: number;
+  onError: () => void;
+}) {
+  if (!visible) return null;
+
+  return (
+    <div className="absolute inset-0" style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}>
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        unoptimized
+        onError={onError}
+        className={fit === "cover" ? "object-cover" : "object-contain"}
+      />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_55%,rgba(2,6,10,0.18)_100%)]" />
+    </div>
+  );
 }
 
 function approxTextWidth(label: string) {
@@ -892,13 +925,20 @@ function renderPreset(preset: RenderPreset) {
 export default function UltrasoundViewer(props: UltrasoundViewerProps) {
   const { caseSet, zoom, showHighlights } = props;
   const [selectedHighlightIndex, setSelectedHighlightIndex] = useState(0);
+  const [referenceAssetFailed, setReferenceAssetFailed] = useState(false);
+  const [caseAssetFailed, setCaseAssetFailed] = useState(false);
 
   const visuals = useMemo(() => resolveVisuals(caseSet), [caseSet]);
   const comparisonHints = useMemo(() => caseSet.keyFindings.slice(0, 3), [caseSet.keyFindings]);
   const activeHighlight = caseSet.highlightRegions[selectedHighlightIndex] ?? caseSet.highlightRegions[0] ?? null;
+  const referenceAssetSrc = caseSet.realImageAssets?.referenceSrc;
+  const caseAssetSrc = caseSet.realImageAssets?.caseSrc;
+  const imageFit = caseSet.realImageAssets?.fit ?? "contain";
 
   useEffect(() => {
     setSelectedHighlightIndex(0);
+    setReferenceAssetFailed(false);
+    setCaseAssetFailed(false);
   }, [caseSet.id]);
 
   return (
@@ -935,11 +975,21 @@ export default function UltrasoundViewer(props: UltrasoundViewerProps) {
             <div className="relative aspect-[0.96] overflow-hidden rounded-[20px] border border-white/10 bg-[#091019] shadow-[0_20px_50px_rgba(0,0,0,0.4)]">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.08),transparent_30%),radial-gradient(circle_at_70%_70%,rgba(148,163,184,0.08),transparent_35%)]" />
               <div className="absolute left-4 top-4 z-10 rounded-full border border-white/10 bg-black/45 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-white/68">
-                referencia limpia
+                {referenceAssetSrc && !referenceAssetFailed ? "referencia real" : "referencia limpia"}
               </div>
-              <div className="absolute inset-0 flex items-center justify-center p-4" style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}>
-                {renderPreset(visuals.referencePreset)}
-              </div>
+              <AssetCanvas
+                src={referenceAssetSrc ?? ""}
+                alt={caseSet.realImageAssets?.referenceAlt ?? `Referencia ecografica de ${caseSet.title}`}
+                fit={imageFit}
+                visible={Boolean(referenceAssetSrc) && !referenceAssetFailed}
+                zoom={zoom}
+                onError={() => setReferenceAssetFailed(true)}
+              />
+              {(!referenceAssetSrc || referenceAssetFailed) && (
+                <div className="absolute inset-0 flex items-center justify-center p-4" style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}>
+                  {renderPreset(visuals.referencePreset)}
+                </div>
+              )}
               <SignalOverlay signals={visuals.referenceSignals} visible={showHighlights} />
             </div>
             <div className="mt-3 rounded-2xl border border-white/10 bg-black/30 px-3 py-2 text-[11px] text-white/68">
@@ -968,15 +1018,25 @@ export default function UltrasoundViewer(props: UltrasoundViewerProps) {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(34,211,238,0.08),transparent_30%),radial-gradient(circle_at_70%_75%,rgba(248,113,113,0.10),transparent_34%)]" />
             <div className="absolute left-4 top-4 z-10 flex flex-wrap gap-2">
               <span className="rounded-full border border-cyan-400/15 bg-black/45 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-cyan-100">
-                caso activo
+                {caseAssetSrc && !caseAssetFailed ? "caso real" : "caso activo"}
               </span>
               <span className="rounded-full border border-white/10 bg-black/45 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-white/65">
                 {caseSet.patientProfile.chiefComplaint}
               </span>
             </div>
-            <div className="absolute inset-0 flex items-center justify-center p-4" style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}>
-              {renderPreset(visuals.casePreset)}
-            </div>
+            <AssetCanvas
+              src={caseAssetSrc ?? ""}
+              alt={caseSet.realImageAssets?.caseAlt ?? `Caso ecografico de ${caseSet.title}`}
+              fit={imageFit}
+              visible={Boolean(caseAssetSrc) && !caseAssetFailed}
+              zoom={zoom}
+              onError={() => setCaseAssetFailed(true)}
+            />
+            {(!caseAssetSrc || caseAssetFailed) && (
+              <div className="absolute inset-0 flex items-center justify-center p-4" style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}>
+                {renderPreset(visuals.casePreset)}
+              </div>
+            )}
             <SignalOverlay signals={visuals.caseSignals} visible={showHighlights} />
             <svg viewBox="0 0 100 100" className="pointer-events-none absolute inset-0 h-full w-full">
               {caseSet.highlightRegions.map((region, index) => (
