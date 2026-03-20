@@ -920,6 +920,15 @@ export default function CasesPage() {
                 </div>
               </div>
 
+              {!caseObj && (
+                <section className="mt-4 rounded-2xl border border-dashed border-white/15 bg-black/20 p-5">
+                  <div className="text-base font-semibold">Aún no hay caso generado</div>
+                  <p className="mt-2 text-sm text-white/65">
+                    Elige una temática y genera un caso IA para continuar al simulador.
+                  </p>
+                </section>
+              )}
+
               <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {filteredCatalog.map((item) => {
                   const selected = selectedCard?.id === item.id;
@@ -974,15 +983,6 @@ export default function CasesPage() {
               <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-100">
                 {error}
               </div>
-            )}
-
-            {!caseObj && (
-              <section className="mt-5 rounded-2xl border border-dashed border-white/15 bg-black/20 p-6 text-center">
-                <div className="text-base font-semibold">Aún no hay caso generado</div>
-                <p className="mt-2 text-sm text-white/65">
-                  Elige una temática y genera un caso IA para continuar al simulador.
-                </p>
-              </section>
             )}
 
             {caseObj && essentials && (

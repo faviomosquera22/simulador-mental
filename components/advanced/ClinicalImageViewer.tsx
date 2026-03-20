@@ -15,6 +15,14 @@ type ClinicalImageViewerProps = {
   showHighlights: boolean;
 };
 
+type LightboxState = {
+  title: string;
+  alt: string;
+  src?: string;
+  preset?: RenderPreset;
+  fit?: "contain" | "cover";
+};
+
 type RenderPreset =
   | "cxr_normal"
   | "cxr_pneumonia"
@@ -137,6 +145,95 @@ function AssetCanvas({
         className={fit === "cover" ? "object-cover" : "object-contain"}
       />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_55%,rgba(2,6,10,0.18)_100%)]" />
+    </div>
+  );
+}
+
+function LightboxModal({
+  state,
+  zoom,
+  onZoomIn,
+  onZoomOut,
+  onReset,
+  onClose,
+}: {
+  state: LightboxState | null;
+  zoom: number;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  onReset: () => void;
+  onClose: () => void;
+}) {
+  if (!state) return null;
+
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="relative flex h-[min(88vh,960px)] w-full max-w-6xl flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#050A11] shadow-[0_30px_120px_rgba(0,0,0,0.55)]"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-black/35 px-5 py-4">
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Vista ampliada</div>
+            <div className="mt-1 text-base font-semibold text-white">{state.title}</div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={onZoomOut}
+              className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white/80 hover:bg-white/10"
+            >
+              -
+            </button>
+            <div className="rounded-full border border-white/10 bg-black/30 px-3 py-1.5 text-xs text-white/72">
+              Zoom {Math.round(zoom * 100)}%
+            </div>
+            <button
+              type="button"
+              onClick={onZoomIn}
+              className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white/80 hover:bg-white/10"
+            >
+              +
+            </button>
+            <button
+              type="button"
+              onClick={onReset}
+              className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/80 hover:bg-white/10"
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/80 hover:bg-white/10"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+
+        <div className="relative flex-1 overflow-hidden bg-[#03070D]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.08),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(248,113,113,0.08),transparent_30%)]" />
+          <div className="absolute inset-0 flex items-center justify-center p-6" style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}>
+            <div className="relative h-full w-full max-w-5xl">
+              {state.src ? (
+                <Image
+                  src={state.src}
+                  alt={state.alt}
+                  fill
+                  unoptimized
+                  className={state.fit === "cover" ? "object-cover" : "object-contain"}
+                />
+              ) : state.preset ? (
+                renderPreset(state.preset)
+              ) : null}
+            </div>
+          </div>
+          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full border border-white/10 bg-black/50 px-4 py-2 text-xs text-white/65">
+            Usa + / - para ajustar la ampliación y `Esc` para cerrar.
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -460,6 +557,8 @@ export default function ClinicalImageViewer(props: ClinicalImageViewerProps) {
   const [selectedHighlightIndex, setSelectedHighlightIndex] = useState(0);
   const [referenceAssetFailed, setReferenceAssetFailed] = useState(false);
   const [caseAssetFailed, setCaseAssetFailed] = useState(false);
+  const [lightboxState, setLightboxState] = useState<LightboxState | null>(null);
+  const [lightboxZoom, setLightboxZoom] = useState(1);
 
   const visuals = useMemo(() => resolveVisuals(caseSet), [caseSet]);
   const comparisonHints = useMemo(() => caseSet.keyFindings.slice(0, 3), [caseSet.keyFindings]);
@@ -472,10 +571,29 @@ export default function ClinicalImageViewer(props: ClinicalImageViewerProps) {
     setSelectedHighlightIndex(0);
     setReferenceAssetFailed(false);
     setCaseAssetFailed(false);
+    setLightboxState(null);
+    setLightboxZoom(1);
   }, [caseSet.id]);
 
+  useEffect(() => {
+    if (!lightboxState) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setLightboxState(null);
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [lightboxState]);
+
+  function openLightbox(state: LightboxState) {
+    setLightboxState(state);
+    setLightboxZoom(1);
+  }
+
   return (
-    <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#050A11]">
+    <>
+      <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#050A11]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.12),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(248,113,113,0.10),transparent_34%)]" />
       <div className="absolute inset-0 opacity-20 mix-blend-screen [background-image:linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:18px_18px]" />
       <div className="absolute inset-0 opacity-[0.05] [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:14px_14px]" />
@@ -504,10 +622,38 @@ export default function ClinicalImageViewer(props: ClinicalImageViewerProps) {
         <div className="space-y-4">
           <div className="rounded-[24px] border border-white/10 bg-black/25 p-3">
             <FrameLabel title="Referencia" subtitle={visuals.referenceTitle} />
-            <div className="relative aspect-[0.96] overflow-hidden rounded-[20px] border border-white/10 bg-[#091019] shadow-[0_20px_50px_rgba(0,0,0,0.4)]">
+            <div
+              className="group relative aspect-[0.96] cursor-zoom-in overflow-hidden rounded-[20px] border border-white/10 bg-[#091019] shadow-[0_20px_50px_rgba(0,0,0,0.4)]"
+              role="button"
+              tabIndex={0}
+              onClick={() =>
+                openLightbox({
+                  title: visuals.referenceTitle,
+                  alt: caseSet.realImageAssets?.referenceAlt ?? `Referencia de ${caseSet.title}`,
+                  src: referenceAssetSrc && !referenceAssetFailed ? referenceAssetSrc : undefined,
+                  preset: !referenceAssetSrc || referenceAssetFailed ? visuals.referencePreset : undefined,
+                  fit: imageFit,
+                })
+              }
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  openLightbox({
+                    title: visuals.referenceTitle,
+                    alt: caseSet.realImageAssets?.referenceAlt ?? `Referencia de ${caseSet.title}`,
+                    src: referenceAssetSrc && !referenceAssetFailed ? referenceAssetSrc : undefined,
+                    preset: !referenceAssetSrc || referenceAssetFailed ? visuals.referencePreset : undefined,
+                    fit: imageFit,
+                  });
+                }
+              }}
+            >
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.08),transparent_30%),radial-gradient(circle_at_70%_70%,rgba(148,163,184,0.08),transparent_35%)]" />
               <div className="absolute left-4 top-4 z-10 rounded-full border border-white/10 bg-black/45 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-white/68">
                 {referenceAssetSrc && !referenceAssetFailed ? "referencia real" : "patron base"}
+              </div>
+              <div className="absolute right-4 top-4 z-10 rounded-full border border-cyan-300/15 bg-black/45 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-cyan-100/90 opacity-95 transition group-hover:bg-black/60">
+                Clic para ampliar
               </div>
               <AssetCanvas
                 src={referenceAssetSrc ?? ""}
@@ -545,7 +691,32 @@ export default function ClinicalImageViewer(props: ClinicalImageViewerProps) {
 
         <div className="rounded-[24px] border border-cyan-400/15 bg-black/25 p-3">
           <FrameLabel title="Caso actual" subtitle={visuals.caseTitle} />
-          <div className="relative aspect-[1.04] overflow-hidden rounded-[20px] border border-cyan-400/15 bg-[#091019] shadow-[0_20px_50px_rgba(0,0,0,0.4)]">
+          <div
+            className="group relative aspect-[1.04] cursor-zoom-in overflow-hidden rounded-[20px] border border-cyan-400/15 bg-[#091019] shadow-[0_20px_50px_rgba(0,0,0,0.4)]"
+            role="button"
+            tabIndex={0}
+            onClick={() =>
+              openLightbox({
+                title: visuals.caseTitle,
+                alt: caseSet.realImageAssets?.caseAlt ?? `Caso clinico de ${caseSet.title}`,
+                src: caseAssetSrc && !caseAssetFailed ? caseAssetSrc : undefined,
+                preset: !caseAssetSrc || caseAssetFailed ? visuals.casePreset : undefined,
+                fit: imageFit,
+              })
+            }
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                openLightbox({
+                  title: visuals.caseTitle,
+                  alt: caseSet.realImageAssets?.caseAlt ?? `Caso clinico de ${caseSet.title}`,
+                  src: caseAssetSrc && !caseAssetFailed ? caseAssetSrc : undefined,
+                  preset: !caseAssetSrc || caseAssetFailed ? visuals.casePreset : undefined,
+                  fit: imageFit,
+                });
+              }
+            }}
+          >
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(34,211,238,0.08),transparent_30%),radial-gradient(circle_at_70%_75%,rgba(248,113,113,0.10),transparent_34%)]" />
             <div className="absolute left-4 top-4 z-10 flex flex-wrap gap-2">
               <span className="rounded-full border border-cyan-400/15 bg-black/45 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-cyan-100">
@@ -554,6 +725,9 @@ export default function ClinicalImageViewer(props: ClinicalImageViewerProps) {
               <span className="rounded-full border border-white/10 bg-black/45 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-white/65">
                 {caseSet.patientProfile.chiefComplaint}
               </span>
+            </div>
+            <div className="absolute right-4 top-4 z-10 rounded-full border border-cyan-300/15 bg-black/45 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-cyan-100/90 opacity-95 transition group-hover:bg-black/60">
+              Clic para ampliar
             </div>
             <AssetCanvas
               src={caseAssetSrc ?? ""}
@@ -584,7 +758,10 @@ export default function ClinicalImageViewer(props: ClinicalImageViewerProps) {
                   <button
                     key={`region-${region.label}-${index}`}
                     type="button"
-                    onClick={() => setSelectedHighlightIndex(index)}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setSelectedHighlightIndex(index);
+                    }}
                     className={`absolute rounded-[14px] transition ${
                       selectedHighlightIndex === index
                         ? "bg-cyan-300/10 ring-2 ring-cyan-200/85 ring-offset-2 ring-offset-transparent"
@@ -668,6 +845,15 @@ export default function ClinicalImageViewer(props: ClinicalImageViewerProps) {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+      <LightboxModal
+        state={lightboxState}
+        zoom={lightboxZoom}
+        onZoomIn={() => setLightboxZoom((current) => Math.min(3, Number((current + 0.25).toFixed(2))))}
+        onZoomOut={() => setLightboxZoom((current) => Math.max(0.75, Number((current - 0.25).toFixed(2))))}
+        onReset={() => setLightboxZoom(1)}
+        onClose={() => setLightboxState(null)}
+      />
+    </>
   );
 }

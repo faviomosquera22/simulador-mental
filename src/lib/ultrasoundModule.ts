@@ -101,6 +101,7 @@ type UltrasoundPresetTemplate = {
   questionStem: string;
   tags: string[];
   highlightRegions: UltrasoundCase["highlightRegions"];
+  realImageAssets?: UltrasoundRealAssets;
 };
 
 type UltrasoundSeed = {
@@ -121,6 +122,7 @@ type UltrasoundSeed = {
   probe?: UltrasoundProbe;
   scanPlane?: string;
   highlightRegions?: UltrasoundCase["highlightRegions"];
+  realImageAssets?: UltrasoundRealAssets;
 };
 
 const ULTRASOUND_PRESET_TEMPLATES: Record<UltrasoundPreset, UltrasoundPresetTemplate> = {
@@ -177,6 +179,11 @@ const ULTRASOUND_PRESET_TEMPLATES: Record<UltrasoundPreset, UltrasoundPresetTemp
     questionStem: "¿Que hallazgo cardiaco domina esta ventana?",
     tags: ["ecografia", "cardiaca", "pericardio", "shock"],
     highlightRegions: [{ x: 28, y: 24, width: 44, height: 44, label: "Liquido pericardico" }],
+    realImageAssets: {
+      caseSrc: "/medical-assets/ultrasound/cardiaca/case-pericardial-effusion.png",
+      caseAlt: "Ecografia con derrame pericardico rodeando el corazon",
+      fit: "contain",
+    },
   },
   cardiac_low_ejection_fraction: {
     category: "cardiaca",
@@ -217,6 +224,11 @@ const ULTRASOUND_PRESET_TEMPLATES: Record<UltrasoundPreset, UltrasoundPresetTemp
     questionStem: "¿Que alteracion renal muestra la imagen?",
     tags: ["ecografia", "renal", "hidronefrosis", "obstruccion"],
     highlightRegions: [{ x: 44, y: 38, width: 22, height: 26, label: "Pelvis renal dilatada" }],
+    realImageAssets: {
+      caseSrc: "/medical-assets/ultrasound/renal/case-hydronephrosis.jpg",
+      caseAlt: "Ecografia renal con hidronefrosis y calices dilatados",
+      fit: "contain",
+    },
   },
   biliary_cholelithiasis: {
     category: "abdomen",
@@ -235,6 +247,11 @@ const ULTRASOUND_PRESET_TEMPLATES: Record<UltrasoundPreset, UltrasoundPresetTemp
     questionStem: "¿Cual es el hallazgo hepatobiliar mas probable?",
     tags: ["ecografia", "abdomen", "vesicula", "colelitiasis"],
     highlightRegions: [{ x: 50, y: 48, width: 16, height: 24, label: "Calculos y sombra posterior" }],
+    realImageAssets: {
+      caseSrc: "/medical-assets/ultrasound/abdomen/case-cholelithiasis.jpg",
+      caseAlt: "Ecografia vesicular con calculo y sombra acustica posterior",
+      fit: "contain",
+    },
   },
   fast_ruq_free_fluid: {
     category: "trauma",
@@ -323,6 +340,11 @@ const ULTRASOUND_PRESET_TEMPLATES: Record<UltrasoundPreset, UltrasoundPresetTemp
     questionStem: "¿Que hallazgo FAST subxifoideo sugiere compromiso pericardico traumatico?",
     tags: ["ecografia", "trauma", "fast", "subxifoideo", "hemopericardio"],
     highlightRegions: [{ x: 28, y: 24, width: 44, height: 44, label: "Liquido pericardico traumatico" }],
+    realImageAssets: {
+      caseSrc: "/medical-assets/ultrasound/cardiaca/case-pericardial-effusion.png",
+      caseAlt: "Ecografia FAST subxifoidea con liquido pericardico",
+      fit: "contain",
+    },
   },
   efast_pneumothorax: {
     category: "trauma",
@@ -345,6 +367,11 @@ const ULTRASOUND_PRESET_TEMPLATES: Record<UltrasoundPreset, UltrasoundPresetTemp
     questionStem: "¿Que hallazgo E-FAST toracico explica mejor esta ventana pleural?",
     tags: ["ecografia", "trauma", "efast", "neumotorax", "pleura"],
     highlightRegions: [{ x: 24, y: 24, width: 50, height: 18, label: "Pleura sin sliding" }],
+    realImageAssets: {
+      caseSrc: "/medical-assets/ultrasound/trauma/case-hydropneumothorax.jpg",
+      caseAlt: "Captura ecografica abierta con patron toracico compatible con hidro-punto y neumotorax",
+      fit: "contain",
+    },
   },
   efast_hemothorax: {
     category: "trauma",
@@ -402,6 +429,7 @@ function createBaseUltrasoundCase(seed: UltrasoundSeed): UltrasoundCase {
     tags: uniqueStrings([...template.tags, ...(seed.tags ?? [])]),
     modeCompatibility: "both",
     imagePreset: seed.imagePreset,
+    realImageAssets: seed.realImageAssets ?? template.realImageAssets,
     questionStem: seed.questionStem ?? template.questionStem,
     optionPool: [correctAnswer, ...distractors],
     highlightRegions: seed.highlightRegions ?? template.highlightRegions,
