@@ -299,7 +299,7 @@ export default function ClinicalImagesPage() {
             </label>
           </section>
 
-          <section className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-black/25 p-4 xl:grid-cols-[1.35fr_1fr_auto]">
+          <section className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-black/25 p-4 xl:grid-cols-[1.45fr_0.95fr_auto]">
             <div>
               <div className="text-xs uppercase tracking-[0.14em] text-white/45">Caso actual</div>
               <div className="mt-1 text-base font-semibold text-white">{caseSet.title}</div>
@@ -361,12 +361,15 @@ export default function ClinicalImagesPage() {
             </div>
           </section>
 
-          <section className="mt-4 grid gap-4 xl:grid-cols-[1.3fr_0.9fr]">
-            <div className="rounded-2xl border border-white/10 bg-[#0B101A]/90 p-4">
+          <section className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.48fr)_380px] 2xl:grid-cols-[minmax(0,1.56fr)_410px]">
+            <div className="rounded-2xl border border-white/10 bg-[#0B101A]/90 p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <div className="text-xs uppercase tracking-[0.14em] text-white/45">Paso 1 · Observa la imagen</div>
                   <div className="mt-1 text-lg font-semibold text-white">{caseSet.patientProfile.chiefComplaint}</div>
+                  <div className="mt-1 text-sm text-white/60">
+                    Compara referencia y caso antes de decidir cual es el hallazgo dominante.
+                  </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <label className="text-xs text-white/65">
@@ -397,7 +400,7 @@ export default function ClinicalImagesPage() {
                 <ClinicalImageViewer caseSet={caseSet} zoom={zoom} showHighlights={showHighlights && canReviewHighlights} />
               </div>
 
-              <div className="mt-3 rounded-2xl border border-white/10 bg-black/25 p-3 text-xs text-white/65">
+              <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-3 text-xs text-white/65">
                 {mode === "practice"
                   ? `Pista visual: ${caseSet.feedback.highlightHint}`
                   : result

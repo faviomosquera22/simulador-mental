@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import type { UltrasoundCase } from "@/src/lib/ultrasoundModule";
+import { ultrasoundCategoryLabel, ultrasoundDifficultyLabel, ultrasoundProbeLabel, type UltrasoundCase } from "@/src/lib/ultrasoundModule";
 
 type UltrasoundViewerProps = {
   caseSet: UltrasoundCase;
@@ -123,6 +123,23 @@ function FrameLabel({ title, subtitle }: { title: string; subtitle: string }) {
       </div>
     </div>
   );
+}
+
+function MetaChip({
+  label,
+  tone = "neutral",
+}: {
+  label: string;
+  tone?: "neutral" | "cyan" | "amber";
+}) {
+  const tones =
+    tone === "cyan"
+      ? "border-cyan-300/20 bg-cyan-400/10 text-cyan-50"
+      : tone === "amber"
+      ? "border-amber-300/20 bg-amber-400/10 text-amber-50"
+      : "border-white/10 bg-white/5 text-white/72";
+
+  return <span className={`rounded-full border px-3 py-1 text-[11px] ${tones}`}>{label}</span>;
 }
 
 function approxTextWidth(label: string) {
@@ -270,6 +287,12 @@ function UltrasoundCanvas({
               />
             ))}
         <g opacity="0.95">{children}</g>
+        <path
+          d={isLinear ? "M14 16 H86" : "M20 18 Q50 13 80 18"}
+          stroke="#E2E8F0"
+          strokeWidth="0.8"
+          opacity="0.12"
+        />
       </g>
 
       {isLinear ? (
@@ -303,6 +326,10 @@ function UltrasoundCanvas({
           </text>
         </g>
       ))}
+      <rect x="12" y="78.5" width="18" height="6" rx="2.5" fill="rgba(2,6,10,0.72)" stroke="rgba(148,163,184,0.14)" strokeWidth="0.45" />
+      <text x="15" y="82.6" fill="#CBD5E1" fontSize="2.7" letterSpacing="0.16">
+        gain mid
+      </text>
     </svg>
   );
 }
@@ -878,45 +905,75 @@ export default function UltrasoundViewer(props: UltrasoundViewerProps) {
     <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#050A11]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.12),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(248,113,113,0.10),transparent_34%)]" />
       <div className="absolute inset-0 opacity-20 mix-blend-screen [background-image:linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:18px_18px]" />
+      <div className="absolute inset-0 opacity-[0.05] [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:14px_14px]" />
 
-      <div className="relative flex flex-wrap items-center justify-between gap-2 border-b border-white/10 bg-black/20 px-4 py-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[11px] text-cyan-100">
-            Esquema ecografico educativo
-          </span>
-          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/68">
-            Ayudas visuales discretas
-          </span>
-          {showHighlights ? (
-            <span className="rounded-full border border-cyan-300/20 bg-black/35 px-3 py-1 text-[11px] text-cyan-100">
-              Interactivo: enfoca una zona sonografica
-            </span>
-          ) : null}
+      <div className="relative flex flex-col gap-3 border-b border-white/10 bg-black/20 px-4 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Visor clínico</div>
+            <div className="mt-1 text-lg font-semibold text-white">{caseSet.title}</div>
+          </div>
+          <div className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-[11px] text-white/72">
+            Zoom {Math.round(zoom * 100)}%
+          </div>
         </div>
-        <div className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-[11px] text-white/72">
-          Zoom {Math.round(zoom * 100)}%
+
+        <div className="flex flex-wrap gap-2">
+          <MetaChip label="Esquema ecografico educativo" tone="cyan" />
+          <MetaChip label={ultrasoundCategoryLabel(caseSet.category)} />
+          <MetaChip label={ultrasoundProbeLabel(caseSet.probe)} />
+          <MetaChip label={ultrasoundDifficultyLabel(caseSet.difficulty)} tone="amber" />
+          <MetaChip label={caseSet.scanPlane} />
+          {showHighlights ? <MetaChip label="Revisión interactiva activa" tone="cyan" /> : null}
         </div>
       </div>
 
-      <div className="relative grid gap-4 p-4 lg:grid-cols-2">
-        <div className="rounded-[24px] border border-white/10 bg-black/25 p-3">
-          <FrameLabel title="Referencia" subtitle={visuals.referenceTitle} />
-          <div className="relative aspect-square overflow-hidden rounded-[20px] border border-white/10 bg-[#091019] shadow-[0_20px_50px_rgba(0,0,0,0.4)]">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.08),transparent_30%),radial-gradient(circle_at_70%_70%,rgba(148,163,184,0.08),transparent_35%)]" />
-            <div className="absolute inset-0 flex items-center justify-center p-4" style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}>
-              {renderPreset(visuals.referencePreset)}
+      <div className="relative grid gap-4 p-4 xl:grid-cols-[0.82fr_1.18fr]">
+        <div className="space-y-4">
+          <div className="rounded-[24px] border border-white/10 bg-black/25 p-3">
+            <FrameLabel title="Referencia" subtitle={visuals.referenceTitle} />
+            <div className="relative aspect-[0.96] overflow-hidden rounded-[20px] border border-white/10 bg-[#091019] shadow-[0_20px_50px_rgba(0,0,0,0.4)]">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.08),transparent_30%),radial-gradient(circle_at_70%_70%,rgba(148,163,184,0.08),transparent_35%)]" />
+              <div className="absolute left-4 top-4 z-10 rounded-full border border-white/10 bg-black/45 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-white/68">
+                referencia limpia
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center p-4" style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}>
+                {renderPreset(visuals.referencePreset)}
+              </div>
+              <SignalOverlay signals={visuals.referenceSignals} visible={showHighlights} />
             </div>
-            <SignalOverlay signals={visuals.referenceSignals} visible={showHighlights} />
+            <div className="mt-3 rounded-2xl border border-white/10 bg-black/30 px-3 py-2 text-[11px] text-white/68">
+              Compara anatomia, ecos, zonas anecoicas y continuidad de bordes.
+            </div>
           </div>
-          <div className="mt-3 rounded-2xl border border-white/10 bg-black/30 px-3 py-2 text-[11px] text-white/68">
-            Compara anatomia, ecos brillantes, zonas anecoicas y continuidad de bordes.
+
+          <div className="rounded-[24px] border border-white/10 bg-black/25 p-4">
+            <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Microlectura</div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {visuals.microLegend.map((item) => (
+                <span key={item} className="rounded-full border border-cyan-400/15 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-50/90">
+                  {item}
+                </span>
+              ))}
+            </div>
+            <div className="mt-4 text-sm leading-6 text-white/68">
+              Usa la referencia como control visual y describe que cambia en ecogenicidad, contorno y profundidad.
+            </div>
           </div>
         </div>
 
         <div className="rounded-[24px] border border-cyan-400/15 bg-black/25 p-3">
           <FrameLabel title="Caso actual" subtitle={visuals.caseTitle} />
-          <div className="relative aspect-square overflow-hidden rounded-[20px] border border-cyan-400/15 bg-[#091019] shadow-[0_20px_50px_rgba(0,0,0,0.4)]">
+          <div className="relative aspect-[1.04] overflow-hidden rounded-[20px] border border-cyan-400/15 bg-[#091019] shadow-[0_20px_50px_rgba(0,0,0,0.4)]">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(34,211,238,0.08),transparent_30%),radial-gradient(circle_at_70%_75%,rgba(248,113,113,0.10),transparent_34%)]" />
+            <div className="absolute left-4 top-4 z-10 flex flex-wrap gap-2">
+              <span className="rounded-full border border-cyan-400/15 bg-black/45 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+                caso activo
+              </span>
+              <span className="rounded-full border border-white/10 bg-black/45 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-white/65">
+                {caseSet.patientProfile.chiefComplaint}
+              </span>
+            </div>
             <div className="absolute inset-0 flex items-center justify-center p-4" style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}>
               {renderPreset(visuals.casePreset)}
             </div>
@@ -964,27 +1021,22 @@ export default function UltrasoundViewer(props: UltrasoundViewerProps) {
                 ))}
               </div>
             ) : null}
-          </div>
-          <div className="mt-3 rounded-2xl border border-cyan-400/15 bg-black/30 px-3 py-2 text-[11px] text-white/70">
-            {showHighlights && activeHighlight
-              ? `Zona enfocada: ${activeHighlight.label}`
-              : "Valida primero o activa la revision para comparar la ventana ecografica."}
+            <div className="absolute inset-x-5 bottom-5 rounded-2xl border border-cyan-400/15 bg-black/55 px-3 py-2 text-[11px] text-white/70 backdrop-blur">
+              {showHighlights && activeHighlight
+                ? `Zona enfocada: ${activeHighlight.label}`
+                : "Valida primero o activa la revision para comparar la ventana ecografica."}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="relative grid gap-3 border-t border-white/10 bg-black/20 p-4 lg:grid-cols-[1.2fr_0.8fr]">
+      <div className="relative grid gap-4 border-t border-white/10 bg-black/20 p-4 xl:grid-cols-[1.15fr_0.85fr]">
         <div>
-          <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Que debes comparar</div>
+          <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Señales que debes comparar</div>
           <div className="mt-3 flex flex-wrap gap-2">
             {comparisonHints.map((hint) => (
               <span key={hint} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/78">
                 {hint}
-              </span>
-            ))}
-            {visuals.microLegend.map((item) => (
-              <span key={item} className="rounded-full border border-cyan-400/15 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-50/90">
-                {item}
               </span>
             ))}
           </div>
@@ -1007,9 +1059,9 @@ export default function UltrasoundViewer(props: UltrasoundViewerProps) {
             </div>
           ) : null}
         </div>
-        <div className="rounded-2xl border border-white/10 bg-black/25 p-3 text-sm text-white/68">
+        <div className="rounded-2xl border border-white/10 bg-black/25 p-4 text-sm text-white/68">
           <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Guia visual</div>
-          <div className="mt-2">
+          <div className="mt-2 leading-6">
             {showHighlights ? caseSet.feedback.highlightHint : "Compara la referencia con el caso y define el hallazgo dominante."}
           </div>
           {showHighlights && activeHighlight ? (
@@ -1021,6 +1073,10 @@ export default function UltrasoundViewer(props: UltrasoundViewerProps) {
               </div>
             </div>
           ) : null}
+
+          <div className="mt-3 rounded-2xl border border-white/10 bg-black/30 p-3 text-xs leading-5 text-white/60">
+            Preparado para evolucionar a assets reales: el layout ya prioriza la imagen principal y deja la referencia como apoyo visual.
+          </div>
         </div>
       </div>
     </div>

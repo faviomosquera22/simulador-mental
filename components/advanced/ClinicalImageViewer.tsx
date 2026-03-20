@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { ClinicalImageCase } from "@/src/lib/clinicalImagesModule";
+import {
+  clinicalImageCategoryLabel,
+  clinicalImageContextLabel,
+  clinicalImageDifficultyLabel,
+  type ClinicalImageCase,
+} from "@/src/lib/clinicalImagesModule";
 
 type ClinicalImageViewerProps = {
   caseSet: ClinicalImageCase;
@@ -84,6 +89,23 @@ function FrameLabel({ title, subtitle }: { title: string; subtitle: string }) {
       </div>
     </div>
   );
+}
+
+function MetaChip({
+  label,
+  tone = "neutral",
+}: {
+  label: string;
+  tone?: "neutral" | "cyan" | "amber";
+}) {
+  const tones =
+    tone === "cyan"
+      ? "border-cyan-300/20 bg-cyan-400/10 text-cyan-50"
+      : tone === "amber"
+      ? "border-amber-300/20 bg-amber-400/10 text-amber-50"
+      : "border-white/10 bg-white/5 text-white/72";
+
+  return <span className={`rounded-full border px-3 py-1 text-[11px] ${tones}`}>{label}</span>;
 }
 
 function ChestXray({ variant }: { variant: "normal" | "pneumonia" | "edema" | "effusion" | "pneumothorax" }) {
@@ -416,36 +438,73 @@ export default function ClinicalImageViewer(props: ClinicalImageViewerProps) {
     <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#050A11]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.12),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(248,113,113,0.10),transparent_34%)]" />
       <div className="absolute inset-0 opacity-20 mix-blend-screen [background-image:linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:18px_18px]" />
-      <div className="absolute right-4 top-4 z-10 rounded-full border border-white/10 bg-black/30 px-3 py-1 text-[11px] text-white/72">
-        Zoom {Math.round(zoom * 100)}%
-      </div>
-      <div className="absolute left-4 top-4 z-10 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[11px] text-cyan-100">
-        Esquema educativo
-      </div>
-      {showHighlights ? (
-        <div className="absolute bottom-4 left-4 z-10 rounded-full border border-cyan-300/20 bg-black/35 px-3 py-1 text-[11px] text-cyan-100">
-          Interactivo: toca una zona resaltada
-        </div>
-      ) : null}
+      <div className="absolute inset-0 opacity-[0.05] [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:14px_14px]" />
 
-      <div className="relative grid gap-4 p-4 lg:grid-cols-2">
-        <div className="rounded-[24px] border border-white/10 bg-black/25 p-3">
-          <FrameLabel title="Referencia" subtitle={visuals.referenceTitle} />
-          <div className="relative aspect-square overflow-hidden rounded-[20px] border border-white/10 bg-[#091019] shadow-[0_20px_50px_rgba(0,0,0,0.4)]">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.08),transparent_30%),radial-gradient(circle_at_70%_70%,rgba(148,163,184,0.08),transparent_35%)]" />
-            <div className="absolute inset-0 flex items-center justify-center p-4" style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}>
-              {renderPreset(visuals.referencePreset)}
+      <div className="relative flex flex-col gap-3 border-b border-white/10 bg-black/20 px-4 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Visor clinico</div>
+            <div className="mt-1 text-lg font-semibold text-white">{caseSet.title}</div>
+          </div>
+          <div className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-[11px] text-white/72">
+            Zoom {Math.round(zoom * 100)}%
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <MetaChip label="Esquema visual educativo" tone="cyan" />
+          <MetaChip label={clinicalImageCategoryLabel(caseSet.category)} />
+          <MetaChip label={clinicalImageDifficultyLabel(caseSet.difficulty)} tone="amber" />
+          <MetaChip label={clinicalImageContextLabel(caseSet.context)} />
+          {showHighlights ? <MetaChip label="Revision interactiva activa" tone="cyan" /> : null}
+        </div>
+      </div>
+
+      <div className="relative grid gap-4 p-4 xl:grid-cols-[0.8fr_1.2fr]">
+        <div className="space-y-4">
+          <div className="rounded-[24px] border border-white/10 bg-black/25 p-3">
+            <FrameLabel title="Referencia" subtitle={visuals.referenceTitle} />
+            <div className="relative aspect-[0.96] overflow-hidden rounded-[20px] border border-white/10 bg-[#091019] shadow-[0_20px_50px_rgba(0,0,0,0.4)]">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.08),transparent_30%),radial-gradient(circle_at_70%_70%,rgba(148,163,184,0.08),transparent_35%)]" />
+              <div className="absolute left-4 top-4 z-10 rounded-full border border-white/10 bg-black/45 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-white/68">
+                patron base
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center p-4" style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}>
+                {renderPreset(visuals.referencePreset)}
+              </div>
+              <div className="absolute inset-x-5 bottom-5 rounded-2xl border border-white/10 bg-black/45 px-3 py-2 text-[11px] text-white/68 backdrop-blur">
+                Compara silueta, densidad, continuidad y bordes.
+              </div>
             </div>
-            <div className="absolute inset-x-5 bottom-5 rounded-2xl border border-white/10 bg-black/45 px-3 py-2 text-[11px] text-white/68 backdrop-blur">
-              Referencia base para comparar continuidad, densidad y bordes.
+          </div>
+
+          <div className="rounded-[24px] border border-white/10 bg-black/25 p-4">
+            <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Microlectura</div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {comparisonHints.map((hint) => (
+                <span key={hint} className="rounded-full border border-cyan-400/15 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-50/90">
+                  {hint}
+                </span>
+              ))}
+            </div>
+            <div className="mt-4 text-sm leading-6 text-white/68">
+              Usa la referencia como control visual y describe que cambia antes de responder.
             </div>
           </div>
         </div>
 
         <div className="rounded-[24px] border border-cyan-400/15 bg-black/25 p-3">
           <FrameLabel title="Caso actual" subtitle={visuals.caseTitle} />
-          <div className="relative aspect-square overflow-hidden rounded-[20px] border border-cyan-400/15 bg-[#091019] shadow-[0_20px_50px_rgba(0,0,0,0.4)]">
+          <div className="relative aspect-[1.04] overflow-hidden rounded-[20px] border border-cyan-400/15 bg-[#091019] shadow-[0_20px_50px_rgba(0,0,0,0.4)]">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(34,211,238,0.08),transparent_30%),radial-gradient(circle_at_70%_75%,rgba(248,113,113,0.10),transparent_34%)]" />
+            <div className="absolute left-4 top-4 z-10 flex flex-wrap gap-2">
+              <span className="rounded-full border border-cyan-400/15 bg-black/45 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-cyan-100">
+                caso activo
+              </span>
+              <span className="rounded-full border border-white/10 bg-black/45 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-white/65">
+                {caseSet.patientProfile.chiefComplaint}
+              </span>
+            </div>
             <div className="absolute inset-0 flex items-center justify-center p-4" style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}>
               {renderPreset(visuals.casePreset)}
             </div>
@@ -495,24 +554,17 @@ export default function ClinicalImageViewer(props: ClinicalImageViewerProps) {
             <div className="absolute inset-x-5 bottom-5 rounded-2xl border border-cyan-400/15 bg-black/55 px-3 py-2 text-[11px] text-white/70 backdrop-blur">
               {showHighlights && activeHighlight
                 ? `Zona enfocada: ${activeHighlight.label}`
-                : "Activa la revisión para marcar diferencias clínicas clave."}
+                : "Activa la revision para marcar diferencias clinicas clave."}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="relative grid gap-3 border-t border-white/10 bg-black/20 p-4 lg:grid-cols-[1.2fr_0.8fr]">
+      <div className="relative grid gap-4 border-t border-white/10 bg-black/20 p-4 xl:grid-cols-[1.15fr_0.85fr]">
         <div>
-          <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Qué debes comparar</div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {comparisonHints.map((hint) => (
-              <span key={hint} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/78">
-                {hint}
-              </span>
-            ))}
-          </div>
+          <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Zonas y diferencias clave</div>
           {showHighlights && caseSet.highlightRegions.length ? (
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-3 flex flex-wrap gap-2">
               {caseSet.highlightRegions.map((region, index) => (
                 <button
                   key={`chip-${region.label}-${index}`}
@@ -529,11 +581,17 @@ export default function ClinicalImageViewer(props: ClinicalImageViewerProps) {
               ))}
             </div>
           ) : null}
+
+          {!showHighlights ? (
+            <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-3 text-sm text-white/65">
+              Primero interpreta sin apoyo visual. Luego valida y activa la revision para contrastar tus hallazgos.
+            </div>
+          ) : null}
         </div>
-        <div className="rounded-2xl border border-white/10 bg-black/25 p-3 text-sm text-white/68">
-          <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Guía visual</div>
-          <div className="mt-2">
-            {showHighlights ? caseSet.feedback.highlightHint : "Compara la referencia con el caso y decide cuál es el hallazgo dominante."}
+        <div className="rounded-2xl border border-white/10 bg-black/25 p-4 text-sm text-white/68">
+          <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Guia visual</div>
+          <div className="mt-2 leading-6">
+            {showHighlights ? caseSet.feedback.highlightHint : "Compara la referencia con el caso y decide cual es el hallazgo dominante."}
           </div>
           {showHighlights && activeHighlight ? (
             <div className="mt-3 rounded-2xl border border-cyan-300/15 bg-cyan-300/10 p-3 text-xs text-cyan-50">
@@ -544,6 +602,10 @@ export default function ClinicalImageViewer(props: ClinicalImageViewerProps) {
               </div>
             </div>
           ) : null}
+
+          <div className="mt-3 rounded-2xl border border-white/10 bg-black/30 p-3 text-xs leading-5 text-white/60">
+            Preparado para migrar a assets reales: el layout ya deja la imagen del caso como foco principal y la referencia como apoyo.
+          </div>
         </div>
       </div>
     </div>
