@@ -69,28 +69,28 @@ const GROUP_PRIMARY_LINKS: Record<DashboardModuleGroup, string> = {
 const INTENT_OPTIONS: Array<{ id: AdvisorIntent; label: string; helper: string }> = [
   {
     id: "continuidad",
-    label: "Casos con continuidad",
-    helper: "Entrevista, evolución clínica y secuencia de decisiones.",
+    label: "Continuidad",
+    helper: "Entrevista, evolución y cierre clínico.",
   },
   {
     id: "diagnostico",
-    label: "Interpretar estudios",
-    helper: "ECG, eco, laboratorio y gasometría antes de decidir conducta.",
+    label: "Estudios",
+    helper: "ECG, eco, laboratorio y gasometría.",
   },
   {
     id: "intervencion",
-    label: "Intervenir con seguridad",
-    helper: "Urgencias, medicamentos y procedimientos en bloque operativo.",
+    label: "Intervención",
+    helper: "Urgencias, medicamentos y procedimientos.",
   },
   {
     id: "documentacion",
-    label: "Documentar y evaluar",
-    helper: "PAE, notas clínicas, práctica rápida y evaluación.",
+    label: "Documentación",
+    helper: "PAE, notas y evaluación rápida.",
   },
   {
     id: "avanzado",
-    label: "Subir complejidad",
-    helper: "Escenarios inmersivos, imágenes clínicas y algoritmos.",
+    label: "Avanzado",
+    helper: "Escenarios inmersivos y algoritmos.",
   },
 ];
 
@@ -455,57 +455,63 @@ function getTimeScore(time: AdvisorTime, playbook: ModuleAdvisorMeta) {
   return 0;
 }
 
+function compactText(text: string, maxWords: number) {
+  const words = text.trim().split(/\s+/);
+  if (words.length <= maxWords) return text;
+  return `${words.slice(0, maxWords).join(" ")}…`;
+}
+
 function getFocusState(intent: AdvisorIntent, hasActive: boolean, hasHighRisk: boolean, avgScore?: number) {
   if (hasActive && intent === "continuidad") {
     return {
       eyebrow: "Continuidad prioritaria",
-      title: "Retoma y cierra el caso en curso antes de dispersarte",
+      title: "Retoma el caso activo",
       description:
-        "El tablero prioriza continuidad clínica para que no pierdas contexto, entrevista ni evolución del caso activo.",
+        "Conserva contexto, evolución y cierre clínico sin perder continuidad.",
     };
   }
 
   if (hasHighRisk && intent === "intervencion") {
     return {
       eyebrow: "Seguridad primero",
-      title: "Conviene practicar respuesta rápida y conducta inicial",
+      title: "Prioriza respuesta rápida",
       description:
-        "Tus datos recientes apuntan a reforzar urgencias, monitorización y decisiones inmediatas antes de rutas más amplias.",
+        "Tus datos recientes piden reforzar urgencias, monitorización y conducta inicial.",
     };
   }
 
   if (intent === "diagnostico") {
     return {
       eyebrow: "Lectura clínica",
-      title: "Elige el estudio correcto y entrena interpretación antes de decidir",
+      title: "Entrena lectura antes de decidir",
       description:
-        "Usa el dashboard como orientador para entrar al módulo diagnóstico que mejor se ajuste a tu tiempo y modalidad de práctica.",
+        "Elige el módulo diagnóstico que mejor encaje con tu tiempo y modalidad.",
     };
   }
 
   if (intent === "documentacion") {
     return {
       eyebrow: "Cierre y evidencia",
-      title: "Convierte la práctica en documentación, PAE y evaluación",
+      title: "Convierte práctica en registro",
       description:
-        "El enfoque documental te ayuda a consolidar lo aprendido y dejar registro clínico más consistente.",
+        "Consolida lo aprendido con notas, PAE y evaluación más ordenada.",
     };
   }
 
   if (typeof avgScore === "number" && avgScore < 72) {
     return {
       eyebrow: "Reforzamiento",
-      title: "Primero precisión, luego complejidad",
+      title: "Primero precisión clínica",
       description:
-        "Tus métricas recientes sugieren subir la base diagnóstica y operativa antes de ir a escenarios más largos o inmersivos.",
+        "Conviene fortalecer la base diagnóstica y operativa antes de subir complejidad.",
     };
   }
 
   return {
     eyebrow: "Navegador clínico",
-    title: "El dashboard ahora sugiere el simulador más útil para lo que buscas",
+    title: "Elige mejor y entra más rápido",
     description:
-      "Selecciona objetivo, modalidad y tiempo disponible para recibir una ruta recomendada en vez de una lista plana de módulos.",
+      "Selecciona objetivo, modalidad y tiempo para recibir una ruta recomendada.",
   };
 }
 
@@ -792,15 +798,15 @@ export default function DashboardPage() {
             <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[#0A1018] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.5)] sm:p-6">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.18),transparent_34%),radial-gradient(circle_at_78%_18%,rgba(249,115,22,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.12),transparent_24%),linear-gradient(135deg,#0B1018,#101826_55%,#0A0F17)]" />
 
-              <div className="relative grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
+              <div className="relative grid gap-5 xl:grid-cols-[minmax(0,1.45fr)_360px] 2xl:grid-cols-[minmax(0,1.55fr)_390px]">
                 <div>
                   <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-100">
                     {focusState.eyebrow}
                   </div>
-                  <h1 className="mt-4 max-w-[18ch] text-3xl font-semibold leading-tight text-white sm:text-[3rem]">
+                  <h1 className="mt-4 max-w-[14ch] text-3xl font-semibold leading-tight text-white sm:text-[2.7rem]">
                     {focusState.title}
                   </h1>
-                  <p className="mt-4 max-w-[70ch] text-sm leading-7 text-white/70 sm:text-[15px]">
+                  <p className="mt-4 max-w-[62ch] text-sm leading-6 text-white/70 sm:text-[15px]">
                     {focusState.description}
                   </p>
 
@@ -825,7 +831,7 @@ export default function DashboardPage() {
                         <div className="text-sm font-semibold text-white">1. ¿Qué quieres practicar hoy?</div>
                         <span className="text-xs text-white/45">Objetivo principal</span>
                       </div>
-                      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
                         {INTENT_OPTIONS.map((option) => (
                           <button
                             key={option.id}
@@ -844,13 +850,13 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    <div className="grid gap-4 lg:grid-cols-2">
+                    <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
                       <div className="rounded-[26px] border border-white/10 bg-black/20 p-4">
                         <div className="flex items-center justify-between gap-3">
-                          <div className="text-sm font-semibold text-white">2. Modalidad</div>
-                          <span className="text-xs text-white/45">Cómo quieres entrenar</span>
+                          <div className="text-sm font-semibold text-white">2. Ajusta el modo</div>
+                          <span className="text-xs text-white/45">Cómo entrenar</span>
                         </div>
-                        <div className="mt-4 grid gap-3">
+                        <div className="mt-4 grid gap-3 lg:grid-cols-3">
                           {FORMAT_OPTIONS.map((option) => (
                             <button
                               key={option.id}
@@ -874,7 +880,7 @@ export default function DashboardPage() {
                           <div className="text-sm font-semibold text-white">3. Tiempo disponible</div>
                           <span className="text-xs text-white/45">Duración estimada</span>
                         </div>
-                        <div className="mt-4 grid gap-3">
+                        <div className="mt-4 grid gap-3 sm:grid-cols-3">
                           {TIME_OPTIONS.map((option) => (
                             <button
                               key={option.id}
@@ -912,7 +918,7 @@ export default function DashboardPage() {
 
                     <div className="mt-4 rounded-[24px] border border-white/10 bg-gradient-to-br from-white/8 to-black/25 p-4">
                       <div className="text-sm leading-6 text-white/72">
-                        {topRecommendation?.summary ?? "Selecciona un objetivo para ver sugerencias."}
+                        {topRecommendation ? compactText(topRecommendation.summary, 16) : "Selecciona un objetivo para ver sugerencias."}
                       </div>
 
                       <div className="mt-4 flex flex-wrap gap-2">
@@ -928,9 +934,9 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    <div className="mt-5 space-y-2">
+                    <div className="mt-5 grid gap-2">
                       {(topRecommendation?.reasons ?? []).map((reason) => (
-                        <div key={reason} className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/72">
+                        <div key={reason} className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-5 text-white/72">
                           {reason}
                         </div>
                       ))}
@@ -982,7 +988,7 @@ export default function DashboardPage() {
                           </div>
                           <div className="min-w-0">
                             <div className="text-sm font-semibold text-white">{module.label}</div>
-                            <div className="truncate text-xs text-white/55">{module.summary}</div>
+                            <div className="text-xs text-white/55">{compactText(module.summary, 10)}</div>
                           </div>
                         </Link>
                       ))}
@@ -992,7 +998,7 @@ export default function DashboardPage() {
               </div>
             </section>
 
-            <section className="mt-6 grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+            <section className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_340px] 2xl:grid-cols-[minmax(0,1.45fr)_360px]">
               <div className="rounded-[30px] border border-white/10 bg-white/[0.03] p-5">
                 <div className="flex items-end justify-between gap-3">
                   <div>
@@ -1004,7 +1010,7 @@ export default function DashboardPage() {
                   <div className="text-xs text-white/45">Top 4 recomendaciones</div>
                 </div>
 
-                <div className="mt-4 grid gap-3 xl:grid-cols-2">
+                <div className="mt-4 grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
                   {[topRecommendation, ...secondaryRecommendations].filter(Boolean).map((module, index) => (
                     <Link
                       key={module!.id}
@@ -1028,11 +1034,11 @@ export default function DashboardPage() {
                       </div>
 
                       <div className={`mt-4 rounded-2xl border border-white/10 bg-gradient-to-r ${module!.accent} p-4`}>
-                        <div className="text-sm leading-6 text-white/72">{module!.summary}</div>
+                        <div className="text-sm leading-6 text-white/72">{compactText(module!.summary, 16)}</div>
                       </div>
 
                       <div className="mt-4 space-y-2">
-                        {module!.reasons.slice(0, 3).map((reason) => (
+                        {module!.reasons.slice(0, 2).map((reason) => (
                           <div key={reason} className="text-xs text-white/55">
                             {reason}
                           </div>
@@ -1165,7 +1171,7 @@ export default function DashboardPage() {
                       </Link>
                     </div>
 
-                    <div className="mt-3 text-sm leading-6 text-white/65">{GROUP_DESCRIPTIONS[group]}</div>
+                    <div className="mt-3 text-sm leading-6 text-white/65">{compactText(GROUP_DESCRIPTIONS[group], 10)}</div>
 
                     <div className="mt-4 flex flex-wrap gap-2">
                       {items.map((item) => (
