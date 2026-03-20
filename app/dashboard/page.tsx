@@ -30,16 +30,16 @@ type StoredSession = {
   transcript?: TranscriptTurn[];
 };
 
-type DashboardRouteCard = {
-  id: string;
-  title: string;
-  desc: string;
-  href: string;
-  action: string;
-  note: string;
-  accent: string;
-  modules: DashboardModuleMeta[];
-  recommended?: boolean;
+type AdvisorIntent = "continuidad" | "diagnostico" | "intervencion" | "documentacion" | "avanzado";
+type AdvisorFormat = "guiado" | "visual" | "intensivo";
+type AdvisorTime = "15" | "30" | "60";
+
+type ModuleAdvisorMeta = {
+  intents: AdvisorIntent[];
+  formats: AdvisorFormat[];
+  minMinutes: number;
+  maxMinutes: number;
+  companionIds: string[];
 };
 
 const DASHBOARD_GROUP_ORDER: DashboardModuleGroup[] = [
@@ -51,19 +51,207 @@ const DASHBOARD_GROUP_ORDER: DashboardModuleGroup[] = [
 ];
 
 const GROUP_DESCRIPTIONS: Record<DashboardModuleGroup, string> = {
-  simulacion: "Escenarios progresivos, dinámicos y centrados en toma de decisiones.",
-  diagnostico: "Interpretación clínica de estudios y monitorización aplicada.",
-  avanzado: "Entrenamiento inmersivo de alto nivel con bibliotecas amplias y mayor realismo clínico.",
-  practica: "Habilidades operativas, intervenciones y documentación profesional.",
-  seguimiento: "Evaluación, historial y consolidación académica.",
+  simulacion: "Escenarios progresivos, priorización inicial y decisiones clínicas con continuidad.",
+  diagnostico: "Interpretación de ECG, ecografía, laboratorio y gasometría para decidir mejor.",
+  avanzado: "Entrenamiento inmersivo, soporte vital y casos clínicos de mayor complejidad.",
+  practica: "Procedimientos, medicamentos, cálculo, notas y PAE como bloque operativo.",
+  seguimiento: "Historial, evaluación y consolidación del progreso académico.",
 };
 
 const GROUP_PRIMARY_LINKS: Record<DashboardModuleGroup, string> = {
   simulacion: "/cases",
   diagnostico: "/ecg-simulator",
   avanzado: "/dynamic-simulator",
-  practica: "/clinical-calculations",
+  practica: "/medications",
   seguimiento: "/history",
+};
+
+const INTENT_OPTIONS: Array<{ id: AdvisorIntent; label: string; helper: string }> = [
+  {
+    id: "continuidad",
+    label: "Casos con continuidad",
+    helper: "Entrevista, evolución clínica y secuencia de decisiones.",
+  },
+  {
+    id: "diagnostico",
+    label: "Interpretar estudios",
+    helper: "ECG, eco, laboratorio y gasometría antes de decidir conducta.",
+  },
+  {
+    id: "intervencion",
+    label: "Intervenir con seguridad",
+    helper: "Urgencias, medicamentos y procedimientos en bloque operativo.",
+  },
+  {
+    id: "documentacion",
+    label: "Documentar y evaluar",
+    helper: "PAE, notas clínicas, práctica rápida y evaluación.",
+  },
+  {
+    id: "avanzado",
+    label: "Subir complejidad",
+    helper: "Escenarios inmersivos, imágenes clínicas y algoritmos.",
+  },
+];
+
+const FORMAT_OPTIONS: Array<{ id: AdvisorFormat; label: string; helper: string }> = [
+  {
+    id: "guiado",
+    label: "Guiado",
+    helper: "Paso a paso, ideal para ordenar criterio y flujo.",
+  },
+  {
+    id: "visual",
+    label: "Visual",
+    helper: "Lectura e interpretación clínica sobre hallazgos o monitores.",
+  },
+  {
+    id: "intensivo",
+    label: "Intensivo",
+    helper: "Mayor presión, respuesta rápida y decisiones más densas.",
+  },
+];
+
+const TIME_OPTIONS: Array<{ id: AdvisorTime; label: string; helper: string }> = [
+  { id: "15", label: "15 min", helper: "Sesión breve y enfocada." },
+  { id: "30", label: "30 min", helper: "Bloque equilibrado para practicar." },
+  { id: "60", label: "60+ min", helper: "Trabajo profundo o inmersivo." },
+];
+
+const MODULE_PLAYBOOK: Record<string, ModuleAdvisorMeta> = {
+  "mental-sim": {
+    intents: ["continuidad", "documentacion"],
+    formats: ["guiado", "intensivo"],
+    minMinutes: 30,
+    maxMinutes: 60,
+    companionIds: ["notes", "pae-assistant"],
+  },
+  pathologies: {
+    intents: ["continuidad", "diagnostico"],
+    formats: ["guiado", "intensivo"],
+    minMinutes: 20,
+    maxMinutes: 45,
+    companionIds: ["laboratory", "clinical-calculations"],
+  },
+  urgencies: {
+    intents: ["intervencion", "continuidad"],
+    formats: ["guiado", "intensivo"],
+    minMinutes: 15,
+    maxMinutes: 30,
+    companionIds: ["triage", "medications"],
+  },
+  triage: {
+    intents: ["intervencion", "continuidad"],
+    formats: ["guiado"],
+    minMinutes: 10,
+    maxMinutes: 20,
+    companionIds: ["urgencies", "pathologies"],
+  },
+  ecg: {
+    intents: ["diagnostico", "avanzado"],
+    formats: ["visual", "intensivo"],
+    minMinutes: 15,
+    maxMinutes: 30,
+    companionIds: ["laboratory", "dynamic-simulator"],
+  },
+  ultrasound: {
+    intents: ["diagnostico", "avanzado"],
+    formats: ["visual", "guiado"],
+    minMinutes: 20,
+    maxMinutes: 40,
+    companionIds: ["clinical-images", "dynamic-simulator"],
+  },
+  laboratory: {
+    intents: ["diagnostico", "intervencion"],
+    formats: ["visual", "guiado"],
+    minMinutes: 15,
+    maxMinutes: 30,
+    companionIds: ["gasometry", "ecg"],
+  },
+  gasometry: {
+    intents: ["diagnostico", "intervencion"],
+    formats: ["visual", "intensivo"],
+    minMinutes: 15,
+    maxMinutes: 25,
+    companionIds: ["laboratory", "urgencies"],
+  },
+  "clinical-images": {
+    intents: ["avanzado", "diagnostico"],
+    formats: ["visual", "intensivo"],
+    minMinutes: 15,
+    maxMinutes: 30,
+    companionIds: ["ultrasound", "dynamic-simulator"],
+  },
+  "rcp-algorithms": {
+    intents: ["avanzado", "intervencion"],
+    formats: ["guiado", "intensivo"],
+    minMinutes: 15,
+    maxMinutes: 30,
+    companionIds: ["urgencies", "dynamic-simulator"],
+  },
+  "dynamic-simulator": {
+    intents: ["avanzado", "continuidad"],
+    formats: ["intensivo", "visual"],
+    minMinutes: 30,
+    maxMinutes: 60,
+    companionIds: ["ecg", "laboratory"],
+  },
+  "materno-infantil": {
+    intents: ["avanzado", "continuidad"],
+    formats: ["guiado", "intensivo"],
+    minMinutes: 25,
+    maxMinutes: 45,
+    companionIds: ["ultrasound", "medications"],
+  },
+  calculations: {
+    intents: ["intervencion", "documentacion"],
+    formats: ["guiado"],
+    minMinutes: 10,
+    maxMinutes: 20,
+    companionIds: ["medications", "procedures"],
+  },
+  medications: {
+    intents: ["intervencion"],
+    formats: ["guiado", "intensivo"],
+    minMinutes: 15,
+    maxMinutes: 25,
+    companionIds: ["calculations", "procedures"],
+  },
+  procedures: {
+    intents: ["intervencion"],
+    formats: ["guiado", "intensivo"],
+    minMinutes: 15,
+    maxMinutes: 30,
+    companionIds: ["medications", "urgencies"],
+  },
+  notes: {
+    intents: ["documentacion"],
+    formats: ["guiado"],
+    minMinutes: 15,
+    maxMinutes: 25,
+    companionIds: ["pae", "pae-assistant"],
+  },
+  pae: {
+    intents: ["documentacion"],
+    formats: ["guiado", "intensivo"],
+    minMinutes: 25,
+    maxMinutes: 45,
+    companionIds: ["notes", "pae-assistant"],
+  },
+  "pae-assistant": {
+    intents: ["documentacion"],
+    formats: ["guiado"],
+    minMinutes: 10,
+    maxMinutes: 20,
+    companionIds: ["pae", "notes"],
+  },
+  caces: {
+    intents: ["documentacion", "avanzado"],
+    formats: ["intensivo"],
+    minMinutes: 15,
+    maxMinutes: 30,
+    companionIds: ["notes", "pae"],
+  },
 };
 
 function safeText(v: any, fallback = "—") {
@@ -79,7 +267,10 @@ function clampInt(n: number, min: number, max: number) {
 function formatDate(s?: string) {
   if (!s) return "—";
   try {
-    return new Date(s).toLocaleString();
+    return new Date(s).toLocaleString("es-EC", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
   } catch {
     return s;
   }
@@ -238,12 +429,96 @@ function groupBadgeClass(group: DashboardModuleGroup) {
   return "border-slate-300/20 bg-slate-300/10 text-slate-100";
 }
 
+function getIntentLabel(intent: AdvisorIntent) {
+  return INTENT_OPTIONS.find((option) => option.id === intent)?.label ?? intent;
+}
+
+function getFormatLabel(format: AdvisorFormat) {
+  return FORMAT_OPTIONS.find((option) => option.id === format)?.label ?? format;
+}
+
+function getTimeLabel(time: AdvisorTime) {
+  return TIME_OPTIONS.find((option) => option.id === time)?.label ?? time;
+}
+
+function formatWindow(playbook: ModuleAdvisorMeta) {
+  return playbook.minMinutes === playbook.maxMinutes
+    ? `${playbook.minMinutes} min`
+    : `${playbook.minMinutes}-${playbook.maxMinutes} min`;
+}
+
+function getTimeScore(time: AdvisorTime, playbook: ModuleAdvisorMeta) {
+  const minutes = Number(time);
+  if (minutes >= playbook.minMinutes && minutes <= playbook.maxMinutes) return 3;
+  const distance = minutes < playbook.minMinutes ? playbook.minMinutes - minutes : minutes - playbook.maxMinutes;
+  if (distance <= 15) return 1;
+  return 0;
+}
+
+function getFocusState(intent: AdvisorIntent, hasActive: boolean, hasHighRisk: boolean, avgScore?: number) {
+  if (hasActive && intent === "continuidad") {
+    return {
+      eyebrow: "Continuidad prioritaria",
+      title: "Retoma y cierra el caso en curso antes de dispersarte",
+      description:
+        "El tablero prioriza continuidad clínica para que no pierdas contexto, entrevista ni evolución del caso activo.",
+    };
+  }
+
+  if (hasHighRisk && intent === "intervencion") {
+    return {
+      eyebrow: "Seguridad primero",
+      title: "Conviene practicar respuesta rápida y conducta inicial",
+      description:
+        "Tus datos recientes apuntan a reforzar urgencias, monitorización y decisiones inmediatas antes de rutas más amplias.",
+    };
+  }
+
+  if (intent === "diagnostico") {
+    return {
+      eyebrow: "Lectura clínica",
+      title: "Elige el estudio correcto y entrena interpretación antes de decidir",
+      description:
+        "Usa el dashboard como orientador para entrar al módulo diagnóstico que mejor se ajuste a tu tiempo y modalidad de práctica.",
+    };
+  }
+
+  if (intent === "documentacion") {
+    return {
+      eyebrow: "Cierre y evidencia",
+      title: "Convierte la práctica en documentación, PAE y evaluación",
+      description:
+        "El enfoque documental te ayuda a consolidar lo aprendido y dejar registro clínico más consistente.",
+    };
+  }
+
+  if (typeof avgScore === "number" && avgScore < 72) {
+    return {
+      eyebrow: "Reforzamiento",
+      title: "Primero precisión, luego complejidad",
+      description:
+        "Tus métricas recientes sugieren subir la base diagnóstica y operativa antes de ir a escenarios más largos o inmersivos.",
+    };
+  }
+
+  return {
+    eyebrow: "Navegador clínico",
+    title: "El dashboard ahora sugiere el simulador más útil para lo que buscas",
+    description:
+      "Selecciona objetivo, modalidad y tiempo disponible para recibir una ruta recomendada en vez de una lista plana de módulos.",
+  };
+}
+
 export default function DashboardPage() {
   const [hasActive, setHasActive] = useState(false);
   const [activeCase, setActiveCase] = useState<any>(null);
   const [activeTranscript, setActiveTranscript] = useState<TranscriptTurn[]>([]);
   const [endedInfo, setEndedInfo] = useState<any>(null);
   const [history, setHistory] = useState<StoredSession[]>([]);
+  const [selectedIntent, setSelectedIntent] = useState<AdvisorIntent>("continuidad");
+  const [selectedFormat, setSelectedFormat] = useState<AdvisorFormat>("guiado");
+  const [selectedTime, setSelectedTime] = useState<AdvisorTime>("30");
+  const [advisorTouched, setAdvisorTouched] = useState(false);
 
   useEffect(() => {
     const refresh = () => {
@@ -296,114 +571,121 @@ export default function DashboardPage() {
   const currentRiskLevel = hasActive ? normalizeRiskLevel(meta.risk) : lastClosed?.riskLevel ?? "—";
   const hasHighRisk = history.some((h) => h.riskLevel === "Alto") || currentRiskLevel === "Alto";
 
-  const focusState = useMemo(() => {
-    if (hasActive) {
-      return {
-        eyebrow: "Sesión activa",
-        title: "Continúa el caso clínico en curso",
-        description: `Retoma ${meta.title} y mantén continuidad diagnóstica, seguridad y cierre clínico.`,
-      };
-    }
-    if (hasHighRisk) {
-      return {
-        eyebrow: "Prioridad clínica",
-        title: "Refuerza seguridad, monitorización y respuesta rápida",
-        description:
-          "Tus datos recientes justifican entrenar ECG, urgencias, laboratorio y conducta inicial frente a mayor riesgo.",
-      };
-    }
-    if (typeof avgScore === "number" && avgScore < 72) {
-      return {
-        eyebrow: "Siguiente enfoque",
-        title: "Conviene reforzar interpretación y secuencia clínica",
-        description:
-          "Trabaja primero el bloque diagnóstico y procedimental para subir precisión antes de ir a escenarios más complejos.",
-      };
-    }
-    return {
-      eyebrow: "Centro de entrenamiento clínico",
-      title: "Unifica simulación, diagnóstico, intervención y documentación",
-      description:
-        "El dashboard ahora concentra casos, estudios, procedimientos, notas y rutas de práctica con una lectura más operativa.",
-    };
-  }, [avgScore, hasActive, hasHighRisk, meta.title]);
-
-  const primaryAction = hasActive
-    ? { href: "/simulator", label: "Reanudar caso", helper: "Continúa entrevista, decisiones y evolución." }
-    : { href: "/cases", label: "Generar caso", helper: "Inicia un nuevo escenario clínico para empezar." };
-
-  const quickLaunchModules = useMemo(() => DASHBOARD_NEW_MODULES.slice(0, 8), []);
-
-  const routeCards = useMemo(() => {
-    const byId = new Map(DASHBOARD_MODULES.map((item) => [item.id, item]));
-    const buildModules = (ids: string[]) =>
-      ids.map((id) => byId.get(id)).filter((item): item is DashboardModuleMeta => Boolean(item));
-
-    const items: DashboardRouteCard[] = [
-      {
-        id: "simulation",
-        title: "Simulación longitudinal",
-        desc: "Casos de continuidad, priorización y progresión clínica con foco en criterio y estructura.",
-        href: hasActive ? "/simulator" : "/cases",
-        action: hasActive ? "Retomar flujo" : "Abrir simulación",
-        note: hasActive ? "Ruta recomendada por sesión en curso." : "Entrada principal al ecosistema.",
-        accent: "from-cyan-500/18 via-sky-500/10 to-transparent",
-        modules: buildModules(["mental-sim", "pathologies", "triage"]),
-      },
-      {
-        id: "diagnostic",
-        title: "Diagnóstico y monitorización",
-        desc: "Integra ECG, ecografía, laboratorio y gasometría para interpretar antes de decidir conducta.",
-        href: "/ecg-simulator",
-        action: "Ir a diagnóstico",
-        note: "Ideal para fortalecer lectura clínica estructurada.",
-        accent: "from-emerald-500/18 via-teal-500/10 to-transparent",
-        modules: buildModules(["ecg", "ultrasound", "laboratory", "gasometry"]),
-      },
-      {
-        id: "advanced",
-        title: "Simulación avanzada e inmersiva",
-        desc: "Entrena RCP, imágenes clínicas, evolución dinámica y escenarios materno-infantiles de mayor complejidad.",
-        href: "/dynamic-simulator",
-        action: "Abrir entrenamiento avanzado",
-        note: "Ruta ideal para consolidar criterio clínico de alto nivel con mayor realismo.",
-        accent: "from-fuchsia-500/18 via-pink-500/10 to-transparent",
-        modules: buildModules(["clinical-images", "rcp-algorithms", "dynamic-simulator", "materno-infantil"]),
-      },
-      {
-        id: "intervention",
-        title: "Intervención segura",
-        desc: "Entrena medicamentos, procedimientos y urgencias como bloque operativo.",
-        href: "/medications",
-        action: "Practicar intervención",
-        note: "Útil para seguridad, secuencia y respuesta inmediata.",
-        accent: "from-orange-500/18 via-red-500/10 to-transparent",
-        modules: buildModules(["medications", "procedures", "urgencies"]),
-      },
-      {
-        id: "documentation",
-        title: "Documentación y evaluación",
-        desc: "Consolida PAE, notas clínicas y práctica de examen en un mismo recorrido.",
-        href: "/pae",
-        action: "Abrir ruta documental",
-        note: "Conviene después de completar simulación o diagnóstico.",
-        accent: "from-fuchsia-500/18 via-violet-500/10 to-transparent",
-        modules: buildModules(["pae", "notes", "caces"]),
-      },
-    ];
-
-    const recommendedId = hasHighRisk
-      ? "intervention"
+  const suggestedAdvisor = useMemo(() => {
+    const intent: AdvisorIntent = hasActive
+      ? "continuidad"
+      : hasHighRisk
+      ? "intervencion"
       : typeof avgScore === "number" && avgScore < 72
-      ? "diagnostic"
-      : hasActive
-      ? "simulation"
-      : "advanced";
+      ? "diagnostico"
+      : completedCount > 0
+      ? "avanzado"
+      : "continuidad";
 
-    return [...items]
-      .map((item) => ({ ...item, recommended: item.id === recommendedId }))
-      .sort((a, b) => Number(b.recommended) - Number(a.recommended));
-  }, [avgScore, hasActive, hasHighRisk]);
+    const format: AdvisorFormat =
+      intent === "diagnostico" ? "visual" : intent === "avanzado" ? "intensivo" : "guiado";
+
+    const time: AdvisorTime = hasActive && meta.targetMinutes
+      ? meta.targetMinutes <= 20
+        ? "15"
+        : meta.targetMinutes <= 45
+        ? "30"
+        : "60"
+      : avgDuration
+      ? avgDuration <= 20
+        ? "15"
+        : avgDuration <= 45
+        ? "30"
+        : "60"
+      : "30";
+
+    return { intent, format, time };
+  }, [avgDuration, avgScore, completedCount, hasActive, hasHighRisk, meta.targetMinutes]);
+
+  useEffect(() => {
+    if (advisorTouched) return;
+    setSelectedIntent(suggestedAdvisor.intent);
+    setSelectedFormat(suggestedAdvisor.format);
+    setSelectedTime(suggestedAdvisor.time);
+  }, [advisorTouched, suggestedAdvisor]);
+
+  const focusState = useMemo(
+    () => getFocusState(selectedIntent, hasActive, hasHighRisk, avgScore),
+    [avgScore, hasActive, hasHighRisk, selectedIntent]
+  );
+
+  const recommendations = useMemo(() => {
+    return DASHBOARD_MODULES.map((module) => {
+      const playbook = MODULE_PLAYBOOK[module.id] ?? {
+        intents: ["continuidad"],
+        formats: ["guiado"],
+        minMinutes: 15,
+        maxMinutes: 30,
+        companionIds: [],
+      };
+
+      let score = module.highlight ? 1 : 0;
+      if (playbook.intents.includes(selectedIntent)) score += 5;
+      if (playbook.formats.includes(selectedFormat)) score += 3;
+      score += getTimeScore(selectedTime, playbook);
+
+      if (hasActive && selectedIntent === "continuidad" && module.group === "simulacion") score += 2;
+      if (hasHighRisk && ["urgencies", "ecg", "laboratory", "gasometry", "rcp-algorithms"].includes(module.id)) score += 2;
+      if (typeof avgScore === "number" && avgScore < 72 && (module.group === "diagnostico" || module.group === "practica")) {
+        score += 2;
+      }
+      if (selectedIntent === "documentacion" && ["pae", "pae-assistant", "notes", "caces"].includes(module.id)) {
+        score += 1;
+      }
+      if (selectedIntent === "avanzado" && module.group === "avanzado") {
+        score += 1;
+      }
+
+      const reasons: string[] = [];
+      if (playbook.intents.includes(selectedIntent)) {
+        reasons.push(`Alineado con ${getIntentLabel(selectedIntent).toLowerCase()}.`);
+      }
+      if (playbook.formats.includes(selectedFormat)) {
+        reasons.push(`Encaja con modalidad ${getFormatLabel(selectedFormat).toLowerCase()}.`);
+      }
+      reasons.push(`Ventana sugerida: ${formatWindow(playbook)}.`);
+
+      if (hasActive && selectedIntent === "continuidad" && module.group === "simulacion") {
+        reasons.push("Mantiene continuidad clínica con tu caso actual.");
+      } else if (hasHighRisk && ["urgencies", "ecg", "laboratory", "gasometry", "rcp-algorithms"].includes(module.id)) {
+        reasons.push("Refuerza seguridad y respuesta rápida.");
+      } else if (typeof avgScore === "number" && avgScore < 72 && (module.group === "diagnostico" || module.group === "practica")) {
+        reasons.push("Ayuda a subir precisión antes de escenarios más complejos.");
+      } else if (module.count && module.countLabel) {
+        reasons.push(`${module.count} ${module.countLabel} disponibles para practicar.`);
+      }
+
+      return {
+        ...module,
+        score,
+        reasons: reasons.slice(0, 4),
+        playbook,
+      };
+    }).sort((a, b) => b.score - a.score || Number(Boolean(b.highlight)) - Number(Boolean(a.highlight)));
+  }, [avgScore, hasActive, hasHighRisk, selectedFormat, selectedIntent, selectedTime]);
+
+  const topRecommendation = recommendations[0];
+  const secondaryRecommendations = recommendations.slice(1, 4);
+
+  const topRoute = useMemo(() => {
+    if (!topRecommendation) return [];
+    const ids = [topRecommendation.id, ...topRecommendation.playbook.companionIds];
+    const seen = new Set<string>();
+    return ids
+      .map((id) => DASHBOARD_MODULES.find((module) => module.id === id))
+      .filter((module): module is DashboardModuleMeta => Boolean(module))
+      .filter((module) => {
+        if (seen.has(module.id)) return false;
+        seen.add(module.id);
+        return true;
+      })
+      .slice(0, 3);
+  }, [topRecommendation]);
 
   const groupedModules = useMemo(
     () =>
@@ -414,6 +696,33 @@ export default function DashboardPage() {
       })),
     []
   );
+
+  const primaryAction = hasActive
+    ? { href: "/simulator", label: "Reanudar caso", helper: "Retoma entrevista, decisiones y evolución del escenario activo." }
+    : { href: topRecommendation?.href ?? "/cases", label: "Abrir recomendación", helper: "Entra directo al módulo que mejor se ajusta al objetivo actual." };
+
+  const contextMetrics = [
+    {
+      label: "Sesiones cerradas",
+      value: String(completedCount),
+      helper: "Historial listo para orientar la práctica.",
+    },
+    {
+      label: "Puntaje clínico",
+      value: avgScore != null ? `${avgScore}/100` : activeScore != null ? `${activeScore}/100` : "—",
+      helper: avgScore != null ? "Promedio de cierres guardados." : "Estimado de la sesión actual.",
+    },
+    {
+      label: "Riesgo reciente",
+      value: currentRiskLevel,
+      helper: "Se usa para priorizar seguridad cuando hace falta.",
+    },
+    {
+      label: "Banco nuevo",
+      value: String(DASHBOARD_NEW_BANK_TOTAL),
+      helper: `${DASHBOARD_NEW_MODULES.length} módulos ampliados disponibles.`,
+    },
+  ];
 
   const openSessionReport = (session: StoredSession) => {
     try {
@@ -432,201 +741,250 @@ export default function DashboardPage() {
     window.location.assign("/results");
   };
 
+  const selectIntent = (intent: AdvisorIntent) => {
+    setAdvisorTouched(true);
+    setSelectedIntent(intent);
+  };
+
+  const selectFormat = (format: AdvisorFormat) => {
+    setAdvisorTouched(true);
+    setSelectedFormat(format);
+  };
+
+  const selectTime = (time: AdvisorTime) => {
+    setAdvisorTouched(true);
+    setSelectedTime(time);
+  };
+
+  const restoreSuggestedAdvisor = () => {
+    setAdvisorTouched(false);
+    setSelectedIntent(suggestedAdvisor.intent);
+    setSelectedFormat(suggestedAdvisor.format);
+    setSelectedTime(suggestedAdvisor.time);
+  };
+
   return (
     <div className="min-h-screen bg-[#070A0F]">
       <div className="mx-auto flex max-w-[1520px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
         <Sidebar />
 
-        <main className="flex-1 overflow-hidden rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl">
-          <header className="flex h-14 items-center gap-3 border-b border-white/10 bg-white/5 px-5">
-            <div className="flex items-center gap-2 text-sm text-white/70">
-              <span className="font-semibold text-white">Dashboard</span>
-              <span className="text-white/30">·</span>
-              <span className="text-white/55">Panel operativo del ecosistema clínico</span>
+        <main className="flex-1 overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(8,11,17,0.96),rgba(8,11,17,0.88))] shadow-[0_30px_90px_rgba(0,0,0,0.42)] backdrop-blur-xl">
+          <header className="flex flex-col gap-4 border-b border-white/10 bg-white/[0.03] px-5 py-4 lg:flex-row lg:items-center">
+            <div>
+              <div className="text-sm text-white/55">Dashboard</div>
+              <div className="mt-1 text-xl font-semibold text-white">Navegador clínico del ecosistema Psyke</div>
             </div>
 
-            <div className="ml-auto flex items-center gap-2">
-              <Link href="/reports" className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5">
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              <Link href="/reports" className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 transition hover:bg-white/5">
                 Reportes
               </Link>
-              <Link href="/history" className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5">
+              <Link href="/history" className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 transition hover:bg-white/5">
                 Historial
               </Link>
-              <Link href="/cases" className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black">
+              <Link href="/cases" className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90">
                 + Nuevo caso
               </Link>
             </div>
           </header>
 
           <div className="overflow-y-auto px-5 py-6">
-            <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[#091019] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.55)]">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(7,169,255,0.18),transparent_34%),radial-gradient(circle_at_78%_18%,rgba(255,148,46,0.18),transparent_30%),linear-gradient(135deg,#0B1018,#121A28_58%,#0A0F17)]" />
-              <div className="relative grid gap-5 xl:grid-cols-[1.45fr_0.95fr]">
+            <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[#0A1018] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.5)] sm:p-6">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.18),transparent_34%),radial-gradient(circle_at_78%_18%,rgba(249,115,22,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.12),transparent_24%),linear-gradient(135deg,#0B1018,#101826_55%,#0A0F17)]" />
+
+              <div className="relative grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
                 <div>
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-100/70">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-100">
                     {focusState.eyebrow}
                   </div>
-                  <div className="mt-3 max-w-[17ch] text-3xl font-semibold leading-tight text-white sm:text-4xl">
+                  <h1 className="mt-4 max-w-[18ch] text-3xl font-semibold leading-tight text-white sm:text-[3rem]">
                     {focusState.title}
-                  </div>
-                  <div className="mt-3 max-w-[72ch] text-sm leading-6 text-white/68">{focusState.description}</div>
+                  </h1>
+                  <p className="mt-4 max-w-[70ch] text-sm leading-7 text-white/70 sm:text-[15px]">
+                    {focusState.description}
+                  </p>
 
                   <div className="mt-5 flex flex-wrap gap-2">
-                    <div className="rounded-full border border-white/10 bg-white/8 px-3 py-1.5 text-xs text-white/80">
+                    <span className="rounded-full border border-white/10 bg-white/8 px-3 py-1.5 text-xs text-white/75">
                       {DASHBOARD_MODULES.length} módulos activos
-                    </div>
-                    <div className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1.5 text-xs text-cyan-100">
-                      {DASHBOARD_NEW_BANK_TOTAL} casos nuevos
-                    </div>
-                    <div className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-xs text-emerald-100">
-                      {DASHBOARD_NEW_MODULES.length} módulos ampliados
-                    </div>
-                    <div className="rounded-full border border-white/10 bg-white/8 px-3 py-1.5 text-xs text-white/70">
-                      práctica + evaluación
-                    </div>
+                    </span>
+                    <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1.5 text-xs text-cyan-100">
+                      Recomendación en tiempo real
+                    </span>
+                    <span className={`rounded-full border px-3 py-1.5 text-xs ${riskBadgeClass(currentRiskLevel)}`}>
+                      Riesgo {currentRiskLevel}
+                    </span>
+                    <span className="rounded-full border border-white/10 bg-white/8 px-3 py-1.5 text-xs text-white/75">
+                      Tiempo sugerido: {getTimeLabel(selectedTime)}
+                    </span>
                   </div>
 
-                  <div className="mt-6 flex flex-wrap items-center gap-2">
-                    <Link href={primaryAction.href} className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-black">
-                      {primaryAction.label}
-                    </Link>
-                    <Link
-                      href="/ecg-simulator"
-                      className="rounded-xl border border-white/15 bg-black/20 px-4 py-2.5 text-sm text-white/82 hover:bg-white/5"
-                    >
-                      Abrir ECG
-                    </Link>
-                    <Link
-                      href="/ultrasound-simulator"
-                      className="rounded-xl border border-white/15 bg-black/20 px-4 py-2.5 text-sm text-white/82 hover:bg-white/5"
-                    >
-                      Abrir eco
-                    </Link>
-                    <Link
-                      href="/laboratory"
-                      className="rounded-xl border border-white/15 bg-black/20 px-4 py-2.5 text-sm text-white/82 hover:bg-white/5"
-                    >
-                      Ir a laboratorio
-                    </Link>
-                    <Link
-                      href="/clinical-calculations"
-                      className="rounded-xl border border-white/15 bg-black/20 px-4 py-2.5 text-sm text-white/82 hover:bg-white/5"
-                    >
-                      Cálculo clínico
-                    </Link>
-                    <Link
-                      href="/topics"
-                      className="rounded-xl border border-white/15 bg-black/20 px-4 py-2.5 text-sm text-white/82 hover:bg-white/5"
-                    >
-                      Biblioteca clínica
-                    </Link>
-                  </div>
-
-                  <div className="mt-3 text-xs text-white/52">{primaryAction.helper}</div>
-
-                  <div className="mt-6 grid gap-3 rounded-2xl border border-white/10 bg-black/20 p-4 md:grid-cols-[1.1fr_1fr]">
-                    <div>
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                        Lanzamientos activos
+                  <div className="mt-6 grid gap-4">
+                    <div className="rounded-[26px] border border-white/10 bg-black/20 p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="text-sm font-semibold text-white">1. ¿Qué quieres practicar hoy?</div>
+                        <span className="text-xs text-white/45">Objetivo principal</span>
                       </div>
-                      <div className="mt-2 text-sm text-white/70">
-                        Banco nuevo integrado al dashboard para práctica guiada y evaluación.
+                      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                        {INTENT_OPTIONS.map((option) => (
+                          <button
+                            key={option.id}
+                            type="button"
+                            onClick={() => selectIntent(option.id)}
+                            className={`rounded-2xl border px-4 py-3 text-left transition ${
+                              selectedIntent === option.id
+                                ? "border-cyan-300/30 bg-cyan-400/12 text-white shadow-[0_18px_45px_rgba(34,211,238,0.08)]"
+                                : "border-white/10 bg-white/[0.03] text-white/76 hover:bg-white/8"
+                            }`}
+                          >
+                            <div className="text-sm font-semibold">{option.label}</div>
+                            <div className="mt-1 text-xs leading-5 text-white/55">{option.helper}</div>
+                          </button>
+                        ))}
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {quickLaunchModules.map((module) => (
-                        <Link
-                          key={module.id}
-                          href={module.href}
-                          className={`rounded-full border border-white/10 bg-gradient-to-r ${module.accent} px-3 py-1.5 text-xs text-white/90`}
-                        >
-                          {module.label}
-                        </Link>
-                      ))}
+
+                    <div className="grid gap-4 lg:grid-cols-2">
+                      <div className="rounded-[26px] border border-white/10 bg-black/20 p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="text-sm font-semibold text-white">2. Modalidad</div>
+                          <span className="text-xs text-white/45">Cómo quieres entrenar</span>
+                        </div>
+                        <div className="mt-4 grid gap-3">
+                          {FORMAT_OPTIONS.map((option) => (
+                            <button
+                              key={option.id}
+                              type="button"
+                              onClick={() => selectFormat(option.id)}
+                              className={`rounded-2xl border px-4 py-3 text-left transition ${
+                                selectedFormat === option.id
+                                  ? "border-emerald-300/30 bg-emerald-400/12 text-white"
+                                  : "border-white/10 bg-white/[0.03] text-white/76 hover:bg-white/8"
+                              }`}
+                            >
+                              <div className="text-sm font-semibold">{option.label}</div>
+                              <div className="mt-1 text-xs leading-5 text-white/55">{option.helper}</div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="rounded-[26px] border border-white/10 bg-black/20 p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="text-sm font-semibold text-white">3. Tiempo disponible</div>
+                          <span className="text-xs text-white/45">Duración estimada</span>
+                        </div>
+                        <div className="mt-4 grid gap-3">
+                          {TIME_OPTIONS.map((option) => (
+                            <button
+                              key={option.id}
+                              type="button"
+                              onClick={() => selectTime(option.id)}
+                              className={`rounded-2xl border px-4 py-3 text-left transition ${
+                                selectedTime === option.id
+                                  ? "border-orange-300/30 bg-orange-400/12 text-white"
+                                  : "border-white/10 bg-white/[0.03] text-white/76 hover:bg-white/8"
+                              }`}
+                            >
+                              <div className="text-sm font-semibold">{option.label}</div>
+                              <div className="mt-1 text-xs leading-5 text-white/55">{option.helper}</div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="grid gap-4">
-                  <div className="rounded-[28px] border border-white/10 bg-black/28 p-5">
+                  <div className="rounded-[30px] border border-white/10 bg-black/28 p-5">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                          Estado actual
+                          Mejor ajuste hoy
                         </div>
-                        <div className="mt-2 text-xl font-semibold text-white">
-                          {hasActive ? "Caso en progreso" : "Sin sesión activa"}
-                        </div>
+                        <div className="mt-2 text-2xl font-semibold text-white">{topRecommendation?.label ?? "Sin recomendación"}</div>
                       </div>
-                      <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs ${riskBadgeClass(currentRiskLevel)}`}>
-                        Riesgo {currentRiskLevel}
+                      <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs ${groupBadgeClass(topRecommendation?.group ?? "seguimiento")}`}>
+                        {topRecommendation ? DASHBOARD_GROUP_LABELS[topRecommendation.group] : "—"}
                       </span>
                     </div>
 
-                    <div className="mt-5 space-y-3 text-sm">
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-white/58">Caso</span>
-                        <span className="max-w-[220px] truncate text-right text-white/88">
-                          {hasActive ? meta.title : safeText(lastClosed?.caseTitle, "—")}
+                    <div className="mt-4 rounded-[24px] border border-white/10 bg-gradient-to-br from-white/8 to-black/25 p-4">
+                      <div className="text-sm leading-6 text-white/72">
+                        {topRecommendation?.summary ?? "Selecciona un objetivo para ver sugerencias."}
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs text-white/75">
+                          {getIntentLabel(selectedIntent)}
+                        </span>
+                        <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs text-white/75">
+                          {getFormatLabel(selectedFormat)}
+                        </span>
+                        <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs text-white/75">
+                          {formatWindow(topRecommendation?.playbook ?? MODULE_PLAYBOOK["mental-sim"])}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-white/58">Paciente</span>
-                        <span className="max-w-[220px] truncate text-right text-white/88">
-                          {hasActive ? meta.patientName : safeText(lastClosed?.patientName, "—")}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-white/58">Objetivo</span>
-                        <span className="text-white/88">
-                          {hasActive ? (meta.targetMinutes ? `${meta.targetMinutes} min` : "Libre") : avgDuration ? `${avgDuration} min` : "—"}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-white/58">Último cierre</span>
-                        <span className="text-right text-white/88">{formatDate(lastClosed?.endedAt ?? endedInfo?.ended_at)}</span>
-                      </div>
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-white/58">Motivo</span>
-                        <span className="text-white/88">{shortReason(lastClosed?.reason ?? endedInfo?.reason)}</span>
-                      </div>
+                    </div>
+
+                    <div className="mt-5 space-y-2">
+                      {(topRecommendation?.reasons ?? []).map((reason) => (
+                        <div key={reason} className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/72">
+                          {reason}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-5 flex flex-wrap gap-3">
+                      <Link
+                        href={topRecommendation?.href ?? "/cases"}
+                        className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90"
+                      >
+                        Abrir recomendación
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={restoreSuggestedAdvisor}
+                        className="rounded-xl border border-white/15 bg-white/[0.03] px-4 py-2.5 text-sm text-white/82 transition hover:bg-white/8"
+                      >
+                        Restaurar sugerencia
+                      </button>
+                    </div>
+
+                    <div className="mt-3 text-xs text-white/48">
+                      Sugerencia automática: {getIntentLabel(suggestedAdvisor.intent)} · {getFormatLabel(suggestedAdvisor.format)} · {getTimeLabel(suggestedAdvisor.time)}
                     </div>
                   </div>
 
-                  <div className="rounded-[28px] border border-white/10 bg-black/28 p-5">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                      Cobertura del sistema
-                    </div>
-                    <div className="mt-4 grid grid-cols-2 gap-3">
-                      <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                        <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Módulos</div>
-                        <div className="mt-1 text-2xl font-semibold text-white">{DASHBOARD_MODULES.length}</div>
+                  <div className="rounded-[30px] border border-white/10 bg-black/28 p-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                          Ruta sugerida
+                        </div>
+                        <div className="mt-2 text-lg font-semibold text-white">Secuencia de trabajo</div>
                       </div>
-                      <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                        <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Dominios</div>
-                        <div className="mt-1 text-2xl font-semibold text-white">{DASHBOARD_GROUP_ORDER.length}</div>
-                      </div>
-                      <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                        <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Banco nuevo</div>
-                        <div className="mt-1 text-2xl font-semibold text-white">{DASHBOARD_NEW_BANK_TOTAL}</div>
-                      </div>
-                      <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                        <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Módulos nuevos</div>
-                        <div className="mt-1 text-2xl font-semibold text-white">{DASHBOARD_NEW_MODULES.length}</div>
-                      </div>
+                      <span className="rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-xs text-white/65">
+                        {topRoute.length} pasos
+                      </span>
                     </div>
 
-                    <div className="mt-4 space-y-2">
-                      {DASHBOARD_NEW_MODULES.slice(0, 3).map((module) => (
-                        <div key={module.id} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5">
-                          <div>
+                    <div className="mt-4 space-y-3">
+                      {topRoute.map((module, index) => (
+                        <Link
+                          key={module.id}
+                          href={module.href}
+                          className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 transition hover:bg-white/8"
+                        >
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/20 text-sm font-semibold text-white">
+                            {index + 1}
+                          </div>
+                          <div className="min-w-0">
                             <div className="text-sm font-semibold text-white">{module.label}</div>
-                            <div className="text-xs text-white/55">{module.status}</div>
+                            <div className="truncate text-xs text-white/55">{module.summary}</div>
                           </div>
-                          <div className="text-sm font-semibold text-white">
-                            {module.count} {module.countLabel}
-                          </div>
-                        </div>
+                        </Link>
                       ))}
                     </div>
                   </div>
@@ -634,141 +992,167 @@ export default function DashboardPage() {
               </div>
             </section>
 
-            <section className="mt-5">
-              <div className="flex items-end justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-white">Panel operativo</div>
-                  <div className="mt-1 text-sm text-white/58">Lectura rápida de rendimiento, ritmo de trabajo y capacidad instalada.</div>
-                </div>
-                <div className="text-xs text-white/45">Actualización local en tiempo real</div>
-              </div>
-
-              <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-                <div className="rounded-[26px] border border-white/10 bg-gradient-to-br from-white/8 to-black/25 p-4">
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Sesiones completadas</div>
-                  <div className="mt-2 text-3xl font-semibold text-white">{completedCount}</div>
-                  <div className="mt-2 text-xs text-white/55">Historial consolidado del usuario actual.</div>
-                </div>
-                <div className="rounded-[26px] border border-white/10 bg-gradient-to-br from-white/8 to-black/25 p-4">
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Duración promedio</div>
-                  <div className="mt-2 text-3xl font-semibold text-white">{avgDuration ? `${avgDuration} min` : "—"}</div>
-                  <div className="mt-2 text-xs text-white/55">Ritmo medio de resolución o práctica.</div>
-                </div>
-                <div className="rounded-[26px] border border-white/10 bg-gradient-to-br from-white/8 to-black/25 p-4">
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Puntaje clínico</div>
-                  <div className="mt-2 text-3xl font-semibold text-white">{avgScore ?? activeScore ?? "—"}</div>
-                  <div className="mt-2 text-xs text-white/55">
-                    {avgScore != null ? "Promedio de sesiones cerradas." : "Estimado de la sesión en curso."}
+            <section className="mt-6 grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+              <div className="rounded-[30px] border border-white/10 bg-white/[0.03] p-5">
+                <div className="flex items-end justify-between gap-3">
+                  <div>
+                    <div className="text-base font-semibold text-white">Opciones sugeridas para hoy</div>
+                    <div className="mt-1 text-sm text-white/58">
+                      Las tarjetas cambian según objetivo, modalidad, tiempo y contexto clínico reciente.
+                    </div>
                   </div>
+                  <div className="text-xs text-white/45">Top 4 recomendaciones</div>
                 </div>
-                <div className="rounded-[26px] border border-cyan-400/15 bg-gradient-to-br from-cyan-500/10 to-black/25 p-4">
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-cyan-100/72">Banco clínico nuevo</div>
-                  <div className="mt-2 text-3xl font-semibold text-white">{DASHBOARD_NEW_BANK_TOTAL}</div>
-                  <div className="mt-2 text-xs text-white/60">
-                    Casos y escenarios nuevos en módulos base, medios y avanzados del ecosistema clínico.
-                  </div>
-                </div>
-              </div>
-            </section>
 
-            <section className="mt-6">
-              <div className="flex items-end justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-white">Rutas clínicas recomendadas</div>
-                  <div className="mt-1 text-sm text-white/58">Agrupa módulos por objetivo práctico para que el entrenamiento tenga más continuidad.</div>
-                </div>
-                <div className="text-xs text-white/45">La tarjeta destacada cambia según tu contexto reciente.</div>
-              </div>
-
-              <div className="mt-3 grid grid-cols-1 gap-3 xl:grid-cols-2 2xl:grid-cols-4">
-                {routeCards.map((route) => (
-                  <Link
-                    key={route.id}
-                    href={route.href}
-                    className={`group rounded-[28px] border p-5 transition hover:-translate-y-0.5 ${
-                      route.recommended
-                        ? "border-cyan-300/25 bg-gradient-to-br from-white/12 to-black/20 shadow-[0_20px_60px_rgba(0,0,0,0.4)]"
-                        : "border-white/10 bg-white/5 hover:bg-white/8"
-                    }`}
-                  >
-                    <div className={`rounded-2xl border border-white/10 bg-gradient-to-r ${route.accent} p-4`}>
+                <div className="mt-4 grid gap-3 xl:grid-cols-2">
+                  {[topRecommendation, ...secondaryRecommendations].filter(Boolean).map((module, index) => (
+                    <Link
+                      key={module!.id}
+                      href={module!.href}
+                      className={`group rounded-[28px] border p-5 transition hover:-translate-y-0.5 ${
+                        index === 0
+                          ? "border-cyan-300/25 bg-gradient-to-br from-cyan-400/10 to-black/20 shadow-[0_20px_55px_rgba(0,0,0,0.35)]"
+                          : "border-white/10 bg-black/20 hover:bg-white/8"
+                      }`}
+                    >
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/55">
-                            {route.recommended ? "Ruta recomendada" : "Ruta disponible"}
+                          <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">
+                            {index === 0 ? "Mejor ajuste" : "Alternativa"}
                           </div>
-                          <div className="mt-2 text-lg font-semibold text-white">{route.title}</div>
+                          <div className="mt-2 text-lg font-semibold text-white">{module!.label}</div>
                         </div>
-                        <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-[11px] text-white/70">
-                          {route.modules.length} módulos
+                        <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] ${groupBadgeClass(module!.group)}`}>
+                          {DASHBOARD_GROUP_LABELS[module!.group]}
                         </span>
                       </div>
-                      <div className="mt-3 text-sm leading-6 text-white/70">{route.desc}</div>
-                    </div>
 
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {route.modules.map((module) => (
-                        <span key={module.id} className="rounded-full border border-white/10 bg-black/25 px-2.5 py-1 text-xs text-white/72">
-                          {module.label}
+                      <div className={`mt-4 rounded-2xl border border-white/10 bg-gradient-to-r ${module!.accent} p-4`}>
+                        <div className="text-sm leading-6 text-white/72">{module!.summary}</div>
+                      </div>
+
+                      <div className="mt-4 space-y-2">
+                        {module!.reasons.slice(0, 3).map((reason) => (
+                          <div key={reason} className="text-xs text-white/55">
+                            {reason}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="mt-4 flex items-center justify-between gap-3">
+                        <span className="text-xs text-white/45">{module!.status}</span>
+                        <span className="rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-xs font-medium text-white/82">
+                          Abrir módulo
                         </span>
-                      ))}
-                    </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
 
-                    <div className="mt-4 text-xs text-white/50">{route.note}</div>
-                    <div className="mt-4 inline-flex rounded-xl border border-white/15 bg-black/25 px-3 py-2 text-xs font-medium text-white/85">
-                      {route.action}
+              <div className="space-y-5">
+                <div className="rounded-[30px] border border-white/10 bg-white/[0.03] p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                        Estado actual
+                      </div>
+                      <div className="mt-2 text-xl font-semibold text-white">
+                        {hasActive ? "Caso en progreso" : "Sin sesión activa"}
+                      </div>
                     </div>
-                  </Link>
-                ))}
+                    <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs ${riskBadgeClass(currentRiskLevel)}`}>
+                      Riesgo {currentRiskLevel}
+                    </span>
+                  </div>
+
+                  <div className="mt-5 space-y-3 text-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-white/58">Caso</span>
+                      <span className="max-w-[220px] truncate text-right text-white/88">
+                        {hasActive ? meta.title : safeText(lastClosed?.caseTitle, "—")}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-white/58">Paciente</span>
+                      <span className="max-w-[220px] truncate text-right text-white/88">
+                        {hasActive ? meta.patientName : safeText(lastClosed?.patientName, "—")}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-white/58">Duración</span>
+                      <span className="text-white/88">
+                        {hasActive ? (meta.targetMinutes ? `${meta.targetMinutes} min` : "Libre") : avgDuration ? `${avgDuration} min` : "—"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-white/58">Último cierre</span>
+                      <span className="text-right text-white/88">{formatDate(lastClosed?.endedAt ?? endedInfo?.ended_at)}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-white/58">Motivo</span>
+                      <span className="text-white/88">{shortReason(lastClosed?.reason ?? endedInfo?.reason)}</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    <Link
+                      href={primaryAction.href}
+                      className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90"
+                    >
+                      {primaryAction.label}
+                    </Link>
+                    <Link
+                      href="/history"
+                      className="rounded-xl border border-white/15 bg-white/[0.03] px-4 py-2.5 text-sm text-white/82 transition hover:bg-white/8"
+                    >
+                      Ver historial
+                    </Link>
+                  </div>
+
+                  <div className="mt-3 text-xs text-white/50">{primaryAction.helper}</div>
+                </div>
+
+                <div className="rounded-[30px] border border-white/10 bg-white/[0.03] p-5">
+                  <div className="flex items-end justify-between gap-3">
+                    <div>
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                        Contexto del sistema
+                      </div>
+                      <div className="mt-2 text-lg font-semibold text-white">Resumen de orientación</div>
+                    </div>
+                    <div className="text-xs text-white/45">Local y en tiempo real</div>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    {contextMetrics.map((metric) => (
+                      <div key={metric.label} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                        <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">{metric.label}</div>
+                        <div className="mt-2 text-2xl font-semibold text-white">{metric.value}</div>
+                        <div className="mt-2 text-xs leading-5 text-white/52">{metric.helper}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </section>
 
             <section className="mt-6">
               <div className="flex items-end justify-between gap-3">
                 <div>
-                  <div className="text-sm font-semibold text-white">Biblioteca nueva de práctica</div>
-                  <div className="mt-1 text-sm text-white/58">Accesos directos a los módulos que ya quedaron ampliados entre 100 y 200 casos.</div>
+                  <div className="text-base font-semibold text-white">Explorar por dominio</div>
+                  <div className="mt-1 text-sm text-white/58">
+                    Si no quieres usar la recomendación automática, puedes entrar por el área clínica que más te interese.
+                  </div>
                 </div>
-                <div className="text-xs text-white/45">Banco actual: {DASHBOARD_NEW_BANK_TOTAL} casos</div>
-              </div>
-
-              <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
-                {DASHBOARD_NEW_MODULES.map((module) => (
-                  <Link
-                    key={module.id}
-                    href={module.href}
-                    className="group rounded-[28px] border border-white/10 bg-[#0B1118] p-5 transition hover:-translate-y-0.5 hover:border-white/20"
-                  >
-                    <div className={`rounded-2xl border border-white/10 bg-gradient-to-br ${module.accent} p-4`}>
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/55">{module.status}</div>
-                      <div className="mt-3 text-3xl font-semibold text-white">{module.count}</div>
-                      <div className="text-xs text-white/60">{module.countLabel}</div>
-                    </div>
-
-                    <div className="mt-4 text-base font-semibold text-white">{module.label}</div>
-                    <div className="mt-2 text-sm leading-6 text-white/65">{module.summary}</div>
-                    <div className="mt-4 inline-flex rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-xs text-white/82">
-                      Abrir módulo
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </section>
-
-            <section className="mt-6">
-              <div className="flex items-end justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-white">Mapa del ecosistema</div>
-                  <div className="mt-1 text-sm text-white/58">Vista agrupada por dominio para entender mejor dónde entra cada módulo.</div>
-                </div>
-                <Link href="/topics" className="rounded-xl border border-white/15 bg-black/20 px-4 py-2 text-sm text-white/82 hover:bg-white/5">
+                <Link href="/topics" className="rounded-xl border border-white/15 bg-black/20 px-4 py-2 text-sm text-white/82 transition hover:bg-white/5">
                   Ir a biblioteca clínica
                 </Link>
               </div>
 
-              <div className="mt-3 grid grid-cols-1 gap-3 xl:grid-cols-2 2xl:grid-cols-4">
+              <div className="mt-4 grid grid-cols-1 gap-3 xl:grid-cols-2 2xl:grid-cols-4">
                 {groupedModules.map(({ group, label, items }) => (
-                  <div key={group} className="rounded-[28px] border border-white/10 bg-white/5 p-5">
+                  <div key={group} className="rounded-[28px] border border-white/10 bg-white/[0.03] p-5">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] ${groupBadgeClass(group)}`}>
@@ -776,7 +1160,7 @@ export default function DashboardPage() {
                         </span>
                         <div className="mt-3 text-lg font-semibold text-white">{items.length} módulos</div>
                       </div>
-                      <Link href={GROUP_PRIMARY_LINKS[group]} className="rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-xs text-white/80 hover:bg-white/5">
+                      <Link href={GROUP_PRIMARY_LINKS[group]} className="rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-xs text-white/80 transition hover:bg-white/5">
                         Abrir
                       </Link>
                     </div>
@@ -788,7 +1172,7 @@ export default function DashboardPage() {
                         <Link
                           key={item.id}
                           href={item.href}
-                          className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-xs text-white/75 hover:bg-white/5"
+                          className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-xs text-white/75 transition hover:bg-white/5"
                         >
                           {item.label}
                         </Link>
@@ -799,13 +1183,15 @@ export default function DashboardPage() {
               </div>
             </section>
 
-            <section className="mt-6 rounded-[30px] border border-white/10 bg-white/5 p-5">
+            <section className="mt-6 rounded-[30px] border border-white/10 bg-white/[0.03] p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <div className="text-base font-semibold text-white">Últimas sesiones</div>
-                  <div className="mt-1 text-sm text-white/60">Revisión rápida de cierre, riesgo y acceso directo a resultados previos.</div>
+                  <div className="mt-1 text-sm text-white/60">
+                    Revisión rápida de cierres recientes para mantener continuidad y reabrir reportes.
+                  </div>
                 </div>
-                <Link href="/history" className="rounded-xl border border-white/15 bg-black/25 px-4 py-2 text-sm text-white/80 hover:bg-white/5">
+                <Link href="/history" className="rounded-xl border border-white/15 bg-black/25 px-4 py-2 text-sm text-white/80 transition hover:bg-white/5">
                   Ver todas
                 </Link>
               </div>
@@ -819,24 +1205,24 @@ export default function DashboardPage() {
                   <div className="col-span-2 text-right">Acción</div>
                 </div>
 
-                {(history.length ? history.slice(0, 6) : []).map((h) => (
-                  <div key={h.id} className="grid grid-cols-12 border-t border-white/10 px-4 py-3 text-sm">
+                {(history.length ? history.slice(0, 6) : []).map((session) => (
+                  <div key={session.id} className="grid grid-cols-12 border-t border-white/10 px-4 py-3 text-sm">
                     <div className="col-span-4 min-w-0">
-                      <div className="truncate font-semibold text-white">{safeText(h.caseTitle, "Sesión")}</div>
-                      <div className="truncate text-xs text-white/50">{safeText(h.patientName, "Paciente")}</div>
+                      <div className="truncate font-semibold text-white">{safeText(session.caseTitle, "Sesión")}</div>
+                      <div className="truncate text-xs text-white/50">{safeText(session.patientName, "Paciente")}</div>
                     </div>
-                    <div className="col-span-3 text-white/70">{formatDate(h.endedAt)}</div>
+                    <div className="col-span-3 text-white/70">{formatDate(session.endedAt)}</div>
                     <div className="col-span-2">
-                      <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs ${riskBadgeClass(h.riskLevel)}`}>
-                        {h.riskLevel}
+                      <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs ${riskBadgeClass(session.riskLevel)}`}>
+                        {session.riskLevel}
                       </span>
                     </div>
-                    <div className="col-span-1 text-right text-white/85">{typeof h.score === "number" ? h.score : "—"}</div>
+                    <div className="col-span-1 text-right text-white/85">{typeof session.score === "number" ? session.score : "—"}</div>
                     <div className="col-span-2 text-right">
                       <button
                         type="button"
-                        onClick={() => openSessionReport(h)}
-                        className="rounded-lg border border-white/15 bg-black/25 px-3 py-1.5 text-xs text-white/80 hover:bg-white/5"
+                        onClick={() => openSessionReport(session)}
+                        className="rounded-lg border border-white/15 bg-black/25 px-3 py-1.5 text-xs text-white/80 transition hover:bg-white/5"
                       >
                         Ver reporte
                       </button>
@@ -846,7 +1232,7 @@ export default function DashboardPage() {
 
                 {!history.length && (
                   <div className="px-4 py-6 text-sm text-white/60">
-                    Aún no hay sesiones guardadas. Genera un caso o entra a uno de los módulos nuevos para empezar a construir historial.
+                    Aún no hay sesiones guardadas. Usa el orientador para elegir un módulo y empezar a construir historial.
                   </div>
                 )}
               </div>
