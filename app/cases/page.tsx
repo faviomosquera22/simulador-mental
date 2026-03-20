@@ -879,6 +879,47 @@ export default function CasesPage() {
                 ))}
               </div>
 
+              <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/75">
+                      Seleccionado: {selectedCard?.title ?? "—"}
+                    </span>
+                    <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/75">
+                      Enfoque: {prettyApproach(cfgApproach)}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={goStart}
+                      disabled={!caseObj}
+                      className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-50"
+                    >
+                      Iniciar entrevista
+                    </button>
+                    <button
+                      onClick={(e) => openConfig(e.currentTarget)}
+                      disabled={!caseObj}
+                      className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/85 hover:bg-white/5 disabled:opacity-50"
+                    >
+                      Configurar caso
+                    </button>
+                    <button
+                      onClick={handleGenerate}
+                      disabled={loading || isCooldownActive}
+                      className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-2 text-sm text-cyan-100 disabled:opacity-60"
+                    >
+                      {loading
+                        ? "Generando caso…"
+                        : cooldownLabel
+                        ? cooldownLabel
+                        : "Generar caso (IA)"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {filteredCatalog.map((item) => {
                   const selected = selectedCard?.id === item.id;
@@ -926,45 +967,6 @@ export default function CasesPage() {
                     </button>
                   );
                 })}
-              </div>
-            </section>
-
-            <section className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/75">
-                  Seleccionado: {selectedCard?.title ?? "—"}
-                </span>
-                <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/75">
-                  Enfoque: {prettyApproach(cfgApproach)}
-                </span>
-              </div>
-
-              <div className="mt-4 flex flex-wrap gap-3">
-                <button
-                  onClick={goStart}
-                  disabled={!caseObj}
-                  className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-50"
-                >
-                  Iniciar entrevista
-                </button>
-                <button
-                  onClick={(e) => openConfig(e.currentTarget)}
-                  disabled={!caseObj}
-                  className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/85 hover:bg-white/5 disabled:opacity-50"
-                >
-                  Configurar caso
-                </button>
-                <button
-                  onClick={handleGenerate}
-                  disabled={loading || isCooldownActive}
-                  className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-2 text-sm text-cyan-100 disabled:opacity-60"
-                >
-                  {loading
-                    ? "Generando caso…"
-                    : cooldownLabel
-                    ? cooldownLabel
-                    : "Generar caso (IA)"}
-                </button>
               </div>
             </section>
 
