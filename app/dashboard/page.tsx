@@ -850,26 +850,26 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+                    <div className="grid gap-4">
                       <div className="rounded-[26px] border border-white/10 bg-black/20 p-4">
                         <div className="flex items-center justify-between gap-3">
                           <div className="text-sm font-semibold text-white">2. Ajusta el modo</div>
                           <span className="text-xs text-white/45">Cómo entrenar</span>
                         </div>
-                        <div className="mt-4 grid gap-3 lg:grid-cols-3">
+                        <div className="mt-4 grid gap-3 md:grid-cols-3">
                           {FORMAT_OPTIONS.map((option) => (
                             <button
                               key={option.id}
                               type="button"
                               onClick={() => selectFormat(option.id)}
-                              className={`rounded-2xl border px-4 py-3 text-left transition ${
+                              className={`rounded-2xl border px-4 py-3 text-left transition md:min-h-[128px] ${
                                 selectedFormat === option.id
                                   ? "border-emerald-300/30 bg-emerald-400/12 text-white"
                                   : "border-white/10 bg-white/[0.03] text-white/76 hover:bg-white/8"
                               }`}
                             >
                               <div className="text-sm font-semibold">{option.label}</div>
-                              <div className="mt-1 text-xs leading-5 text-white/55">{option.helper}</div>
+                              <div className="mt-2 max-w-[24ch] text-xs leading-5 text-white/55">{option.helper}</div>
                             </button>
                           ))}
                         </div>
@@ -886,14 +886,14 @@ export default function DashboardPage() {
                               key={option.id}
                               type="button"
                               onClick={() => selectTime(option.id)}
-                              className={`rounded-2xl border px-4 py-3 text-left transition ${
+                              className={`rounded-2xl border px-4 py-3 text-left transition sm:min-h-[116px] ${
                                 selectedTime === option.id
                                   ? "border-orange-300/30 bg-orange-400/12 text-white"
                                   : "border-white/10 bg-white/[0.03] text-white/76 hover:bg-white/8"
                               }`}
                             >
                               <div className="text-sm font-semibold">{option.label}</div>
-                              <div className="mt-1 text-xs leading-5 text-white/55">{option.helper}</div>
+                              <div className="mt-2 max-w-[20ch] text-xs leading-5 text-white/55">{option.helper}</div>
                             </button>
                           ))}
                         </div>
