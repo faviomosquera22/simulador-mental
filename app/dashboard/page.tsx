@@ -1060,13 +1060,13 @@ export default function DashboardPage() {
         <Sidebar />
 
         <main className="flex-1 overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(8,11,17,0.96),rgba(8,11,17,0.88))] shadow-[0_30px_90px_rgba(0,0,0,0.42)] backdrop-blur-xl">
-          <header className="flex flex-col gap-4 border-b border-white/10 bg-white/[0.03] px-5 py-4 lg:flex-row lg:items-center">
+          <header className="flex flex-col gap-4 border-b border-white/10 bg-white/[0.03] px-5 py-4 xl:flex-row xl:items-center">
             <div>
               <div className="text-sm text-white/55">Dashboard</div>
               <div className="mt-1 text-xl font-semibold text-white">Navegador clínico del ecosistema Psyke</div>
             </div>
 
-            <div className="ml-auto flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 xl:ml-auto">
               <Link href="/reports" className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 transition hover:bg-white/5">
                 Reportes
               </Link>
@@ -1083,12 +1083,12 @@ export default function DashboardPage() {
             <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[#0A1018] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.5)] sm:p-6">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.18),transparent_34%),radial-gradient(circle_at_78%_18%,rgba(249,115,22,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.12),transparent_24%),linear-gradient(135deg,#0B1018,#101826_55%,#0A0F17)]" />
 
-              <div className="relative grid gap-5 xl:grid-cols-[minmax(0,1.18fr)_0.82fr] 2xl:grid-cols-[minmax(0,1.24fr)_0.9fr]">
+              <div className="relative grid gap-5 xl:grid-cols-[minmax(0,1.05fr)_0.95fr] 2xl:grid-cols-[minmax(0,1.12fr)_0.88fr]">
                 <div>
                   <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-100">
                     {profileComplete ? "Ruta personalizada activa" : "Onboarding clínico"}
                   </div>
-                  <h1 className="mt-4 max-w-[16ch] text-3xl font-semibold leading-tight text-white sm:text-[2.7rem]">
+                  <h1 className="mt-4 max-w-[18ch] text-3xl font-semibold leading-tight text-white sm:text-[2.55rem]">
                     Hola, {displayName}. {profileComplete ? "Tu siguiente bloque ya está orientado." : "Completa tu perfil y activamos tu ruta ideal."}
                   </h1>
                   <p className="mt-4 max-w-[68ch] text-sm leading-6 text-white/70 sm:text-[15px]">
@@ -1177,7 +1177,7 @@ export default function DashboardPage() {
                       </div>
                     </form>
                   ) : (
-                    <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_0.9fr]">
+                    <div className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(300px,0.9fr)]">
                       <div className="rounded-[28px] border border-white/10 bg-black/22 p-5">
                         <div className="flex items-start justify-between gap-3">
                           <div>
@@ -1243,7 +1243,7 @@ export default function DashboardPage() {
                   )}
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
                   <div className="rounded-[30px] border border-white/10 bg-black/28 p-5">
                     <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Simulador ideal según tu perfil</div>
                     <div className="mt-2 text-xl font-semibold text-white">{idealSimulator?.label ?? "Sin recomendación"}</div>

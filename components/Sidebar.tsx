@@ -490,7 +490,7 @@ export default function Sidebar() {
     <>
       <Link
         href="/profile"
-        className="fixed right-3 top-3 z-40 flex max-w-[calc(100vw-4.5rem)] items-center gap-3 rounded-2xl border border-white/10 bg-[#0F1117]/90 px-3 py-2 text-left shadow-[0_18px_55px_rgba(0,0,0,0.42)] backdrop-blur-xl"
+        className="fixed right-3 top-3 z-40 hidden max-w-[calc(100vw-4.5rem)] items-center gap-3 rounded-2xl border border-white/10 bg-[#0F1117]/90 px-3 py-2 text-left shadow-[0_18px_55px_rgba(0,0,0,0.42)] backdrop-blur-xl max-md:flex"
       >
         <div className="flex h-9 w-9 items-center justify-center rounded-full border border-sky-400/20 bg-sky-400/10 text-sm font-semibold text-sky-100">
           {displayInitial}
