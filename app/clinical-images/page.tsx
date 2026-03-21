@@ -39,6 +39,9 @@ function hash(value: string) {
   return total;
 }
 
+const REAL_CLINICAL_LIBRARY = CLINICAL_IMAGES_LIBRARY.filter((item) => Boolean(item.realImageAssets?.caseSrc));
+const FALLBACK_CLINICAL_CASE = REAL_CLINICAL_LIBRARY[0] ?? CLINICAL_IMAGES_LIBRARY[0];
+
 export default function ClinicalImagesPage() {
   const [mode, setMode] = useState<AdvancedMode>("practice");
   const [usageMode, setUsageMode] = useState<UsageMode>("standalone");
@@ -50,9 +53,9 @@ export default function ClinicalImagesPage() {
   const [zoom, setZoom] = useState(1);
   const [showHighlights, setShowHighlights] = useState(true);
   const [activeCaseObj, setActiveCaseObj] = useState<any>(null);
-  const [casePool] = useState(CLINICAL_IMAGES_LIBRARY);
-  const [caseSet, setCaseSet] = useState<ClinicalImageCase>(CLINICAL_IMAGES_LIBRARY[0]);
-  const [manualCaseId, setManualCaseId] = useState(CLINICAL_IMAGES_LIBRARY[0]?.id ?? "");
+  const casePool = REAL_CLINICAL_LIBRARY;
+  const [caseSet, setCaseSet] = useState<ClinicalImageCase>(FALLBACK_CLINICAL_CASE);
+  const [manualCaseId, setManualCaseId] = useState(FALLBACK_CLINICAL_CASE?.id ?? "");
   const [selectedAnswer, setSelectedAnswer] = useState("");
   const [justification, setJustification] = useState("");
   const [result, setResult] = useState<ReturnType<typeof evaluateClinicalImageCase> | null>(null);
@@ -73,6 +76,21 @@ export default function ClinicalImagesPage() {
     return contextFilter;
   }, [activeCaseObj, contextFilter, usageMode]);
 
+  const availableCategories = useMemo(
+    () => Array.from(new Set(casePool.map((item) => item.category))) as ClinicalImageCategory[],
+    [casePool]
+  );
+
+  const availableContexts = useMemo(
+    () => Array.from(new Set(casePool.map((item) => item.context))) as ClinicalImageContext[],
+    [casePool]
+  );
+
+  const contextOptions = useMemo(
+    () => ["general", ...availableContexts.filter((context) => context !== "general")] as ClinicalImageContext[],
+    [availableContexts]
+  );
+
   const filteredPool = useMemo(() => {
     return casePool.filter((item) => {
       if (difficultyFilter !== "all" && item.difficulty !== difficultyFilter) return false;
@@ -92,6 +110,8 @@ export default function ClinicalImagesPage() {
     return contextual.length ? contextual : filteredPool;
   }, [effectiveContext, filteredPool]);
 
+  const hasFilteredCases = filteredPool.length > 0;
+
   const answerOptions = useMemo(() => {
     const pool = Array.from(new Set([caseSet.correctAnswer, ...caseSet.distractors, ...caseSet.optionPool]));
     return [...pool].sort((a, b) => hash(`${caseSet.id}:${a}`) - hash(`${caseSet.id}:${b}`));
@@ -103,16 +123,25 @@ export default function ClinicalImagesPage() {
     setResult(null);
   }, []);
 
+  const resetFilters = useCallback(() => {
+    setSelectionMode("contextual_random");
+    setDifficultyFilter("all");
+    setCategoryFilter("all");
+    setContextFilter("general");
+    setSearch("");
+    clearInputs();
+  }, [clearInputs]);
+
   const pickNextCase = useCallback(
     (excludeId?: string) => {
       const sourcePool = selectionMode === "contextual_random" ? contextualPool : filteredPool;
       const available = sourcePool.filter((item) => item.id !== excludeId);
 
       if (selectionMode === "manual") {
-        return filteredPool.find((item) => item.id === manualCaseId) ?? filteredPool[0] ?? CLINICAL_IMAGES_LIBRARY[0];
+        return filteredPool.find((item) => item.id === manualCaseId) ?? filteredPool[0] ?? FALLBACK_CLINICAL_CASE;
       }
 
-      return available[Math.floor(Math.random() * Math.max(available.length, 1))] ?? available[0] ?? filteredPool[0] ?? CLINICAL_IMAGES_LIBRARY[0];
+      return available[Math.floor(Math.random() * Math.max(available.length, 1))] ?? available[0] ?? filteredPool[0] ?? FALLBACK_CLINICAL_CASE;
     },
     [contextualPool, filteredPool, manualCaseId, selectionMode]
   );
@@ -165,9 +194,9 @@ export default function ClinicalImagesPage() {
         <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 p-5 shadow-[0_20px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl">
           <header className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold">Imágenes clínicas</h1>
+              <h1 className="text-2xl font-semibold">Archivo de imágenes clínicas reales</h1>
               <p className="mt-1 text-sm text-white/70">
-                Interpreta radiología básica, lesiones, heridas, quemaduras y tiras visuales con feedback clínico.
+                Banco curado con estudios reales para lectura comparativa, respuesta guiada y revisión de hallazgos.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs text-white/70">
@@ -175,29 +204,104 @@ export default function ClinicalImagesPage() {
                 {mode === "practice" ? "Modo práctica" : "Modo evaluación"}
               </span>
               <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-cyan-100">
-                Biblioteca: {casePool.length} casos
+                Banco real: {casePool.length} estudios
+              </span>
+              <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1">
+                {availableCategories.length} dominios activos
               </span>
             </div>
           </header>
 
-          <section className="mt-4 rounded-2xl border border-cyan-400/15 bg-cyan-400/10 p-4">
-            <div className="text-xs uppercase tracking-[0.16em] text-cyan-100/70">Cómo usar este módulo</div>
-            <div className="mt-3 grid gap-3 md:grid-cols-4">
-              {[
-                ["Paso 1", "Observa la referencia y el caso"],
-                ["Paso 2", "Busca la diferencia principal"],
-                ["Paso 3", "Responde en el panel derecho"],
-                ["Paso 4", "Valida y revisa feedback"],
-              ].map(([title, body]) => (
-                <div key={title} className="rounded-2xl border border-white/10 bg-black/20 p-3">
-                  <div className="text-sm font-semibold text-white">{title}</div>
-                  <div className="mt-1 text-sm text-white/70">{body}</div>
-                </div>
-              ))}
+          <section className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.38fr)_360px]">
+            <div className="rounded-2xl border border-cyan-400/15 bg-[linear-gradient(135deg,rgba(8,24,38,0.95),rgba(13,18,31,0.92))] p-5">
+              <div className="text-xs uppercase tracking-[0.16em] text-cyan-100/70">Lectura comparativa</div>
+              <div className="mt-2 max-w-3xl text-lg font-semibold text-white">
+                El módulo ahora trabaja solo con casos respaldados por imagen real y referencia visual directa.
+              </div>
+              <div className="mt-2 max-w-3xl text-sm text-white/68">
+                Primero compara anatomía y contraste; luego define el hallazgo dominante y valida tu interpretación.
+              </div>
+
+              <div className="mt-4 grid gap-3 md:grid-cols-3">
+                {[
+                  ["Banco real", "Sin presets sintéticos en la selección activa."],
+                  ["Comparación limpia", "Referencia y caso principal en el mismo flujo visual."],
+                  ["Revisión guiada", "Highlights solo cuando ayudan o tras validar."],
+                ].map(([title, body]) => (
+                  <div key={title} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div className="text-sm font-semibold text-white">{title}</div>
+                    <div className="mt-1 text-sm text-white/66">{body}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-[#0B111D]/90 p-5">
+              {hasFilteredCases ? (
+                <>
+                  <div className="text-xs uppercase tracking-[0.14em] text-white/45">Caso activo</div>
+                  <div className="mt-2 text-lg font-semibold text-white">{caseSet.title}</div>
+                  <div className="mt-2 text-sm text-white/70">{caseSet.clinicalSummary}</div>
+                  <div className="mt-3 rounded-2xl border border-white/10 bg-black/25 p-3 text-sm text-white/68">
+                    {caseSet.patientProfile.name} · {caseSet.patientProfile.age} años ·{" "}
+                    {caseSet.patientProfile.sex === "female"
+                      ? "Femenino"
+                      : caseSet.patientProfile.sex === "male"
+                      ? "Masculino"
+                      : "No especificado"}
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                    <span className="rounded-full border border-white/15 bg-black/25 px-2.5 py-1 text-white/70">
+                      {clinicalImageCategoryLabel(caseSet.category)}
+                    </span>
+                    <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1 text-cyan-100">
+                      {clinicalImageDifficultyLabel(caseSet.difficulty)}
+                    </span>
+                    <span className="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-2.5 py-1 text-emerald-100">
+                      {clinicalImageContextLabel(caseSet.context)}
+                    </span>
+                  </div>
+                  <div className="mt-4 text-xs uppercase tracking-[0.14em] text-white/45">Pregunta guía</div>
+                  <div className="mt-1 text-sm text-white/72">{caseSet.questionStem}</div>
+                </>
+              ) : (
+                <>
+                  <div className="text-xs uppercase tracking-[0.14em] text-white/45">Sin coincidencias</div>
+                  <div className="mt-2 text-lg font-semibold text-white">No hay estudios reales con esos filtros</div>
+                  <div className="mt-2 text-sm text-white/70">
+                    Ajusta categoría, dificultad, contexto o búsqueda para volver al banco curado disponible.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={resetFilters}
+                    className="mt-4 rounded-xl border border-white/15 bg-black/35 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
+                  >
+                    Limpiar filtros
+                  </button>
+                </>
+              )}
             </div>
           </section>
 
-          <section className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-[#0B111D]/85 p-4 md:grid-cols-2 xl:grid-cols-7">
+          <section className="mt-4 rounded-2xl border border-white/10 bg-[#0B111D]/85 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="text-xs uppercase tracking-[0.14em] text-white/45">Control de lectura</div>
+                <div className="mt-1 text-sm text-white/68">
+                  Ajusta el pool activo y mantén la selección enfocada en casos reales disponibles.
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={loadNewCase}
+                disabled={!hasFilteredCases}
+                className="rounded-xl border border-white/15 bg-black/35 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
+              >
+                Nueva imagen
+              </button>
+            </div>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
             <label className="text-xs text-white/70">
               Modo
               <select
@@ -260,13 +364,11 @@ export default function ClinicalImagesPage() {
                 className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
               >
                 <option value="all">Todas</option>
-                <option value="radiologia_torax">Radiología de tórax</option>
-                <option value="fracturas">Fracturas</option>
-                <option value="dermatologia">Dermatología</option>
-                <option value="ulceras">Úlceras</option>
-                <option value="heridas">Heridas</option>
-                <option value="quemaduras">Quemaduras</option>
-                <option value="tiras_visuales">Tiras visuales</option>
+                {availableCategories.map((category) => (
+                  <option key={category} value={category}>
+                    {clinicalImageCategoryLabel(category)}
+                  </option>
+                ))}
               </select>
             </label>
 
@@ -278,13 +380,11 @@ export default function ClinicalImagesPage() {
                 disabled={usageMode === "integrated_case" && Boolean(activeCaseObj)}
                 className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white disabled:opacity-60"
               >
-                <option value="general">General</option>
-                <option value="respiratory">Respiratorio</option>
-                <option value="trauma">Trauma</option>
-                <option value="skin">Piel</option>
-                <option value="wound">Heridas</option>
-                <option value="burn">Quemaduras</option>
-                <option value="screening">Tamizaje visual</option>
+                {contextOptions.map((context) => (
+                  <option key={context} value={context}>
+                    {clinicalImageContextLabel(context)}
+                  </option>
+                ))}
               </select>
             </label>
 
@@ -297,44 +397,15 @@ export default function ClinicalImagesPage() {
                 placeholder="neumonía, úlcera, fractura..."
               />
             </label>
-          </section>
 
-          <section className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-black/25 p-4 xl:grid-cols-[1.45fr_0.95fr_auto]">
-            <div>
-              <div className="text-xs uppercase tracking-[0.14em] text-white/45">Caso actual</div>
-              <div className="mt-1 text-base font-semibold text-white">{caseSet.title}</div>
-              <div className="mt-1 text-sm text-white/70">{caseSet.clinicalSummary}</div>
-              <div className="mt-1 text-sm text-white/65">
-                {caseSet.patientProfile.name} · {caseSet.patientProfile.age} años ·{" "}
-                {caseSet.patientProfile.sex === "female" ? "Femenino" : caseSet.patientProfile.sex === "male" ? "Masculino" : "No especificado"}
-              </div>
-              <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                <span className="rounded-full border border-white/15 bg-black/25 px-2.5 py-1 text-white/70">
-                  {clinicalImageCategoryLabel(caseSet.category)}
-                </span>
-                <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1 text-cyan-100">
-                  {clinicalImageDifficultyLabel(caseSet.difficulty)}
-                </span>
-                <span className="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-2.5 py-1 text-emerald-100">
-                  {clinicalImageContextLabel(caseSet.context)}
-                </span>
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white/70">
-              <div className="font-semibold text-white/85">Panel del caso</div>
-              <div className="mt-2">Subcategoría: {caseSet.subcategory.replaceAll("_", " ")}</div>
-              <div className="mt-1">Pregunta: {caseSet.questionStem}</div>
-              <div className="mt-1">Uso: {usageMode === "integrated_case" ? "Integrado al caso" : "Práctica independiente"}</div>
-              <div className="mt-1">Pool filtrado: {selectionMode === "contextual_random" ? contextualPool.length : filteredPool.length}</div>
-              {selectionMode === "manual" && (
-                <label className="mt-3 block text-white/70">
+              {selectionMode === "manual" && hasFilteredCases && (
+                <label className="text-xs text-white/70 md:col-span-2 xl:col-span-2 2xl:col-span-3">
                   Imagen manual
                   <select
                     value={manualCaseId}
                     onChange={(event) => {
                       setManualCaseId(event.target.value);
-                      const next = filteredPool.find((item) => item.id === event.target.value) ?? CLINICAL_IMAGES_LIBRARY[0];
+                      const next = filteredPool.find((item) => item.id === event.target.value) ?? FALLBACK_CLINICAL_CASE;
                       setCaseSet(next);
                       clearInputs();
                     }}
@@ -350,25 +421,28 @@ export default function ClinicalImagesPage() {
               )}
             </div>
 
-            <div className="flex items-start justify-end gap-2">
-              <button
-                type="button"
-                onClick={loadNewCase}
-                className="rounded-xl border border-white/15 bg-black/35 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
-              >
-                Nueva imagen
-              </button>
+            <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/70">
+              <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1">
+                Pool activo: {selectionMode === "contextual_random" ? contextualPool.length : filteredPool.length}
+              </span>
+              <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1">
+                Subcategoría: {caseSet.subcategory.replaceAll("_", " ")}
+              </span>
+              <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1">
+                Uso: {usageMode === "integrated_case" ? "Integrado al caso" : "Práctica independiente"}
+              </span>
             </div>
           </section>
 
-          <section className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.48fr)_380px] 2xl:grid-cols-[minmax(0,1.56fr)_410px]">
+          {hasFilteredCases ? (
+            <section className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.7fr)_360px] 2xl:grid-cols-[minmax(0,1.78fr)_390px]">
             <div className="rounded-2xl border border-white/10 bg-[#0B101A]/90 p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <div className="text-xs uppercase tracking-[0.14em] text-white/45">Paso 1 · Observa la imagen</div>
+                  <div className="text-xs uppercase tracking-[0.14em] text-white/45">Paso 1 · Lee la imagen real</div>
                   <div className="mt-1 text-lg font-semibold text-white">{caseSet.patientProfile.chiefComplaint}</div>
                   <div className="mt-1 text-sm text-white/60">
-                    Compara referencia y caso antes de decidir cual es el hallazgo dominante.
+                    Compara referencia y caso principal antes de decidir cuál es el hallazgo dominante.
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -501,7 +575,32 @@ export default function ClinicalImagesPage() {
                 </div>
               )}
             </div>
-          </section>
+            </section>
+          ) : (
+            <section className="mt-4 rounded-2xl border border-dashed border-white/15 bg-[#0B101A]/75 p-8 text-center">
+              <div className="text-xs uppercase tracking-[0.16em] text-white/45">Banco temporalmente vacío</div>
+              <div className="mt-3 text-2xl font-semibold text-white">No hay imágenes reales que coincidan con esta búsqueda</div>
+              <div className="mx-auto mt-3 max-w-2xl text-sm text-white/65">
+                El simulador solo muestra casos respaldados por asset real. Si el filtro actual deja el pool en cero, ocultamos el caso previo para evitar lecturas engañosas.
+              </div>
+              <div className="mt-5 flex flex-wrap justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black"
+                >
+                  Restablecer filtros
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  className="rounded-xl border border-white/15 bg-black/25 px-4 py-2 text-sm text-white/80"
+                >
+                  Limpiar búsqueda
+                </button>
+              </div>
+            </section>
+          )}
         </main>
       </div>
     </div>

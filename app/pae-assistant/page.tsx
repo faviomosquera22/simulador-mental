@@ -762,31 +762,7 @@ export default function PaeAssistantPage() {
 
         <main className="flex-1 px-4 py-5 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-[1640px]">
-            <header className="no-print rounded-[30px] border border-white/10 bg-[#09111f]/92 p-6 shadow-[0_24px_70px_rgba(0,0,0,0.28)]">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                <div>
-                  <div className="inline-flex items-center rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-100">
-                    Nueva ayuda educativa
-                  </div>
-                  <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white">PAE asistido</h1>
-                  <p className="mt-2 max-w-3xl text-sm text-white/68">
-                    Escribe el diagnóstico médico o problema principal, recibe sugerencias NANDA, NOC y NIC,
-                    elige por listas y genera el plan en el formato institucional listo para imprimir.
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-2 text-xs text-white/70">
-                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">
-                    Contexto sugerido: {getPaeContextLabel(assistantQuery ? inferredContext : "all")}
-                  </span>
-                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">
-                    NANDA {NANDA_LIBRARY.length} · NOC {NOC_LIBRARY.length} · NIC {NIC_LIBRARY.length}
-                  </span>
-                </div>
-              </div>
-            </header>
-
-            <div className="mt-6 grid gap-6 xl:grid-cols-[430px_minmax(0,1fr)]">
+            <div className="grid gap-6 xl:grid-cols-[430px_minmax(0,1fr)]">
               <aside className="no-print space-y-5 xl:sticky xl:top-5 xl:max-h-[calc(100vh-2.5rem)] xl:overflow-y-auto xl:pr-1">
                 <section className={SECTION_CARD}>
                   <div className="flex items-center justify-between gap-3">

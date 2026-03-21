@@ -4,6 +4,21 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/src/lib/supabaseClient";
+import {
+  EMPTY_PROFILE,
+  PROFILE_KEYS,
+  PROFILE_UPDATED_EVENT,
+  clearStoredProfile,
+  extractProfileFromAuth,
+  getProfileDisplayName,
+  getProfileInitial,
+  mergeProfiles,
+  normalizeText,
+  persistProfile,
+  readStoredProfile,
+  serializeComparableProfile,
+  type UserProfile,
+} from "@/src/lib/userProfile";
 
 type NavItem = {
   label: string;
@@ -280,6 +295,11 @@ export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hasActiveCase, setHasActiveCase] = useState(false);
   const [isCacesRoute, setIsCacesRoute] = useState(false);
+  const [profile, setProfile] = useState<UserProfile>(EMPTY_PROFILE);
+
+  const displayName = getProfileDisplayName(profile, "Usuario");
+  const displayInitial = getProfileInitial(profile, "U");
+  const displayRole = normalizeText(profile.role) || "Perfil por completar";
 
   useEffect(() => {
     const check = () => {
@@ -311,6 +331,63 @@ export default function Sidebar() {
     setMobileOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    let active = true;
+
+    const refreshProfile = async () => {
+      const storedProfile = readStoredProfile();
+      let nextProfile = storedProfile ?? EMPTY_PROFILE;
+
+      try {
+        const { data } = await supabase.auth.getUser();
+        const authProfile = extractProfileFromAuth(data.user);
+
+        if (authProfile) {
+          const nextUserId = normalizeText(authProfile.userId);
+          const sameOwner =
+            !storedProfile?.userId || !nextUserId || normalizeText(storedProfile.userId) === nextUserId;
+          nextProfile = mergeProfiles(sameOwner ? storedProfile : EMPTY_PROFILE, authProfile);
+
+          if (
+            !storedProfile ||
+            !sameOwner ||
+            serializeComparableProfile(storedProfile) !== serializeComparableProfile(nextProfile)
+          ) {
+            nextProfile = persistProfile(nextProfile);
+          }
+        }
+      } catch {
+        // ignore auth sync failures
+      }
+
+      if (!active) return;
+
+      setProfile(nextProfile);
+    };
+
+    const handleProfileEvent = () => {
+      void refreshProfile();
+    };
+
+    void refreshProfile();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      void refreshProfile();
+    });
+
+    window.addEventListener("storage", handleProfileEvent);
+    window.addEventListener(PROFILE_UPDATED_EVENT, handleProfileEvent);
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+      window.removeEventListener("storage", handleProfileEvent);
+      window.removeEventListener(PROFILE_UPDATED_EVENT, handleProfileEvent);
+    };
+  }, []);
+
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -319,11 +396,13 @@ export default function Sidebar() {
     }
 
     try {
+      clearStoredProfile();
       localStorage.removeItem("activeCase");
       localStorage.removeItem("activeTranscript");
       localStorage.removeItem("sessionEnded");
       localStorage.removeItem("sessionEndedInfo");
       localStorage.removeItem("activeReport");
+      PROFILE_KEYS.forEach((key) => sessionStorage.removeItem(key));
     } catch {
       // ignore
     }
@@ -409,6 +488,19 @@ export default function Sidebar() {
 
   return (
     <>
+      <Link
+        href="/profile"
+        className="fixed right-3 top-3 z-40 flex max-w-[calc(100vw-4.5rem)] items-center gap-3 rounded-2xl border border-white/10 bg-[#0F1117]/90 px-3 py-2 text-left shadow-[0_18px_55px_rgba(0,0,0,0.42)] backdrop-blur-xl"
+      >
+        <div className="flex h-9 w-9 items-center justify-center rounded-full border border-sky-400/20 bg-sky-400/10 text-sm font-semibold text-sky-100">
+          {displayInitial}
+        </div>
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-white/40">Sesión activa</div>
+          <div className="max-w-[180px] truncate text-sm font-semibold text-white">{displayName}</div>
+        </div>
+      </Link>
+
       <button
         type="button"
         onClick={() => setMobileOpen(true)}
@@ -457,6 +549,18 @@ export default function Sidebar() {
             </button>
           </div>
 
+          <div className="border-b border-white/10 px-4 py-4">
+            <Link href="/profile" className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3">
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border border-sky-400/20 bg-sky-400/10 text-sm font-semibold text-sky-100">
+                {displayInitial}
+              </div>
+              <div className="min-w-0">
+                <div className="truncate text-sm font-semibold text-white">{displayName}</div>
+                <div className="truncate text-xs text-white/45">{displayRole}</div>
+              </div>
+            </Link>
+          </div>
+
           <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
             {renderNavItems({ closeOnNavigate: true })}
           </nav>
@@ -499,54 +603,75 @@ export default function Sidebar() {
               </svg>
             </div>
 
-          {!collapsed && (
-            <div className="min-w-0">
-              <div className="truncate text-sm font-semibold text-white">Psyke</div>
-              <div className="text-[10px] text-white/40">Simulador clínico</div>
-            </div>
-          )}
-        </div>
-
-        <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
-          {renderNavItems({ compact: collapsed })}
-        </nav>
-
-        <div className="border-t border-white/10 p-2">
-          <button
-            type="button"
-            onClick={() => setCollapsed((v) => !v)}
-            className={cn(
-              "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm transition",
-              "text-white/50 hover:bg-white/5 hover:text-white/80"
+            {!collapsed && (
+              <div className="min-w-0">
+                <div className="truncate text-sm font-semibold text-white">Psyke</div>
+                <div className="text-[10px] text-white/40">Simulador clínico</div>
+              </div>
             )}
-          >
-            <span className="flex h-6 w-6 items-center justify-center">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </span>
-            {!collapsed && <span>Colapsar</span>}
-          </button>
+          </div>
 
-          <button
-            type="button"
-            onClick={handleLogout}
-            className={cn(
-              "mt-1 flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm transition",
-              "text-white/70 hover:bg-white/5 hover:text-white"
-            )}
-          >
-            <span className="flex h-6 w-6 items-center justify-center">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M10 17l5-5-5-5" />
-                <path d="M15 12H3" />
-                <path d="M21 12a9 9 0 0 0-9-9" />
-                <path d="M12 21a9 9 0 0 0 9-9" />
-              </svg>
-            </span>
-            {!collapsed && <span>Cerrar sesión</span>}
-          </button>
-        </div>
+          <div className="border-b border-white/10 px-3 py-4">
+            <Link
+              href="/profile"
+              className={cn(
+                "flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] transition hover:bg-white/8",
+                collapsed ? "justify-center px-2 py-3" : "px-3 py-3"
+              )}
+              title={collapsed ? displayName : undefined}
+            >
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border border-sky-400/20 bg-sky-400/10 text-sm font-semibold text-sky-100">
+                {displayInitial}
+              </div>
+              {!collapsed && (
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-semibold text-white">{displayName}</div>
+                  <div className="truncate text-xs text-white/45">{displayRole}</div>
+                </div>
+              )}
+            </Link>
+          </div>
+
+          <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
+            {renderNavItems({ compact: collapsed })}
+          </nav>
+
+          <div className="border-t border-white/10 p-2">
+            <button
+              type="button"
+              onClick={() => setCollapsed((v) => !v)}
+              className={cn(
+                "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm transition",
+                "text-white/50 hover:bg-white/5 hover:text-white/80"
+              )}
+            >
+              <span className="flex h-6 w-6 items-center justify-center">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+              </span>
+              {!collapsed && <span>Colapsar</span>}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className={cn(
+                "mt-1 flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm transition",
+                "text-white/70 hover:bg-white/5 hover:text-white"
+              )}
+            >
+              <span className="flex h-6 w-6 items-center justify-center">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M10 17l5-5-5-5" />
+                  <path d="M15 12H3" />
+                  <path d="M21 12a9 9 0 0 0-9-9" />
+                  <path d="M12 21a9 9 0 0 0 9-9" />
+                </svg>
+              </span>
+              {!collapsed && <span>Cerrar sesión</span>}
+            </button>
+          </div>
         </div>
       </aside>
     </>

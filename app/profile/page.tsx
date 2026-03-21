@@ -7,129 +7,24 @@ import { useRouter } from "next/navigation";
 import Sidebar from "../../components/Sidebar";
 import { getHistory, type SessionRecord } from "../../lib/history";
 import { supabase } from "@/src/lib/supabaseClient";
-
-type Profile = {
-  name?: string;
-  email?: string;
-  role?: string;
-  career?: string;
-  avatarUrl?: string;
-  updatedAt?: string;
-};
+import {
+  EMPTY_PROFILE,
+  PROFILE_KEYS,
+  clearStoredProfile,
+  extractProfileFromAuth,
+  mergeProfiles,
+  normalizeProfile,
+  normalizeText,
+  persistProfile,
+  readStoredProfile,
+  serializeComparableProfile,
+  type UserProfile as Profile,
+} from "@/src/lib/userProfile";
 
 type Notice = {
   tone: "success" | "error" | "info";
   message: string;
 };
-
-const PROFILE_KEYS = ["profile", "userProfile", "app_profile"] as const;
-
-const EMPTY_PROFILE: Profile = {
-  name: "",
-  email: "",
-  role: "",
-  career: "",
-  avatarUrl: "",
-};
-
-function safeParse<T>(raw: string | null): T | null {
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return null;
-  }
-}
-
-function normalizeText(value?: string) {
-  return typeof value === "string" ? value.trim() : "";
-}
-
-function normalizeProfile(profile?: Profile | null): Profile {
-  return {
-    name: normalizeText(profile?.name),
-    email: normalizeText(profile?.email),
-    role: normalizeText(profile?.role),
-    career: normalizeText(profile?.career),
-    avatarUrl: normalizeText(profile?.avatarUrl),
-    updatedAt: profile?.updatedAt,
-  };
-}
-
-function serializeComparableProfile(profile: Profile) {
-  const normalized = normalizeProfile(profile);
-  return JSON.stringify({
-    name: normalized.name,
-    email: normalized.email,
-    role: normalized.role,
-    career: normalized.career,
-    avatarUrl: normalized.avatarUrl,
-  });
-}
-
-function readStoredProfile() {
-  for (const key of PROFILE_KEYS) {
-    const parsed = safeParse<Profile>(localStorage.getItem(key));
-    if (parsed) return normalizeProfile(parsed);
-  }
-  return null;
-}
-
-function persistProfile(profile: Profile) {
-  const payload: Profile = {
-    ...normalizeProfile(profile),
-    updatedAt: new Date().toISOString(),
-  };
-
-  PROFILE_KEYS.forEach((key) => {
-    localStorage.setItem(key, JSON.stringify(payload));
-  });
-
-  return payload;
-}
-
-function pickMetaString(meta: Record<string, unknown>, keys: string[]) {
-  for (const key of keys) {
-    const value = meta[key];
-    if (typeof value === "string" && value.trim()) return value.trim();
-  }
-  return "";
-}
-
-function extractProfileFromAuth(user: any): Profile | null {
-  if (!user) return null;
-
-  const meta = typeof user.user_metadata === "object" && user.user_metadata ? user.user_metadata : {};
-  const safeMeta = meta as Record<string, unknown>;
-
-  const profile = normalizeProfile({
-    name: pickMetaString(safeMeta, ["full_name", "name", "display_name", "user_name"]),
-    email: typeof user.email === "string" ? user.email.trim() : pickMetaString(safeMeta, ["email"]),
-    role: pickMetaString(safeMeta, ["role", "user_role", "position"]),
-    career: pickMetaString(safeMeta, ["career", "program", "specialty"]),
-    avatarUrl: pickMetaString(safeMeta, ["avatar_url", "picture", "avatarUrl"]),
-  });
-
-  if (!profile.name && !profile.email && !profile.role && !profile.career && !profile.avatarUrl) {
-    return null;
-  }
-
-  return profile;
-}
-
-function mergeProfiles(primary?: Profile | null, fallback?: Profile | null): Profile {
-  const base = normalizeProfile(primary);
-  const incoming = normalizeProfile(fallback);
-
-  return {
-    name: base.name || incoming.name,
-    email: base.email || incoming.email,
-    role: base.role || incoming.role,
-    career: base.career || incoming.career,
-    avatarUrl: base.avatarUrl || incoming.avatarUrl,
-    updatedAt: base.updatedAt || incoming.updatedAt,
-  };
-}
 
 function formatLastUpdate(value?: string) {
   if (!value) return "Aun no guardado";
@@ -303,6 +198,7 @@ export default function ProfilePage() {
 
   const handleLoadDemo = () => {
     const demo = persistProfile({
+      userId: profile.userId,
       name: "Favio Mendoza",
       email: "favio@psyke.academy",
       role: "Estudiante",
@@ -325,7 +221,6 @@ export default function ProfilePage() {
     }
 
     const keys = [
-      ...PROFILE_KEYS,
       "activeCase",
       "activeTranscript",
       "lastEmotion",
@@ -337,6 +232,15 @@ export default function ProfilePage() {
     keys.forEach((key) => {
       try {
         localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      } catch {
+        // ignore
+      }
+    });
+
+    clearStoredProfile();
+    PROFILE_KEYS.forEach((key) => {
+      try {
         sessionStorage.removeItem(key);
       } catch {
         // ignore

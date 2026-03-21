@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { type ChangeEvent, type FormEvent, useEffect, useMemo, useState } from "react";
 
 import Sidebar from "../../components/Sidebar";
 import { getHistory, type SessionRecord } from "../../lib/history";
+import { supabase } from "@/src/lib/supabaseClient";
 import {
   DASHBOARD_GROUP_LABELS,
   DASHBOARD_MODULES,
@@ -13,6 +14,20 @@ import {
   type DashboardModuleGroup,
   type DashboardModuleMeta,
 } from "@/src/lib/dashboardCatalog";
+import {
+  EMPTY_PROFILE,
+  PROFILE_UPDATED_EVENT,
+  extractProfileFromAuth,
+  getProfileDisplayName,
+  isProfileComplete,
+  mergeProfiles,
+  normalizeProfile,
+  normalizeText,
+  persistProfile,
+  readStoredProfile,
+  serializeComparableProfile,
+  type UserProfile,
+} from "@/src/lib/userProfile";
 
 type TranscriptTurn = { role: string; content: string };
 
@@ -40,6 +55,21 @@ type ModuleAdvisorMeta = {
   minMinutes: number;
   maxMinutes: number;
   companionIds: string[];
+};
+
+type CareerTrack = {
+  label: string;
+  helper: string;
+  primaryId: string;
+  supportIds: string[];
+  weaknessIds: string[];
+  intent: AdvisorIntent;
+  format: AdvisorFormat;
+};
+
+type ProfileNotice = {
+  tone: "success" | "error" | "info";
+  message: string;
 };
 
 const DASHBOARD_GROUP_ORDER: DashboardModuleGroup[] = [
@@ -252,6 +282,79 @@ const MODULE_PLAYBOOK: Record<string, ModuleAdvisorMeta> = {
     maxMinutes: 30,
     companionIds: ["notes", "pae"],
   },
+};
+
+const CAREER_TRACKS: Array<CareerTrack & { keywords: string[] }> = [
+  {
+    label: "Enfermería clínica",
+    helper: "Prioriza continuidad, seguridad, procedimientos y documentación estructurada.",
+    primaryId: "mental-sim",
+    supportIds: ["medications", "notes", "pae-assistant"],
+    weaknessIds: ["triage", "urgencies", "notes"],
+    intent: "documentacion",
+    format: "guiado",
+    keywords: ["enfermer", "nursing", "auxiliar", "tecnolog", "terapia"],
+  },
+  {
+    label: "Medicina general",
+    helper: "Sube razonamiento clínico con diagnóstico, urgencias y simulación progresiva.",
+    primaryId: "pathologies",
+    supportIds: ["ecg", "laboratory", "dynamic-simulator"],
+    weaknessIds: ["ecg", "gasometry", "urgencies"],
+    intent: "diagnostico",
+    format: "intensivo",
+    keywords: ["medicin", "doctor", "médic", "intern", "residen"],
+  },
+  {
+    label: "Salud mental",
+    helper: "Concentra entrevista, formulación clínica, riesgo y seguimiento longitudinal.",
+    primaryId: "mental-sim",
+    supportIds: ["notes", "pae-assistant", "dynamic-simulator"],
+    weaknessIds: ["urgencies", "notes", "dynamic-simulator"],
+    intent: "continuidad",
+    format: "guiado",
+    keywords: ["psicolog", "mental", "psiqui", "psicoter", "consejer"],
+  },
+  {
+    label: "Emergencias y respuesta rápida",
+    helper: "Practica priorización, soporte vital, monitorización y conducta inicial.",
+    primaryId: "urgencies",
+    supportIds: ["triage", "rcp-algorithms", "ecg"],
+    weaknessIds: ["triage", "rcp-algorithms", "gasometry"],
+    intent: "intervencion",
+    format: "intensivo",
+    keywords: ["emergen", "urgenc", "critico", "uci", "intensiv"],
+  },
+  {
+    label: "Materno infantil",
+    helper: "Integra obstetricia, pediatría y ultrasonido con decisiones por contexto.",
+    primaryId: "materno-infantil",
+    supportIds: ["ultrasound", "medications", "pathologies"],
+    weaknessIds: ["ultrasound", "triage", "medications"],
+    intent: "avanzado",
+    format: "guiado",
+    keywords: ["obstet", "gine", "materno", "neonat", "pediatr"],
+  },
+  {
+    label: "Imagen y diagnóstico",
+    helper: "Enfoca lectura visual, correlación de hallazgos y soporte diagnóstico.",
+    primaryId: "clinical-images",
+    supportIds: ["ultrasound", "ecg", "laboratory"],
+    weaknessIds: ["clinical-images", "ultrasound", "laboratory"],
+    intent: "diagnostico",
+    format: "visual",
+    keywords: ["imagen", "radiolog", "diagnost", "eco", "ultrason"],
+  },
+];
+
+const DEFAULT_TRACK: CareerTrack = {
+  label: "Ruta clínica general",
+  helper: "Empieza con un módulo sólido y luego abre diagnóstico y práctica operativa.",
+  primaryId: "pathologies",
+  supportIds: ["mental-sim", "ecg", "notes"],
+  weaknessIds: ["ecg", "laboratory", "notes"],
+  intent: "continuidad",
+  format: "guiado",
 };
 
 function safeText(v: any, fallback = "—") {
@@ -515,16 +618,35 @@ function getFocusState(intent: AdvisorIntent, hasActive: boolean, hasHighRisk: b
   };
 }
 
+function getNoticeClass(tone: ProfileNotice["tone"]) {
+  if (tone === "success") return "border-emerald-400/25 bg-emerald-400/10 text-emerald-100";
+  if (tone === "error") return "border-red-400/25 bg-red-400/10 text-red-100";
+  return "border-sky-400/25 bg-sky-400/10 text-sky-100";
+}
+
+function inferCareerTrack(career?: string, role?: string): CareerTrack {
+  const haystack = normalizeText(`${career ?? ""} ${role ?? ""}`).toLowerCase();
+  if (!haystack) return DEFAULT_TRACK;
+  return CAREER_TRACKS.find((track) => track.keywords.some((keyword) => haystack.includes(keyword))) ?? DEFAULT_TRACK;
+}
+
+function pickModuleById(moduleId?: string) {
+  return DASHBOARD_MODULES.find((module) => module.id === moduleId);
+}
+
 export default function DashboardPage() {
   const [hasActive, setHasActive] = useState(false);
   const [activeCase, setActiveCase] = useState<any>(null);
   const [activeTranscript, setActiveTranscript] = useState<TranscriptTurn[]>([]);
   const [endedInfo, setEndedInfo] = useState<any>(null);
   const [history, setHistory] = useState<StoredSession[]>([]);
-  const [selectedIntent, setSelectedIntent] = useState<AdvisorIntent>("continuidad");
-  const [selectedFormat, setSelectedFormat] = useState<AdvisorFormat>("guiado");
+  const [profile, setProfile] = useState<UserProfile>(EMPTY_PROFILE);
+  const [profileDraft, setProfileDraft] = useState<UserProfile>(EMPTY_PROFILE);
+  const [profileReady, setProfileReady] = useState(false);
+  const [profileNotice, setProfileNotice] = useState<ProfileNotice | null>(null);
+  const [authDetected, setAuthDetected] = useState(false);
   const [selectedTime, setSelectedTime] = useState<AdvisorTime>("30");
-  const [advisorTouched, setAdvisorTouched] = useState(false);
+  const [timeTouched, setTimeTouched] = useState(false);
 
   useEffect(() => {
     const refresh = () => {
@@ -543,6 +665,62 @@ export default function DashboardPage() {
     return () => {
       window.removeEventListener("storage", refresh);
       window.clearInterval(id);
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    const refreshProfile = async () => {
+      let nextProfile = readStoredProfile() ?? EMPTY_PROFILE;
+      const storedProfile = readStoredProfile();
+
+      try {
+        const { data } = await supabase.auth.getUser();
+        const authProfile = extractProfileFromAuth(data.user);
+
+        if (authProfile) {
+          setAuthDetected(true);
+          nextProfile = mergeProfiles(storedProfile, authProfile);
+          if (
+            !storedProfile ||
+            serializeComparableProfile(storedProfile) !== serializeComparableProfile(nextProfile)
+          ) {
+            nextProfile = persistProfile(nextProfile);
+          }
+        } else {
+          setAuthDetected(false);
+        }
+      } catch {
+        setAuthDetected(false);
+      }
+
+      if (!active) return;
+      setProfile(nextProfile);
+      setProfileDraft(nextProfile);
+      setProfileReady(true);
+    };
+
+    const handleProfileEvent = () => {
+      void refreshProfile();
+    };
+
+    void refreshProfile();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      void refreshProfile();
+    });
+
+    window.addEventListener("storage", handleProfileEvent);
+    window.addEventListener(PROFILE_UPDATED_EVENT, handleProfileEvent);
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+      window.removeEventListener("storage", handleProfileEvent);
+      window.removeEventListener(PROFILE_UPDATED_EVENT, handleProfileEvent);
     };
   }, []);
 
@@ -576,6 +754,17 @@ export default function DashboardPage() {
   const lastClosed = history[0];
   const currentRiskLevel = hasActive ? normalizeRiskLevel(meta.risk) : lastClosed?.riskLevel ?? "—";
   const hasHighRisk = history.some((h) => h.riskLevel === "Alto") || currentRiskLevel === "Alto";
+  const profileComplete = useMemo(() => isProfileComplete(profile), [profile]);
+  const displayName = useMemo(
+    () => getProfileDisplayName(normalizeText(profileDraft.name) ? profileDraft : profile, "Usuario"),
+    [profile, profileDraft]
+  );
+  const displayCareer = normalizeText(profileDraft.career) || normalizeText(profile.career) || "Perfil aún sin carrera definida";
+  const displayRole = normalizeText(profileDraft.role) || normalizeText(profile.role) || "Rol aún sin completar";
+  const careerTrack = useMemo(
+    () => inferCareerTrack(normalizeText(profileDraft.career) || profile.career, normalizeText(profileDraft.role) || profile.role),
+    [profile.career, profile.role, profileDraft.career, profileDraft.role]
+  );
 
   const suggestedAdvisor = useMemo(() => {
     const intent: AdvisorIntent = hasActive
@@ -584,12 +773,13 @@ export default function DashboardPage() {
       ? "intervencion"
       : typeof avgScore === "number" && avgScore < 72
       ? "diagnostico"
-      : completedCount > 0
-      ? "avanzado"
-      : "continuidad";
+      : careerTrack.intent;
 
-    const format: AdvisorFormat =
-      intent === "diagnostico" ? "visual" : intent === "avanzado" ? "intensivo" : "guiado";
+    const format: AdvisorFormat = hasHighRisk
+      ? "intensivo"
+      : intent === "diagnostico"
+      ? "visual"
+      : careerTrack.format;
 
     const time: AdvisorTime = hasActive && meta.targetMinutes
       ? meta.targetMinutes <= 20
@@ -603,21 +793,23 @@ export default function DashboardPage() {
         : avgDuration <= 45
         ? "30"
         : "60"
+      : careerTrack.primaryId === "urgencies" || careerTrack.primaryId === "triage"
+      ? "15"
+      : careerTrack.primaryId === "dynamic-simulator" || careerTrack.primaryId === "materno-infantil"
+      ? "60"
       : "30";
 
     return { intent, format, time };
-  }, [avgDuration, avgScore, completedCount, hasActive, hasHighRisk, meta.targetMinutes]);
+  }, [avgDuration, avgScore, careerTrack.format, careerTrack.intent, careerTrack.primaryId, hasActive, hasHighRisk, meta.targetMinutes]);
 
   useEffect(() => {
-    if (advisorTouched) return;
-    setSelectedIntent(suggestedAdvisor.intent);
-    setSelectedFormat(suggestedAdvisor.format);
+    if (timeTouched) return;
     setSelectedTime(suggestedAdvisor.time);
-  }, [advisorTouched, suggestedAdvisor]);
+  }, [suggestedAdvisor.time, timeTouched]);
 
   const focusState = useMemo(
-    () => getFocusState(selectedIntent, hasActive, hasHighRisk, avgScore),
-    [avgScore, hasActive, hasHighRisk, selectedIntent]
+    () => getFocusState(suggestedAdvisor.intent, hasActive, hasHighRisk, avgScore),
+    [avgScore, hasActive, hasHighRisk, suggestedAdvisor.intent]
   );
 
   const recommendations = useMemo(() => {
@@ -631,32 +823,39 @@ export default function DashboardPage() {
       };
 
       let score = module.highlight ? 1 : 0;
-      if (playbook.intents.includes(selectedIntent)) score += 5;
-      if (playbook.formats.includes(selectedFormat)) score += 3;
+      if (playbook.intents.includes(suggestedAdvisor.intent)) score += 5;
+      if (playbook.formats.includes(suggestedAdvisor.format)) score += 3;
       score += getTimeScore(selectedTime, playbook);
+      if (module.id === careerTrack.primaryId) score += 4;
+      if (careerTrack.supportIds.includes(module.id)) score += 2;
 
-      if (hasActive && selectedIntent === "continuidad" && module.group === "simulacion") score += 2;
+      if (hasActive && suggestedAdvisor.intent === "continuidad" && module.group === "simulacion") score += 2;
       if (hasHighRisk && ["urgencies", "ecg", "laboratory", "gasometry", "rcp-algorithms"].includes(module.id)) score += 2;
       if (typeof avgScore === "number" && avgScore < 72 && (module.group === "diagnostico" || module.group === "practica")) {
         score += 2;
       }
-      if (selectedIntent === "documentacion" && ["pae", "pae-assistant", "notes", "caces"].includes(module.id)) {
+      if (suggestedAdvisor.intent === "documentacion" && ["pae", "pae-assistant", "notes", "caces"].includes(module.id)) {
         score += 1;
       }
-      if (selectedIntent === "avanzado" && module.group === "avanzado") {
+      if (suggestedAdvisor.intent === "avanzado" && module.group === "avanzado") {
         score += 1;
       }
 
       const reasons: string[] = [];
-      if (playbook.intents.includes(selectedIntent)) {
-        reasons.push(`Alineado con ${getIntentLabel(selectedIntent).toLowerCase()}.`);
+      if (module.id === careerTrack.primaryId) {
+        reasons.push(`Encaja con tu perfil de ${careerTrack.label.toLowerCase()}.`);
+      } else if (careerTrack.supportIds.includes(module.id)) {
+        reasons.push("Complementa bien tu ruta principal actual.");
       }
-      if (playbook.formats.includes(selectedFormat)) {
-        reasons.push(`Encaja con modalidad ${getFormatLabel(selectedFormat).toLowerCase()}.`);
+      if (playbook.intents.includes(suggestedAdvisor.intent)) {
+        reasons.push(`Alineado con ${getIntentLabel(suggestedAdvisor.intent).toLowerCase()}.`);
+      }
+      if (playbook.formats.includes(suggestedAdvisor.format)) {
+        reasons.push(`Encaja con modalidad ${getFormatLabel(suggestedAdvisor.format).toLowerCase()}.`);
       }
       reasons.push(`Ventana sugerida: ${formatWindow(playbook)}.`);
 
-      if (hasActive && selectedIntent === "continuidad" && module.group === "simulacion") {
+      if (hasActive && suggestedAdvisor.intent === "continuidad" && module.group === "simulacion") {
         reasons.push("Mantiene continuidad clínica con tu caso actual.");
       } else if (hasHighRisk && ["urgencies", "ecg", "laboratory", "gasometry", "rcp-algorithms"].includes(module.id)) {
         reasons.push("Refuerza seguridad y respuesta rápida.");
@@ -673,10 +872,12 @@ export default function DashboardPage() {
         playbook,
       };
     }).sort((a, b) => b.score - a.score || Number(Boolean(b.highlight)) - Number(Boolean(a.highlight)));
-  }, [avgScore, hasActive, hasHighRisk, selectedFormat, selectedIntent, selectedTime]);
+  }, [avgScore, careerTrack.label, careerTrack.primaryId, careerTrack.supportIds, hasActive, hasHighRisk, selectedTime, suggestedAdvisor.format, suggestedAdvisor.intent]);
 
   const topRecommendation = recommendations[0];
   const secondaryRecommendations = recommendations.slice(1, 4);
+  const idealSimulator = pickModuleById(careerTrack.primaryId) ?? topRecommendation;
+  const quickPractice = recommendations.find((module) => module.id !== idealSimulator?.id) ?? topRecommendation;
 
   const topRoute = useMemo(() => {
     if (!topRecommendation) return [];
@@ -693,6 +894,61 @@ export default function DashboardPage() {
       .slice(0, 3);
   }, [topRecommendation]);
 
+  const nextModule = useMemo(() => {
+    if (hasActive) return topRoute[1] ?? pickModuleById(careerTrack.supportIds[0]) ?? quickPractice;
+    if (lastClosed && hasHighRisk) return pickModuleById("urgencies") ?? quickPractice;
+    if (lastClosed && typeof avgScore === "number" && avgScore < 72) {
+      return pickModuleById(careerTrack.weaknessIds[0]) ?? quickPractice;
+    }
+    return topRoute[1] ?? pickModuleById(careerTrack.supportIds[0]) ?? quickPractice;
+  }, [avgScore, careerTrack.supportIds, careerTrack.weaknessIds, hasActive, hasHighRisk, lastClosed, quickPractice, topRoute]);
+
+  const weaknessFocus = useMemo(() => {
+    if (hasHighRisk) {
+      return {
+        title: "Seguridad y respuesta rápida",
+        helper: "Tus datos recientes piden reforzar contención, priorización y conducta inicial.",
+        modules: ["urgencies", "triage", "rcp-algorithms"]
+          .map(pickModuleById)
+          .filter((module): module is DashboardModuleMeta => Boolean(module)),
+      };
+    }
+
+    if (typeof avgScore === "number" && avgScore < 72) {
+      return {
+        title: "Base diagnóstica y operativa",
+        helper: "Conviene reforzar interpretación y secuencia clínica antes de subir complejidad.",
+        modules: careerTrack.weaknessIds
+          .map(pickModuleById)
+          .filter((module): module is DashboardModuleMeta => Boolean(module)),
+      };
+    }
+
+    if (completedCount < 3) {
+      return {
+        title: "Base de práctica todavía corta",
+        helper: "Aún hace falta consolidar una rutina básica de entrenamiento y cierre.",
+        modules: careerTrack.supportIds
+          .map(pickModuleById)
+          .filter((module): module is DashboardModuleMeta => Boolean(module)),
+      };
+    }
+
+    return {
+      title: "Subir complejidad con control",
+      helper: "Tu siguiente refuerzo puede orientarse a integrar módulos complementarios más densos.",
+      modules: [pickModuleById("dynamic-simulator"), pickModuleById("clinical-images"), pickModuleById("materno-infantil")].filter(
+        (module): module is DashboardModuleMeta => Boolean(module)
+      ),
+    };
+  }, [avgScore, careerTrack.supportIds, careerTrack.weaknessIds, completedCount, hasHighRisk]);
+
+  const profileCompletion = useMemo(() => {
+    const normalized = normalizeProfile(profileDraft);
+    const completedFields = [normalized.name, normalized.email, normalized.role, normalized.career].filter(Boolean).length;
+    return Math.round((completedFields / 4) * 100);
+  }, [profileDraft]);
+
   const groupedModules = useMemo(
     () =>
       DASHBOARD_GROUP_ORDER.map((group) => ({
@@ -705,7 +961,7 @@ export default function DashboardPage() {
 
   const primaryAction = hasActive
     ? { href: "/simulator", label: "Reanudar caso", helper: "Retoma entrevista, decisiones y evolución del escenario activo." }
-    : { href: topRecommendation?.href ?? "/cases", label: "Abrir recomendación", helper: "Entra directo al módulo que mejor se ajusta al objetivo actual." };
+    : { href: topRecommendation?.href ?? "/cases", label: "Abrir recomendación", helper: "Entra directo al módulo que mejor se ajusta a tu estado actual." };
 
   const contextMetrics = [
     {
@@ -747,25 +1003,54 @@ export default function DashboardPage() {
     window.location.assign("/results");
   };
 
-  const selectIntent = (intent: AdvisorIntent) => {
-    setAdvisorTouched(true);
-    setSelectedIntent(intent);
-  };
+  const handleProfileFieldChange =
+    (field: keyof UserProfile) => (event: ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value;
+      setProfileDraft((current) => ({
+        ...current,
+        [field]: value,
+      }));
+    };
 
-  const selectFormat = (format: AdvisorFormat) => {
-    setAdvisorTouched(true);
-    setSelectedFormat(format);
+  const saveProfileFromDashboard = (event: FormEvent) => {
+    event.preventDefault();
+    const normalized = normalizeProfile(profileDraft);
+
+    if (!normalized.name || !normalized.email || !normalized.role || !normalized.career) {
+      setProfileNotice({
+        tone: "error",
+        message: "Completa nombre, correo, rol y carrera para activar la personalización del dashboard.",
+      });
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized.email ?? "")) {
+      setProfileNotice({
+        tone: "error",
+        message: "El correo no tiene un formato válido.",
+      });
+      return;
+    }
+
+    const saved = persistProfile({
+      ...normalized,
+      userId: profile.userId,
+    });
+    setProfile(saved);
+    setProfileDraft(saved);
+    setProfileNotice({
+      tone: "success",
+      message: "Perfil guardado. El dashboard ya está usando tu ruta personalizada.",
+    });
   };
 
   const selectTime = (time: AdvisorTime) => {
-    setAdvisorTouched(true);
+    setTimeTouched(true);
     setSelectedTime(time);
   };
 
-  const restoreSuggestedAdvisor = () => {
-    setAdvisorTouched(false);
-    setSelectedIntent(suggestedAdvisor.intent);
-    setSelectedFormat(suggestedAdvisor.format);
+  const resetTimeSuggestion = () => {
+    setTimeTouched(false);
     setSelectedTime(suggestedAdvisor.time);
   };
 
@@ -798,16 +1083,18 @@ export default function DashboardPage() {
             <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[#0A1018] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.5)] sm:p-6">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.18),transparent_34%),radial-gradient(circle_at_78%_18%,rgba(249,115,22,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.12),transparent_24%),linear-gradient(135deg,#0B1018,#101826_55%,#0A0F17)]" />
 
-              <div className="relative grid gap-5 xl:grid-cols-[minmax(0,1.45fr)_360px] 2xl:grid-cols-[minmax(0,1.55fr)_390px]">
+              <div className="relative grid gap-5 xl:grid-cols-[minmax(0,1.18fr)_0.82fr] 2xl:grid-cols-[minmax(0,1.24fr)_0.9fr]">
                 <div>
                   <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-100">
-                    {focusState.eyebrow}
+                    {profileComplete ? "Ruta personalizada activa" : "Onboarding clínico"}
                   </div>
-                  <h1 className="mt-4 max-w-[14ch] text-3xl font-semibold leading-tight text-white sm:text-[2.7rem]">
-                    {focusState.title}
+                  <h1 className="mt-4 max-w-[16ch] text-3xl font-semibold leading-tight text-white sm:text-[2.7rem]">
+                    Hola, {displayName}. {profileComplete ? "Tu siguiente bloque ya está orientado." : "Completa tu perfil y activamos tu ruta ideal."}
                   </h1>
-                  <p className="mt-4 max-w-[62ch] text-sm leading-6 text-white/70 sm:text-[15px]">
-                    {focusState.description}
+                  <p className="mt-4 max-w-[68ch] text-sm leading-6 text-white/70 sm:text-[15px]">
+                    {profileComplete
+                      ? `${focusState.description} Tu perfil actual se interpreta como ${careerTrack.label.toLowerCase()} y usa tu historial para priorizar módulos.`
+                      : "Usa este bloque para dejar listo tu perfil académico y, al mismo tiempo, recibir recomendaciones por carrera, tiempo disponible e historial reciente."}
                   </p>
 
                   <div className="mt-5 flex flex-wrap gap-2">
@@ -815,70 +1102,121 @@ export default function DashboardPage() {
                       {DASHBOARD_MODULES.length} módulos activos
                     </span>
                     <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1.5 text-xs text-cyan-100">
-                      Recomendación en tiempo real
+                      {careerTrack.label}
                     </span>
                     <span className={`rounded-full border px-3 py-1.5 text-xs ${riskBadgeClass(currentRiskLevel)}`}>
                       Riesgo {currentRiskLevel}
                     </span>
                     <span className="rounded-full border border-white/10 bg-white/8 px-3 py-1.5 text-xs text-white/75">
-                      Tiempo sugerido: {getTimeLabel(selectedTime)}
+                      Tiempo activo: {getTimeLabel(selectedTime)}
                     </span>
                   </div>
 
-                  <div className="mt-6 grid gap-4">
-                    <div className="rounded-[26px] border border-white/10 bg-black/20 p-4">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="text-sm font-semibold text-white">1. ¿Qué quieres practicar hoy?</div>
-                        <span className="text-xs text-white/45">Objetivo principal</span>
+                  {!profileComplete ? (
+                    <form onSubmit={saveProfileFromDashboard} className="mt-6 rounded-[28px] border border-white/10 bg-black/22 p-5">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <div className="text-sm font-semibold text-white">Completa tu perfil inicial</div>
+                          <div className="mt-1 text-sm text-white/58">
+                            Esto reemplaza el popup de bienvenida y deja listo el dashboard desde aquí.
+                          </div>
+                        </div>
+                        <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-white/70">
+                          {profileCompletion}% completo
+                        </span>
                       </div>
-                      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
-                        {INTENT_OPTIONS.map((option) => (
+
+                      {profileNotice ? (
+                        <div className={`mt-4 rounded-2xl border px-4 py-3 text-sm ${getNoticeClass(profileNotice.tone)}`}>
+                          {profileNotice.message}
+                        </div>
+                      ) : null}
+
+                      <div className="mt-4 grid gap-3 md:grid-cols-2">
+                        <input
+                          type="text"
+                          value={profileDraft.name ?? ""}
+                          onChange={handleProfileFieldChange("name")}
+                          placeholder="Nombre completo"
+                          className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-white/28 focus:border-cyan-300/35"
+                        />
+                        <input
+                          type="email"
+                          value={profileDraft.email ?? ""}
+                          onChange={handleProfileFieldChange("email")}
+                          placeholder="Correo"
+                          className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-white/28 focus:border-cyan-300/35"
+                        />
+                        <input
+                          type="text"
+                          value={profileDraft.role ?? ""}
+                          onChange={handleProfileFieldChange("role")}
+                          placeholder="Rol académico"
+                          className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-white/28 focus:border-cyan-300/35"
+                        />
+                        <input
+                          type="text"
+                          value={profileDraft.career ?? ""}
+                          onChange={handleProfileFieldChange("career")}
+                          placeholder="Carrera o programa"
+                          className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-white/28 focus:border-cyan-300/35"
+                        />
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap items-center gap-3">
+                        <button
+                          type="submit"
+                          disabled={!profileReady}
+                          className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90 disabled:opacity-60"
+                        >
+                          Guardar perfil y personalizar
+                        </button>
+                        <span className="text-xs text-white/45">
+                          {authDetected ? "Cuenta detectada: usaremos estos datos en toda la plataforma." : "Modo local: el perfil se guarda en este navegador."}
+                        </span>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_0.9fr]">
+                      <div className="rounded-[28px] border border-white/10 bg-black/22 p-5">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <div className="text-sm font-semibold text-white">Perfil listo</div>
+                            <div className="mt-1 text-sm text-white/58">{careerTrack.helper}</div>
+                          </div>
+                          <Link href="/profile" className="rounded-xl border border-white/15 bg-white/[0.03] px-3 py-2 text-xs text-white/82 transition hover:bg-white/8">
+                            Editar perfil
+                          </Link>
+                        </div>
+                        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                            <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Rol</div>
+                            <div className="mt-2 text-sm font-semibold text-white">{displayRole}</div>
+                          </div>
+                          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                            <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Carrera</div>
+                            <div className="mt-2 text-sm font-semibold text-white">{displayCareer}</div>
+                          </div>
+                          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                            <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Ruta sugerida</div>
+                            <div className="mt-2 text-sm font-semibold text-white">{getIntentLabel(suggestedAdvisor.intent)}</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="rounded-[28px] border border-white/10 bg-black/22 p-5">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <div className="text-sm font-semibold text-white">Práctica rápida</div>
+                            <div className="mt-1 text-sm text-white/58">Ajusta solo el tiempo y mantenemos la recomendación.</div>
+                          </div>
                           <button
-                            key={option.id}
                             type="button"
-                            onClick={() => selectIntent(option.id)}
-                            className={`rounded-2xl border px-4 py-3 text-left transition ${
-                              selectedIntent === option.id
-                                ? "border-cyan-300/30 bg-cyan-400/12 text-white shadow-[0_18px_45px_rgba(34,211,238,0.08)]"
-                                : "border-white/10 bg-white/[0.03] text-white/76 hover:bg-white/8"
-                            }`}
+                            onClick={resetTimeSuggestion}
+                            className="rounded-xl border border-white/15 bg-white/[0.03] px-3 py-2 text-xs text-white/82 transition hover:bg-white/8"
                           >
-                            <div className="text-sm font-semibold">{option.label}</div>
-                            <div className="mt-1 text-xs leading-5 text-white/55">{option.helper}</div>
+                            Restaurar
                           </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="grid gap-4">
-                      <div className="rounded-[26px] border border-white/10 bg-black/20 p-4">
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="text-sm font-semibold text-white">2. Ajusta el modo</div>
-                          <span className="text-xs text-white/45">Cómo entrenar</span>
-                        </div>
-                        <div className="mt-4 grid gap-3 md:grid-cols-3">
-                          {FORMAT_OPTIONS.map((option) => (
-                            <button
-                              key={option.id}
-                              type="button"
-                              onClick={() => selectFormat(option.id)}
-                              className={`rounded-2xl border px-4 py-3 text-left transition md:min-h-[128px] ${
-                                selectedFormat === option.id
-                                  ? "border-emerald-300/30 bg-emerald-400/12 text-white"
-                                  : "border-white/10 bg-white/[0.03] text-white/76 hover:bg-white/8"
-                              }`}
-                            >
-                              <div className="text-sm font-semibold">{option.label}</div>
-                              <div className="mt-2 max-w-[24ch] text-xs leading-5 text-white/55">{option.helper}</div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="rounded-[26px] border border-white/10 bg-black/20 p-4">
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="text-sm font-semibold text-white">3. Tiempo disponible</div>
-                          <span className="text-xs text-white/45">Duración estimada</span>
                         </div>
                         <div className="mt-4 grid gap-3 sm:grid-cols-3">
                           {TIME_OPTIONS.map((option) => (
@@ -886,110 +1224,102 @@ export default function DashboardPage() {
                               key={option.id}
                               type="button"
                               onClick={() => selectTime(option.id)}
-                              className={`rounded-2xl border px-4 py-3 text-left transition sm:min-h-[116px] ${
+                              className={`rounded-2xl border px-4 py-3 text-left transition ${
                                 selectedTime === option.id
                                   ? "border-orange-300/30 bg-orange-400/12 text-white"
                                   : "border-white/10 bg-white/[0.03] text-white/76 hover:bg-white/8"
                               }`}
                             >
                               <div className="text-sm font-semibold">{option.label}</div>
-                              <div className="mt-2 max-w-[20ch] text-xs leading-5 text-white/55">{option.helper}</div>
+                              <div className="mt-2 text-xs leading-5 text-white/55">{option.helper}</div>
                             </button>
                           ))}
                         </div>
+                        <div className="mt-4 text-xs text-white/48">
+                          Sugerencia automática: {getIntentLabel(suggestedAdvisor.intent)} · {getFormatLabel(suggestedAdvisor.format)} · {getTimeLabel(suggestedAdvisor.time)}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
-                <div className="grid gap-4">
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
                   <div className="rounded-[30px] border border-white/10 bg-black/28 p-5">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                          Mejor ajuste hoy
-                        </div>
-                        <div className="mt-2 text-2xl font-semibold text-white">{topRecommendation?.label ?? "Sin recomendación"}</div>
-                      </div>
-                      <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs ${groupBadgeClass(topRecommendation?.group ?? "seguimiento")}`}>
-                        {topRecommendation ? DASHBOARD_GROUP_LABELS[topRecommendation.group] : "—"}
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Simulador ideal según tu perfil</div>
+                    <div className="mt-2 text-xl font-semibold text-white">{idealSimulator?.label ?? "Sin recomendación"}</div>
+                    <div className="mt-3 text-sm leading-6 text-white/72">
+                      {careerTrack.helper}
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs ${groupBadgeClass(idealSimulator?.group ?? "seguimiento")}`}>
+                        {idealSimulator ? DASHBOARD_GROUP_LABELS[idealSimulator.group] : "—"}
+                      </span>
+                      <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs text-white/75">
+                        {displayCareer}
                       </span>
                     </div>
-
-                    <div className="mt-4 rounded-[24px] border border-white/10 bg-gradient-to-br from-white/8 to-black/25 p-4">
-                      <div className="text-sm leading-6 text-white/72">
-                        {topRecommendation ? compactText(topRecommendation.summary, 16) : "Selecciona un objetivo para ver sugerencias."}
-                      </div>
-
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs text-white/75">
-                          {getIntentLabel(selectedIntent)}
-                        </span>
-                        <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs text-white/75">
-                          {getFormatLabel(selectedFormat)}
-                        </span>
-                        <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs text-white/75">
-                          {formatWindow(topRecommendation?.playbook ?? MODULE_PLAYBOOK["mental-sim"])}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="mt-5 grid gap-2">
-                      {(topRecommendation?.reasons ?? []).map((reason) => (
-                        <div key={reason} className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-5 text-white/72">
-                          {reason}
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="mt-5 flex flex-wrap gap-3">
-                      <Link
-                        href={topRecommendation?.href ?? "/cases"}
-                        className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90"
-                      >
-                        Abrir recomendación
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={restoreSuggestedAdvisor}
-                        className="rounded-xl border border-white/15 bg-white/[0.03] px-4 py-2.5 text-sm text-white/82 transition hover:bg-white/8"
-                      >
-                        Restaurar sugerencia
-                      </button>
-                    </div>
-
-                    <div className="mt-3 text-xs text-white/48">
-                      Sugerencia automática: {getIntentLabel(suggestedAdvisor.intent)} · {getFormatLabel(suggestedAdvisor.format)} · {getTimeLabel(suggestedAdvisor.time)}
-                    </div>
+                    <Link
+                      href={idealSimulator?.href ?? "/cases"}
+                      className="mt-5 inline-flex rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90"
+                    >
+                      Abrir simulador ideal
+                    </Link>
                   </div>
 
                   <div className="rounded-[30px] border border-white/10 bg-black/28 p-5">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
-                          Ruta sugerida
-                        </div>
-                        <div className="mt-2 text-lg font-semibold text-white">Secuencia de trabajo</div>
-                      </div>
-                      <span className="rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-xs text-white/65">
-                        {topRoute.length} pasos
-                      </span>
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Práctica rápida según tiempo</div>
+                    <div className="mt-2 text-xl font-semibold text-white">{quickPractice?.label ?? "Sin sugerencia"}</div>
+                    <div className="mt-3 text-sm leading-6 text-white/72">
+                      {quickPractice ? compactText(quickPractice.summary, 16) : "Selecciona un bloque de tiempo para ver la mejor sesión corta."}
                     </div>
+                    <div className="mt-4 text-xs text-white/55">
+                      Mejor encaje para {getTimeLabel(selectedTime)} en modalidad {getFormatLabel(suggestedAdvisor.format).toLowerCase()}.
+                    </div>
+                    <Link
+                      href={quickPractice?.href ?? "/cases"}
+                      className="mt-5 inline-flex rounded-xl border border-white/15 bg-white/[0.03] px-4 py-2.5 text-sm text-white/82 transition hover:bg-white/8"
+                    >
+                      Entrar a práctica rápida
+                    </Link>
+                  </div>
 
-                    <div className="mt-4 space-y-3">
-                      {topRoute.map((module, index) => (
+                  <div className="rounded-[30px] border border-white/10 bg-black/28 p-5">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Siguiente módulo según historial</div>
+                    <div className="mt-2 text-xl font-semibold text-white">{nextModule?.label ?? "Sin siguiente paso"}</div>
+                    <div className="mt-3 text-sm leading-6 text-white/72">
+                      {hasActive
+                        ? "Lo colocamos después de tu caso activo para mantener continuidad sin cortar el flujo."
+                        : lastClosed
+                        ? "Se apoya en tu último cierre, tu promedio reciente y la ruta complementaria de tu perfil."
+                        : "Todavía no hay historial suficiente, así que tomamos la mejor continuación desde tu ruta base."}
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {topRoute.slice(0, 3).map((module) => (
+                        <span key={module.id} className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-white/75">
+                          {module.label}
+                        </span>
+                      ))}
+                    </div>
+                    <Link
+                      href={nextModule?.href ?? "/cases"}
+                      className="mt-5 inline-flex rounded-xl border border-white/15 bg-white/[0.03] px-4 py-2.5 text-sm text-white/82 transition hover:bg-white/8"
+                    >
+                      Abrir siguiente módulo
+                    </Link>
+                  </div>
+
+                  <div className="rounded-[30px] border border-white/10 bg-black/28 p-5">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Refuerzo de áreas débiles</div>
+                    <div className="mt-2 text-xl font-semibold text-white">{weaknessFocus.title}</div>
+                    <div className="mt-3 text-sm leading-6 text-white/72">{weaknessFocus.helper}</div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {weaknessFocus.modules.slice(0, 3).map((module) => (
                         <Link
                           key={module.id}
                           href={module.href}
-                          className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 transition hover:bg-white/8"
+                          className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-white/75 transition hover:bg-white/8"
                         >
-                          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/20 text-sm font-semibold text-white">
-                            {index + 1}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="text-sm font-semibold text-white">{module.label}</div>
-                            <div className="text-xs text-white/55">{compactText(module.summary, 10)}</div>
-                          </div>
+                          {module.label}
                         </Link>
                       ))}
                     </div>
