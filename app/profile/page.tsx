@@ -296,10 +296,10 @@ export default function ProfilePage() {
               </div>
             </section>
 
-            <section className="grid gap-5 xl:grid-cols-[minmax(0,1.08fr)_360px] 2xl:grid-cols-[minmax(0,1.16fr)_380px]">
+            <section className="grid gap-5 xl:grid-cols-[minmax(0,1.14fr)_340px] 2xl:grid-cols-[minmax(0,1.2fr)_360px]">
               <div className="overflow-hidden rounded-[26px] border border-white/10 bg-[linear-gradient(135deg,rgba(16,24,39,0.88),rgba(12,18,30,0.66))]">
-                <div className="flex flex-col gap-6 p-5 sm:p-6 xl:flex-row xl:items-start xl:justify-between">
-                  <div className="flex min-w-0 items-center gap-4 xl:max-w-[calc(100%-28rem)]">
+                <div className="flex flex-col gap-6 p-5 sm:p-6 2xl:flex-row 2xl:items-start 2xl:justify-between">
+                  <div className="flex min-w-0 items-start gap-4">
                     <div className="flex h-20 w-20 items-center justify-center rounded-[24px] border border-white/10 bg-[linear-gradient(135deg,rgba(14,165,233,0.28),rgba(15,23,42,0.95))] text-3xl font-semibold text-white shadow-[0_20px_50px_rgba(14,165,233,0.12)]">
                       {initial}
                     </div>
@@ -308,20 +308,20 @@ export default function ProfilePage() {
                       <div className="text-xs font-semibold uppercase tracking-[0.24em] text-white/40">
                         Identidad
                       </div>
-                      <div className="mt-2 truncate text-2xl font-semibold text-white">{displayName}</div>
-                      <div className="mt-1 truncate text-sm text-white/60">{displayEmail}</div>
+                      <div className="mt-2 text-2xl font-semibold leading-tight text-white break-words">{displayName}</div>
+                      <div className="mt-1 text-sm text-white/60 break-all">{displayEmail}</div>
                       <div className="mt-3 flex flex-wrap gap-2 text-xs">
                         <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-emerald-100">
                           {authDetected ? "Cuenta detectada" : "Modo local"}
                         </span>
-                        <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-white/70">
-                          Ultima actualizacion: {formatLastUpdate(profile.updatedAt)}
-                        </span>
+                      </div>
+                      <div className="mt-3 text-xs leading-5 text-white/52">
+                        Ultima actualizacion: {formatLastUpdate(profile.updatedAt)}
                       </div>
                     </div>
                   </div>
 
-                  <div className="grid gap-3 sm:grid-cols-2 xl:w-full xl:max-w-[430px] xl:self-start 2xl:grid-cols-3">
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:w-full 2xl:max-w-[430px] 2xl:self-start 2xl:grid-cols-2">
                     <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                       <div className="text-xs uppercase tracking-[0.18em] text-white/40">Completitud</div>
                       <div className="mt-2 text-2xl font-semibold text-white">{stats.completion}%</div>
@@ -337,7 +337,7 @@ export default function ProfilePage() {
                       <div className="mt-2 text-2xl font-semibold text-white">{stats.totalSessions}</div>
                       <div className="mt-2 text-xs text-white/55">Casos almacenados localmente</div>
                     </div>
-                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4 sm:col-span-2 xl:col-span-1 2xl:col-span-2">
                       <div className="text-xs uppercase tracking-[0.18em] text-white/40">Rapport medio</div>
                       <div className="mt-2 text-2xl font-semibold text-white">{stats.avgRapport}/100</div>
                       <div className="mt-2 text-xs text-white/55">Promedio de tus sesiones guardadas</div>

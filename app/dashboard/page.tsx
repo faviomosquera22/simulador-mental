@@ -1083,7 +1083,7 @@ export default function DashboardPage() {
             <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[#0A1018] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.5)] sm:p-6">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.18),transparent_34%),radial-gradient(circle_at_78%_18%,rgba(249,115,22,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.12),transparent_24%),linear-gradient(135deg,#0B1018,#101826_55%,#0A0F17)]" />
 
-              <div className="relative grid gap-5 xl:grid-cols-[minmax(0,1.05fr)_0.95fr] 2xl:grid-cols-[minmax(0,1.12fr)_0.88fr]">
+              <div className="relative grid gap-5 xl:grid-cols-[minmax(0,1.08fr)_0.92fr] 2xl:grid-cols-[minmax(0,1.12fr)_0.88fr]">
                 <div>
                   <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-100">
                     {profileComplete ? "Ruta personalizada activa" : "Onboarding clínico"}
@@ -1177,7 +1177,7 @@ export default function DashboardPage() {
                       </div>
                     </form>
                   ) : (
-                    <div className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(300px,0.9fr)]">
+                    <div className="mt-6 grid gap-4 2xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.92fr)]">
                       <div className="rounded-[28px] border border-white/10 bg-black/22 p-5">
                         <div className="flex items-start justify-between gap-3">
                           <div>
@@ -1188,7 +1188,7 @@ export default function DashboardPage() {
                             Editar perfil
                           </Link>
                         </div>
-                        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                        <div className="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
                           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
                             <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Rol</div>
                             <div className="mt-2 text-sm font-semibold text-white">{displayRole}</div>
@@ -1197,7 +1197,7 @@ export default function DashboardPage() {
                             <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Carrera</div>
                             <div className="mt-2 text-sm font-semibold text-white">{displayCareer}</div>
                           </div>
-                          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:col-span-2 2xl:col-span-1">
                             <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Ruta sugerida</div>
                             <div className="mt-2 text-sm font-semibold text-white">{getIntentLabel(suggestedAdvisor.intent)}</div>
                           </div>
@@ -1218,7 +1218,7 @@ export default function DashboardPage() {
                             Restaurar
                           </button>
                         </div>
-                        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                           {TIME_OPTIONS.map((option) => (
                             <button
                               key={option.id}
@@ -1244,7 +1244,7 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
-                  <div className="rounded-[30px] border border-white/10 bg-black/28 p-5">
+                  <div className="flex h-full flex-col rounded-[30px] border border-white/10 bg-black/28 p-5">
                     <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Simulador ideal según tu perfil</div>
                     <div className="mt-2 text-xl font-semibold text-white">{idealSimulator?.label ?? "Sin recomendación"}</div>
                     <div className="mt-3 text-sm leading-6 text-white/72">
@@ -1260,13 +1260,13 @@ export default function DashboardPage() {
                     </div>
                     <Link
                       href={idealSimulator?.href ?? "/cases"}
-                      className="mt-5 inline-flex rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90"
+                      className="mt-auto inline-flex rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90"
                     >
                       Abrir simulador ideal
                     </Link>
                   </div>
 
-                  <div className="rounded-[30px] border border-white/10 bg-black/28 p-5">
+                  <div className="flex h-full flex-col rounded-[30px] border border-white/10 bg-black/28 p-5">
                     <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Práctica rápida según tiempo</div>
                     <div className="mt-2 text-xl font-semibold text-white">{quickPractice?.label ?? "Sin sugerencia"}</div>
                     <div className="mt-3 text-sm leading-6 text-white/72">
@@ -1277,13 +1277,13 @@ export default function DashboardPage() {
                     </div>
                     <Link
                       href={quickPractice?.href ?? "/cases"}
-                      className="mt-5 inline-flex rounded-xl border border-white/15 bg-white/[0.03] px-4 py-2.5 text-sm text-white/82 transition hover:bg-white/8"
+                      className="mt-auto inline-flex rounded-xl border border-white/15 bg-white/[0.03] px-4 py-2.5 text-sm text-white/82 transition hover:bg-white/8"
                     >
                       Entrar a práctica rápida
                     </Link>
                   </div>
 
-                  <div className="rounded-[30px] border border-white/10 bg-black/28 p-5">
+                  <div className="flex h-full flex-col rounded-[30px] border border-white/10 bg-black/28 p-5">
                     <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Siguiente módulo según historial</div>
                     <div className="mt-2 text-xl font-semibold text-white">{nextModule?.label ?? "Sin siguiente paso"}</div>
                     <div className="mt-3 text-sm leading-6 text-white/72">
@@ -1302,13 +1302,13 @@ export default function DashboardPage() {
                     </div>
                     <Link
                       href={nextModule?.href ?? "/cases"}
-                      className="mt-5 inline-flex rounded-xl border border-white/15 bg-white/[0.03] px-4 py-2.5 text-sm text-white/82 transition hover:bg-white/8"
+                      className="mt-auto inline-flex rounded-xl border border-white/15 bg-white/[0.03] px-4 py-2.5 text-sm text-white/82 transition hover:bg-white/8"
                     >
                       Abrir siguiente módulo
                     </Link>
                   </div>
 
-                  <div className="rounded-[30px] border border-white/10 bg-black/28 p-5">
+                  <div className="flex h-full flex-col rounded-[30px] border border-white/10 bg-black/28 p-5">
                     <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Refuerzo de áreas débiles</div>
                     <div className="mt-2 text-xl font-semibold text-white">{weaknessFocus.title}</div>
                     <div className="mt-3 text-sm leading-6 text-white/72">{weaknessFocus.helper}</div>
