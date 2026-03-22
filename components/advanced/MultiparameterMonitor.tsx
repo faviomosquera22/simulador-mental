@@ -21,7 +21,7 @@ type MonitorDetailItem = {
 type MultiparameterMonitorProps = {
   vitals: MonitorVitals;
   accent?: MonitorAccent;
-  layout?: "default" | "monitor-right";
+  layout?: "default" | "monitor-right" | "visual-only";
   title?: string;
   subtitle?: string;
   statusLabel?: string;
@@ -533,6 +533,8 @@ export default function MultiparameterMonitor(props: MultiparameterMonitorProps)
             <div>{summaryPanel}</div>
             <div>{visualPanel}</div>
           </div>
+        ) : layout === "visual-only" ? (
+          <div>{visualPanel}</div>
         ) : (
           <>
             {summaryPanel}

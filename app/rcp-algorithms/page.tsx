@@ -385,29 +385,58 @@ export default function RcpAlgorithmsPage() {
                   </div>
                 </div>
 
-                <MultiparameterMonitor
-                  accent="red"
-                  layout="monitor-right"
-                  title="Monitor multiparámetro"
-                  subtitle="Ritmo, perfusión y ventilación con comportamiento visual de escenario crítico."
-                  vitals={currentVitals}
-                  rhythmLabel={currentRhythm}
-                  statusLabel={currentStatus}
-                  timeLabel={mode === "evaluation" ? formatTimer(timeRemaining) : "Libre"}
-                  stageLabel={`Ciclo ${Math.min(currentStageIndex + 1, scenario.stages.length)}/${scenario.stages.length}`}
-                  badges={[
-                    resuscitationCategoryLabel(scenario.category),
-                    resuscitationDifficultyLabel(scenario.difficulty),
-                    resuscitationContextLabel(scenario.context),
-                  ]}
-                  alerts={scenario.keyFindings}
-                  detailItems={[
-                    { label: "Paciente", value: `${scenario.patientProfile.name} · ${scenario.patientProfile.age} años` },
-                    { label: "Entorno", value: scenario.patientProfile.setting ?? "No especificado" },
-                    { label: "PA actual", value: formatAdvancedPressure(currentVitals.sbp, currentVitals.dbp) },
-                  ]}
-                  footerNote="En ritmos sin pulso el monitor cae a trazados y lecturas críticas para reforzar el algoritmo correcto."
-                />
+                <div className="grid gap-3 xl:grid-cols-[0.95fr_1.05fr_0.9fr]">
+                  <div className="rounded-2xl border border-red-400/20 bg-red-400/10 p-4">
+                    <div className="text-xs uppercase tracking-[0.18em] text-red-100/70">Estado clínico</div>
+                    <div className="mt-2 text-xl font-semibold text-white">{currentStatus}</div>
+                    <div className="mt-3 text-sm leading-7 text-white/72">
+                      {currentRhythm ? `Ritmo actual: ${currentRhythm}.` : ""}
+                      {" "}Prioriza perfusión, ventilación y secuencia correcta del algoritmo antes de avanzar.
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+                    <div className="text-xs uppercase tracking-[0.18em] text-white/45">Contexto del paciente</div>
+                    <div className="mt-3 grid gap-3">
+                      <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-3 text-sm">
+                        <div className="flex items-start justify-between gap-3">
+                          <span className="shrink-0 text-[12px] uppercase tracking-[0.12em] text-white/50">Paciente</span>
+                          <span className="min-w-0 max-w-[70%] text-right leading-6 text-white/88 break-words">
+                            {scenario.patientProfile.name} · {scenario.patientProfile.age} años
+                          </span>
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-3 text-sm">
+                        <div className="flex items-start justify-between gap-3">
+                          <span className="shrink-0 text-[12px] uppercase tracking-[0.12em] text-white/50">Entorno</span>
+                          <span className="min-w-0 max-w-[70%] text-right leading-6 text-white/88 break-words">
+                            {scenario.patientProfile.setting ?? "No especificado"}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-3 text-sm">
+                        <div className="flex items-start justify-between gap-3">
+                          <span className="shrink-0 text-[12px] uppercase tracking-[0.12em] text-white/50">PA actual</span>
+                          <span className="min-w-0 max-w-[70%] text-right leading-6 text-white/88 break-words">
+                            {formatAdvancedPressure(currentVitals.sbp, currentVitals.dbp)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+                    <div className="text-xs uppercase tracking-[0.18em] text-white/45">Alertas prioritarias</div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {scenario.keyFindings.map((alert) => (
+                        <span key={alert} className="rounded-full border border-red-400/20 bg-red-400/10 px-2.5 py-1 text-[11px] text-red-100">
+                          {alert}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="mt-3 text-sm leading-6 text-white/62">
+                      Revisa primero pulso, perfusión, respiración y cambios eléctricos antes de ejecutar el siguiente paso.
+                    </div>
+                  </div>
+                </div>
 
                 {currentStage ? (
                   <div className="mt-4 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4">
@@ -458,6 +487,30 @@ export default function RcpAlgorithmsPage() {
                   Perla del algoritmo: {scenario.feedback.algorithmPearl}
                 </div>
               </div>
+
+              <MultiparameterMonitor
+                accent="red"
+                layout="visual-only"
+                title="Monitor de signos"
+                subtitle="Seguimiento visual del caso para contrastar ritmo, perfusión y ventilación durante el algoritmo."
+                vitals={currentVitals}
+                rhythmLabel={currentRhythm}
+                statusLabel={currentStatus}
+                timeLabel={mode === "evaluation" ? formatTimer(timeRemaining) : "Libre"}
+                stageLabel={`Ciclo ${Math.min(currentStageIndex + 1, scenario.stages.length)}/${scenario.stages.length}`}
+                badges={[
+                  resuscitationCategoryLabel(scenario.category),
+                  resuscitationDifficultyLabel(scenario.difficulty),
+                  resuscitationContextLabel(scenario.context),
+                ]}
+                alerts={scenario.keyFindings}
+                detailItems={[
+                  { label: "Paciente", value: `${scenario.patientProfile.name} · ${scenario.patientProfile.age} años` },
+                  { label: "Entorno", value: scenario.patientProfile.setting ?? "No especificado" },
+                  { label: "PA actual", value: formatAdvancedPressure(currentVitals.sbp, currentVitals.dbp) },
+                ]}
+                footerNote="En ritmos sin pulso el monitor cae a trazados y lecturas críticas para reforzar el algoritmo correcto."
+              />
 
               {result && (
                 <div className="rounded-2xl border border-white/10 bg-[#0B111D]/90 p-4">

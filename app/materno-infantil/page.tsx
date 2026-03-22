@@ -438,43 +438,52 @@ export default function MaternoInfantilPage() {
                   </div>
                 </div>
 
-                <MultiparameterMonitor
-                  accent="fuchsia"
-                  layout="monitor-right"
-                  title="Monitor multiparámetro"
-                  subtitle="Signos móviles y tendencias adaptadas a población obstétrica, neonatal o pediátrica."
-                  vitals={currentVitals}
-                  statusLabel={currentStatus}
-                  timeLabel={mode === "evaluation" ? formatTimer(timeRemaining) : "Libre"}
-                  stageLabel={`Etapa ${Math.min(currentStageIndex + 1, scenario.stages.length)}/${scenario.stages.length}`}
-                  badges={[
-                    maternoInfantPopulationLabel(scenario.population),
-                    maternoInfantDifficultyLabel(scenario.difficulty),
-                    maternoInfantContextLabel(scenario.context),
-                  ]}
-                  alerts={scenario.alerts}
-                  detailItems={[
-                    { label: "Paciente", value: `${scenario.patientProfile.name} · ${scenario.patientProfile.ageLabel ?? `${scenario.patientProfile.age} años`}` },
-                    { label: "Entorno", value: scenario.patientProfile.setting ?? "No especificado" },
-                    { label: "PA actual", value: formatAdvancedPressure(currentVitals.sbp, currentVitals.dbp) },
-                  ]}
-                  footerNote="Las variaciones del monitor son visuales y ayudan a percibir tendencia clínica sin alterar el avance del escenario."
-                />
-
-                <div className="mt-4 grid gap-3 md:grid-cols-[1.1fr_0.9fr]">
+                <div className="grid gap-3 xl:grid-cols-[0.95fr_1.05fr_0.9fr]">
                   <div className="rounded-2xl border border-fuchsia-400/20 bg-fuchsia-400/10 p-4">
-                    <div className="text-xs uppercase tracking-[0.18em] text-fuchsia-100/70">Estado de la población</div>
+                    <div className="text-xs uppercase tracking-[0.18em] text-fuchsia-100/70">Estado clínico</div>
                     <div className="mt-2 text-xl font-semibold text-white">{currentStatus}</div>
-                    <div className="mt-3 text-sm text-white/72">{scenario.expectedOutcome}</div>
+                    <div className="mt-3 text-sm leading-7 text-white/72">{scenario.expectedOutcome}</div>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-                    <div className="text-xs uppercase tracking-[0.18em] text-white/45">Alertas</div>
+                    <div className="text-xs uppercase tracking-[0.18em] text-white/45">Contexto del paciente</div>
+                    <div className="mt-3 grid gap-3">
+                      <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-3 text-sm">
+                        <div className="flex items-start justify-between gap-3">
+                          <span className="shrink-0 text-[12px] uppercase tracking-[0.12em] text-white/50">Paciente</span>
+                          <span className="min-w-0 max-w-[70%] text-right leading-6 text-white/88 break-words">
+                            {scenario.patientProfile.name} · {scenario.patientProfile.ageLabel ?? `${scenario.patientProfile.age} años`}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-3 text-sm">
+                        <div className="flex items-start justify-between gap-3">
+                          <span className="shrink-0 text-[12px] uppercase tracking-[0.12em] text-white/50">Entorno</span>
+                          <span className="min-w-0 max-w-[70%] text-right leading-6 text-white/88 break-words">
+                            {scenario.patientProfile.setting ?? "No especificado"}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-3 text-sm">
+                        <div className="flex items-start justify-between gap-3">
+                          <span className="shrink-0 text-[12px] uppercase tracking-[0.12em] text-white/50">PA actual</span>
+                          <span className="min-w-0 max-w-[70%] text-right leading-6 text-white/88 break-words">
+                            {formatAdvancedPressure(currentVitals.sbp, currentVitals.dbp)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+                    <div className="text-xs uppercase tracking-[0.18em] text-white/45">Alertas prioritarias</div>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {scenario.alerts.map((alert) => (
                         <span key={alert} className="rounded-full border border-red-400/20 bg-red-400/10 px-2.5 py-1 text-[11px] text-red-100">
                           {alert}
                         </span>
                       ))}
+                    </div>
+                    <div className="mt-3 text-sm leading-6 text-white/62">
+                      Revisa primero perfusión, oxigenación, ventilación y signos de alarma del desarrollo antes de intervenir.
                     </div>
                   </div>
                 </div>
@@ -558,6 +567,29 @@ export default function MaternoInfantilPage() {
                   Perla poblacional: {scenario.feedback.populationPearl}
                 </div>
               </div>
+
+              <MultiparameterMonitor
+                accent="fuchsia"
+                layout="visual-only"
+                title="Monitor de signos"
+                subtitle="Seguimiento visual del caso para reevaluar tendencia hemodinámica y respiratoria."
+                vitals={currentVitals}
+                statusLabel={currentStatus}
+                timeLabel={mode === "evaluation" ? formatTimer(timeRemaining) : "Libre"}
+                stageLabel={`Etapa ${Math.min(currentStageIndex + 1, scenario.stages.length)}/${scenario.stages.length}`}
+                badges={[
+                  maternoInfantPopulationLabel(scenario.population),
+                  maternoInfantDifficultyLabel(scenario.difficulty),
+                  maternoInfantContextLabel(scenario.context),
+                ]}
+                alerts={scenario.alerts}
+                detailItems={[
+                  { label: "Paciente", value: `${scenario.patientProfile.name} · ${scenario.patientProfile.ageLabel ?? `${scenario.patientProfile.age} años`}` },
+                  { label: "Entorno", value: scenario.patientProfile.setting ?? "No especificado" },
+                  { label: "PA actual", value: formatAdvancedPressure(currentVitals.sbp, currentVitals.dbp) },
+                ]}
+                footerNote="Las variaciones del monitor son visuales y ayudan a percibir tendencia clínica sin alterar el avance del escenario."
+              />
 
               {result && (
                 <div className="rounded-2xl border border-white/10 bg-[#0B111D]/90 p-4">
