@@ -909,6 +909,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
   const [attempts, setAttempts] = useState<AttemptEntry[]>([]);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [tick, setTick] = useState(0);
+  const [paused, setPaused] = useState(false);
   const [selectionMode, setSelectionMode] = useState<ECGSelectionMode>(ecgConfig.selectionMode);
   const [contextSelector, setContextSelector] = useState<"auto" | ECGClinicalContext>("auto");
   const [trainingMode, setTrainingMode] = useState<ECGTrainingMode>(ecgConfig.showRhythmName ? "practice" : "interpretation");
@@ -919,6 +920,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
   const beatCounterRef = useRef(0);
   const nextAlarmTimeRef = useRef(0);
   const lastAutoRequestTokenRef = useRef<number | undefined>(undefined);
+  const phaseStartRef = useRef<number | null>(null);
 
   const caseId = useMemo(
     () => String(caseObject?.id ?? caseObject?.meta?.case_id ?? "default"),
@@ -1009,14 +1011,25 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     setTrend("stable");
     setStartedAt(null);
     setPrintPreviewOpen(false);
+    setPaused(false);
   }, [caseId, ecgConfigStable, inferredContext, selectionContext]);
 
   useEffect(() => {
     if (!open) return;
-    setTick(Date.now());
-    const id = window.setInterval(() => setTick(Date.now()), 110);
+    if (phaseStartRef.current === null) {
+      phaseStartRef.current = Date.now() - tick;
+    }
+    if (paused) return;
+
+    const updateTick = () => {
+      const anchor = phaseStartRef.current ?? Date.now();
+      setTick(Date.now() - anchor);
+    };
+
+    updateTick();
+    const id = window.setInterval(updateTick, 110);
     return () => window.clearInterval(id);
-  }, [open]);
+  }, [open, paused]);
 
   useEffect(() => {
     if (!open) return;
@@ -1298,7 +1311,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
   }, [activeEcg?.id, requested, soundEnabled]);
 
   useEffect(() => {
-    if (!open || !requested || !activeEcg || !soundEnabled) return;
+    if (!open || !requested || !activeEcg || !soundEnabled || paused) return;
 
     const ctx = ensureAudioContext();
     if (!ctx) return;
@@ -1349,6 +1362,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     ensureAudioContext,
     monitorVitals?.hr,
     open,
+    paused,
     requested,
     soundEnabled,
   ]);
@@ -1380,6 +1394,8 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
   const handleRequestEcg = () => {
     if (!activeEcg) return;
     if (soundEnabled) ensureAudioContext();
+    phaseStartRef.current = Date.now() - tick;
+    setPaused(false);
     setRequested(true);
     setStartedAt(Date.now());
     setEvaluation(null);
@@ -1399,6 +1415,9 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     if (!found) return;
     setSelectionMode("manual");
     setActiveEcg(found);
+    phaseStartRef.current = Date.now();
+    setTick(0);
+    setPaused(false);
     setRequested(false);
     setDecision(EMPTY_DECISION);
     setEvaluation(null);
@@ -1410,6 +1429,9 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
   const handleRandomEcg = () => {
     const next = pickEcgFromControls({ excludeId: activeEcg?.id });
     setActiveEcg(next);
+    phaseStartRef.current = Date.now();
+    setTick(0);
+    setPaused(false);
     setRequested(false);
     setDecision(EMPTY_DECISION);
     setEvaluation(null);
@@ -1424,6 +1446,9 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
 
     const manual = getEcgCaseById(ecgConfig.manualEcgId) ?? activeEcg ?? ECG_LIBRARY[0];
     setActiveEcg(manual);
+    phaseStartRef.current = Date.now();
+    setTick(0);
+    setPaused(false);
     setRequested(false);
     setDecision(EMPTY_DECISION);
     setEvaluation(null);
@@ -1442,6 +1467,15 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     const next = !soundEnabled;
     if (next) ensureAudioContext();
     setSoundEnabled(next);
+  };
+
+  const handleTogglePause = () => {
+    if (paused) {
+      phaseStartRef.current = Date.now() - tick;
+      setPaused(false);
+      return;
+    }
+    setPaused(true);
   };
 
   const handleBrowserPrint = () => {
@@ -1535,6 +1569,8 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
       }
     }
 
+    phaseStartRef.current = Date.now() - tick;
+    setPaused(false);
     setRequested(true);
     setDecision((prev) => ({
       ...EMPTY_DECISION,
@@ -1624,12 +1660,14 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
             </div>
             <div
               className={`rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] ${
-                requested
+                paused
+                  ? "border-amber-300/25 bg-amber-300/10 text-amber-100"
+                  : requested
                   ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-100"
                   : "border-white/10 bg-white/5 text-white/65"
               }`}
             >
-              {requested ? "Live" : "Standby"}
+              {paused ? "Pausado" : requested ? "Live" : "Standby"}
             </div>
           </div>
 
@@ -1685,6 +1723,21 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
               className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs text-white/85 disabled:opacity-45"
             >
               Imprimir ECG
+            </button>
+            <button
+              type="button"
+              onClick={handleTogglePause}
+              disabled={!requested || !activeEcg}
+              className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs text-white/85 disabled:opacity-45"
+            >
+              {paused ? "Reanudar" : "Pausar"}
+            </button>
+            <button
+              type="button"
+              onClick={handleToggleSound}
+              className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs text-white/85"
+            >
+              {soundEnabled ? "Silenciar" : "Activar sonido"}
             </button>
           </div>
 
@@ -2164,6 +2217,18 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
+                      onClick={handleTogglePause}
+                      disabled={!requested || !activeEcg}
+                      className={`rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] ${
+                        paused
+                          ? "border-amber-300/25 bg-amber-300/10 text-amber-100"
+                          : "border-white/10 bg-white/5 text-white/65"
+                      } disabled:opacity-45`}
+                    >
+                      {paused ? "Reanudar" : "Pausar"}
+                    </button>
+                    <button
+                      type="button"
                       onClick={handleToggleSound}
                       className={`rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] ${
                         soundEnabled
@@ -2171,16 +2236,18 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
                           : "border-white/10 bg-white/5 text-white/65"
                       }`}
                     >
-                      Sonido {soundEnabled ? "ON" : "OFF"}
+                      {soundEnabled ? "Silenciar" : "Activar sonido"}
                     </button>
                     <div
                       className={`rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] ${
-                        requested
+                        paused
+                          ? "border-amber-300/25 bg-amber-300/10 text-amber-100"
+                          : requested
                           ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-100"
                           : "border-white/10 bg-white/5 text-white/65"
                       }`}
                     >
-                      {requested ? "Live" : "Standby"}
+                      {paused ? "Pausado" : requested ? "Live" : "Standby"}
                     </div>
                   </div>
                 </div>
