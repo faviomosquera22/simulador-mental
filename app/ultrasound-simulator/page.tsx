@@ -226,26 +226,154 @@ export default function UltrasoundSimulatorPage() {
           </header>
 
           <section className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.38fr)_360px]">
-            <div className="rounded-2xl border border-cyan-400/15 bg-[linear-gradient(135deg,rgba(6,22,35,0.95),rgba(12,17,29,0.92))] p-5">
-              <div className="text-xs uppercase tracking-[0.16em] text-cyan-100/70">Lectura sonográfica</div>
-              <div className="mt-2 max-w-3xl text-lg font-semibold text-white">
-                La selección activa usa solo estudios reales enlazados al visor principal.
-              </div>
-              <div className="mt-2 max-w-3xl text-sm text-white/68">
-                Prioriza orientación, profundidad y hallazgo dominante antes de responder. La interfaz ya no mezcla previews sintéticos con el banco real.
+            <div className="rounded-2xl border border-white/10 bg-[#0B111D]/85 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="text-xs uppercase tracking-[0.14em] text-white/45">Control de caso</div>
+                  <div className="mt-1 text-sm text-white/68">
+                    Filtra solo sobre el banco real enlazado y mantén la lectura enfocada por dominio o contexto.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={loadNewCase}
+                  disabled={!hasFilteredCases}
+                  className="rounded-xl border border-white/15 bg-black/35 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
+                >
+                  Nuevo estudio
+                </button>
               </div>
 
-              <div className="mt-4 grid gap-3 md:grid-cols-3">
-                {[
-                  ["Ventana real", "Cada caso visible en el flujo activo tiene asset clínico enlazado."],
-                  ["Comparación directa", "Referencia compacta y estudio principal con más área útil."],
-                  ["Feedback clínico", "Hallazgos y conducta esperada dentro del mismo recorrido."],
-                ].map(([title, body]) => (
-                  <div key={title} className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-sm font-semibold text-white">{title}</div>
-                    <div className="mt-1 text-sm text-white/66">{body}</div>
-                  </div>
-                ))}
+              <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
+                <label className="text-xs text-white/70">
+                  Modo
+                  <select
+                    value={mode}
+                    onChange={(event) => {
+                      setMode(event.target.value as AdvancedMode);
+                      setResult(null);
+                    }}
+                    className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                  >
+                    <option value="practice">Practica guiada</option>
+                    <option value="evaluation">Evaluacion</option>
+                  </select>
+                </label>
+
+                <label className="text-xs text-white/70">
+                  Uso
+                  <select
+                    value={usageMode}
+                    onChange={(event) => setUsageMode(event.target.value as UsageMode)}
+                    className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                  >
+                    <option value="standalone">Modulo independiente</option>
+                    <option value="integrated_case">Integrado al caso</option>
+                  </select>
+                </label>
+
+                <label className="text-xs text-white/70">
+                  Seleccion
+                  <select
+                    value={selectionMode}
+                    onChange={(event) => setSelectionMode(event.target.value as SelectionMode)}
+                    className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                  >
+                    <option value="contextual_random">Aleatorio contextual</option>
+                    <option value="random">Aleatorio</option>
+                    <option value="manual">Manual</option>
+                  </select>
+                </label>
+
+                <label className="text-xs text-white/70">
+                  Dificultad
+                  <select
+                    value={difficultyFilter}
+                    onChange={(event) => setDifficultyFilter(event.target.value as DifficultyFilter)}
+                    className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                  >
+                    <option value="all">Todas</option>
+                    <option value="basic">Basico</option>
+                    <option value="intermediate">Intermedio</option>
+                    <option value="advanced">Avanzado</option>
+                  </select>
+                </label>
+
+                <label className="text-xs text-white/70">
+                  Categoria
+                  <select
+                    value={categoryFilter}
+                    onChange={(event) => setCategoryFilter(event.target.value as CategoryFilter)}
+                    className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                  >
+                    <option value="all">Todas</option>
+                    {availableCategories.map((category) => (
+                      <option key={category} value={category}>
+                        {ultrasoundCategoryLabel(category)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="text-xs text-white/70">
+                  Contexto
+                  <select
+                    value={effectiveContext}
+                    onChange={(event) => setContextFilter(event.target.value as UltrasoundContext)}
+                    disabled={usageMode === "integrated_case" && Boolean(activeCaseObj)}
+                    className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white disabled:opacity-60"
+                  >
+                    {contextOptions.map((context) => (
+                      <option key={context} value={context}>
+                        {ultrasoundContextLabel(context)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="text-xs text-white/70">
+                  Buscar
+                  <input
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                    placeholder="embarazo, derrame, hidronefrosis, FAST..."
+                  />
+                </label>
+
+                {selectionMode === "manual" && hasFilteredCases && (
+                  <label className="text-xs text-white/70 md:col-span-2 xl:col-span-2 2xl:col-span-3">
+                    Estudio manual
+                    <select
+                      value={manualCaseId}
+                      onChange={(event) => {
+                        setManualCaseId(event.target.value);
+                        const next = filteredPool.find((item) => item.id === event.target.value) ?? FALLBACK_ULTRASOUND_CASE;
+                        setCaseSet(next);
+                        clearInputs();
+                      }}
+                      className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                    >
+                      {filteredPool.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.title}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/70">
+                <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1">
+                  Pool activo: {selectionMode === "contextual_random" ? contextualPool.length : filteredPool.length}
+                </span>
+                <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1">
+                  Subcategoría: {caseSet.subcategory.replaceAll("_", " ")}
+                </span>
+                <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1">
+                  Uso: {usageMode === "integrated_case" ? "Integrado al caso" : "Práctica independiente"}
+                </span>
               </div>
             </div>
 
@@ -296,157 +424,6 @@ export default function UltrasoundSimulatorPage() {
                   </button>
                 </>
               )}
-            </div>
-          </section>
-
-          <section className="mt-4 rounded-2xl border border-white/10 bg-[#0B111D]/85 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <div className="text-xs uppercase tracking-[0.14em] text-white/45">Control del estudio</div>
-                <div className="mt-1 text-sm text-white/68">
-                  Filtra solo sobre el banco real enlazado y mantén la lectura enfocada por dominio o contexto.
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={loadNewCase}
-                disabled={!hasFilteredCases}
-                className="rounded-xl border border-white/15 bg-black/35 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
-              >
-                Nuevo estudio
-              </button>
-            </div>
-
-            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
-            <label className="text-xs text-white/70">
-              Modo
-              <select
-                value={mode}
-                onChange={(event) => {
-                  setMode(event.target.value as AdvancedMode);
-                  setResult(null);
-                }}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
-              >
-                <option value="practice">Practica guiada</option>
-                <option value="evaluation">Evaluacion</option>
-              </select>
-            </label>
-
-            <label className="text-xs text-white/70">
-              Uso
-              <select
-                value={usageMode}
-                onChange={(event) => setUsageMode(event.target.value as UsageMode)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
-              >
-                <option value="standalone">Modulo independiente</option>
-                <option value="integrated_case">Integrado al caso</option>
-              </select>
-            </label>
-
-            <label className="text-xs text-white/70">
-              Seleccion
-              <select
-                value={selectionMode}
-                onChange={(event) => setSelectionMode(event.target.value as SelectionMode)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
-              >
-                <option value="contextual_random">Aleatorio contextual</option>
-                <option value="random">Aleatorio</option>
-                <option value="manual">Manual</option>
-              </select>
-            </label>
-
-            <label className="text-xs text-white/70">
-              Dificultad
-              <select
-                value={difficultyFilter}
-                onChange={(event) => setDifficultyFilter(event.target.value as DifficultyFilter)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
-              >
-                <option value="all">Todas</option>
-                <option value="basic">Basico</option>
-                <option value="intermediate">Intermedio</option>
-                <option value="advanced">Avanzado</option>
-              </select>
-            </label>
-
-            <label className="text-xs text-white/70">
-              Categoria
-              <select
-                value={categoryFilter}
-                onChange={(event) => setCategoryFilter(event.target.value as CategoryFilter)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
-              >
-                <option value="all">Todas</option>
-                {availableCategories.map((category) => (
-                  <option key={category} value={category}>
-                    {ultrasoundCategoryLabel(category)}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="text-xs text-white/70">
-              Contexto
-              <select
-                value={effectiveContext}
-                onChange={(event) => setContextFilter(event.target.value as UltrasoundContext)}
-                disabled={usageMode === "integrated_case" && Boolean(activeCaseObj)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white disabled:opacity-60"
-              >
-                {contextOptions.map((context) => (
-                  <option key={context} value={context}>
-                    {ultrasoundContextLabel(context)}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="text-xs text-white/70">
-              Buscar
-              <input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
-                placeholder="embarazo, derrame, hidronefrosis, FAST..."
-              />
-            </label>
-
-              {selectionMode === "manual" && hasFilteredCases && (
-                <label className="text-xs text-white/70 md:col-span-2 xl:col-span-2 2xl:col-span-3">
-                  Estudio manual
-                  <select
-                    value={manualCaseId}
-                    onChange={(event) => {
-                      setManualCaseId(event.target.value);
-                      const next = filteredPool.find((item) => item.id === event.target.value) ?? FALLBACK_ULTRASOUND_CASE;
-                      setCaseSet(next);
-                      clearInputs();
-                    }}
-                    className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
-                  >
-                    {filteredPool.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.title}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              )}
-            </div>
-
-            <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/70">
-              <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1">
-                Pool activo: {selectionMode === "contextual_random" ? contextualPool.length : filteredPool.length}
-              </span>
-              <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1">
-                Subcategoria: {caseSet.subcategory.replaceAll("_", " ")}
-              </span>
-              <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1">
-                Uso: {usageMode === "integrated_case" ? "Integrado al caso" : "Practica independiente"}
-              </span>
             </div>
           </section>
 
