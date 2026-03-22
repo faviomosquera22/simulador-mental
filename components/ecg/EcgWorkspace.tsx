@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   ECG_CONDUCT_OPTIONS,
   ECG_LIBRARY,
@@ -1559,6 +1560,56 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
 
   if (!open || !ecgConfig.enabled) return null;
 
+  const printPreviewModal =
+    printPreviewOpen && activeEcg && typeof document !== "undefined"
+      ? createPortal(
+          <div className="fixed inset-0 z-[140] flex items-start justify-center overflow-y-auto bg-black/75 p-4 sm:p-6">
+            <div className="w-full max-w-[1240px]">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-white/10 bg-[#111827]/95 px-4 py-3 text-white shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+                <div>
+                  <div className="text-xs uppercase tracking-[0.18em] text-white/50">Vista de impresión</div>
+                  <div className="mt-1 text-base font-semibold">Formato tipo cardiología para interpretación</div>
+                  <div className="mt-1 text-xs text-white/65">
+                    Hoja estática a 25 mm/s y 10 mm/mV con tira larga en DII.
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleBrowserPrint}
+                    className="rounded-xl border border-slate-300/20 bg-white px-3 py-2 text-sm font-semibold text-slate-900"
+                  >
+                    Imprimir con navegador
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPrintPreviewOpen(false)}
+                    className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white/85"
+                  >
+                    Cerrar impresión
+                  </button>
+                </div>
+              </div>
+
+              <div ref={printSheetRef}>
+                <EcgPrintSheet
+                  ecgCase={activeEcg}
+                  phaseSeconds={printPhaseSeconds}
+                  visibleLeads={visibleLeads}
+                  resolvedViewMode={resolvedViewMode}
+                  timeLabel={timeLabel}
+                  contextLabel={contextLabel}
+                  currentRiskLabel={currentRiskLabel}
+                  revealDiagnosis={revealDiagnosis}
+                />
+              </div>
+            </div>
+          </div>,
+          document.body
+        )
+      : null;
+
   if (embedded) {
     return (
       <>
@@ -1719,51 +1770,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
           </div>
         </div>
 
-        {printPreviewOpen && activeEcg && (
-          <div className="fixed inset-0 z-[140] flex items-start justify-center overflow-y-auto bg-black/75 p-4 sm:p-6">
-            <div className="w-full max-w-[1240px]">
-              <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-white/10 bg-[#111827]/95 px-4 py-3 text-white shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
-                <div>
-                  <div className="text-xs uppercase tracking-[0.18em] text-white/50">Vista de impresión</div>
-                  <div className="mt-1 text-base font-semibold">Formato tipo cardiología para interpretación</div>
-                  <div className="mt-1 text-xs text-white/65">
-                    Hoja estática a 25 mm/s y 10 mm/mV con tira larga en DII.
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleBrowserPrint}
-                    className="rounded-xl border border-slate-300/20 bg-white px-3 py-2 text-sm font-semibold text-slate-900"
-                  >
-                    Imprimir con navegador
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPrintPreviewOpen(false)}
-                    className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white/85"
-                  >
-                    Cerrar impresión
-                  </button>
-                </div>
-              </div>
-
-              <div ref={printSheetRef}>
-                <EcgPrintSheet
-                  ecgCase={activeEcg}
-                  phaseSeconds={printPhaseSeconds}
-                  visibleLeads={visibleLeads}
-                  resolvedViewMode={resolvedViewMode}
-                  timeLabel={timeLabel}
-                  contextLabel={contextLabel}
-                  currentRiskLabel={currentRiskLabel}
-                  revealDiagnosis={revealDiagnosis}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+        {printPreviewModal}
       </>
     );
   }
@@ -2342,51 +2349,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
         </div>
       </div>
 
-      {printPreviewOpen && activeEcg && (
-        <div className="fixed inset-0 z-[140] flex items-start justify-center overflow-y-auto bg-black/75 p-4 sm:p-6">
-          <div className="w-full max-w-[1240px]">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-white/10 bg-[#111827]/95 px-4 py-3 text-white shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
-              <div>
-                <div className="text-xs uppercase tracking-[0.18em] text-white/50">Vista de impresión</div>
-                <div className="mt-1 text-base font-semibold">Formato tipo cardiología para interpretación</div>
-                <div className="mt-1 text-xs text-white/65">
-                  Hoja estática a 25 mm/s y 10 mm/mV con tira larga en DII.
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleBrowserPrint}
-                  className="rounded-xl border border-slate-300/20 bg-white px-3 py-2 text-sm font-semibold text-slate-900"
-                >
-                  Imprimir con navegador
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPrintPreviewOpen(false)}
-                  className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white/85"
-                >
-                  Cerrar impresión
-                </button>
-              </div>
-            </div>
-
-            <div ref={printSheetRef}>
-              <EcgPrintSheet
-                ecgCase={activeEcg}
-                phaseSeconds={printPhaseSeconds}
-                visibleLeads={visibleLeads}
-                resolvedViewMode={resolvedViewMode}
-                timeLabel={timeLabel}
-                contextLabel={contextLabel}
-                currentRiskLabel={currentRiskLabel}
-                revealDiagnosis={revealDiagnosis}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      {printPreviewModal}
     </div>
   );
 }
