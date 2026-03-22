@@ -63,6 +63,14 @@ type RiskWorkflowEntry = {
   created_at: string;
 };
 
+type ParsedVitalSigns = {
+  bloodPressure: string;
+  heartRate: string;
+  respiratoryRate: string;
+  oxygenSaturation: string;
+  temperature: string;
+};
+
 
 
 
@@ -307,6 +315,57 @@ function AvatarCard({
   );
 }
 
+function parseVitalSigns(findings: string[] | undefined): ParsedVitalSigns {
+  const empty: ParsedVitalSigns = {
+    bloodPressure: "--/--",
+    heartRate: "--",
+    respiratoryRate: "--",
+    oxygenSaturation: "--",
+    temperature: "--",
+  };
+
+  if (!Array.isArray(findings) || findings.length === 0) return empty;
+
+  return findings.reduce<ParsedVitalSigns>((acc, item) => {
+    const text = String(item ?? "").trim();
+    if (!text) return acc;
+
+    if (text.startsWith("TA ")) {
+      acc.bloodPressure = text.replace(/^TA\s+/i, "").replace(/\s*mmHg$/i, "").trim() || acc.bloodPressure;
+    } else if (text.startsWith("FC ")) {
+      acc.heartRate = text.replace(/^FC\s+/i, "").replace(/\s*lpm$/i, "").trim() || acc.heartRate;
+    } else if (text.startsWith("FR ")) {
+      acc.respiratoryRate = text.replace(/^FR\s+/i, "").replace(/\s*rpm$/i, "").trim() || acc.respiratoryRate;
+    } else if (text.startsWith("SatO2 ")) {
+      acc.oxygenSaturation = text.replace(/^SatO2\s+/i, "").replace(/\s*%$/i, "").trim() || acc.oxygenSaturation;
+    } else if (text.startsWith("Temp ")) {
+      acc.temperature = text.replace(/^Temp\s+/i, "").replace(/\s*°C$/i, "").trim() || acc.temperature;
+    }
+
+    return acc;
+  }, { ...empty });
+}
+
+function VitalSignCard({
+  label,
+  value,
+  unit,
+}: {
+  label: string;
+  value: string;
+  unit: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
+      <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">{label}</div>
+      <div className="mt-2 flex items-end gap-2">
+        <div className="font-mono text-[28px] font-semibold leading-none text-white">{value}</div>
+        <div className="pb-1 text-xs text-white/55">{unit}</div>
+      </div>
+    </div>
+  );
+}
+
 
 export default function SimulatorPage() {
   const [sessionStartedAt, setSessionStartedAt] = useState<string | null>(null);
@@ -322,7 +381,7 @@ export default function SimulatorPage() {
 
   // UI (layout estilo Claude)
   const [eduExpanded, setEduExpanded] = useState(false);
-  const [rightTab, setRightTab] = useState<"patient" | "mse" | "ecg" | "dsm" | "risk" | "scales" | "tests" | "batteries">("patient");
+  const [rightTab, setRightTab] = useState<"patient" | "mse" | "ecg" | "vitals" | "dsm" | "risk" | "scales" | "tests" | "batteries">("patient");
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
   const [mobileRightOpen, setMobileRightOpen] = useState(false);
   const [mseOpen, setMseOpen] = useState<Record<string, boolean>>({});
@@ -353,6 +412,7 @@ export default function SimulatorPage() {
   const [runningRiskWorkflow, setRunningRiskWorkflow] = useState<RiskWorkflowKind | null>(null);
   const [riskWorkflowHistory, setRiskWorkflowHistory] = useState<RiskWorkflowEntry[]>([]);
   const [ecgWorkspaceOpen, setEcgWorkspaceOpen] = useState(false);
+  const [vitalSignsPopupOpen, setVitalSignsPopupOpen] = useState(false);
 
   const [sessionNotes, setSessionNotes] = useState<string[]>([]);
   const [useScaleInFeedback, setUseScaleInFeedback] = useState(false);
@@ -370,6 +430,7 @@ export default function SimulatorPage() {
       tab === "patient" ||
       tab === "mse" ||
       tab === "ecg" ||
+      tab === "vitals" ||
       tab === "dsm" ||
       tab === "risk" ||
       tab === "scales" ||
@@ -815,10 +876,10 @@ export default function SimulatorPage() {
   }, [caseObject, pediatricCase, targetSpeaker]);
 
   useEffect(() => {
-    if (rightTab === "ecg" && !ecgEnabled) {
+    if ((rightTab === "ecg" && !ecgEnabled) || (rightTab === "vitals" && !isMedicalCase)) {
       setRightTab("mse");
     }
-  }, [rightTab, ecgEnabled]);
+  }, [rightTab, ecgEnabled, isMedicalCase]);
 
   useEffect(() => {
     if (rightPanelCollapsed) {
@@ -1006,6 +1067,14 @@ export default function SimulatorPage() {
   const selectedMedicalExam = useMemo(
     () => getMedicalExamById(selectedMedicalExamId),
     [selectedMedicalExamId]
+  );
+  const latestVitalSignsResult = useMemo(
+    () => medicalExamResults.find((result) => result.exam_id === "vital_signs_targeted") ?? null,
+    [medicalExamResults]
+  );
+  const parsedVitalSigns = useMemo(
+    () => parseVitalSigns(latestVitalSignsResult?.findings),
+    [latestVitalSignsResult]
   );
 
   useEffect(() => {
@@ -2471,18 +2540,6 @@ export default function SimulatorPage() {
                       </button>
                     );
                   })}
-                  {ecgEnabled && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setRightTab("ecg");
-                        setEcgWorkspaceOpen(true);
-                      }}
-                      className="max-w-full rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1.5 text-xs leading-snug text-cyan-100 transition hover:bg-cyan-300/15"
-                    >
-                      Simulador de ECG: solicitar monitor
-                    </button>
-                  )}
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -2543,7 +2600,8 @@ export default function SimulatorPage() {
                 {[
                   { key: "patient", label: "Paciente" },
                   { key: "mse", label: isMedicalCase ? "Examen" : "MSE" },
-                  ...(ecgEnabled ? [{ key: "ecg", label: "Simulador ECG" }] : []),
+                  ...(ecgEnabled ? [{ key: "ecg", label: "Solicitar ECG" }] : []),
+                  ...(isMedicalCase ? [{ key: "vitals", label: "Signos vitales" }] : []),
                   { key: "dsm", label: isMedicalCase ? "Impresión" : "DSM-5" },
                   { key: "risk", label: isMedicalCase ? "Urgencia" : "Seguridad" },
                   { key: "scales", label: "Escalas" },
@@ -2554,7 +2612,7 @@ export default function SimulatorPage() {
                     key={key}
                     onClick={() => {
                       setRightTab(
-                        key as "patient" | "mse" | "ecg" | "dsm" | "risk" | "scales" | "tests" | "batteries"
+                        key as "patient" | "mse" | "ecg" | "vitals" | "dsm" | "risk" | "scales" | "tests" | "batteries"
                       );
                       if (window.innerWidth < 1024) setMobileRightOpen(false);
                     }}
@@ -2855,7 +2913,7 @@ export default function SimulatorPage() {
 
                 {rightTab === "ecg" && isMedicalCase && (
                   <div className="space-y-3">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Simulador de ECG</div>
+                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Solicitud de ECG</div>
                     <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-4">
                       <div className="text-sm font-semibold text-cyan-100">Simulador de ECG integrado al flujo del caso</div>
                       <div className="mt-1 text-xs text-cyan-50/90">
@@ -2882,22 +2940,28 @@ export default function SimulatorPage() {
                       </div>
 
                       <div className="mt-3 flex flex-wrap gap-2">
-                        <Link
-                          href="/ecg-simulator"
-                          className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-black"
-                        >
-                          Abrir simulador de ECG (separado)
-                        </Link>
                         <button
                           type="button"
                           onClick={() => {
-                            setRightTab("risk");
                             setEcgWorkspaceOpen(true);
                           }}
+                          className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-black"
+                        >
+                          Solicitar ECG
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setRightTab("vitals")}
                           className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs text-white/85"
                         >
-                          Simulador ECG + urgencia
+                          Tomar signos vitales
                         </button>
+                        <Link
+                          href="/ecg-simulator"
+                          className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs text-white/85"
+                        >
+                          Abrir simulador de ECG (separado)
+                        </Link>
                       </div>
                     </div>
 
@@ -2906,6 +2970,57 @@ export default function SimulatorPage() {
                       <div className="mt-1">Pistas: {ecgConfig.showHints ? "sí" : "no"} · Nombre del ritmo: {ecgConfig.showRhythmName ? "sí" : "no"}</div>
                       <div className="mt-1">Derivaciones adicionales: {ecgConfig.allowAdditionalLeads ? "permitidas" : "bloqueadas"}</div>
                       <div className="mt-1">Feedback inmediato: {ecgConfig.immediateFeedback ? "sí" : "no"}</div>
+                    </div>
+                  </div>
+                )}
+
+                {rightTab === "vitals" && isMedicalCase && (
+                  <div className="space-y-3">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Toma de signos vitales</div>
+                    <div className="rounded-2xl border border-emerald-300/20 bg-emerald-300/10 p-4">
+                      <div className="text-sm font-semibold text-emerald-100">Signos vitales integrados al caso</div>
+                      <div className="mt-1 text-xs text-emerald-50/90">
+                        Solicita la toma para ver presión arterial, frecuencia cardiaca, frecuencia respiratoria, saturación y temperatura según el caso activo.
+                      </div>
+
+                      <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-emerald-50/95 xl:grid-cols-5">
+                        <VitalSignCard label="PA" value={parsedVitalSigns.bloodPressure} unit="mmHg" />
+                        <VitalSignCard label="FC" value={parsedVitalSigns.heartRate} unit="lpm" />
+                        <VitalSignCard label="FR" value={parsedVitalSigns.respiratoryRate} unit="rpm" />
+                        <VitalSignCard label="SatO2" value={parsedVitalSigns.oxygenSaturation} unit="%" />
+                        <VitalSignCard label="Temp" value={parsedVitalSigns.temperature} unit="°C" />
+                      </div>
+
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            runSingleMedicalExam("vital_signs_targeted");
+                            setVitalSignsPopupOpen(true);
+                          }}
+                          className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-black"
+                        >
+                          Tomar signos vitales
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setRightTab("ecg")}
+                          className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs text-white/85"
+                        >
+                          Ir a Solicitar ECG
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-3 text-xs text-white/70">
+                      {latestVitalSignsResult ? (
+                        <>
+                          <div className="font-semibold text-white">{latestVitalSignsResult.summary}</div>
+                          <div className="mt-1">{latestVitalSignsResult.interpretation}</div>
+                        </>
+                      ) : (
+                        <div>Aún no se han solicitado signos vitales para este caso.</div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -3596,6 +3711,48 @@ export default function SimulatorPage() {
               }
             }}
           />
+
+          {vitalSignsPopupOpen && isMedicalCase && (
+            <div className="fixed inset-0 z-[118] flex items-center justify-center bg-black/70 p-4">
+              <div className="w-full max-w-5xl rounded-[28px] border border-white/10 bg-[#0A111C] p-4 text-white shadow-[0_30px_120px_rgba(0,0,0,0.7)] sm:p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="text-[11px] uppercase tracking-[0.22em] text-white/45">Signos vitales</div>
+                    <div className="mt-1 text-lg font-semibold text-white">Toma dirigida dentro del caso</div>
+                    <div className="mt-1 text-sm text-white/60">
+                      Se muestran vacíos hasta solicitar la toma.
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setVitalSignsPopupOpen(false)}
+                    className="rounded-xl border border-white/15 px-3 py-2 text-sm text-white/80 hover:bg-white/5"
+                  >
+                    Cerrar
+                  </button>
+                </div>
+
+                <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                  <VitalSignCard label="PA" value={parsedVitalSigns.bloodPressure} unit="mmHg" />
+                  <VitalSignCard label="FC" value={parsedVitalSigns.heartRate} unit="lpm" />
+                  <VitalSignCard label="FR" value={parsedVitalSigns.respiratoryRate} unit="rpm" />
+                  <VitalSignCard label="SatO2" value={parsedVitalSigns.oxygenSaturation} unit="%" />
+                  <VitalSignCard label="Temp" value={parsedVitalSigns.temperature} unit="°C" />
+                </div>
+
+                <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4 text-sm text-white/70">
+                  {latestVitalSignsResult ? (
+                    <>
+                      <div className="font-semibold text-white/90">{latestVitalSignsResult.summary}</div>
+                      <div className="mt-1">{latestVitalSignsResult.interpretation}</div>
+                    </>
+                  ) : (
+                    "Todavía no se han solicitado signos vitales para este caso."
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* SETTINGS MODAL */}
           {settingsOpen && (
