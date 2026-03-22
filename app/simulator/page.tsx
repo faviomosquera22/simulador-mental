@@ -63,6 +63,14 @@ type RiskWorkflowEntry = {
   created_at: string;
 };
 
+type ParsedVitalSigns = {
+  bloodPressure: string;
+  heartRate: string;
+  respiratoryRate: string;
+  oxygenSaturation: string;
+  temperature: string;
+};
+
 
 
 
@@ -307,6 +315,75 @@ function AvatarCard({
   );
 }
 
+function parseVitalSigns(findings: string[] | undefined): ParsedVitalSigns {
+  const empty: ParsedVitalSigns = {
+    bloodPressure: "--/--",
+    heartRate: "--",
+    respiratoryRate: "--",
+    oxygenSaturation: "--",
+    temperature: "--",
+  };
+
+  if (!Array.isArray(findings) || findings.length === 0) return empty;
+
+  return findings.reduce<ParsedVitalSigns>((acc, item) => {
+    const text = String(item ?? "").trim();
+    if (!text) return acc;
+
+    if (text.startsWith("TA ")) {
+      acc.bloodPressure = text.replace(/^TA\s+/i, "").replace(/\s*mmHg$/i, "").trim() || acc.bloodPressure;
+    } else if (text.startsWith("FC ")) {
+      acc.heartRate = text.replace(/^FC\s+/i, "").replace(/\s*lpm$/i, "").trim() || acc.heartRate;
+    } else if (text.startsWith("FR ")) {
+      acc.respiratoryRate = text.replace(/^FR\s+/i, "").replace(/\s*rpm$/i, "").trim() || acc.respiratoryRate;
+    } else if (text.startsWith("SatO2 ")) {
+      acc.oxygenSaturation = text.replace(/^SatO2\s+/i, "").replace(/\s*%$/i, "").trim() || acc.oxygenSaturation;
+    } else if (text.startsWith("Temp ")) {
+      acc.temperature = text.replace(/^Temp\s+/i, "").replace(/\s*°C$/i, "").trim() || acc.temperature;
+    }
+
+    return acc;
+  }, { ...empty });
+}
+
+function VitalSignCard({
+  label,
+  value,
+  unit,
+  tone,
+  muted,
+}: {
+  label: string;
+  value: string;
+  unit: string;
+  tone: "green" | "cyan" | "amber" | "violet" | "orange";
+  muted?: boolean;
+}) {
+  const toneClass =
+    tone === "green"
+      ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-100"
+      : tone === "cyan"
+      ? "border-cyan-300/20 bg-cyan-300/10 text-cyan-100"
+      : tone === "amber"
+      ? "border-amber-300/20 bg-amber-300/10 text-amber-100"
+      : tone === "violet"
+      ? "border-violet-300/20 bg-violet-300/10 text-violet-100"
+      : "border-orange-300/20 bg-orange-300/10 text-orange-100";
+
+  return (
+    <div className={`rounded-2xl border p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ${toneClass} ${muted ? "opacity-60" : ""}`}>
+      <div className="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.18em]">
+        <span>{label}</span>
+        <span className="text-[10px] opacity-75">{muted ? "pendiente" : "activo"}</span>
+      </div>
+      <div className="mt-3 flex items-end gap-2">
+        <div className="font-mono text-[28px] font-semibold leading-none">{value}</div>
+        <div className="pb-1 text-xs opacity-80">{unit}</div>
+      </div>
+    </div>
+  );
+}
+
 
 export default function SimulatorPage() {
   const [sessionStartedAt, setSessionStartedAt] = useState<string | null>(null);
@@ -353,6 +430,7 @@ export default function SimulatorPage() {
   const [runningRiskWorkflow, setRunningRiskWorkflow] = useState<RiskWorkflowKind | null>(null);
   const [riskWorkflowHistory, setRiskWorkflowHistory] = useState<RiskWorkflowEntry[]>([]);
   const [ecgWorkspaceOpen, setEcgWorkspaceOpen] = useState(false);
+  const [ecgAutoRequestNonce, setEcgAutoRequestNonce] = useState(0);
 
   const [sessionNotes, setSessionNotes] = useState<string[]>([]);
   const [useScaleInFeedback, setUseScaleInFeedback] = useState(false);
@@ -401,6 +479,7 @@ export default function SimulatorPage() {
   const finishingRef = useRef(false);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const clinicalToolsRef = useRef<HTMLDivElement | null>(null);
 
   // Ref para abortar peticiones en curso (evita errores "This operation was aborted" al navegar/re-render)
   const requestAbortRef = useRef<AbortController | null>(null);
@@ -1007,6 +1086,15 @@ export default function SimulatorPage() {
     () => getMedicalExamById(selectedMedicalExamId),
     [selectedMedicalExamId]
   );
+  const latestVitalSignsResult = useMemo(
+    () => medicalExamResults.find((result) => result.exam_id === "vital_signs_targeted") ?? null,
+    [medicalExamResults]
+  );
+  const parsedVitalSigns = useMemo(
+    () => parseVitalSigns(latestVitalSignsResult?.findings),
+    [latestVitalSignsResult]
+  );
+  const clinicalToolsVisible = ecgWorkspaceOpen || !!latestVitalSignsResult;
 
   useEffect(() => {
     if (!scaleCatalog.length) {
@@ -1509,6 +1597,12 @@ export default function SimulatorPage() {
 
   const appendRiskWorkflow = useCallback((entry: RiskWorkflowEntry) => {
     setRiskWorkflowHistory((prev) => [entry, ...prev].slice(0, 24));
+  }, []);
+
+  const scrollToClinicalTools = useCallback(() => {
+    window.setTimeout(() => {
+      clinicalToolsRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }, 80);
   }, []);
 
   const runSingleMedicalExam = useCallback(
@@ -2477,13 +2571,94 @@ export default function SimulatorPage() {
                       onClick={() => {
                         setRightTab("ecg");
                         setEcgWorkspaceOpen(true);
+                        setEcgAutoRequestNonce((prev) => prev + 1);
+                        scrollToClinicalTools();
                       }}
                       className="max-w-full rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1.5 text-xs leading-snug text-cyan-100 transition hover:bg-cyan-300/15"
                     >
-                      Simulador de ECG: solicitar monitor
+                      Solicitar monitor / ECG
+                    </button>
+                  )}
+                  {isMedicalCase && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        runSingleMedicalExam("vital_signs_targeted");
+                        scrollToClinicalTools();
+                      }}
+                      className="max-w-full rounded-full border border-emerald-300/30 bg-emerald-300/10 px-3 py-1.5 text-xs leading-snug text-emerald-100 transition hover:bg-emerald-300/15"
+                    >
+                      Tomar signos vitales
                     </button>
                   )}
                 </div>
+
+                {isMedicalCase && clinicalToolsVisible && (
+                  <div ref={clinicalToolsRef} className="mb-4 space-y-4 rounded-3xl border border-white/10 bg-[#0A111C] p-3 sm:p-4">
+                    {ecgEnabled && ecgWorkspaceOpen && (
+                      <div className="overflow-hidden rounded-[26px] border border-white/10">
+                        <EcgWorkspace
+                          open={ecgWorkspaceOpen}
+                          caseObject={caseObject}
+                          timeLabel={timeLabel}
+                          currentRiskLabel={riskLevel}
+                          displayMode="viewer"
+                          autoRequestNonce={ecgAutoRequestNonce}
+                          onClose={() => setEcgWorkspaceOpen(false)}
+                          onAddNote={addNote}
+                          onCaseObjectChange={(nextCaseObject) => {
+                            setCaseObject(nextCaseObject);
+                            try {
+                              localStorage.setItem("activeCase", JSON.stringify(nextCaseObject));
+                            } catch {
+                              // ignore
+                            }
+                          }}
+                        />
+                      </div>
+                    )}
+
+                    <section className="rounded-[26px] border border-white/10 bg-[#050A12] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.28)]">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <div className="text-[11px] uppercase tracking-[0.22em] text-white/45">Signos vitales</div>
+                          <div className="mt-1 text-base font-semibold text-white">Toma dirigida dentro del caso</div>
+                          <div className="mt-1 text-sm text-white/60">
+                            Permanecen vacíos hasta que solicites la toma en el chat.
+                          </div>
+                        </div>
+                        <span
+                          className={`rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.18em] ${
+                            latestVitalSignsResult
+                              ? `${examStatusClass(latestVitalSignsResult.status)}`
+                              : "border-white/10 bg-white/5 text-white/60"
+                          }`}
+                        >
+                          {latestVitalSignsResult ? "Solicitados" : "Pendientes"}
+                        </span>
+                      </div>
+
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                        <VitalSignCard label="PA" value={parsedVitalSigns.bloodPressure} unit="mmHg" tone="amber" muted={!latestVitalSignsResult} />
+                        <VitalSignCard label="FC" value={parsedVitalSigns.heartRate} unit="lpm" tone="green" muted={!latestVitalSignsResult} />
+                        <VitalSignCard label="FR" value={parsedVitalSigns.respiratoryRate} unit="rpm" tone="violet" muted={!latestVitalSignsResult} />
+                        <VitalSignCard label="SatO₂" value={parsedVitalSigns.oxygenSaturation} unit="%" tone="cyan" muted={!latestVitalSignsResult} />
+                        <VitalSignCard label="Temp" value={parsedVitalSigns.temperature} unit="°C" tone="orange" muted={!latestVitalSignsResult} />
+                      </div>
+
+                      <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-3 text-sm text-white/70">
+                        {latestVitalSignsResult ? (
+                          <>
+                            <div className="font-semibold text-white/90">{latestVitalSignsResult.summary}</div>
+                            <div className="mt-1">{latestVitalSignsResult.interpretation}</div>
+                          </>
+                        ) : (
+                          "Todavía no se han tomado signos vitales para este caso."
+                        )}
+                      </div>
+                    </section>
+                  </div>
+                )}
 
                 <div className="flex items-center gap-2">
                   <input
@@ -3579,23 +3754,6 @@ export default function SimulatorPage() {
               </div>
             </aside>
           </div>
-
-          <EcgWorkspace
-            open={ecgWorkspaceOpen}
-            caseObject={caseObject}
-            timeLabel={timeLabel}
-            currentRiskLabel={riskLevel}
-            onClose={() => setEcgWorkspaceOpen(false)}
-            onAddNote={addNote}
-            onCaseObjectChange={(nextCaseObject) => {
-              setCaseObject(nextCaseObject);
-              try {
-                localStorage.setItem("activeCase", JSON.stringify(nextCaseObject));
-              } catch {
-                // ignore
-              }
-            }}
-          />
 
           {/* SETTINGS MODAL */}
           {settingsOpen && (

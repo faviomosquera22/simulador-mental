@@ -45,6 +45,8 @@ type EcgWorkspaceProps = {
   timeLabel: string;
   currentRiskLabel: string;
   standalone?: boolean;
+  displayMode?: "full" | "viewer";
+  autoRequestNonce?: number;
   onClose: () => void;
   onAddNote?: (text: string) => void;
   onCaseObjectChange?: (nextCaseObject: any) => void;
@@ -855,6 +857,8 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     timeLabel,
     currentRiskLabel,
     standalone = false,
+    displayMode = "full",
+    autoRequestNonce = 0,
     onClose,
     onAddNote,
     onCaseObjectChange,
@@ -912,6 +916,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
   const nextBeatTimeRef = useRef(0);
   const beatCounterRef = useRef(0);
   const nextAlarmTimeRef = useRef(0);
+  const lastAutoRequestNonceRef = useRef(0);
 
   const caseId = useMemo(
     () => String(caseObject?.id ?? caseObject?.meta?.case_id ?? "default"),
@@ -1275,11 +1280,30 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     return ctx;
   }, []);
 
+  const requestCurrentEcg = useCallback(() => {
+    if (!activeEcg) return;
+    if (soundEnabled) ensureAudioContext();
+    setRequested(true);
+    setStartedAt(Date.now());
+    setEvaluation(null);
+    setFeedbackVisible(ecgConfig.immediateFeedback);
+    setPrintPreviewOpen(false);
+  }, [activeEcg, ecgConfig.immediateFeedback, ensureAudioContext, soundEnabled]);
+
   useEffect(() => {
     nextBeatTimeRef.current = 0;
     beatCounterRef.current = 0;
     nextAlarmTimeRef.current = 0;
   }, [activeEcg?.id, requested, soundEnabled]);
+
+  useEffect(() => {
+    if (!open || autoRequestNonce <= 0) return;
+    if (autoRequestNonce === lastAutoRequestNonceRef.current) return;
+    if (!activeEcg) return;
+
+    lastAutoRequestNonceRef.current = autoRequestNonce;
+    requestCurrentEcg();
+  }, [activeEcg, autoRequestNonce, open, requestCurrentEcg]);
 
   useEffect(() => {
     if (!open || !requested || !activeEcg || !soundEnabled) return;
@@ -1360,13 +1384,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
   };
 
   const handleRequestEcg = () => {
-    if (!activeEcg) return;
-    if (soundEnabled) ensureAudioContext();
-    setRequested(true);
-    setStartedAt(Date.now());
-    setEvaluation(null);
-    setFeedbackVisible(ecgConfig.immediateFeedback);
-    setPrintPreviewOpen(false);
+    requestCurrentEcg();
   };
 
   const handleSelectManual = (id: string) => {
@@ -1535,12 +1553,18 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
 
   if (!open || !ecgConfig.enabled) return null;
 
+  const viewerMode = displayMode === "viewer";
+
   const shellClass = standalone
     ? "h-full w-full"
+    : viewerMode
+    ? "w-full"
     : "fixed inset-0 z-[120] bg-black/70 p-3 sm:p-5";
 
   const frameClass = standalone
     ? "flex h-full min-h-[820px] w-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#090D16] text-white shadow-[0_30px_120px_rgba(0,0,0,0.7)]"
+    : viewerMode
+    ? "flex w-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#090D16] text-white shadow-[0_24px_80px_rgba(0,0,0,0.42)]"
     : "mx-auto flex h-[94vh] w-full max-w-[1480px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#090D16] text-white shadow-[0_30px_120px_rgba(0,0,0,0.7)]";
 
   return (
@@ -1549,7 +1573,9 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
         <header className="flex flex-wrap items-start justify-between gap-3 border-b border-white/10 bg-[#101826]/85 px-4 py-3">
           <div>
             <div className="text-xs uppercase tracking-wider text-white/50">Simulador de ECG</div>
-            <h2 className="text-lg font-semibold">Herramienta de decisión clínica integrada al caso</h2>
+            <h2 className="text-lg font-semibold">
+              {viewerMode ? "ECG solicitado dentro del flujo del caso" : "Herramienta de decisión clínica integrada al caso"}
+            </h2>
             <div className="mt-1 flex flex-wrap gap-2 text-[11px] text-white/70">
               <span className="rounded-full border border-white/15 bg-black/30 px-2.5 py-1">
                 Selección: {getEcgSelectionModeLabel(selectionMode)}
@@ -1570,7 +1596,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
               onClick={onClose}
               className="rounded-xl border border-white/15 px-3 py-2 text-sm text-white/80 hover:bg-white/5"
             >
-              {standalone ? "Salir de simulador ECG" : "Cerrar simulador de ECG"}
+              {standalone ? "Salir de simulador ECG" : viewerMode ? "Ocultar ECG" : "Cerrar simulador de ECG"}
             </button>
           </div>
         </header>
@@ -1688,7 +1714,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
         </section>
 
         <div className="min-h-0 flex-1 overflow-y-auto border-t border-white/10 bg-[#0B1220]/90 px-4 py-3">
-          <div className="grid min-h-full grid-cols-1 gap-3 xl:grid-cols-[1.65fr_0.95fr] xl:items-start">
+          <div className={`grid min-h-full grid-cols-1 gap-3 ${viewerMode ? "" : "xl:grid-cols-[1.65fr_0.95fr] xl:items-start"}`}>
             <div className="space-y-3">
               <section className="rounded-2xl border border-white/10 bg-[#03090F] p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1785,6 +1811,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
                 </div>
               </section>
 
+              {!viewerMode && (
               <section className="rounded-2xl border border-white/10 bg-black/25 p-3">
               <div className="text-xs uppercase tracking-wider text-white/50">Zona inferior · Interacciones del estudiante</div>
 
@@ -1912,8 +1939,10 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
                 </div>
               )}
               </section>
+              )}
             </div>
 
+            {!viewerMode && (
             <div className="space-y-3">
               <aside className="rounded-[26px] border border-cyan-300/10 bg-[#050A12] p-4 shadow-[0_25px_80px_rgba(0,0,0,0.35)]">
                 <div className="flex items-center justify-between gap-3">
@@ -2105,6 +2134,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
                 )}
               </section>
             </div>
+            )}
           </div>
         </div>
       </div>
