@@ -387,6 +387,7 @@ export default function RcpAlgorithmsPage() {
 
                 <MultiparameterMonitor
                   accent="red"
+                  layout="monitor-right"
                   title="Monitor multiparámetro"
                   subtitle="Ritmo, perfusión y ventilación con comportamiento visual de escenario crítico."
                   vitals={currentVitals}

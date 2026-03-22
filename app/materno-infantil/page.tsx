@@ -440,6 +440,7 @@ export default function MaternoInfantilPage() {
 
                 <MultiparameterMonitor
                   accent="fuchsia"
+                  layout="monitor-right"
                   title="Monitor multiparámetro"
                   subtitle="Signos móviles y tendencias adaptadas a población obstétrica, neonatal o pediátrica."
                   vitals={currentVitals}
