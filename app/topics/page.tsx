@@ -64,6 +64,17 @@ function listPreview(values: string[], count: number) {
   return values.slice(0, count).join(" · ");
 }
 
+function ageBandLabel(value: DxAgeBand) {
+  if (value === "niñez") return "Niñez";
+  if (value === "adolescencia") return "Adolescencia";
+  if (value === "adulto_mayor") return "Adulto mayor";
+  return "Adulto";
+}
+
+function ageBandSummary(values: DxAgeBand[]) {
+  return values.map(ageBandLabel).join(" · ");
+}
+
 type LibraryType = "todas" | "trastornos" | "patologias";
 type UnifiedLibraryItem = {
   key: string;
@@ -277,76 +288,118 @@ export default function TopicsPage() {
     };
   }, [unifiedLibrary]);
 
+  const activeQuickFocus = useMemo(() => {
+    if (activeMental) return activeMental.evaluation.firstQuestions[0] ?? activeMental.meta.severityHint;
+    if (activeMedical) return activeMedical.nursing_priorities[0] ?? activeMedical.clinical_clues[0] ?? activeMedical.summary;
+    return "Selecciona una referencia clínica para ver el foco inicial.";
+  }, [activeMedical, activeMental]);
+
+  const activeAlertSummary = useMemo(() => {
+    if (activeMental) return activeMental.redFlags[0] ?? "Valorar seguridad, funcionalidad y necesidad de escalamiento.";
+    if (activeMedical) return activeMedical.red_flags[0] ?? "Revisar signos de alarma y prioridades de estabilización.";
+    return "Sin alerta prioritaria.";
+  }, [activeMedical, activeMental]);
+
+  const activeToolSummary = useMemo(() => {
+    if (activeMental) return listPreview(activeMental.meta.recommendedScales, 3) || "Escalas clínicas y entrevista estructurada.";
+    if (activeMedical) return listPreview(activeMedical.diagnostic_support, 3) || "Laboratorio, imágenes y evaluación dirigida.";
+    return "Herramientas clínicas sugeridas.";
+  }, [activeMedical, activeMental]);
+
   return (
     <div className="min-h-screen bg-[#070A0F]">
       <div className="mx-auto flex max-w-[1480px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
         <Sidebar />
 
-        <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 p-6 backdrop-blur-xl">
-          <header className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-semibold text-white">Biblioteca clínica</h1>
-              <p className="mt-1 text-sm text-white/70">
-                Guía práctica combinada de trastornos mentales y patologías médicas para entrenamiento clínico.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80">
-                  Total referencias: {stats.total}
-                </span>
-                <span className="rounded-full border border-sky-400/25 bg-sky-400/10 px-3 py-1 text-xs text-sky-100">
-                  Trastornos: {stats.mental}
-                </span>
-                <span className="rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-100">
-                  Patologías: {stats.medical}
-                </span>
-                <span className="rounded-full border border-red-400/25 bg-red-400/10 px-3 py-1 text-xs text-red-100">
-                  Riesgo/Urgencia alta: {stats.highRisk}
-                </span>
-                <span className="rounded-full border border-amber-400/25 bg-amber-400/10 px-3 py-1 text-xs text-amber-100">
-                  Frecuentes en urgencias: {stats.emergency}
-                </span>
-                <span className="rounded-full border border-indigo-400/25 bg-indigo-400/10 px-3 py-1 text-xs text-indigo-100">
-                  Niñez/adolescencia: {stats.pediatric}
-                </span>
-              </div>
-            </div>
+        <main className="flex-1 rounded-[30px] border border-white/10 bg-black/20 p-4 backdrop-blur-xl sm:p-6">
+          <header className="rounded-[28px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_28%),radial-gradient(circle_at_top_right,rgba(248,113,113,0.10),transparent_24%),rgba(255,255,255,0.03)] p-5">
+            <div className="flex flex-wrap items-start justify-between gap-5">
+              <div className="max-w-3xl">
+                <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-100/55">
+                  Biblioteca de entrenamiento clínico
+                </div>
+                <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">
+                  Biblioteca clínica
+                </h1>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/72">
+                  Explora trastornos mentales y patologías médicas con una vista más útil para escaneo rápido, priorización clínica y práctica guiada.
+                </p>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <Link
-                href="/cases"
-                className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/85 hover:bg-white/5"
-              >
-                Biblioteca de casos
-              </Link>
-              <Link
-                href="/caces"
-                className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/85 hover:bg-white/5"
-              >
-                Practicar CACES
-              </Link>
-              <Link
-                href="/history"
-                className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/85 hover:bg-white/5"
-              >
-                Historial
-              </Link>
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                    <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">Cobertura</div>
+                    <div className="mt-2 text-3xl font-semibold text-white">{stats.total}</div>
+                    <div className="mt-1 text-xs text-white/65">referencias totales activas</div>
+                  </div>
+                  <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4">
+                    <div className="text-[11px] uppercase tracking-[0.18em] text-cyan-100/70">Alta prioridad</div>
+                    <div className="mt-2 text-3xl font-semibold text-cyan-100">{stats.highRisk}</div>
+                    <div className="mt-1 text-xs text-cyan-50/80">riesgo o urgencia alta</div>
+                  </div>
+                  <div className="rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4">
+                    <div className="text-[11px] uppercase tracking-[0.18em] text-amber-100/75">Uso frecuente</div>
+                    <div className="mt-2 text-3xl font-semibold text-amber-100">{stats.emergency}</div>
+                    <div className="mt-1 text-xs text-amber-50/80">frecuentes en urgencias</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="min-w-[260px] space-y-3">
+                <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">Accesos rápidos</div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Link
+                      href="/cases"
+                      className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/85 hover:bg-white/5"
+                    >
+                      Biblioteca de casos
+                    </Link>
+                    <Link
+                      href="/caces"
+                      className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/85 hover:bg-white/5"
+                    >
+                      Practicar CACES
+                    </Link>
+                    <Link
+                      href="/history"
+                      className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/85 hover:bg-white/5"
+                    >
+                      Historial
+                    </Link>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <span className="rounded-full border border-sky-400/25 bg-sky-400/10 px-3 py-1 text-xs text-sky-100">
+                    Trastornos: {stats.mental}
+                  </span>
+                  <span className="rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-100">
+                    Patologías: {stats.medical}
+                  </span>
+                  <span className="rounded-full border border-indigo-400/25 bg-indigo-400/10 px-3 py-1 text-xs text-indigo-100">
+                    Niñez/adolescencia: {stats.pediatric}
+                  </span>
+                </div>
+              </div>
             </div>
           </header>
 
-          <div className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-[390px_minmax(0,1fr)]">
-            <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <div className="space-y-3">
+          <div className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-[400px_minmax(0,1fr)]">
+            <section className="rounded-[26px] border border-white/10 bg-white/5 p-4">
+              <div className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-4">
+                <div className="text-[11px] uppercase tracking-[0.2em] text-white/45">Explorador</div>
+                <div className="mt-2 text-lg font-semibold text-white">Encuentra una referencia en segundos</div>
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Busca: depresión, ansiedad, sepsis, preeclampsia..."
-                  className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/40 outline-none focus:border-white/20"
+                  className="mt-4 w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm text-white placeholder:text-white/40 outline-none focus:border-white/20"
                 />
 
-                <div className="flex flex-wrap gap-2">
+                <div className="mt-3 flex flex-wrap gap-2">
                   <button
                     onClick={() => setLibraryType("todas")}
-                    className={`rounded-full border px-3 py-1 text-xs ${
+                    className={`rounded-full border px-3 py-1.5 text-xs ${
                       libraryType === "todas"
                         ? "border-white/30 bg-white/10 text-white"
                         : "border-white/10 bg-black/20 text-white/70 hover:bg-white/5"
@@ -356,9 +409,9 @@ export default function TopicsPage() {
                   </button>
                   <button
                     onClick={() => setLibraryType("trastornos")}
-                    className={`rounded-full border px-3 py-1 text-xs ${
+                    className={`rounded-full border px-3 py-1.5 text-xs ${
                       libraryType === "trastornos"
-                        ? "border-white/30 bg-white/10 text-white"
+                        ? "border-sky-400/30 bg-sky-400/10 text-sky-100"
                         : "border-white/10 bg-black/20 text-white/70 hover:bg-white/5"
                     }`}
                   >
@@ -366,49 +419,50 @@ export default function TopicsPage() {
                   </button>
                   <button
                     onClick={() => setLibraryType("patologias")}
-                    className={`rounded-full border px-3 py-1 text-xs ${
+                    className={`rounded-full border px-3 py-1.5 text-xs ${
                       libraryType === "patologias"
-                        ? "border-white/30 bg-white/10 text-white"
+                        ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100"
                         : "border-white/10 bg-black/20 text-white/70 hover:bg-white/5"
                     }`}
                   >
                     Patologías médicas
                   </button>
                 </div>
-              </div>
 
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-white/60">
-                <span>Resultados: {filtered.length}</span>
-                <div className="flex items-center gap-2">
-                  <label className="text-white/60">Orden:</label>
-                  <select
-                    value={sortBy}
-                    onChange={(e) =>
-                      setSortBy(
-                        e.target.value as "relevancia" | "riesgo" | "alfabetico"
-                      )
-                    }
-                    className="rounded-lg border border-white/10 bg-black/30 px-2 py-1 text-xs text-white/80 outline-none"
-                  >
-                    <option value="relevancia">Relevancia</option>
-                    <option value="riesgo">Riesgo clínico</option>
-                    <option value="alfabetico">Alfabético</option>
-                  </select>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setQuery("");
-                      setLibraryType("todas");
-                      setSortBy("relevancia");
-                    }}
-                    className="rounded-lg border border-white/10 px-2 py-1 text-white/75 hover:bg-white/5"
-                  >
-                    Limpiar filtros
-                  </button>
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <div className="rounded-full border border-white/10 bg-black/25 px-3 py-1.5 text-white/70">
+                    Resultados filtrados: <span className="font-semibold text-white">{filtered.length}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={sortBy}
+                      onChange={(e) =>
+                        setSortBy(
+                          e.target.value as "relevancia" | "riesgo" | "alfabetico"
+                        )
+                      }
+                      className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs text-white/80 outline-none"
+                    >
+                      <option value="relevancia">Orden: relevancia</option>
+                      <option value="riesgo">Orden: riesgo clínico</option>
+                      <option value="alfabetico">Orden: alfabético</option>
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuery("");
+                        setLibraryType("todas");
+                        setSortBy("relevancia");
+                      }}
+                      className="rounded-xl border border-white/10 px-3 py-2 text-white/75 hover:bg-white/5"
+                    >
+                      Limpiar
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <div className="mt-3 max-h-[560px] space-y-2 overflow-y-auto pr-1">
+              <div className="mt-4 max-h-[640px] space-y-3 overflow-y-auto pr-1">
                 {filtered.length === 0 ? (
                   <div className="rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-white/70">
                     No hay resultados para este filtro. Prueba cambiando tipo de contenido o búsqueda.
@@ -422,14 +476,21 @@ export default function TopicsPage() {
                         setActiveKey(d.key);
                         setTab("Resumen");
                       }}
-                      className={`w-full rounded-xl border p-4 text-left transition ${
+                      className={`w-full rounded-2xl border p-4 text-left transition ${
                         active?.key === d.key
-                          ? "border-white/25 bg-white/10"
+                          ? "border-white/25 bg-[linear-gradient(180deg,rgba(255,255,255,0.10),rgba(255,255,255,0.05))] shadow-[0_18px_45px_rgba(0,0,0,0.22)]"
                           : "border-white/10 bg-black/20 hover:bg-white/5"
                       }`}
                     >
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-xs text-white/60">{d.groupLabel}</span>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-xs uppercase tracking-[0.16em] text-white/45">{d.groupLabel}</span>
+                        {!!d.code && (
+                          <span className="rounded-full border border-white/10 bg-black/30 px-2.5 py-1 text-[10px] text-white/55">
+                            {d.codeSystem}: {d.code}
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
                         <span
                           className={`rounded-full border px-2 py-0.5 text-[10px] ${
                             d.kind === "mental"
@@ -456,14 +517,19 @@ export default function TopicsPage() {
                           {d.difficulty}
                         </span>
                       </div>
-                      <div className="mt-1 text-sm font-semibold text-white">{d.name}</div>
-                      {!!d.code && (
-                        <div className="mt-1 text-[10px] text-white/55">
-                          {d.codeSystem}: {d.code}
-                        </div>
-                      )}
-                      <div className="mt-1 line-clamp-2 text-xs text-white/65">
+                      <div className="mt-3 text-base font-semibold leading-snug text-white">{d.name}</div>
+                      <div className="mt-2 line-clamp-2 text-sm text-white/68">
                         {d.definition}
+                      </div>
+                      <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-white/50">
+                        <span className="rounded-full border border-white/10 bg-black/25 px-2.5 py-1">
+                          {ageBandSummary(d.ageBands)}
+                        </span>
+                        {d.frequentEmergency && (
+                          <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-2.5 py-1 text-amber-100">
+                            Frecuente en urgencias
+                          </span>
+                        )}
                       </div>
                     </button>
                   ))
@@ -471,18 +537,107 @@ export default function TopicsPage() {
               </div>
             </section>
 
-            <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
+            <section className="rounded-[26px] border border-white/10 bg-white/5 p-5">
               {!active ? (
                 <div className="rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-white/70">
                   Selecciona una referencia clínica a la izquierda.
                 </div>
               ) : (
                 <>
-                  <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="rounded-[28px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.08),transparent_24%),rgba(255,255,255,0.03)] p-5">
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div className="max-w-3xl">
+                        <div className="text-xs uppercase tracking-[0.18em] text-white/45">{active.groupLabel}</div>
+                        <h2 className="mt-2 text-3xl font-semibold tracking-tight text-white">{active.name}</h2>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <span
+                            className={`rounded-full border px-3 py-1 text-xs ${urgencyBadge(
+                              active.urgency
+                            )}`}
+                          >
+                            {active.kind === "mental" ? "Riesgo" : "Urgencia"} {active.urgency}
+                          </span>
+                          <span
+                            className={`rounded-full border px-3 py-1 text-xs ${difficultyBadge(
+                              active.difficulty
+                            )}`}
+                          >
+                            Complejidad {active.difficulty}
+                          </span>
+                          <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/75">
+                            {ageBandSummary(active.ageBands)}
+                          </span>
+                          {!!active.code && (
+                            <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs text-cyan-100">
+                              {active.codeSystem}: {active.code}
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-4 max-w-3xl text-sm leading-6 text-white/72">
+                          {active.definition}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Link
+                          href={active.kind === "mental" ? "/cases" : "/medical-cases"}
+                          className="rounded-xl border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
+                        >
+                          Practicar caso
+                        </Link>
+                        <Link
+                          href="/simulator"
+                          className="rounded-xl border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
+                        >
+                          Abrir simulador
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            try {
+                              navigator.clipboard.writeText(window.location.href);
+                            } catch {}
+                          }}
+                          className="rounded-xl border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
+                        >
+                          Copiar link
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+                      <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                        <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">Ficha rápida</div>
+                        <div className="mt-2 text-sm font-medium text-white">
+                          {active.kind === "mental"
+                            ? activeMental?.meta.severityHint
+                            : activeMedical?.summary}
+                        </div>
+                      </div>
+                      <div className="rounded-2xl border border-red-400/20 bg-red-400/10 p-4">
+                        <div className="text-[11px] uppercase tracking-[0.18em] text-red-100/80">Qué no perder</div>
+                        <div className="mt-2 text-sm font-medium text-red-50">{activeAlertSummary}</div>
+                      </div>
+                      <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-4">
+                        <div className="text-[11px] uppercase tracking-[0.18em] text-cyan-100/80">Primer foco</div>
+                        <div className="mt-2 text-sm font-medium text-cyan-50">{activeQuickFocus}</div>
+                      </div>
+                      <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4">
+                        <div className="text-[11px] uppercase tracking-[0.18em] text-emerald-100/80">Herramientas</div>
+                        <div className="mt-2 text-sm font-medium text-emerald-50">{activeToolSummary}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <div className="text-xs text-white/60">{active.groupLabel}</div>
-                      <h2 className="mt-1 text-xl font-semibold text-white">{active.name}</h2>
-                      <div className="mt-2 flex flex-wrap gap-2">
+                      <div className="mt-1 text-sm text-white/55">
+                        Módulo de consulta y entrenamiento clínico activo.
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
                         <span
                           className={`rounded-full border px-3 py-1 text-xs ${urgencyBadge(
                             active.urgency
@@ -506,76 +661,6 @@ export default function TopicsPage() {
                           </span>
                         )}
                       </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Link
-                        href={active.kind === "mental" ? "/cases" : "/medical-cases"}
-                        className="rounded-xl border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
-                      >
-                        Practicar caso
-                      </Link>
-                      <Link
-                        href="/simulator"
-                        className="rounded-xl border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
-                      >
-                        Abrir simulador
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          try {
-                            navigator.clipboard.writeText(window.location.href);
-                          } catch {}
-                        }}
-                        className="rounded-xl border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
-                      >
-                        Copiar link
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-                    <div className="rounded-xl border border-white/10 bg-black/25 p-3">
-                      <div className="text-[11px] uppercase tracking-wider text-white/50">
-                        Ficha 30 segundos
-                      </div>
-                      <div className="mt-1 text-xs text-white/80">
-                        {active.kind === "mental"
-                          ? activeMental?.meta.severityHint
-                          : active.definition}
-                      </div>
-                    </div>
-                    <div className="rounded-xl border border-white/10 bg-black/25 p-3">
-                      <div className="text-[11px] uppercase tracking-wider text-white/50">
-                        {active.kind === "mental"
-                          ? "Comorbilidades frecuentes"
-                          : "Signos de alarma"}
-                      </div>
-                      <div className="mt-1 text-xs text-white/80">
-                        {listPreview(active.comorbidities, 3)}
-                      </div>
-                    </div>
-                    <div className="rounded-xl border border-white/10 bg-black/25 p-3">
-                      <div className="text-[11px] uppercase tracking-wider text-white/50">
-                        {active.kind === "mental"
-                          ? "Escalas sugeridas"
-                          : "Apoyo diagnóstico"}
-                      </div>
-                      <div className="mt-1 text-xs text-white/80">
-                        {listPreview(active.scales, 3)}
-                      </div>
-                    </div>
-                    <div className="rounded-xl border border-white/10 bg-black/25 p-3">
-                      <div className="text-[11px] uppercase tracking-wider text-white/50">
-                        Enfoque inicial
-                      </div>
-                      <div className="mt-1 text-xs text-white/80">
-                        {active.kind === "mental"
-                          ? "Seguridad, funcionalidad y diferenciales prioritarios."
-                          : "ABC, signos de alarma y prioridades de estabilización."}
-                      </div>
-                    </div>
                   </div>
 
                   {activeMental && (
