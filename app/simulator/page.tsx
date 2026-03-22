@@ -317,11 +317,11 @@ function AvatarCard({
 
 function parseVitalSigns(findings: string[] | undefined): ParsedVitalSigns {
   const empty: ParsedVitalSigns = {
-    bloodPressure: "--/--",
-    heartRate: "--",
-    respiratoryRate: "--",
-    oxygenSaturation: "--",
-    temperature: "--",
+    bloodPressure: "0/0",
+    heartRate: "0",
+    respiratoryRate: "0",
+    oxygenSaturation: "0",
+    temperature: "0",
   };
 
   if (!Array.isArray(findings) || findings.length === 0) return empty;
@@ -350,17 +350,21 @@ function VitalSignCard({
   label,
   value,
   unit,
+  className = "",
 }: {
   label: string;
   value: string;
   unit: string;
+  className?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
-      <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">{label}</div>
-      <div className="mt-2 flex items-end gap-2">
-        <div className="font-mono text-[28px] font-semibold leading-none text-white">{value}</div>
-        <div className="pb-1 text-xs text-white/55">{unit}</div>
+    <div className={`rounded-2xl border border-white/10 bg-black/25 p-3 ${className}`}>
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">{label}</div>
+        <div className="text-[10px] uppercase tracking-[0.14em] text-white/35">{unit}</div>
+      </div>
+      <div className="mt-3 break-words font-mono text-[26px] font-semibold leading-none text-white sm:text-[30px]">
+        {value}
       </div>
     </div>
   );
@@ -411,8 +415,8 @@ export default function SimulatorPage() {
   const [runningMedicalExam, setRunningMedicalExam] = useState(false);
   const [runningRiskWorkflow, setRunningRiskWorkflow] = useState<RiskWorkflowKind | null>(null);
   const [riskWorkflowHistory, setRiskWorkflowHistory] = useState<RiskWorkflowEntry[]>([]);
-  const [ecgWorkspaceOpen, setEcgWorkspaceOpen] = useState(false);
-  const [vitalSignsPopupOpen, setVitalSignsPopupOpen] = useState(false);
+  const [inlineEcgOpen, setInlineEcgOpen] = useState(false);
+  const [inlineEcgRequestToken, setInlineEcgRequestToken] = useState(0);
 
   const [sessionNotes, setSessionNotes] = useState<string[]>([]);
   const [useScaleInFeedback, setUseScaleInFeedback] = useState(false);
@@ -2943,7 +2947,8 @@ export default function SimulatorPage() {
                         <button
                           type="button"
                           onClick={() => {
-                            setEcgWorkspaceOpen(true);
+                            setInlineEcgOpen(true);
+                            setInlineEcgRequestToken((prev) => prev + 1);
                           }}
                           className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-black"
                         >
@@ -2956,14 +2961,29 @@ export default function SimulatorPage() {
                         >
                           Tomar signos vitales
                         </button>
-                        <Link
-                          href="/ecg-simulator"
-                          className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs text-white/85"
-                        >
-                          Abrir simulador de ECG (separado)
-                        </Link>
                       </div>
                     </div>
+
+                    {inlineEcgOpen && (
+                      <EcgWorkspace
+                        open={inlineEcgOpen}
+                        embedded
+                        autoRequestToken={inlineEcgRequestToken}
+                        caseObject={caseObject}
+                        timeLabel={timeLabel}
+                        currentRiskLabel={riskLevel}
+                        onClose={() => setInlineEcgOpen(false)}
+                        onAddNote={addNote}
+                        onCaseObjectChange={(nextCaseObject) => {
+                          setCaseObject(nextCaseObject);
+                          try {
+                            localStorage.setItem("activeCase", JSON.stringify(nextCaseObject));
+                          } catch {
+                            // ignore
+                          }
+                        }}
+                      />
+                    )}
 
                     <div className="rounded-2xl border border-white/10 bg-black/20 p-3 text-xs text-white/70">
                       <div>Dinámico: {ecgConfig.dynamicEnabled ? "sí" : "no"}</div>
@@ -2983,8 +3003,8 @@ export default function SimulatorPage() {
                         Solicita la toma para ver presión arterial, frecuencia cardiaca, frecuencia respiratoria, saturación y temperatura según el caso activo.
                       </div>
 
-                      <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-emerald-50/95 xl:grid-cols-5">
-                        <VitalSignCard label="PA" value={parsedVitalSigns.bloodPressure} unit="mmHg" />
+                      <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-emerald-50/95">
+                        <VitalSignCard label="PA" value={parsedVitalSigns.bloodPressure} unit="mmHg" className="col-span-2" />
                         <VitalSignCard label="FC" value={parsedVitalSigns.heartRate} unit="lpm" />
                         <VitalSignCard label="FR" value={parsedVitalSigns.respiratoryRate} unit="rpm" />
                         <VitalSignCard label="SatO2" value={parsedVitalSigns.oxygenSaturation} unit="%" />
@@ -2996,7 +3016,6 @@ export default function SimulatorPage() {
                           type="button"
                           onClick={() => {
                             runSingleMedicalExam("vital_signs_targeted");
-                            setVitalSignsPopupOpen(true);
                           }}
                           className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-black"
                         >
@@ -3694,65 +3713,6 @@ export default function SimulatorPage() {
               </div>
             </aside>
           </div>
-
-          <EcgWorkspace
-            open={ecgWorkspaceOpen}
-            caseObject={caseObject}
-            timeLabel={timeLabel}
-            currentRiskLabel={riskLevel}
-            onClose={() => setEcgWorkspaceOpen(false)}
-            onAddNote={addNote}
-            onCaseObjectChange={(nextCaseObject) => {
-              setCaseObject(nextCaseObject);
-              try {
-                localStorage.setItem("activeCase", JSON.stringify(nextCaseObject));
-              } catch {
-                // ignore
-              }
-            }}
-          />
-
-          {vitalSignsPopupOpen && isMedicalCase && (
-            <div className="fixed inset-0 z-[118] flex items-center justify-center bg-black/70 p-4">
-              <div className="w-full max-w-5xl rounded-[28px] border border-white/10 bg-[#0A111C] p-4 text-white shadow-[0_30px_120px_rgba(0,0,0,0.7)] sm:p-5">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <div className="text-[11px] uppercase tracking-[0.22em] text-white/45">Signos vitales</div>
-                    <div className="mt-1 text-lg font-semibold text-white">Toma dirigida dentro del caso</div>
-                    <div className="mt-1 text-sm text-white/60">
-                      Se muestran vacíos hasta solicitar la toma.
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setVitalSignsPopupOpen(false)}
-                    className="rounded-xl border border-white/15 px-3 py-2 text-sm text-white/80 hover:bg-white/5"
-                  >
-                    Cerrar
-                  </button>
-                </div>
-
-                <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-                  <VitalSignCard label="PA" value={parsedVitalSigns.bloodPressure} unit="mmHg" />
-                  <VitalSignCard label="FC" value={parsedVitalSigns.heartRate} unit="lpm" />
-                  <VitalSignCard label="FR" value={parsedVitalSigns.respiratoryRate} unit="rpm" />
-                  <VitalSignCard label="SatO2" value={parsedVitalSigns.oxygenSaturation} unit="%" />
-                  <VitalSignCard label="Temp" value={parsedVitalSigns.temperature} unit="°C" />
-                </div>
-
-                <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4 text-sm text-white/70">
-                  {latestVitalSignsResult ? (
-                    <>
-                      <div className="font-semibold text-white/90">{latestVitalSignsResult.summary}</div>
-                      <div className="mt-1">{latestVitalSignsResult.interpretation}</div>
-                    </>
-                  ) : (
-                    "Todavía no se han solicitado signos vitales para este caso."
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* SETTINGS MODAL */}
           {settingsOpen && (

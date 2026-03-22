@@ -45,6 +45,8 @@ type EcgWorkspaceProps = {
   timeLabel: string;
   currentRiskLabel: string;
   standalone?: boolean;
+  embedded?: boolean;
+  autoRequestToken?: number;
   onClose: () => void;
   onAddNote?: (text: string) => void;
   onCaseObjectChange?: (nextCaseObject: any) => void;
@@ -855,6 +857,8 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     timeLabel,
     currentRiskLabel,
     standalone = false,
+    embedded = false,
+    autoRequestToken,
     onClose,
     onAddNote,
     onCaseObjectChange,
@@ -912,6 +916,7 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
   const nextBeatTimeRef = useRef(0);
   const beatCounterRef = useRef(0);
   const nextAlarmTimeRef = useRef(0);
+  const lastAutoRequestTokenRef = useRef<number | undefined>(undefined);
 
   const caseId = useMemo(
     () => String(caseObject?.id ?? caseObject?.meta?.case_id ?? "default"),
@@ -1369,6 +1374,13 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
     setPrintPreviewOpen(false);
   };
 
+  useEffect(() => {
+    if (!open || !activeEcg || autoRequestToken === undefined) return;
+    if (lastAutoRequestTokenRef.current === autoRequestToken) return;
+    lastAutoRequestTokenRef.current = autoRequestToken;
+    handleRequestEcg();
+  }, [activeEcg, autoRequestToken, open]);
+
   const handleSelectManual = (id: string) => {
     const found = getEcgCaseById(id);
     if (!found) return;
@@ -1534,6 +1546,157 @@ export default function EcgWorkspace(props: EcgWorkspaceProps) {
   };
 
   if (!open || !ecgConfig.enabled) return null;
+
+  if (embedded) {
+    return (
+      <div className="rounded-2xl border border-cyan-300/20 bg-[#07131F] p-3 text-white shadow-[0_18px_50px_rgba(0,0,0,0.35)]">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.2em] text-cyan-100/50">ECG del caso</div>
+            <div className="mt-1 text-sm font-semibold text-white">{monitorSubtitle}</div>
+            <div className="mt-1 text-xs text-cyan-50/75">
+              {requested ? "Trazado solicitado dentro del flujo del caso." : "Pulsa solicitar ECG para cargar el trazado del paciente."}
+            </div>
+          </div>
+          <div
+            className={`rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] ${
+              requested
+                ? "border-emerald-300/25 bg-emerald-300/10 text-emerald-100"
+                : "border-white/10 bg-white/5 text-white/65"
+            }`}
+          >
+            {requested ? "Live" : "Standby"}
+          </div>
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={handleRequestEcg}
+            disabled={!activeEcg}
+            className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-black disabled:opacity-45"
+          >
+            Solicitar ECG
+          </button>
+          <button
+            type="button"
+            onClick={() => handleViewModeChange("rhythm_monitor")}
+            disabled={!canUseRhythmMonitor}
+            className={`rounded-xl border px-3 py-2 text-xs ${
+              resolvedViewMode === "rhythm_monitor"
+                ? "border-white/30 bg-white/10 text-white"
+                : "border-white/10 bg-black/30 text-white/70"
+            } disabled:opacity-45`}
+          >
+            Monitor
+          </button>
+          <button
+            type="button"
+            onClick={() => handleViewModeChange("standard_12_lead")}
+            disabled={!canUseStandard12Lead}
+            className={`rounded-xl border px-3 py-2 text-xs ${
+              resolvedViewMode === "standard_12_lead"
+                ? "border-white/30 bg-white/10 text-white"
+                : "border-white/10 bg-black/30 text-white/70"
+            } disabled:opacity-45`}
+          >
+            12 derivaciones
+          </button>
+          <button
+            type="button"
+            onClick={() => handleViewModeChange("expanded")}
+            disabled={!canUseExpanded}
+            className={`rounded-xl border px-3 py-2 text-xs ${
+              resolvedViewMode === "expanded"
+                ? "border-white/30 bg-white/10 text-white"
+                : "border-white/10 bg-black/30 text-white/70"
+            } disabled:opacity-45`}
+          >
+            Extra
+          </button>
+        </div>
+
+        <div className="mt-3 overflow-hidden rounded-2xl border border-emerald-300/25 bg-[#03130C] p-3">
+          {!requested || !activeEcg ? (
+            <div className="flex h-[240px] items-center justify-center rounded-xl border border-dashed border-white/20 bg-black/25 p-6 text-center text-sm text-white/65">
+              Solicita el ECG para visualizar el trazado del paciente en este panel.
+            </div>
+          ) : resolvedViewMode === "rhythm_monitor" ? (
+            <div className="h-[240px]">
+              <EcgLeadStrip lead="II" profile={activeEcg.waveform} phaseSeconds={phaseSeconds} />
+            </div>
+          ) : (
+            <div className="grid max-h-[360px] grid-cols-1 gap-2 overflow-y-auto pr-1">
+              {visibleLeads.map((lead) => (
+                <div key={lead} className="h-[150px]">
+                  <EcgLeadStrip lead={lead} profile={activeEcg.waveform} phaseSeconds={phaseSeconds} />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-3 grid gap-3">
+          <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
+            <div className="text-xs uppercase tracking-wider text-white/50">Monitor multiparámetro</div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <MonitorMetric
+                label="FC"
+                value={monitorVitals ? String(Math.max(0, monitorVitals.hr)) : "--"}
+                unit="lpm"
+                tone="green"
+                muted={!monitorVitals}
+              />
+              <MonitorMetric
+                label="SpO₂"
+                value={monitorVitals ? (monitorVitals.spo2 <= 0 ? "--" : String(monitorVitals.spo2)) : "--"}
+                unit="%"
+                tone="cyan"
+                muted={!monitorVitals}
+              />
+              <MonitorMetric
+                label="PA"
+                value={monitorVitals ? (monitorVitals.sbp <= 0 || monitorVitals.dbp <= 0 ? "--/--" : `${monitorVitals.sbp}/${monitorVitals.dbp}`) : "--/--"}
+                unit="mmHg"
+                tone="amber"
+                muted={!monitorVitals}
+                compact
+              />
+              <MonitorMetric
+                label="FR"
+                value={monitorVitals ? (monitorVitals.rr <= 0 ? "--" : String(monitorVitals.rr)) : "--"}
+                unit="rpm"
+                tone="violet"
+                muted={!monitorVitals}
+              />
+              <MonitorMetric
+                label="Temp"
+                value={monitorVitals ? monitorVitals.temp.toFixed(1) : "--"}
+                unit="°C"
+                tone="orange"
+                muted={!monitorVitals}
+              />
+              <MonitorMetric label="Tiempo" value={timeLabel} unit="" tone="white" muted={!requested} />
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-black/25 p-3 text-sm text-white/75">
+            <div className="font-semibold text-white/90">{activeEcg ? activeEcg.name : "Sin trazado activo"}</div>
+            <div className="mt-2 text-xs text-white/60">Riesgo del caso: {currentRiskLabel}</div>
+            {activeEcg ? (
+              <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-white/75">
+                {activeEcg.symptomHints.slice(0, 3).map((hint) => (
+                  <li key={hint}>{hint}</li>
+                ))}
+              </ul>
+            ) : (
+              <div className="mt-2 text-xs text-white/60">El monitor se completará cuando se cargue el ECG del caso.</div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const shellClass = standalone
     ? "h-full w-full"
