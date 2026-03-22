@@ -913,6 +913,14 @@ function normalizeText(value: unknown) {
     .trim();
 }
 
+function firstMatchingEcg(ids: string[], pool: ECGCase[]) {
+  for (const id of ids) {
+    const match = pool.find((item) => item.id === id);
+    if (match) return match;
+  }
+  return null;
+}
+
 function includesAny(text: string, keywords: string[]) {
   return keywords.some((keyword) => text.includes(normalizeText(keyword)));
 }
@@ -1073,6 +1081,64 @@ export function getEcgPoolForCase(config: ECGModuleConfig, caseObject: any) {
   return getEcgPoolForContext(config, context);
 }
 
+export function findPreferredEcgForCase(caseObject: any, pool: ECGCase[] = ECG_LIBRARY) {
+  const text = normalizeText(
+    [
+      caseObject?.meta?.title,
+      caseObject?.meta?.category,
+      caseObject?.chief_complaint,
+      caseObject?.brief_context,
+      caseObject?.patient_profile?.context,
+      caseObject?.meta?.dx_id,
+      caseObject?.meta?.dsm_tag,
+    ].join(" ")
+  );
+
+  if (!text) return null;
+
+  if (includesAny(text, ["supraventricular", "taquicardia supraventricular", "tsv", "svt"])) {
+    return firstMatchingEcg(["supraventricular_tachycardia", "atrial_flutter", "atrial_fibrillation"], pool);
+  }
+
+  if (includesAny(text, ["fibrilacion auricular", "fibrilación auricular", "atrial fibrillation", "fa"])) {
+    return firstMatchingEcg(["atrial_fibrillation"], pool);
+  }
+
+  if (includesAny(text, ["flutter auricular", "atrial flutter"])) {
+    return firstMatchingEcg(["atrial_flutter", "atrial_fibrillation"], pool);
+  }
+
+  if (includesAny(text, ["bradicardia", "bloqueo av", "bloqueo auriculoventricular"])) {
+    return firstMatchingEcg(["sinus_bradycardia", "av_block_basic"], pool);
+  }
+
+  if (includesAny(text, ["hiperpot", "hiperk", "potasio", "electrolito"])) {
+    return firstMatchingEcg(["hyperkalemia_tall_t"], pool);
+  }
+
+  if (includesAny(text, ["posterior", "infarto posterior"])) {
+    return firstMatchingEcg(["posterior_mi", "stemi_anterior"], pool);
+  }
+
+  if (includesAny(text, ["stemi", "elevacion del st", "elevación del st", "infarto", "coronario agudo"])) {
+    return firstMatchingEcg(["stemi_anterior", "st_depression_ischemia"], pool);
+  }
+
+  if (includesAny(text, ["isquemia", "nstemi", "depresion del st", "depresión del st"])) {
+    return firstMatchingEcg(["st_depression_ischemia", "stemi_anterior"], pool);
+  }
+
+  if (includesAny(text, ["palpitaciones", "taquicardia", "latidos acelerados"])) {
+    return firstMatchingEcg(["sinus_tachycardia", "atrial_fibrillation", "supraventricular_tachycardia"], pool);
+  }
+
+  if (includesAny(text, ["sincope", "síncope", "presincope", "desmayo", "colapso"])) {
+    return firstMatchingEcg(["sinus_bradycardia", "atrial_fibrillation", "av_block_basic"], pool);
+  }
+
+  return null;
+}
+
 export function pickEcgStudyByConfig(args: {
   config: ECGModuleConfig;
   caseObject: any;
@@ -1086,6 +1152,8 @@ export function pickEcgStudyByConfig(args: {
   }
 
   const pool = getEcgPoolForCase(config, caseObject).filter((item) => item.id !== excludeId);
+  const preferred = findPreferredEcgForCase(caseObject, pool);
+  if (preferred) return preferred;
   if (pool.length > 0) {
     return pool[Math.floor(Math.random() * pool.length)];
   }
