@@ -2593,73 +2593,6 @@ export default function SimulatorPage() {
                   )}
                 </div>
 
-                {isMedicalCase && clinicalToolsVisible && (
-                  <div ref={clinicalToolsRef} className="mb-4 space-y-4 rounded-3xl border border-white/10 bg-[#0A111C] p-3 sm:p-4">
-                    {ecgEnabled && ecgWorkspaceOpen && (
-                      <div className="overflow-hidden rounded-[26px] border border-white/10">
-                        <EcgWorkspace
-                          open={ecgWorkspaceOpen}
-                          caseObject={caseObject}
-                          timeLabel={timeLabel}
-                          currentRiskLabel={riskLevel}
-                          displayMode="viewer"
-                          autoRequestNonce={ecgAutoRequestNonce}
-                          onClose={() => setEcgWorkspaceOpen(false)}
-                          onAddNote={addNote}
-                          onCaseObjectChange={(nextCaseObject) => {
-                            setCaseObject(nextCaseObject);
-                            try {
-                              localStorage.setItem("activeCase", JSON.stringify(nextCaseObject));
-                            } catch {
-                              // ignore
-                            }
-                          }}
-                        />
-                      </div>
-                    )}
-
-                    <section className="rounded-[26px] border border-white/10 bg-[#050A12] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.28)]">
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <div className="text-[11px] uppercase tracking-[0.22em] text-white/45">Signos vitales</div>
-                          <div className="mt-1 text-base font-semibold text-white">Toma dirigida dentro del caso</div>
-                          <div className="mt-1 text-sm text-white/60">
-                            Permanecen vacíos hasta que solicites la toma en el chat.
-                          </div>
-                        </div>
-                        <span
-                          className={`rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.18em] ${
-                            latestVitalSignsResult
-                              ? `${examStatusClass(latestVitalSignsResult.status)}`
-                              : "border-white/10 bg-white/5 text-white/60"
-                          }`}
-                        >
-                          {latestVitalSignsResult ? "Solicitados" : "Pendientes"}
-                        </span>
-                      </div>
-
-                      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-                        <VitalSignCard label="PA" value={parsedVitalSigns.bloodPressure} unit="mmHg" tone="amber" muted={!latestVitalSignsResult} />
-                        <VitalSignCard label="FC" value={parsedVitalSigns.heartRate} unit="lpm" tone="green" muted={!latestVitalSignsResult} />
-                        <VitalSignCard label="FR" value={parsedVitalSigns.respiratoryRate} unit="rpm" tone="violet" muted={!latestVitalSignsResult} />
-                        <VitalSignCard label="SatO₂" value={parsedVitalSigns.oxygenSaturation} unit="%" tone="cyan" muted={!latestVitalSignsResult} />
-                        <VitalSignCard label="Temp" value={parsedVitalSigns.temperature} unit="°C" tone="orange" muted={!latestVitalSignsResult} />
-                      </div>
-
-                      <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-3 text-sm text-white/70">
-                        {latestVitalSignsResult ? (
-                          <>
-                            <div className="font-semibold text-white/90">{latestVitalSignsResult.summary}</div>
-                            <div className="mt-1">{latestVitalSignsResult.interpretation}</div>
-                          </>
-                        ) : (
-                          "Todavía no se han tomado signos vitales para este caso."
-                        )}
-                      </div>
-                    </section>
-                  </div>
-                )}
-
                 <div className="flex items-center gap-2">
                   <input
                     value={userMessage}
@@ -2687,6 +2620,73 @@ export default function SimulatorPage() {
                 <p className="mt-2 text-xs text-white/50">Educativo: no diagnostica. Usa información ficticia.</p>
               </div>
             </section>
+
+            {isMedicalCase && clinicalToolsVisible && (
+              <div ref={clinicalToolsRef} className="mt-4 space-y-4 rounded-3xl border border-white/10 bg-[#0A111C] p-3 sm:p-4">
+                {ecgEnabled && ecgWorkspaceOpen && (
+                  <div className="overflow-hidden rounded-[26px] border border-white/10">
+                    <EcgWorkspace
+                      open={ecgWorkspaceOpen}
+                      caseObject={caseObject}
+                      timeLabel={timeLabel}
+                      currentRiskLabel={riskLevel}
+                      displayMode="viewer"
+                      autoRequestNonce={ecgAutoRequestNonce}
+                      onClose={() => setEcgWorkspaceOpen(false)}
+                      onAddNote={addNote}
+                      onCaseObjectChange={(nextCaseObject) => {
+                        setCaseObject(nextCaseObject);
+                        try {
+                          localStorage.setItem("activeCase", JSON.stringify(nextCaseObject));
+                        } catch {
+                          // ignore
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+
+                <section className="rounded-[26px] border border-white/10 bg-[#050A12] p-4 shadow-[0_20px_60px_rgba(0,0,0,0.28)]">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <div className="text-[11px] uppercase tracking-[0.22em] text-white/45">Signos vitales</div>
+                      <div className="mt-1 text-base font-semibold text-white">Toma dirigida dentro del caso</div>
+                      <div className="mt-1 text-sm text-white/60">
+                        Permanecen vacíos hasta que solicites la toma en el chat.
+                      </div>
+                    </div>
+                    <span
+                      className={`rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.18em] ${
+                        latestVitalSignsResult
+                          ? `${examStatusClass(latestVitalSignsResult.status)}`
+                          : "border-white/10 bg-white/5 text-white/60"
+                      }`}
+                    >
+                      {latestVitalSignsResult ? "Solicitados" : "Pendientes"}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                    <VitalSignCard label="PA" value={parsedVitalSigns.bloodPressure} unit="mmHg" tone="amber" muted={!latestVitalSignsResult} />
+                    <VitalSignCard label="FC" value={parsedVitalSigns.heartRate} unit="lpm" tone="green" muted={!latestVitalSignsResult} />
+                    <VitalSignCard label="FR" value={parsedVitalSigns.respiratoryRate} unit="rpm" tone="violet" muted={!latestVitalSignsResult} />
+                    <VitalSignCard label="SatO₂" value={parsedVitalSigns.oxygenSaturation} unit="%" tone="cyan" muted={!latestVitalSignsResult} />
+                    <VitalSignCard label="Temp" value={parsedVitalSigns.temperature} unit="°C" tone="orange" muted={!latestVitalSignsResult} />
+                  </div>
+
+                  <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-3 text-sm text-white/70">
+                    {latestVitalSignsResult ? (
+                      <>
+                        <div className="font-semibold text-white/90">{latestVitalSignsResult.summary}</div>
+                        <div className="mt-1">{latestVitalSignsResult.interpretation}</div>
+                      </>
+                    ) : (
+                      "Todavía no se han tomado signos vitales para este caso."
+                    )}
+                  </div>
+                </section>
+              </div>
+            )}
 
             {mobileRightOpen && (
               <button
