@@ -45,13 +45,6 @@ function simplifyDefinition(item: (typeof MEDICAL_TERMINOLOGY_LIBRARY)[number]) 
   return item.definition;
 }
 
-function getPracticeHeading(item: (typeof MEDICAL_TERMINOLOGY_LIBRARY)[number]) {
-  const kind = getTermKind(item);
-  if (kind === "prefijo") return "Escribe el prefijo correcto";
-  if (kind === "sufijo") return "Escribe el sufijo correcto";
-  return "Escribe el término correcto";
-}
-
 function getPracticeHelper(item: (typeof MEDICAL_TERMINOLOGY_LIBRARY)[number]) {
   const kind = getTermKind(item);
   if (kind === "prefijo") {
@@ -245,7 +238,7 @@ export default function MedicalTerminologyPage() {
                 <div className="inline-flex rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-700">
                   Práctica de completar
                 </div>
-                <h2 className="mt-3 text-xl font-semibold text-slate-900">Escribe el término correcto</h2>
+                <h2 className="mt-3 text-xl font-semibold text-slate-900">Práctica guiada</h2>
                 <p className="mt-2 text-sm text-slate-600">
                   Te mostramos el concepto y tú completas la palabra o expresión médica. La práctica usa el mismo banco del glosario y respeta los filtros activos.
                 </p>
@@ -301,7 +294,6 @@ export default function MedicalTerminologyPage() {
                         : "Término"}
                     </span>
                   </div>
-                  <div className="mt-3 text-lg font-semibold text-slate-900">{getPracticeHeading(practiceItem)}</div>
                   <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
                     <div className="text-xs uppercase tracking-wider text-slate-500">Significado</div>
                     <div className="mt-2 text-base font-medium text-slate-900">{simplifyDefinition(practiceItem)}</div>
