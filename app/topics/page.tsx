@@ -49,14 +49,14 @@ function setSelectionInUrl(item: UnifiedLibraryItem) {
 }
 
 function urgencyBadge(urgency: DxUrgency) {
-  if (urgency === "alto") return "border-red-400/25 bg-red-400/10 text-red-100";
-  if (urgency === "medio") return "border-amber-400/25 bg-amber-400/10 text-amber-100";
-  return "border-emerald-400/25 bg-emerald-400/10 text-emerald-100";
+  if (urgency === "alto") return "border-red-400/25 bg-red-400/10 text-red-700";
+  if (urgency === "medio") return "border-amber-400/25 bg-amber-400/10 text-amber-700";
+  return "border-emerald-400/25 bg-emerald-400/10 text-emerald-700";
 }
 
 function difficultyBadge(level: DxDifficulty) {
   if (level === "avanzado") return "border-fuchsia-400/25 bg-fuchsia-400/10 text-fuchsia-100";
-  if (level === "intermedio") return "border-cyan-400/25 bg-cyan-400/10 text-cyan-100";
+  if (level === "intermedio") return "border-cyan-400/25 bg-cyan-400/10 text-cyan-700";
   return "border-slate-300/20 bg-slate-300/10 text-slate-100";
 }
 
@@ -307,62 +307,62 @@ export default function TopicsPage() {
   }, [activeMedical, activeMental]);
 
   return (
-    <div className="min-h-screen bg-[#070A0F]">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f6fbf9_0%,#eef5f2_48%,#e6efeb_100%)]">
       <div className="mx-auto flex max-w-[1480px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
         <Sidebar />
 
-        <main className="flex-1 rounded-[30px] border border-white/10 bg-black/20 p-4 backdrop-blur-xl sm:p-6">
-          <header className="rounded-[28px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_28%),radial-gradient(circle_at_top_right,rgba(248,113,113,0.10),transparent_24%),rgba(255,255,255,0.03)] p-5">
+        <main className="flex-1 rounded-[30px] border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] p-4 backdrop-blur-xl sm:p-6 shadow-[0_24px_70px_rgba(99,126,118,0.16)]">
+          <header className="rounded-[28px] border border-slate-200 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_28%),radial-gradient(circle_at_top_right,rgba(248,113,113,0.10),transparent_24%),rgba(255,255,255,0.03)] p-5">
             <div className="flex flex-wrap items-start justify-between gap-5">
               <div className="max-w-3xl">
-                <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-100/55">
+                <div className="text-[11px] uppercase tracking-[0.24em] text-cyan-700/55">
                   Biblioteca de entrenamiento clínico
                 </div>
-                <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">
+                <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">
                   Biblioteca clínica
                 </h1>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/72">
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
                   Explora trastornos mentales y patologías médicas con una vista más útil para escaneo rápido, priorización clínica y práctica guiada.
                 </p>
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                    <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">Cobertura</div>
-                    <div className="mt-2 text-3xl font-semibold text-white">{stats.total}</div>
-                    <div className="mt-1 text-xs text-white/65">referencias totales activas</div>
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Cobertura</div>
+                    <div className="mt-2 text-3xl font-semibold text-slate-900">{stats.total}</div>
+                    <div className="mt-1 text-xs text-slate-500">referencias totales activas</div>
                   </div>
                   <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4">
-                    <div className="text-[11px] uppercase tracking-[0.18em] text-cyan-100/70">Alta prioridad</div>
-                    <div className="mt-2 text-3xl font-semibold text-cyan-100">{stats.highRisk}</div>
-                    <div className="mt-1 text-xs text-cyan-50/80">riesgo o urgencia alta</div>
+                    <div className="text-[11px] uppercase tracking-[0.18em] text-cyan-700">Alta prioridad</div>
+                    <div className="mt-2 text-3xl font-semibold text-cyan-700">{stats.highRisk}</div>
+                    <div className="mt-1 text-xs text-cyan-700">riesgo o urgencia alta</div>
                   </div>
                   <div className="rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4">
-                    <div className="text-[11px] uppercase tracking-[0.18em] text-amber-100/75">Uso frecuente</div>
-                    <div className="mt-2 text-3xl font-semibold text-amber-100">{stats.emergency}</div>
-                    <div className="mt-1 text-xs text-amber-50/80">frecuentes en urgencias</div>
+                    <div className="text-[11px] uppercase tracking-[0.18em] text-amber-700">Uso frecuente</div>
+                    <div className="mt-2 text-3xl font-semibold text-amber-700">{stats.emergency}</div>
+                    <div className="mt-1 text-xs text-amber-700">frecuentes en urgencias</div>
                   </div>
                 </div>
               </div>
 
               <div className="min-w-[260px] space-y-3">
-                <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">Accesos rápidos</div>
+                <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Accesos rápidos</div>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <Link
                       href="/cases"
-                      className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/85 hover:bg-white/5"
+                      className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-800 hover:bg-slate-50"
                     >
                       Biblioteca de casos
                     </Link>
                     <Link
                       href="/caces"
-                      className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/85 hover:bg-white/5"
+                      className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-800 hover:bg-slate-50"
                     >
                       Practicar CACES
                     </Link>
                     <Link
                       href="/history"
-                      className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/85 hover:bg-white/5"
+                      className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-800 hover:bg-slate-50"
                     >
                       Historial
                     </Link>
@@ -370,13 +370,13 @@ export default function TopicsPage() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <span className="rounded-full border border-sky-400/25 bg-sky-400/10 px-3 py-1 text-xs text-sky-100">
+                  <span className="rounded-full border border-sky-400/25 bg-sky-400/10 px-3 py-1 text-xs text-sky-700">
                     Trastornos: {stats.mental}
                   </span>
-                  <span className="rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-100">
+                  <span className="rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-700">
                     Patologías: {stats.medical}
                   </span>
-                  <span className="rounded-full border border-indigo-400/25 bg-indigo-400/10 px-3 py-1 text-xs text-indigo-100">
+                  <span className="rounded-full border border-indigo-400/25 bg-indigo-400/10 px-3 py-1 text-xs text-indigo-700">
                     Niñez/adolescencia: {stats.pediatric}
                   </span>
                 </div>
@@ -385,15 +385,15 @@ export default function TopicsPage() {
           </header>
 
           <div className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-[400px_minmax(0,1fr)]">
-            <section className="rounded-[26px] border border-white/10 bg-white/5 p-4">
-              <div className="rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-4">
-                <div className="text-[11px] uppercase tracking-[0.2em] text-white/45">Explorador</div>
-                <div className="mt-2 text-lg font-semibold text-white">Encuentra una referencia en segundos</div>
+            <section className="rounded-[26px] border border-slate-200 bg-white/80 p-4">
+              <div className="rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-4">
+                <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">Explorador</div>
+                <div className="mt-2 text-lg font-semibold text-slate-900">Encuentra una referencia en segundos</div>
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Busca: depresión, ansiedad, sepsis, preeclampsia..."
-                  className="mt-4 w-full rounded-2xl border border-white/10 bg-black/35 px-4 py-3 text-sm text-white placeholder:text-white/40 outline-none focus:border-white/20"
+                  className="mt-4 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-cyan-300/40"
                 />
 
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -401,8 +401,8 @@ export default function TopicsPage() {
                     onClick={() => setLibraryType("todas")}
                     className={`rounded-full border px-3 py-1.5 text-xs ${
                       libraryType === "todas"
-                        ? "border-white/30 bg-white/10 text-white"
-                        : "border-white/10 bg-black/20 text-white/70 hover:bg-white/5"
+                        ? "border-white/30 bg-white/10 text-slate-900"
+                        : "border-slate-200 bg-white/78 text-slate-600 hover:bg-slate-50"
                     }`}
                   >
                     Todos
@@ -411,8 +411,8 @@ export default function TopicsPage() {
                     onClick={() => setLibraryType("trastornos")}
                     className={`rounded-full border px-3 py-1.5 text-xs ${
                       libraryType === "trastornos"
-                        ? "border-sky-400/30 bg-sky-400/10 text-sky-100"
-                        : "border-white/10 bg-black/20 text-white/70 hover:bg-white/5"
+                        ? "border-sky-400/30 bg-sky-400/10 text-sky-700"
+                        : "border-slate-200 bg-white/78 text-slate-600 hover:bg-slate-50"
                     }`}
                   >
                     Trastornos mentales
@@ -421,8 +421,8 @@ export default function TopicsPage() {
                     onClick={() => setLibraryType("patologias")}
                     className={`rounded-full border px-3 py-1.5 text-xs ${
                       libraryType === "patologias"
-                        ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100"
-                        : "border-white/10 bg-black/20 text-white/70 hover:bg-white/5"
+                        ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-700"
+                        : "border-slate-200 bg-white/78 text-slate-600 hover:bg-slate-50"
                     }`}
                   >
                     Patologías médicas
@@ -430,8 +430,8 @@ export default function TopicsPage() {
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs">
-                  <div className="rounded-full border border-white/10 bg-black/25 px-3 py-1.5 text-white/70">
-                    Resultados filtrados: <span className="font-semibold text-white">{filtered.length}</span>
+                  <div className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-slate-600">
+                    Resultados filtrados: <span className="font-semibold text-slate-900">{filtered.length}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <select
@@ -441,7 +441,7 @@ export default function TopicsPage() {
                           e.target.value as "relevancia" | "riesgo" | "alfabetico"
                         )
                       }
-                      className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs text-white/80 outline-none"
+                      className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 outline-none"
                     >
                       <option value="relevancia">Orden: relevancia</option>
                       <option value="riesgo">Orden: riesgo clínico</option>
@@ -454,7 +454,7 @@ export default function TopicsPage() {
                         setLibraryType("todas");
                         setSortBy("relevancia");
                       }}
-                      className="rounded-xl border border-white/10 px-3 py-2 text-white/75 hover:bg-white/5"
+                      className="rounded-xl border border-slate-200 px-3 py-2 text-slate-600 hover:bg-slate-50"
                     >
                       Limpiar
                     </button>
@@ -464,7 +464,7 @@ export default function TopicsPage() {
 
               <div className="mt-4 max-h-[640px] space-y-3 overflow-y-auto pr-1">
                 {filtered.length === 0 ? (
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-white/70">
+                  <div className="rounded-xl border border-slate-200 bg-white/78 p-4 text-sm text-slate-600">
                     No hay resultados para este filtro. Prueba cambiando tipo de contenido o búsqueda.
                   </div>
                 ) : (
@@ -479,13 +479,13 @@ export default function TopicsPage() {
                       className={`w-full rounded-2xl border p-4 text-left transition ${
                         active?.key === d.key
                           ? "border-white/25 bg-[linear-gradient(180deg,rgba(255,255,255,0.10),rgba(255,255,255,0.05))] shadow-[0_18px_45px_rgba(0,0,0,0.22)]"
-                          : "border-white/10 bg-black/20 hover:bg-white/5"
+                          : "border-slate-200 bg-white/78 hover:bg-slate-50"
                       }`}
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="text-xs uppercase tracking-[0.16em] text-white/45">{d.groupLabel}</span>
+                        <span className="text-xs uppercase tracking-[0.16em] text-slate-400">{d.groupLabel}</span>
                         {!!d.code && (
-                          <span className="rounded-full border border-white/10 bg-black/30 px-2.5 py-1 text-[10px] text-white/55">
+                          <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] text-slate-400">
                             {d.codeSystem}: {d.code}
                           </span>
                         )}
@@ -494,8 +494,8 @@ export default function TopicsPage() {
                         <span
                           className={`rounded-full border px-2 py-0.5 text-[10px] ${
                             d.kind === "mental"
-                              ? "border-sky-400/25 bg-sky-400/10 text-sky-100"
-                              : "border-cyan-400/25 bg-cyan-400/10 text-cyan-100"
+                              ? "border-sky-400/25 bg-sky-400/10 text-sky-700"
+                              : "border-cyan-400/25 bg-cyan-400/10 text-cyan-700"
                           }`}
                         >
                           {d.kind === "mental"
@@ -517,16 +517,16 @@ export default function TopicsPage() {
                           {d.difficulty}
                         </span>
                       </div>
-                      <div className="mt-3 text-base font-semibold leading-snug text-white">{d.name}</div>
-                      <div className="mt-2 line-clamp-2 text-sm text-white/68">
+                      <div className="mt-3 text-base font-semibold leading-snug text-slate-900">{d.name}</div>
+                      <div className="mt-2 line-clamp-2 text-sm text-slate-600">
                         {d.definition}
                       </div>
-                      <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-white/50">
-                        <span className="rounded-full border border-white/10 bg-black/25 px-2.5 py-1">
+                      <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
+                        <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1">
                           {ageBandSummary(d.ageBands)}
                         </span>
                         {d.frequentEmergency && (
-                          <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-2.5 py-1 text-amber-100">
+                          <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-2.5 py-1 text-amber-700">
                             Frecuente en urgencias
                           </span>
                         )}
@@ -537,18 +537,18 @@ export default function TopicsPage() {
               </div>
             </section>
 
-            <section className="rounded-[26px] border border-white/10 bg-white/5 p-5">
+            <section className="rounded-[26px] border border-slate-200 bg-white/80 p-5">
               {!active ? (
-                <div className="rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-white/70">
+                <div className="rounded-xl border border-slate-200 bg-white/78 p-4 text-sm text-slate-600">
                   Selecciona una referencia clínica a la izquierda.
                 </div>
               ) : (
                 <>
-                  <div className="rounded-[28px] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.08),transparent_24%),rgba(255,255,255,0.03)] p-5">
+                  <div className="rounded-[28px] border border-slate-200 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.08),transparent_24%),rgba(255,255,255,0.03)] p-5">
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div className="max-w-3xl">
-                        <div className="text-xs uppercase tracking-[0.18em] text-white/45">{active.groupLabel}</div>
-                        <h2 className="mt-2 text-3xl font-semibold tracking-tight text-white">{active.name}</h2>
+                        <div className="text-xs uppercase tracking-[0.18em] text-slate-400">{active.groupLabel}</div>
+                        <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">{active.name}</h2>
                         <div className="mt-3 flex flex-wrap gap-2">
                           <span
                             className={`rounded-full border px-3 py-1 text-xs ${urgencyBadge(
@@ -564,16 +564,16 @@ export default function TopicsPage() {
                           >
                             Complejidad {active.difficulty}
                           </span>
-                          <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/75">
+                          <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600">
                             {ageBandSummary(active.ageBands)}
                           </span>
                           {!!active.code && (
-                            <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs text-cyan-100">
+                            <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs text-cyan-700">
                               {active.codeSystem}: {active.code}
                             </span>
                           )}
                         </div>
-                        <p className="mt-4 max-w-3xl text-sm leading-6 text-white/72">
+                        <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-600">
                           {active.definition}
                         </p>
                       </div>
@@ -581,13 +581,13 @@ export default function TopicsPage() {
                       <div className="flex flex-wrap items-center gap-2">
                         <Link
                           href={active.kind === "mental" ? "/cases" : "/medical-cases"}
-                          className="rounded-xl border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
+                          className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50"
                         >
                           Practicar caso
                         </Link>
                         <Link
                           href="/simulator"
-                          className="rounded-xl border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
+                          className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50"
                         >
                           Abrir simulador
                         </Link>
@@ -598,7 +598,7 @@ export default function TopicsPage() {
                               navigator.clipboard.writeText(window.location.href);
                             } catch {}
                           }}
-                          className="rounded-xl border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
+                          className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50"
                         >
                           Copiar link
                         </button>
@@ -606,24 +606,24 @@ export default function TopicsPage() {
                     </div>
 
                     <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-                      <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                        <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">Ficha rápida</div>
-                        <div className="mt-2 text-sm font-medium text-white">
+                      <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                        <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Ficha rápida</div>
+                        <div className="mt-2 text-sm font-medium text-slate-900">
                           {active.kind === "mental"
                             ? activeMental?.meta.severityHint
                             : activeMedical?.summary}
                         </div>
                       </div>
                       <div className="rounded-2xl border border-red-400/20 bg-red-400/10 p-4">
-                        <div className="text-[11px] uppercase tracking-[0.18em] text-red-100/80">Qué no perder</div>
+                        <div className="text-[11px] uppercase tracking-[0.18em] text-red-700/80">Qué no perder</div>
                         <div className="mt-2 text-sm font-medium text-red-50">{activeAlertSummary}</div>
                       </div>
                       <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-4">
-                        <div className="text-[11px] uppercase tracking-[0.18em] text-cyan-100/80">Primer foco</div>
-                        <div className="mt-2 text-sm font-medium text-cyan-50">{activeQuickFocus}</div>
+                        <div className="text-[11px] uppercase tracking-[0.18em] text-cyan-700/80">Primer foco</div>
+                        <div className="mt-2 text-sm font-medium text-cyan-700">{activeQuickFocus}</div>
                       </div>
                       <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4">
-                        <div className="text-[11px] uppercase tracking-[0.18em] text-emerald-100/80">Herramientas</div>
+                        <div className="text-[11px] uppercase tracking-[0.18em] text-emerald-700/80">Herramientas</div>
                         <div className="mt-2 text-sm font-medium text-emerald-50">{activeToolSummary}</div>
                       </div>
                     </div>
@@ -631,8 +631,8 @@ export default function TopicsPage() {
 
                   <div className="mt-5 flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <div className="text-xs text-white/60">{active.groupLabel}</div>
-                      <div className="mt-1 text-sm text-white/55">
+                      <div className="text-xs text-slate-500">{active.groupLabel}</div>
+                      <div className="mt-1 text-sm text-slate-400">
                         Módulo de consulta y entrenamiento clínico activo.
                       </div>
                     </div>
@@ -652,11 +652,11 @@ export default function TopicsPage() {
                         >
                           Complejidad {active.difficulty}
                         </span>
-                        <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/75">
+                        <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600">
                           {active.ageBands.join(" · ")}
                         </span>
                         {!!active.code && (
-                          <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs text-cyan-100">
+                          <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs text-cyan-700">
                             {active.codeSystem}: {active.code}
                           </span>
                         )}
@@ -683,8 +683,8 @@ export default function TopicsPage() {
                             onClick={() => setTab(t)}
                             className={`rounded-full border px-3 py-1 text-xs ${
                               tab === t
-                                ? "border-white/30 bg-white/10 text-white"
-                                : "border-white/10 bg-black/20 text-white/70 hover:bg-white/5"
+                                ? "border-white/30 bg-white/10 text-slate-900"
+                                : "border-slate-200 bg-white/78 text-slate-600 hover:bg-slate-50"
                             }`}
                           >
                             {t}
@@ -692,24 +692,24 @@ export default function TopicsPage() {
                         ))}
                       </div>
 
-                      <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-5">
+                      <div className="mt-4 rounded-2xl border border-slate-200 bg-white/78 p-5">
                         {tab === "Resumen" && (
                           <div className="space-y-4">
                             <div>
-                              <div className="text-xs text-white/60">Definición</div>
-                              <div className="mt-1 text-sm text-white/85">{activeMental.quick.definition}</div>
+                              <div className="text-xs text-slate-500">Definición</div>
+                              <div className="mt-1 text-sm text-slate-800">{activeMental.quick.definition}</div>
                             </div>
                             <div>
-                              <div className="text-xs text-white/60">Presentación típica</div>
-                              <div className="mt-1 text-sm text-white/85">{activeMental.quick.typical}</div>
+                              <div className="text-xs text-slate-500">Presentación típica</div>
+                              <div className="mt-1 text-sm text-slate-800">{activeMental.quick.typical}</div>
                             </div>
                             <div>
-                              <div className="text-xs text-white/60">Comorbilidades frecuentes</div>
+                              <div className="text-xs text-slate-500">Comorbilidades frecuentes</div>
                               <div className="mt-2 flex flex-wrap gap-2">
                                 {activeMental.meta.comorbidities.map((c) => (
                                   <span
                                     key={c}
-                                    className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/75"
+                                    className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600"
                                   >
                                     {c}
                                   </span>
@@ -722,8 +722,8 @@ export default function TopicsPage() {
                         {tab === "DSM-5" && (
                           <div className="space-y-4">
                             <div>
-                              <div className="text-xs text-white/60">Checklist núcleo</div>
-                              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-white/85">
+                              <div className="text-xs text-slate-500">Checklist núcleo</div>
+                              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-slate-800">
                                 {activeMental.dsm5.core.map((x) => (
                                   <li key={x}>{x}</li>
                                 ))}
@@ -731,18 +731,18 @@ export default function TopicsPage() {
                             </div>
                             {activeMental.dsm5.duration && (
                               <div>
-                                <div className="text-xs text-white/60">Duración</div>
-                                <div className="mt-1 text-sm text-white/85">{activeMental.dsm5.duration}</div>
+                                <div className="text-xs text-slate-500">Duración</div>
+                                <div className="mt-1 text-sm text-slate-800">{activeMental.dsm5.duration}</div>
                               </div>
                             )}
                             {!!activeMental.dsm5.specifiers?.length && (
                               <div>
-                                <div className="text-xs text-white/60">Especificadores frecuentes</div>
+                                <div className="text-xs text-slate-500">Especificadores frecuentes</div>
                                 <div className="mt-2 flex flex-wrap gap-2">
                                   {activeMental.dsm5.specifiers.map((s) => (
                                     <span
                                       key={s}
-                                      className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/75"
+                                      className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600"
                                     >
                                       {s}
                                     </span>
@@ -756,32 +756,32 @@ export default function TopicsPage() {
                         {tab === "Evaluación" && (
                           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                             <div>
-                              <div className="text-xs text-white/60">Qué preguntar primero</div>
-                              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-white/85">
+                              <div className="text-xs text-slate-500">Qué preguntar primero</div>
+                              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-slate-800">
                                 {activeMental.evaluation.firstQuestions.map((x) => (
                                   <li key={x}>{x}</li>
                                 ))}
                               </ul>
                             </div>
                             <div>
-                              <div className="text-xs text-white/60">Qué no olvidar</div>
-                              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-white/85">
+                              <div className="text-xs text-slate-500">Qué no olvidar</div>
+                              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-slate-800">
                                 {activeMental.evaluation.mustNotMiss.map((x) => (
                                   <li key={x}>{x}</li>
                                 ))}
                               </ul>
                             </div>
                             <div>
-                              <div className="text-xs text-white/60">Qué descartar</div>
-                              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-white/85">
+                              <div className="text-xs text-slate-500">Qué descartar</div>
+                              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-slate-800">
                                 {activeMental.evaluation.ruleOut.map((x) => (
                                   <li key={x}>{x}</li>
                                 ))}
                               </ul>
                             </div>
                             <div>
-                              <div className="text-xs text-white/60">Cuándo derivar urgente</div>
-                              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-white/85">
+                              <div className="text-xs text-slate-500">Cuándo derivar urgente</div>
+                              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-slate-800">
                                 {activeMental.evaluation.urgentReferral.map((x) => (
                                   <li key={x}>{x}</li>
                                 ))}
@@ -792,8 +792,8 @@ export default function TopicsPage() {
 
                         {tab === "Diferenciales" && (
                           <div>
-                            <div className="text-xs text-white/60">Diferenciales clave</div>
-                            <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-white/85">
+                            <div className="text-xs text-slate-500">Diferenciales clave</div>
+                            <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-slate-800">
                               {activeMental.differentials.map((x) => (
                                 <li key={x}>{x}</li>
                               ))}
@@ -803,13 +803,13 @@ export default function TopicsPage() {
 
                         {tab === "Red flags" && (
                           <div>
-                            <div className="text-xs text-white/60">Banderas rojas</div>
-                            <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-white/85">
+                            <div className="text-xs text-slate-500">Banderas rojas</div>
+                            <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-slate-800">
                               {activeMental.redFlags.map((x) => (
                                 <li key={x}>{x}</li>
                               ))}
                             </ul>
-                            <div className="mt-4 rounded-xl border border-red-400/20 bg-red-400/10 p-4 text-sm text-red-100">
+                            <div className="mt-4 rounded-xl border border-red-400/20 bg-red-400/10 p-4 text-sm text-red-700">
                               Si aparece una red flag, prioriza seguridad y ruta de derivación.
                             </div>
                           </div>
@@ -817,8 +817,8 @@ export default function TopicsPage() {
 
                         {tab === "Preguntas" && (
                           <div>
-                            <div className="text-xs text-white/60">Preguntas guía de entrevista</div>
-                            <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-white/85">
+                            <div className="text-xs text-slate-500">Preguntas guía de entrevista</div>
+                            <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-slate-800">
                               {activeMental.questions.map((x) => (
                                 <li key={x}>{x}</li>
                               ))}
@@ -829,24 +829,24 @@ export default function TopicsPage() {
                         {tab === "Plan inicial" && (
                           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                             <div>
-                              <div className="text-xs text-white/60">Objetivos de 24-72h</div>
-                              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-white/85">
+                              <div className="text-xs text-slate-500">Objetivos de 24-72h</div>
+                              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-slate-800">
                                 {activeMental.plan.goals24h72h.map((x) => (
                                   <li key={x}>{x}</li>
                                 ))}
                               </ul>
                             </div>
                             <div>
-                              <div className="text-xs text-white/60">Intervenciones no farmacológicas</div>
-                              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-white/85">
+                              <div className="text-xs text-slate-500">Intervenciones no farmacológicas</div>
+                              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-slate-800">
                                 {activeMental.plan.nonPharmacological.map((x) => (
                                   <li key={x}>{x}</li>
                                 ))}
                               </ul>
                             </div>
                             <div className="lg:col-span-2">
-                              <div className="text-xs text-white/60">Marcadores de seguimiento</div>
-                              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-white/85">
+                              <div className="text-xs text-slate-500">Marcadores de seguimiento</div>
+                              <ul className="mt-2 list-disc space-y-2 pl-5 text-sm text-slate-800">
                                 {activeMental.plan.followupMarkers.map((x) => (
                                   <li key={x}>{x}</li>
                                 ))}
@@ -856,18 +856,18 @@ export default function TopicsPage() {
                         )}
                       </div>
 
-                      <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-5">
+                      <div className="mt-4 rounded-2xl border border-slate-200 bg-white/78 p-5">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div>
-                            <div className="text-sm font-semibold text-white">Comparador clínico</div>
-                            <div className="text-xs text-white/60">
+                            <div className="text-sm font-semibold text-slate-900">Comparador clínico</div>
+                            <div className="text-xs text-slate-500">
                               Compara rápidamente diagnóstico activo vs otro diagnóstico filtrado.
                             </div>
                           </div>
                           <select
                             value={compareId}
                             onChange={(e) => setCompareId(e.target.value)}
-                            className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs text-white/85 outline-none"
+                            className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 outline-none"
                           >
                             <option value="">Selecciona diagnóstico para comparar</option>
                             {compareOptions.map((d) => (
@@ -879,36 +879,36 @@ export default function TopicsPage() {
                         </div>
 
                         {!compareTarget ? (
-                          <div className="mt-3 rounded-xl border border-white/10 bg-black/25 p-3 text-sm text-white/65">
+                          <div className="mt-3 rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-500">
                             Sin comparador seleccionado.
                           </div>
                         ) : (
                           <div className="mt-4 grid grid-cols-1 gap-3 xl:grid-cols-2">
-                            <div className="rounded-xl border border-white/10 bg-black/25 p-4">
-                              <div className="text-xs text-white/50">Diagnóstico activo</div>
-                              <div className="mt-1 text-sm font-semibold text-white">{activeMental.name}</div>
-                              <div className="mt-2 text-xs text-white/70">{activeMental.quick.definition}</div>
-                              <div className="mt-3 text-xs text-white/55">
+                            <div className="rounded-xl border border-slate-200 bg-white p-4">
+                              <div className="text-xs text-slate-400">Diagnóstico activo</div>
+                              <div className="mt-1 text-sm font-semibold text-slate-900">{activeMental.name}</div>
+                              <div className="mt-2 text-xs text-slate-600">{activeMental.quick.definition}</div>
+                              <div className="mt-3 text-xs text-slate-400">
                                 Duración clave: {activeMental.dsm5.duration ?? "Según criterios nucleares"}
                               </div>
-                              <div className="mt-2 text-xs text-white/70">
+                              <div className="mt-2 text-xs text-slate-600">
                                 Red flags: {listPreview(activeMental.redFlags, 2)}
                               </div>
                             </div>
 
-                            <div className="rounded-xl border border-white/10 bg-black/25 p-4">
-                              <div className="text-xs text-white/50">Comparador</div>
-                              <div className="mt-1 text-sm font-semibold text-white">
+                            <div className="rounded-xl border border-slate-200 bg-white p-4">
+                              <div className="text-xs text-slate-400">Comparador</div>
+                              <div className="mt-1 text-sm font-semibold text-slate-900">
                                 {compareTarget.name}
                               </div>
-                              <div className="mt-2 text-xs text-white/70">
+                              <div className="mt-2 text-xs text-slate-600">
                                 {compareTarget.quick.definition}
                               </div>
-                              <div className="mt-3 text-xs text-white/55">
+                              <div className="mt-3 text-xs text-slate-400">
                                 Duración clave:{" "}
                                 {compareTarget.dsm5.duration ?? "Según criterios nucleares"}
                               </div>
-                              <div className="mt-2 text-xs text-white/70">
+                              <div className="mt-2 text-xs text-slate-600">
                                 Red flags: {listPreview(compareTarget.redFlags, 2)}
                               </div>
                             </div>
@@ -920,18 +920,18 @@ export default function TopicsPage() {
 
                   {activeMedical && (
                     <>
-                      <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-5">
-                        <div className="text-xs font-semibold uppercase tracking-wider text-white/45">
+                      <div className="mt-4 rounded-2xl border border-slate-200 bg-white/78 p-5">
+                        <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                           Resumen clínico
                         </div>
-                        <p className="mt-2 text-sm text-white/80">{activeMedical.summary}</p>
+                        <p className="mt-2 text-sm text-slate-700">{activeMedical.summary}</p>
 
                         <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
-                          <div className="rounded-xl border border-white/10 bg-black/25 p-4">
-                            <div className="text-xs font-semibold uppercase tracking-wider text-white/45">
+                          <div className="rounded-xl border border-slate-200 bg-white p-4">
+                            <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                               Pistas clínicas
                             </div>
-                            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-white/80">
+                            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
                               {activeMedical.clinical_clues.map((item) => (
                                 <li key={item}>{item}</li>
                               ))}
@@ -939,10 +939,10 @@ export default function TopicsPage() {
                           </div>
 
                           <div className="rounded-xl border border-red-400/20 bg-red-400/10 p-4">
-                            <div className="text-xs font-semibold uppercase tracking-wider text-red-100/85">
+                            <div className="text-xs font-semibold uppercase tracking-wider text-red-700/85">
                               Signos de alarma
                             </div>
-                            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-red-100">
+                            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
                               {activeMedical.red_flags.map((item) => (
                                 <li key={item}>{item}</li>
                               ))}
@@ -950,21 +950,21 @@ export default function TopicsPage() {
                           </div>
 
                           <div className="rounded-xl border border-cyan-300/20 bg-cyan-300/10 p-4">
-                            <div className="text-xs font-semibold uppercase tracking-wider text-cyan-100/85">
+                            <div className="text-xs font-semibold uppercase tracking-wider text-cyan-700/85">
                               Prioridades de cuidado
                             </div>
-                            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-cyan-100">
+                            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-cyan-700">
                               {activeMedical.nursing_priorities.map((item) => (
                                 <li key={item}>{item}</li>
                               ))}
                             </ul>
                           </div>
 
-                          <div className="rounded-xl border border-white/10 bg-black/25 p-4">
-                            <div className="text-xs font-semibold uppercase tracking-wider text-white/45">
+                          <div className="rounded-xl border border-slate-200 bg-white p-4">
+                            <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                               Apoyo diagnóstico sugerido
                             </div>
-                            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-white/80">
+                            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
                               {activeMedical.diagnostic_support.map((item) => (
                                 <li key={item}>{item}</li>
                               ))}
@@ -972,11 +972,11 @@ export default function TopicsPage() {
                           </div>
                         </div>
 
-                        <div className="mt-4 rounded-xl border border-white/10 bg-black/25 p-4">
-                          <div className="text-xs font-semibold uppercase tracking-wider text-white/45">
+                        <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+                          <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                             Preguntas rápidas de triaje
                           </div>
-                          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-white/80">
+                          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
                             <li>¿Cuál es el síntoma principal y su cronología exacta?</li>
                             <li>¿Qué signos de alarma han aparecido en las últimas horas?</li>
                             <li>¿Qué antecedentes y medicación actual pueden agravar el cuadro?</li>

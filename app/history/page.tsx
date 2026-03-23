@@ -33,64 +33,64 @@ export default function HistoryPage() {
   }, [items]);
 
   return (
-    <div className="min-h-screen bg-[#070A0F]">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f6fbf9_0%,#eef5f2_48%,#e6efeb_100%)]">
       <div className="mx-auto flex max-w-[1480px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
         <Sidebar />
-        <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl p-6">
+        <main className="flex-1 rounded-2xl border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] backdrop-blur-xl p-6 shadow-[0_24px_70px_rgba(99,126,118,0.16)]">
           <div className="flex items-start justify-between gap-3">
             <div>
               <h1 className="text-2xl font-semibold">Historial de casos</h1>
-              <p className="mt-1 text-sm text-white/70">
+              <p className="mt-1 text-sm text-slate-600">
                 Cada sesión es un capítulo: unas terminan en “timeout”, otras en “aprendí algo”.
               </p>
             </div>
-            <Link href="/cases" className="rounded-xl border border-white/15 px-4 py-2 text-sm hover:bg-white/5">
+            <Link href="/cases" className="rounded-xl border border-slate-200 px-4 py-2 text-sm hover:bg-slate-50">
               Volver a Biblioteca
             </Link>
           </div>
 
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <div className="text-xs text-white/60">Sesiones</div>
+            <div className="rounded-xl border border-slate-200 bg-white/80 p-4">
+              <div className="text-xs text-slate-500">Sesiones</div>
               <div className="mt-1 text-lg font-semibold">{stats.total}</div>
             </div>
-            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <div className="text-xs text-white/60">Rapport promedio</div>
+            <div className="rounded-xl border border-slate-200 bg-white/80 p-4">
+              <div className="text-xs text-slate-500">Rapport promedio</div>
               <div className="mt-1 text-lg font-semibold">{stats.avgRapport} / 100</div>
             </div>
           </div>
 
           <div className="mt-5 space-y-3">
             {items.length === 0 ? (
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/70">
+              <div className="rounded-2xl border border-slate-200 bg-white/80 p-6 text-sm text-slate-600">
                 Aún no hay historial. Ve a la biblioteca, inicia un caso, y deja tu primera huella.
               </div>
             ) : (
               items.map((s) => (
-                <div key={s.sessionId} className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                <div key={s.sessionId} className="rounded-2xl border border-slate-200 bg-white/80 p-5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="text-sm text-white/60">Caso</div>
-                      <div className="mt-1 text-base font-semibold text-white truncate">
+                      <div className="text-sm text-slate-500">Caso</div>
+                      <div className="mt-1 text-base font-semibold text-slate-900 truncate">
                         {s.caseTitle}
                       </div>
-                      <div className="mt-1 text-sm text-white/70">
-                        Paciente: <span className="text-white">{s.patientName}</span>
+                      <div className="mt-1 text-sm text-slate-600">
+                        Paciente: <span className="text-slate-900">{s.patientName}</span>
                         {" • "}
-                        Fin: <span className="text-white">{s.endReason}</span>
+                        Fin: <span className="text-slate-900">{s.endReason}</span>
                       </div>
-                      <div className="mt-1 text-xs text-white/55">
+                      <div className="mt-1 text-xs text-slate-400">
                         Inicio: {fmt(s.startedAt)} • Fin: {fmt(s.endedAt)} • Duración: {Math.round(s.durationSec/60)} min
                       </div>
 
                       <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                        <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-white/70">
+                        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
                           Estado: {s.lastMeta?.state ?? "—"}
                         </span>
-                        <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-white/70">
+                        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
                           Intensidad: {Math.round(Number(s.lastMeta?.intensity ?? 0))} / 100
                         </span>
-                        <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-white/70">
+                        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
                           Rapport: {Math.round(Number(s.lastMeta?.rapport ?? 0))} / 100
                         </span>
                       </div>
@@ -120,7 +120,7 @@ export default function HistoryPage() {
                           } catch {}
                           window.location.href = "/cases";
                         }}
-                        className="rounded-xl border border-white/15 px-4 py-2 text-sm hover:bg-white/5"
+                        className="rounded-xl border border-slate-200 px-4 py-2 text-sm hover:bg-slate-50"
                       >
                         Repetir caso
                       </button>
@@ -130,7 +130,7 @@ export default function HistoryPage() {
                           deleteSession(s.sessionId);
                           setItems(getHistory());
                         }}
-                        className="rounded-xl border border-white/15 px-4 py-2 text-sm hover:bg-white/5 text-white/80"
+                        className="rounded-xl border border-slate-200 px-4 py-2 text-sm hover:bg-slate-50 text-slate-700"
                       >
                         Eliminar
                       </button>

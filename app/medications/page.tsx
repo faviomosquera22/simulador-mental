@@ -112,30 +112,30 @@ export default function MedicationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#f4faf8_0%,#edf4f1_48%,#e4efeb_100%)] text-white">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f4faf8_0%,#edf4f1_48%,#e4efeb_100%)] text-slate-900">
       <div className="mx-auto flex max-w-[1580px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
         <Sidebar />
 
-        <main className="flex-1 rounded-2xl border border-[#1b2130]/10 bg-[linear-gradient(180deg,rgba(28,37,46,0.82),rgba(18,25,34,0.84))] p-5 shadow-[0_28px_72px_rgba(84,104,112,0.18)] backdrop-blur-xl">
+        <main className="flex-1 rounded-2xl border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] p-5 shadow-[0_24px_70px_rgba(99,126,118,0.16)] backdrop-blur-xl">
           <header className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold">Administración de medicamentos</h1>
-              <p className="mt-1 text-sm text-white/70">
+              <p className="mt-1 text-sm text-slate-600">
                 Practica verificación segura, decisión clínica, volumen y vía de administración.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-white/70">
-              <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+              <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1">
                 {mode === "practice" ? "Modo práctica" : "Modo evaluación"}
               </span>
-              <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-cyan-100">
+              <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-cyan-700">
                 Dificultad: {medicationDifficultyLabel(caseSet.difficulty)}
               </span>
             </div>
           </header>
 
-          <section className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-[#0B111D]/85 p-4 md:grid-cols-2 xl:grid-cols-5">
-            <label className="text-xs text-white/70">
+          <section className="mt-4 grid gap-3 rounded-2xl border border-slate-200 bg-white/82 p-4 md:grid-cols-2 xl:grid-cols-5">
+            <label className="text-xs text-slate-600">
               Modo
               <select
                 value={mode}
@@ -143,31 +143,31 @@ export default function MedicationsPage() {
                   setMode(event.target.value as MedicationMode);
                   setResult(null);
                 }}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 <option value="practice">Práctica guiada</option>
                 <option value="evaluation">Evaluación</option>
               </select>
             </label>
 
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Selección
               <select
                 value={selectionMode}
                 onChange={(event) => setSelectionMode(event.target.value as SelectionMode)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 <option value="random">Aleatorio</option>
                 <option value="manual">Manual</option>
               </select>
             </label>
 
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Dificultad
               <select
                 value={difficultyFilter}
                 onChange={(event) => setDifficultyFilter(event.target.value as DifficultyFilter)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 <option value="all">Todas</option>
                 <option value="basic">Básico</option>
@@ -176,7 +176,7 @@ export default function MedicationsPage() {
               </select>
             </label>
 
-            <label className="text-xs text-white/70 xl:col-span-2">
+            <label className="text-xs text-slate-600 xl:col-span-2">
               Escenario de medicación
               <select
                 value={manualCaseId}
@@ -188,7 +188,7 @@ export default function MedicationsPage() {
                   setCaseSet(manual);
                   clearAnswers();
                 }}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 {casePool.map((item) => (
                   <option key={item.id} value={item.id}>
@@ -199,19 +199,19 @@ export default function MedicationsPage() {
             </label>
           </section>
 
-          <section className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-black/25 p-4 xl:grid-cols-[1.3fr_1fr_auto]">
+          <section className="mt-4 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 xl:grid-cols-[1.3fr_1fr_auto]">
             <div>
-              <div className="text-xs uppercase tracking-[0.14em] text-white/45">Escenario</div>
-              <div className="mt-1 text-base font-semibold text-white">{caseSet.name}</div>
-              <div className="mt-1 text-sm text-white/70">
+              <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Escenario</div>
+              <div className="mt-1 text-base font-semibold text-slate-900">{caseSet.name}</div>
+              <div className="mt-1 text-sm text-slate-600">
                 {caseSet.patient.name} · {caseSet.patient.age} años ·{" "}
                 {caseSet.patient.sex === "female" ? "Femenino" : caseSet.patient.sex === "male" ? "Masculino" : "No especificado"}
               </div>
-              <div className="text-sm text-white/65">{caseSet.context}</div>
+              <div className="text-sm text-slate-500">{caseSet.context}</div>
             </div>
 
-            <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white/70">
-              <div className="font-semibold text-white/85">Orden médica</div>
+            <div className="rounded-xl border border-slate-200 bg-white/80 p-3 text-xs text-slate-600">
+              <div className="font-semibold text-slate-800">Orden médica</div>
               <div className="mt-2">Medicamento: {caseSet.order.medication}</div>
               <div className="mt-1">Dosis: {caseSet.order.doseLabel}</div>
               <div className="mt-1">Vía: {caseSet.order.route}</div>
@@ -223,7 +223,7 @@ export default function MedicationsPage() {
               <button
                 type="button"
                 onClick={loadNewCase}
-                className="rounded-xl border border-white/15 bg-black/35 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900/90 hover:bg-slate-50"
               >
                 Nuevo caso
               </button>
@@ -231,43 +231,43 @@ export default function MedicationsPage() {
           </section>
 
           <section className="mt-4 grid gap-4 xl:grid-cols-[1.55fr_1fr]">
-            <div className="rounded-2xl border border-white/10 bg-[#0B101A]/90 p-4">
+            <div className="rounded-2xl border border-slate-200 bg-white/82 p-4">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-lg font-semibold">Paciente y seguridad</h2>
-                <div className="rounded-full border border-white/15 bg-black/25 px-2.5 py-1 text-xs text-white/70">
+                <div className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600">
                   {medicationCategoryLabel(caseSet.category)}
                 </div>
               </div>
 
               <div className="mt-4 grid gap-3 md:grid-cols-2">
-                <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-                  <div className="text-xs uppercase tracking-wide text-white/50">Datos del paciente</div>
-                  <div className="mt-2 text-sm text-white/85">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="text-xs uppercase tracking-wide text-slate-400">Datos del paciente</div>
+                  <div className="mt-2 text-sm text-slate-800">
                     Diagnósticos: {caseSet.patient.diagnoses.join(" · ")}
                   </div>
-                  <div className="mt-1 text-sm text-white/70">
+                  <div className="mt-1 text-sm text-slate-600">
                     Alergias: {caseSet.patient.allergies.length ? caseSet.patient.allergies.join(", ") : "Ninguna conocida"}
                   </div>
                   {caseSet.patient.alerts?.length ? (
-                    <div className="mt-3 rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-xs text-amber-100">
+                    <div className="mt-3 rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-xs text-amber-700">
                       {caseSet.patient.alerts.join(" · ")}
                     </div>
                   ) : (
-                    <div className="mt-3 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-100">
+                    <div className="mt-3 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-700">
                       Sin alertas adicionales críticas en el escenario base.
                     </div>
                   )}
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-                  <div className="text-xs uppercase tracking-wide text-white/50">Preparación</div>
-                  <div className="mt-2 text-sm text-white/85">Indicación: {caseSet.order.indication}</div>
-                  {caseSet.order.dilution && <div className="mt-1 text-sm text-white/70">Dilución: {caseSet.order.dilution}</div>}
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="text-xs uppercase tracking-wide text-slate-400">Preparación</div>
+                  <div className="mt-2 text-sm text-slate-800">Indicación: {caseSet.order.indication}</div>
+                  {caseSet.order.dilution && <div className="mt-1 text-sm text-slate-600">Dilución: {caseSet.order.dilution}</div>}
                   {caseSet.order.infusionRate && (
-                    <div className="mt-1 text-sm text-white/70">Velocidad / alerta: {caseSet.order.infusionRate}</div>
+                    <div className="mt-1 text-sm text-slate-600">Velocidad / alerta: {caseSet.order.infusionRate}</div>
                   )}
                   {caseSet.order.volumePrompt && (
-                    <div className="mt-3 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-xs text-cyan-100">
+                    <div className="mt-3 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-xs text-cyan-700">
                       Cálculo integrado: {caseSet.order.volumePrompt}
                     </div>
                   )}
@@ -275,23 +275,23 @@ export default function MedicationsPage() {
               </div>
 
               {mode === "practice" && (
-                <div className="mt-4 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-sm text-cyan-100">
+                <div className="mt-4 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-sm text-cyan-700">
                   Antes de administrar, valida siempre los 5 correctos y agrega alergias/contraindicaciones si aplican.
                 </div>
               )}
             </div>
 
             <aside className="space-y-3">
-              <div className="rounded-2xl border border-white/10 bg-[#0C1422]/90 p-4">
+              <div className="rounded-2xl border border-slate-200 bg-white/82 p-4">
                 <h3 className="text-base font-semibold">Decisión segura</h3>
 
                 <div className="mt-3 space-y-3">
-                  <label className="block text-xs text-white/70">
+                  <label className="block text-xs text-slate-600">
                     1) Conducta
                     <select
                       value={decision}
                       onChange={(event) => setDecision(event.target.value as MedicationDecision | "")}
-                      className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
+                      className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
                     >
                       <option value="">Selecciona una opción</option>
                       <option value="administer">Administrar</option>
@@ -300,12 +300,12 @@ export default function MedicationsPage() {
                     </select>
                   </label>
 
-                  <label className="block text-xs text-white/70">
+                  <label className="block text-xs text-slate-600">
                     2) Vía de administración
                     <select
                       value={route}
                       onChange={(event) => setRoute(event.target.value)}
-                      className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
+                      className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
                     >
                       <option value="">Selecciona una vía</option>
                       {routeOptions.map((option) => (
@@ -317,19 +317,19 @@ export default function MedicationsPage() {
                   </label>
 
                   {typeof caseSet.correctVolumeMl === "number" && (
-                    <label className="block text-xs text-white/70">
+                    <label className="block text-xs text-slate-600">
                       3) Volumen a administrar (mL)
                       <input
                         value={volumeMl}
                         onChange={(event) => setVolumeMl(event.target.value)}
                         placeholder="Ingresa el volumen en mL"
-                        className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white placeholder:text-white/35"
+                        className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-900/35"
                       />
                     </label>
                   )}
 
                   <div>
-                    <div className="text-xs text-white/70">4) Controles de seguridad realizados</div>
+                    <div className="text-xs text-slate-600">4) Controles de seguridad realizados</div>
                     <div className="mt-2 grid gap-2 md:grid-cols-2">
                       {MEDICATION_SAFETY_CHECKS.map((item) => {
                         const checked = selectedChecks.includes(item.id);
@@ -337,7 +337,7 @@ export default function MedicationsPage() {
                           <label
                             key={item.id}
                             className={`rounded-xl border px-3 py-2 text-xs ${
-                              checked ? "border-cyan-400/35 bg-cyan-400/10 text-cyan-100" : "border-white/10 bg-black/25 text-white/75"
+                              checked ? "border-cyan-400/35 bg-cyan-400/10 text-cyan-700" : "border-slate-200 bg-white text-slate-600"
                             }`}
                           >
                             <input
@@ -353,14 +353,14 @@ export default function MedicationsPage() {
                     </div>
                   </div>
 
-                  <label className="block text-xs text-white/70">
+                  <label className="block text-xs text-slate-600">
                     5) Justificación clínica
                     <textarea
                       value={justification}
                       onChange={(event) => setJustification(event.target.value)}
                       rows={4}
                       placeholder="Explica por qué administrarías, retendrías o aclararías la orden."
-                      className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white placeholder:text-white/35"
+                      className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-900/35"
                     />
                   </label>
                 </div>
@@ -376,7 +376,7 @@ export default function MedicationsPage() {
                   <button
                     type="button"
                     onClick={clearAnswers}
-                    className="rounded-xl border border-white/15 bg-black/35 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900/90 hover:bg-slate-50"
                   >
                     Reiniciar
                   </button>
@@ -384,27 +384,27 @@ export default function MedicationsPage() {
               </div>
 
               {result && (
-                <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                   <div className="flex items-center justify-between gap-3">
-                    <div className="text-sm font-semibold text-white">Feedback automático</div>
-                    <div className="rounded-full border border-cyan-400/35 bg-cyan-400/10 px-2.5 py-1 text-xs text-cyan-100">
+                    <div className="text-sm font-semibold text-slate-900">Feedback automático</div>
+                    <div className="rounded-full border border-cyan-400/35 bg-cyan-400/10 px-2.5 py-1 text-xs text-cyan-700">
                       {result.totalScore}/100
                     </div>
                   </div>
 
-                  <div className="mt-3 space-y-2 text-sm text-white/80">
+                  <div className="mt-3 space-y-2 text-sm text-slate-700">
                     <div>{result.feedback.decision}</div>
                     <div>{result.feedback.route}</div>
                     <div>{result.feedback.volume}</div>
                     <div>{result.feedback.safety}</div>
                     <div>{result.feedback.justification}</div>
-                    <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-white/85">
+                    <div className="rounded-xl border border-slate-200 bg-white/80 px-3 py-2 text-slate-800">
                       {result.feedback.summary}
                     </div>
                   </div>
 
                   {mode === "practice" && (
-                    <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs text-amber-100">
+                    <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs text-amber-700">
                       Error frecuente a evitar: {caseSet.commonErrors[0]}
                     </div>
                   )}

@@ -26,9 +26,9 @@ type Phase = "setup" | "running" | "finished";
 type ScenarioMode = "random" | "manual";
 
 function scoreTone(score: number) {
-  if (score >= 75) return "text-emerald-200";
-  if (score >= 60) return "text-amber-200";
-  return "text-red-200";
+  if (score >= 75) return "text-emerald-700";
+  if (score >= 60) return "text-amber-700";
+  return "text-red-700";
 }
 
 function scoreBar(score: number) {
@@ -38,10 +38,10 @@ function scoreBar(score: number) {
 }
 
 function levelTone(level: string) {
-  if (level === "Excelente") return "border-emerald-400/35 bg-emerald-400/10 text-emerald-100";
-  if (level === "Competente") return "border-sky-400/35 bg-sky-400/10 text-sky-100";
-  if (level === "En desarrollo") return "border-amber-400/35 bg-amber-400/10 text-amber-100";
-  return "border-red-400/35 bg-red-400/10 text-red-100";
+  if (level === "Excelente") return "border-emerald-400/35 bg-emerald-400/10 text-emerald-700";
+  if (level === "Competente") return "border-sky-400/35 bg-sky-400/10 text-sky-700";
+  if (level === "En desarrollo") return "border-amber-400/35 bg-amber-400/10 text-amber-700";
+  return "border-red-400/35 bg-red-400/10 text-red-700";
 }
 
 function formatElapsedSeconds(startedAt: string | null, endedAt: string | null) {
@@ -198,15 +198,15 @@ export default function TriageSimulatorPage() {
   const roleObjective = scenario.roleObjectiveByCareer[careerId] ?? scenario.learningGoal;
 
   return (
-    <div className="min-h-screen bg-[#070A12] text-white">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f6fbf9_0%,#eef5f2_48%,#e6efeb_100%)] text-slate-900">
       <div className="mx-auto flex max-w-7xl gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
         <Sidebar />
 
-        <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+        <main className="flex-1 rounded-2xl border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] p-5 shadow-[0_24px_70px_rgba(99,126,118,0.16)] backdrop-blur-xl">
           <header className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold">Simulador de triaje por carrera</h1>
-              <p className="mt-1 text-sm text-white/70">
+              <p className="mt-1 text-sm text-slate-600">
                 Entrena priorizacion, manejo inicial y comunicacion interprofesional con rubricas por rol.
               </p>
             </div>
@@ -214,8 +214,8 @@ export default function TriageSimulatorPage() {
 
           {phase === "setup" && (
             <>
-              <section className="mt-5 rounded-2xl border border-white/10 bg-[#0C111D]/80 p-5">
-                <div className="text-sm text-white/60">Paso 1</div>
+              <section className="mt-5 rounded-2xl border border-slate-200 bg-white/82 p-5">
+                <div className="text-sm text-slate-500">Paso 1</div>
                 <h2 className="mt-1 text-lg font-semibold">Selecciona carrera de salud</h2>
 
                 <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -229,22 +229,22 @@ export default function TriageSimulatorPage() {
                         className={`rounded-2xl border p-4 text-left transition ${
                           active
                             ? "border-cyan-400/35 bg-cyan-500/10 ring-2 ring-cyan-400/25"
-                            : "border-white/10 bg-black/25 hover:bg-black/35"
+                            : "border-slate-200 bg-white hover:bg-white"
                         }`}
                       >
                         <div className="text-base font-semibold">{item.name}</div>
-                        <div className="mt-1 text-sm text-white/70">{item.description}</div>
+                        <div className="mt-1 text-sm text-slate-600">{item.description}</div>
                       </button>
                     );
                   })}
                 </div>
 
                 <div className="mt-5 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-                  <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                    <div className="text-xs uppercase tracking-wide text-white/50">Objetivo por carrera</div>
-                    <div className="mt-2 text-sm text-white/85">{roleObjective}</div>
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div className="text-xs uppercase tracking-wide text-slate-400">Objetivo por carrera</div>
+                    <div className="mt-2 text-sm text-slate-800">{roleObjective}</div>
 
-                    <div className="mt-4 text-xs uppercase tracking-wide text-white/50">Paso 2 · Tipo de escenario</div>
+                    <div className="mt-4 text-xs uppercase tracking-wide text-slate-400">Paso 2 · Tipo de escenario</div>
                     <div className="mt-2 flex flex-wrap gap-2">
                       <button
                         type="button"
@@ -254,8 +254,8 @@ export default function TriageSimulatorPage() {
                         }}
                         className={`rounded-full border px-3 py-1.5 text-xs transition ${
                           scenarioMode === "random"
-                            ? "border-cyan-300/40 bg-cyan-300/10 text-cyan-100"
-                            : "border-white/10 bg-black/25 text-white/70 hover:bg-white/5"
+                            ? "border-cyan-300/40 bg-cyan-300/10 text-cyan-700"
+                            : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                         }`}
                       >
                         Aleatorio por carrera
@@ -270,8 +270,8 @@ export default function TriageSimulatorPage() {
                         }}
                         className={`rounded-full border px-3 py-1.5 text-xs transition ${
                           scenarioMode === "manual"
-                            ? "border-cyan-300/40 bg-cyan-300/10 text-cyan-100"
-                            : "border-white/10 bg-black/25 text-white/70 hover:bg-white/5"
+                            ? "border-cyan-300/40 bg-cyan-300/10 text-cyan-700"
+                            : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                         }`}
                       >
                         Escoger manual
@@ -280,11 +280,11 @@ export default function TriageSimulatorPage() {
 
                     {scenarioMode === "manual" && (
                       <div className="mt-3">
-                        <label className="text-xs text-white/60">Escenario</label>
+                        <label className="text-xs text-slate-500">Escenario</label>
                         <select
                           value={selectedScenarioId === "random" ? (availableScenarios[0]?.id ?? "") : selectedScenarioId}
                           onChange={(e) => setSelectedScenarioId(e.target.value)}
-                          className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                          className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none"
                         >
                           {availableScenarios.map((item) => (
                             <option key={item.id} value={item.id}>
@@ -295,54 +295,54 @@ export default function TriageSimulatorPage() {
                       </div>
                     )}
 
-                    <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-3">
+                    <div className="mt-4 rounded-xl border border-slate-200 bg-white/78 p-3">
                       <div className="flex items-center justify-between gap-2">
-                        <div className="text-xs uppercase tracking-wide text-white/50">
+                        <div className="text-xs uppercase tracking-wide text-slate-400">
                           {scenarioMode === "manual" ? "Escenario seleccionado" : "Escenario (vista previa)"}
                         </div>
-                        <div className="text-[11px] text-white/55">
+                        <div className="text-[11px] text-slate-400">
                           {availableScenarios.length} disponibles
                         </div>
                       </div>
 
-                      <div className="mt-2 text-sm font-semibold text-white">{scenario.title}</div>
-                      <div className="mt-1 text-xs text-white/60">{scenario.setting}</div>
+                      <div className="mt-2 text-sm font-semibold text-slate-900">{scenario.title}</div>
+                      <div className="mt-1 text-xs text-slate-500">{scenario.setting}</div>
 
                       {scenarioMode === "random" && availableScenarios.length > 1 && (
-                        <div className="mt-2 text-xs text-cyan-100/85">
+                        <div className="mt-2 text-xs text-cyan-700/85">
                           Al iniciar se elige uno aleatorio de esta carrera.
                         </div>
                       )}
 
                       <div className="mt-3 grid grid-cols-1 gap-2">
-                        <div className="rounded-lg border border-white/10 bg-black/25 p-2.5">
-                          <div className="text-[11px] uppercase tracking-wide text-white/50">Paciente</div>
-                          <div className="mt-1 text-xs text-white/80">{scenario.patientSummary}</div>
+                        <div className="rounded-lg border border-slate-200 bg-white p-2.5">
+                          <div className="text-[11px] uppercase tracking-wide text-slate-400">Paciente</div>
+                          <div className="mt-1 text-xs text-slate-700">{scenario.patientSummary}</div>
                         </div>
-                        <div className="rounded-lg border border-white/10 bg-black/25 p-2.5">
-                          <div className="text-[11px] uppercase tracking-wide text-white/50">Motivo de consulta</div>
-                          <div className="mt-1 text-xs text-white/80">{scenario.chiefComplaint}</div>
+                        <div className="rounded-lg border border-slate-200 bg-white p-2.5">
+                          <div className="text-[11px] uppercase tracking-wide text-slate-400">Motivo de consulta</div>
+                          <div className="mt-1 text-xs text-slate-700">{scenario.chiefComplaint}</div>
                         </div>
-                        <div className="rounded-lg border border-white/10 bg-black/25 p-2.5">
-                          <div className="text-[11px] uppercase tracking-wide text-white/50">Objetivo docente</div>
-                          <div className="mt-1 text-xs text-white/80">{scenario.learningGoal}</div>
+                        <div className="rounded-lg border border-slate-200 bg-white p-2.5">
+                          <div className="text-[11px] uppercase tracking-wide text-slate-400">Objetivo docente</div>
+                          <div className="mt-1 text-xs text-slate-700">{scenario.learningGoal}</div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-4 text-xs uppercase tracking-wide text-white/50">Enfoques de evaluacion</div>
-                    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-white/75">
+                    <div className="mt-4 text-xs uppercase tracking-wide text-slate-400">Enfoques de evaluacion</div>
+                    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-600">
                       {career.focus.map((focusLine) => (
                         <li key={focusLine}>{focusLine}</li>
                       ))}
                     </ul>
                   </div>
 
-                  <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                    <div className="text-xs uppercase tracking-wide text-white/50">Estructura</div>
-                    <div className="mt-2 text-sm text-white/80">5 decisiones guiadas</div>
-                    <div className="mt-1 text-sm text-white/80">Feedback inmediato por turno</div>
-                    <div className="mt-1 text-sm text-white/80">Debrief con scoring por rol</div>
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div className="text-xs uppercase tracking-wide text-slate-400">Estructura</div>
+                    <div className="mt-2 text-sm text-slate-700">5 decisiones guiadas</div>
+                    <div className="mt-1 text-sm text-slate-700">Feedback inmediato por turno</div>
+                    <div className="mt-1 text-sm text-slate-700">Debrief con scoring por rol</div>
                     <button
                       type="button"
                       onClick={startSimulation}
@@ -358,27 +358,27 @@ export default function TriageSimulatorPage() {
 
           {phase === "running" && currentStep && (
             <>
-              <section className="mt-5 rounded-2xl border border-white/10 bg-[#0C111D]/85 p-5">
+              <section className="mt-5 rounded-2xl border border-slate-200 bg-white/82 p-5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="text-sm text-white/65">
-                    Carrera: <span className="font-semibold text-white">{career.name}</span>
+                  <div className="text-sm text-slate-500">
+                    Carrera: <span className="font-semibold text-slate-900">{career.name}</span>
                   </div>
-                  <div className="text-xs text-white/60">
+                  <div className="text-xs text-slate-500">
                     Paso {stepIndex + 1} de {scenario.steps.length}
                   </div>
                 </div>
 
-                <div className="mt-1 text-xs text-white/55">Escenario activo: {scenario.title}</div>
+                <div className="mt-1 text-xs text-slate-400">Escenario activo: {scenario.title}</div>
 
                 <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-white/10">
                   <div className="h-full rounded-full bg-cyan-400" style={{ width: `${progress}%` }} />
                 </div>
 
                 <div className="mt-4 grid gap-4 lg:grid-cols-[1.6fr_1fr]">
-                  <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                    <div className="text-xs uppercase tracking-wide text-white/50">{currentStep.title}</div>
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div className="text-xs uppercase tracking-wide text-slate-400">{currentStep.title}</div>
                     <h2 className="mt-2 text-lg font-semibold">{currentStep.prompt}</h2>
-                    <div className="mt-2 text-sm text-white/65">{currentStep.hint}</div>
+                    <div className="mt-2 text-sm text-slate-500">{currentStep.hint}</div>
 
                     <div className="mt-4 space-y-2">
                       {currentStep.options.map((option) => {
@@ -391,8 +391,8 @@ export default function TriageSimulatorPage() {
                             onClick={() => handleSelectOption(option)}
                             className={`w-full rounded-xl border p-3 text-left transition ${
                               selected
-                                ? "border-cyan-300/40 bg-cyan-300/10 text-cyan-100"
-                                : "border-white/10 bg-black/30 text-white/85 hover:bg-black/45"
+                                ? "border-cyan-300/40 bg-cyan-300/10 text-cyan-700"
+                                : "border-slate-200 bg-slate-50 text-slate-800 hover:bg-black/45"
                             } disabled:cursor-not-allowed disabled:opacity-85`}
                           >
                             <div className="text-sm font-medium">{option.label}</div>
@@ -402,8 +402,8 @@ export default function TriageSimulatorPage() {
                     </div>
 
                     {selectedOptionId && (
-                      <div className="mt-4 rounded-xl border border-cyan-300/30 bg-cyan-300/10 p-3 text-sm text-cyan-100">
-                        <div className="text-xs uppercase tracking-wide text-cyan-100/80">Respuesta del escenario</div>
+                      <div className="mt-4 rounded-xl border border-cyan-300/30 bg-cyan-300/10 p-3 text-sm text-cyan-700">
+                        <div className="text-xs uppercase tracking-wide text-cyan-700/80">Respuesta del escenario</div>
                         <div className="mt-1">{stepFeedback}</div>
                         <button
                           type="button"
@@ -416,18 +416,18 @@ export default function TriageSimulatorPage() {
                     )}
                   </div>
 
-                  <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                    <div className="text-xs uppercase tracking-wide text-white/50">Objetivo del rol</div>
-                    <div className="mt-2 text-sm text-white/80">{roleObjective}</div>
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div className="text-xs uppercase tracking-wide text-slate-400">Objetivo del rol</div>
+                    <div className="mt-2 text-sm text-slate-700">{roleObjective}</div>
 
-                    <div className="mt-4 text-xs uppercase tracking-wide text-white/50">Metricas en tiempo real</div>
+                    <div className="mt-4 text-xs uppercase tracking-wide text-slate-400">Metricas en tiempo real</div>
                     <div className="mt-2 space-y-2">
                       {TRIAGE_METRIC_KEYS.map((key) => {
                         const value = scores[key];
                         return (
                           <div key={key}>
                             <div className="flex items-center justify-between text-xs">
-                              <span className="text-white/70">{TRIAGE_METRIC_LABELS[key]}</span>
+                              <span className="text-slate-600">{TRIAGE_METRIC_LABELS[key]}</span>
                               <span className={scoreTone(value)}>{value}</span>
                             </div>
                             <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
@@ -448,35 +448,35 @@ export default function TriageSimulatorPage() {
 
           {phase === "finished" && debrief && (
             <>
-              <section className="mt-5 rounded-2xl border border-white/10 bg-[#0C111D]/85 p-5">
+              <section className="mt-5 rounded-2xl border border-slate-200 bg-white/82 p-5">
                 <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
                   <div>
-                    <div className="text-sm text-white/60">Debrief final</div>
+                    <div className="text-sm text-slate-500">Debrief final</div>
                     <h2 className="mt-1 text-xl font-semibold">{scenario.title}</h2>
-                    <div className="mt-2 text-sm text-white/70">Carrera evaluada: {career.name}</div>
+                    <div className="mt-2 text-sm text-slate-600">Carrera evaluada: {career.name}</div>
                     {typeof elapsedSeconds === "number" && (
-                      <div className="mt-1 text-sm text-white/60">Tiempo total: {elapsedSeconds}s</div>
+                      <div className="mt-1 text-sm text-slate-500">Tiempo total: {elapsedSeconds}s</div>
                     )}
 
                     <div className="mt-4 flex flex-wrap items-center gap-2">
                       <span className={`inline-flex rounded-full border px-3 py-1 text-xs ${levelTone(debrief.level)}`}>
                         Nivel {debrief.level}
                       </span>
-                      <span className="inline-flex rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/80">
+                      <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-700">
                         Score ponderado: {debrief.weightedScore}/100
                       </span>
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                    <div className="text-xs uppercase tracking-wide text-white/50">Metricas finales</div>
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div className="text-xs uppercase tracking-wide text-slate-400">Metricas finales</div>
                     <div className="mt-2 space-y-2">
                       {TRIAGE_METRIC_KEYS.map((key) => {
                         const value = debrief.metricScores[key];
                         return (
                           <div key={key}>
                             <div className="flex items-center justify-between text-xs">
-                              <span className="text-white/70">{TRIAGE_METRIC_LABELS[key]}</span>
+                              <span className="text-slate-600">{TRIAGE_METRIC_LABELS[key]}</span>
                               <span className={scoreTone(value)}>{value}</span>
                             </div>
                             <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
@@ -491,58 +491,58 @@ export default function TriageSimulatorPage() {
 
                 <div className="mt-4 grid gap-3 lg:grid-cols-2">
                   <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 p-3">
-                    <div className="text-xs uppercase tracking-wide text-emerald-100/80">Fortalezas</div>
+                    <div className="text-xs uppercase tracking-wide text-emerald-700/80">Fortalezas</div>
                     {debrief.strengths.length ? (
-                      <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-emerald-100">
+                      <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-emerald-700">
                         {debrief.strengths.map((item) => (
                           <li key={item}>{item}</li>
                         ))}
                       </ul>
                     ) : (
-                      <div className="mt-2 text-sm text-emerald-100/85">No hubo metricas en rango alto aun.</div>
+                      <div className="mt-2 text-sm text-emerald-700/85">No hubo metricas en rango alto aun.</div>
                     )}
                   </div>
 
                   <div className="rounded-xl border border-amber-400/20 bg-amber-400/10 p-3">
-                    <div className="text-xs uppercase tracking-wide text-amber-100/80">Para mejorar</div>
+                    <div className="text-xs uppercase tracking-wide text-amber-700/80">Para mejorar</div>
                     {debrief.improvementAreas.length ? (
-                      <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-amber-100">
+                      <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-amber-700">
                         {debrief.improvementAreas.map((item) => (
                           <li key={item}>{item}</li>
                         ))}
                       </ul>
                     ) : (
-                      <div className="mt-2 text-sm text-amber-100/85">Buen control global en este escenario.</div>
+                      <div className="mt-2 text-sm text-amber-700/85">Buen control global en este escenario.</div>
                     )}
                   </div>
                 </div>
               </section>
 
-              <section className="mt-5 rounded-2xl border border-white/10 bg-[#0C111D]/80 p-5">
-                <div className="text-sm text-white/60">Revision por decision</div>
+              <section className="mt-5 rounded-2xl border border-slate-200 bg-white/82 p-5">
+                <div className="text-sm text-slate-500">Revision por decision</div>
                 <h3 className="mt-1 text-lg font-semibold">Comparacion de tus elecciones vs mejor alternativa</h3>
 
                 <div className="mt-4 space-y-3">
                   {debrief.stepReviews.map((review) => (
-                    <div key={review.stepId} className="rounded-xl border border-white/10 bg-black/25 p-3">
+                    <div key={review.stepId} className="rounded-xl border border-slate-200 bg-white p-3">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="text-sm font-semibold text-white">{review.title}</div>
+                        <div className="text-sm font-semibold text-slate-900">{review.title}</div>
                         <span
                           className={`rounded-full border px-2 py-0.5 text-[11px] ${
                             review.isBestChoice
-                              ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-100"
-                              : "border-amber-400/30 bg-amber-400/10 text-amber-100"
+                              ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-700"
+                              : "border-amber-400/30 bg-amber-400/10 text-amber-700"
                           }`}
                         >
                           {review.isBestChoice ? "Decision optima" : "Mejorable"}
                         </span>
                       </div>
-                      <div className="mt-2 text-sm text-white/80">Tu eleccion: {review.selectedLabel}</div>
-                      <div className="mt-1 text-xs text-white/60">{review.selectedSummary}</div>
+                      <div className="mt-2 text-sm text-slate-700">Tu eleccion: {review.selectedLabel}</div>
+                      <div className="mt-1 text-xs text-slate-500">{review.selectedSummary}</div>
                       {!review.isBestChoice && (
                         <>
-                          <div className="mt-2 text-sm text-cyan-100">Alternativa sugerida: {review.bestLabel}</div>
-                          <div className="mt-1 text-xs text-cyan-100/80">{review.bestSummary}</div>
+                          <div className="mt-2 text-sm text-cyan-700">Alternativa sugerida: {review.bestLabel}</div>
+                          <div className="mt-1 text-xs text-cyan-700/80">{review.bestSummary}</div>
                         </>
                       )}
                     </div>
@@ -550,12 +550,12 @@ export default function TriageSimulatorPage() {
                 </div>
               </section>
 
-              <section className="mt-5 rounded-2xl border border-white/10 bg-[#0C111D]/80 p-5">
-                <div className="text-sm text-white/60">Hallazgos del debrief</div>
+              <section className="mt-5 rounded-2xl border border-slate-200 bg-white/82 p-5">
+                <div className="text-sm text-slate-500">Hallazgos del debrief</div>
                 <h3 className="mt-1 text-lg font-semibold">Sesgos y riesgos detectados</h3>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {debrief.flags.map((flag) => (
-                    <span key={flag} className="rounded-full border border-white/15 bg-black/30 px-3 py-1.5 text-xs text-white/80">
+                    <span key={flag} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-700">
                       {flag}
                     </span>
                   ))}
@@ -572,7 +572,7 @@ export default function TriageSimulatorPage() {
                   <button
                     type="button"
                     onClick={resetToSetup}
-                    className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
+                    className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                   >
                     Cambiar carrera
                   </button>
@@ -581,7 +581,7 @@ export default function TriageSimulatorPage() {
             </>
           )}
 
-          <div className="mt-6 text-xs text-white/45">
+          <div className="mt-6 text-xs text-slate-400">
             Simulador educativo. Las decisiones clinicas reales deben seguir protocolos institucionales y supervision docente.
           </div>
         </main>

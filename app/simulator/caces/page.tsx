@@ -67,9 +67,9 @@ function formatTimer(totalSec: number) {
 }
 
 function getPriorityClass(priority: "Alta" | "Media" | "Baja") {
-  if (priority === "Alta") return "border-red-400/25 bg-red-400/10 text-red-100";
-  if (priority === "Media") return "border-amber-400/25 bg-amber-400/10 text-amber-100";
-  return "border-emerald-400/25 bg-emerald-400/10 text-emerald-100";
+  if (priority === "Alta") return "border-red-400/25 bg-red-400/10 text-red-700";
+  if (priority === "Media") return "border-amber-400/25 bg-amber-400/10 text-amber-700";
+  return "border-emerald-400/25 bg-emerald-400/10 text-emerald-700";
 }
 
 function getModeLabel(mode: CacesPracticeMode | string) {
@@ -799,18 +799,18 @@ export default function SimulatorCacesPage() {
       <div className="mx-auto flex max-w-[1480px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
         <Sidebar />
 
-        <main className="flex-1 overflow-hidden rounded-2xl border border-[#1b2130]/10 bg-[linear-gradient(180deg,rgba(26,35,43,0.82),rgba(18,25,34,0.84))] shadow-[0_28px_72px_rgba(84,104,112,0.18)] backdrop-blur-xl">
-          <header className="border-b border-white/10 bg-white/6 px-5 py-4">
+        <main className="flex-1 overflow-hidden rounded-2xl border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] shadow-[0_24px_70px_rgba(99,126,118,0.16)] backdrop-blur-xl">
+          <header className="border-b border-[#d9e7e1] bg-white/70 px-5 py-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h1 className="text-2xl font-semibold text-white">Preguntas CACES</h1>
-                <p className="mt-1 text-sm text-white/65">Práctica académica con preguntas tipo examen</p>
-                <p className="mt-1 text-xs text-white/50">
+                <h1 className="text-2xl font-semibold text-slate-900">Preguntas CACES</h1>
+                <p className="mt-1 text-sm text-slate-500">Práctica académica con preguntas tipo examen</p>
+                <p className="mt-1 text-xs text-slate-400">
                   Preguntas originales inspiradas en estructura temática académica. Uso educativo. No corresponde a reactivos oficiales.
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <Link href="/simulator" className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5">
+                <Link href="/simulator" className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
                   Volver al simulador
                 </Link>
               </div>
@@ -819,26 +819,26 @@ export default function SimulatorCacesPage() {
 
           <div className="overflow-y-auto px-5 py-6">
             {loadingBank ? (
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/70">Cargando banco de preguntas...</div>
+              <div className="rounded-2xl border border-slate-200 bg-white/80 p-6 text-sm text-slate-600">Cargando banco de preguntas...</div>
             ) : (
               <>
                 {!attempt || attempt.result ? (
                   <>
-                    <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-[#0F1117] to-[#1E2433] p-5">
+                    <section className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-[#f4faf8] to-[#edf4f1] p-5">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="text-sm font-semibold text-white">Categorías (selección múltiple)</div>
+                        <div className="text-sm font-semibold text-slate-900">Categorías (selección múltiple)</div>
                         <div className="flex flex-wrap gap-2">
                           <button
                             type="button"
                             onClick={() => setSelectedCategories([...CACES_CATEGORIES])}
-                            className="rounded-xl border border-cyan-300/25 px-3 py-1.5 text-xs text-cyan-100 hover:bg-cyan-300/10"
+                            className="rounded-xl border border-cyan-300/25 px-3 py-1.5 text-xs text-cyan-700 hover:bg-cyan-300/10"
                           >
                             Seleccionar todas
                           </button>
                           <button
                             type="button"
                             onClick={() => setSelectedCategories([])}
-                            className="rounded-xl border border-white/15 px-3 py-1.5 text-xs text-white/70 hover:bg-white/5"
+                            className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50"
                           >
                             Limpiar selección
                           </button>
@@ -855,8 +855,8 @@ export default function SimulatorCacesPage() {
                               onClick={() => toggleCategory(cat)}
                               className={`rounded-2xl border px-3 py-3 text-left text-sm transition ${
                                 active
-                                  ? "border-cyan-300/35 bg-cyan-300/10 text-cyan-50"
-                                  : "border-white/10 bg-black/25 text-white/75 hover:bg-black/35"
+                                  ? "border-cyan-300/35 bg-cyan-300/10 text-cyan-700"
+                                  : "border-slate-200 bg-white text-slate-600 hover:bg-white"
                               }`}
                             >
                               {cat}
@@ -866,38 +866,38 @@ export default function SimulatorCacesPage() {
                       </div>
 
                       <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                        <span className="rounded-full border border-white/15 bg-black/25 px-3 py-1 text-white/75">
+                        <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-600">
                           Seleccionadas: {selectedCategories.length}
                         </span>
                         {allCategoriesSelected && (
-                          <span className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-cyan-100">
+                          <span className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-cyan-700">
                             Todas las categorías activas
                           </span>
                         )}
                         {effectiveMixCategories && (
-                          <span className="rounded-full border border-emerald-300/30 bg-emerald-300/10 px-3 py-1 text-emerald-100">
+                          <span className="rounded-full border border-emerald-300/30 bg-emerald-300/10 px-3 py-1 text-emerald-700">
                             Mezcla activa con reparto equitativo
                           </span>
                         )}
                       </div>
 
                       {activeCategoryMixPreview && (
-                        <div className="mt-3 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-xs text-cyan-100">
+                        <div className="mt-3 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-xs text-cyan-700">
                           {activeCategoryMixPreview}
                         </div>
                       )}
                     </section>
 
-                    <section className="mt-4 rounded-3xl border border-white/10 bg-white/5 p-5">
-                      <div className="text-sm font-semibold text-white">Configuración previa del intento</div>
+                    <section className="mt-4 rounded-3xl border border-slate-200 bg-white/80 p-5">
+                      <div className="text-sm font-semibold text-slate-900">Configuración previa del intento</div>
 
                       <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-3">
                         <div>
-                          <label className="text-xs text-white/60">Componente</label>
+                          <label className="text-xs text-slate-500">Componente</label>
                           <select
                             value={selectedComponent}
                             onChange={(e) => setSelectedComponent(e.target.value)}
-                            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
+                            className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none"
                           >
                             <option value="">Todos</option>
                             {componentOptions.map((value) => (
@@ -909,11 +909,11 @@ export default function SimulatorCacesPage() {
                         </div>
 
                         <div>
-                          <label className="text-xs text-white/60">Subcomponente</label>
+                          <label className="text-xs text-slate-500">Subcomponente</label>
                           <select
                             value={selectedSubcomponent}
                             onChange={(e) => setSelectedSubcomponent(e.target.value)}
-                            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
+                            className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none"
                           >
                             <option value="">Todos</option>
                             {subcomponentOptions.map((value) => (
@@ -925,11 +925,11 @@ export default function SimulatorCacesPage() {
                         </div>
 
                         <div>
-                          <label className="text-xs text-white/60">Tema</label>
+                          <label className="text-xs text-slate-500">Tema</label>
                           <select
                             value={selectedTopic}
                             onChange={(e) => setSelectedTopic(e.target.value)}
-                            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
+                            className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none"
                           >
                             <option value="">Todos</option>
                             {topicOptions.map((value) => (
@@ -943,11 +943,11 @@ export default function SimulatorCacesPage() {
 
                       <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-4">
                         <div>
-                          <label className="text-xs text-white/60">Dificultad</label>
+                          <label className="text-xs text-slate-500">Dificultad</label>
                           <select
                             value={selectedDifficulty}
                             onChange={(e) => setSelectedDifficulty(e.target.value as CacesDifficulty | "all")}
-                            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
+                            className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none"
                           >
                             <option value="all">Todas</option>
                             <option value="basica">Básica</option>
@@ -957,11 +957,11 @@ export default function SimulatorCacesPage() {
                         </div>
 
                         <div>
-                          <label className="text-xs text-white/60">Cantidad de preguntas</label>
+                          <label className="text-xs text-slate-500">Cantidad de preguntas</label>
                           <select
                             value={mode}
                             onChange={(e) => setMode(e.target.value as CacesPracticeMode)}
-                            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
+                            className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none"
                           >
                             <option value="quiz_5">Quiz de 5</option>
                             <option value="simulacro_10">Simulacro de 10</option>
@@ -975,11 +975,11 @@ export default function SimulatorCacesPage() {
                         </div>
 
                         <div>
-                          <label className="text-xs text-white/60">Tipo de pregunta</label>
+                          <label className="text-xs text-slate-500">Tipo de pregunta</label>
                           <select
                             value={selectedType}
                             onChange={(e) => setSelectedType(e.target.value as CacesQuestionType | "all")}
-                            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
+                            className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none"
                           >
                             <option value="all">Directa + caso clínico</option>
                             <option value="directa">Directa académica</option>
@@ -988,18 +988,18 @@ export default function SimulatorCacesPage() {
                         </div>
 
                         <div>
-                          <label className="text-xs text-white/60">Preguntas definidas por modo</label>
-                          <div className="mt-1 rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/90">
+                          <label className="text-xs text-slate-500">Preguntas definidas por modo</label>
+                          <div className="mt-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900/90">
                             {plannedQuestionCount} ({getModeLabel(mode)})
                           </div>
                         </div>
                       </div>
 
                       <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
-                        <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
-                          <div className="text-xs font-semibold uppercase tracking-wider text-white/50">Opciones del intento</div>
+                        <div className="rounded-2xl border border-slate-200 bg-white p-3">
+                          <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">Opciones del intento</div>
                           <div className="mt-2 grid grid-cols-1 gap-2 text-sm">
-                            <label className="flex items-center gap-2 text-white/80">
+                            <label className="flex items-center gap-2 text-slate-700">
                               <input
                                 type="radio"
                                 name="feedback"
@@ -1008,7 +1008,7 @@ export default function SimulatorCacesPage() {
                               />
                               Retroalimentación inmediata
                             </label>
-                            <label className="flex items-center gap-2 text-white/80">
+                            <label className="flex items-center gap-2 text-slate-700">
                               <input
                                 type="radio"
                                 name="feedback"
@@ -1017,7 +1017,7 @@ export default function SimulatorCacesPage() {
                               />
                               Retroalimentación al final
                             </label>
-                            <label className="flex items-center gap-2 text-white/80">
+                            <label className="flex items-center gap-2 text-slate-700">
                               <input
                                 type="checkbox"
                                 checked={timerEnabled}
@@ -1025,12 +1025,12 @@ export default function SimulatorCacesPage() {
                               />
                               Temporizador activado
                             </label>
-                            <label className="text-white/80">
-                              <span className="mb-1 block text-xs text-white/60">Tiempo por pregunta (recomendado: 2 min)</span>
+                            <label className="text-slate-700">
+                              <span className="mb-1 block text-xs text-slate-500">Tiempo por pregunta (recomendado: 2 min)</span>
                               <select
                                 value={minutesPerQuestion}
                                 onChange={(e) => setMinutesPerQuestion(Number(e.target.value) === 1 ? 1 : 2)}
-                                className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
+                                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none"
                               >
                                 <option value={1}>1 minuto por pregunta (rápido)</option>
                                 <option value={2}>2 minutos por pregunta (más realista)</option>
@@ -1039,10 +1039,10 @@ export default function SimulatorCacesPage() {
                           </div>
                         </div>
 
-                        <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
-                          <div className="text-xs font-semibold uppercase tracking-wider text-white/50">Alcance de preguntas</div>
+                        <div className="rounded-2xl border border-slate-200 bg-white p-3">
+                          <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">Alcance de preguntas</div>
                           <div className="mt-2 grid grid-cols-1 gap-2 text-sm">
-                            <label className="flex items-center gap-2 text-white/80">
+                            <label className="flex items-center gap-2 text-slate-700">
                               <input
                                 type="checkbox"
                                 checked={saveResult}
@@ -1050,7 +1050,7 @@ export default function SimulatorCacesPage() {
                               />
                               Guardar resultado en historial
                             </label>
-                            <label className="flex items-center gap-2 text-white/80">
+                            <label className="flex items-center gap-2 text-slate-700">
                               <input
                                 type="checkbox"
                                 checked={enableAIDynamicBank}
@@ -1058,37 +1058,37 @@ export default function SimulatorCacesPage() {
                               />
                               IA bajo demanda para ampliar banco
                             </label>
-                            <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/65">
-                              Banco total CACES: <span className="font-semibold text-white">{CACES_QUESTION_BANK.length}</span>
+                            <div className="rounded-xl border border-slate-200 bg-white/78 px-3 py-2 text-xs text-slate-500">
+                              Banco total CACES: <span className="font-semibold text-slate-900">{CACES_QUESTION_BANK.length}</span>
                             </div>
-                            <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/65">
-                              Banco IA acumulado: <span className="font-semibold text-white">{generatedQuestions.length}</span>
+                            <div className="rounded-xl border border-slate-200 bg-white/78 px-3 py-2 text-xs text-slate-500">
+                              Banco IA acumulado: <span className="font-semibold text-slate-900">{generatedQuestions.length}</span>
                             </div>
-                            <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/65">
-                              Banco disponible para este filtro: <span className="font-semibold text-white">{filteredQuestions.length}</span>
+                            <div className="rounded-xl border border-slate-200 bg-white/78 px-3 py-2 text-xs text-slate-500">
+                              Banco disponible para este filtro: <span className="font-semibold text-slate-900">{filteredQuestions.length}</span>
                             </div>
-                            <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/65">
-                              Preguntas no vistas para este filtro: <span className="font-semibold text-white">{unseenFilteredCount}</span>
+                            <div className="rounded-xl border border-slate-200 bg-white/78 px-3 py-2 text-xs text-slate-500">
+                              Preguntas no vistas para este filtro: <span className="font-semibold text-slate-900">{unseenFilteredCount}</span>
                             </div>
-                            <div className="rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-xs text-cyan-100">
+                            <div className="rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-xs text-cyan-700">
                               {timerEnabled
                                 ? `Tiempo límite antes de iniciar: ${estimatedTimeMinutes} min (${plannedQuestionCount} preguntas x ${minutesPerQuestion} min).`
                                 : `Tiempo estimado sugerido: ${estimatedTimeMinutes} min (${plannedQuestionCount} preguntas x ${minutesPerQuestion} min).`}
                             </div>
                             {filteredQuestions.length < plannedQuestionCount && (
-                              <div className="rounded-xl border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs text-amber-100">
+                              <div className="rounded-xl border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs text-amber-700">
                                 {enableAIDynamicBank
                                   ? `Faltan preguntas locales (${plannedQuestionCount} requeridas, ${filteredQuestions.length} disponibles). Al iniciar se intentará completar automáticamente con IA.`
                                   : `Faltan preguntas para este modo: se requieren ${plannedQuestionCount} y hay ${filteredQuestions.length}.`}
                               </div>
                             )}
                             {aiInfo && (
-                              <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-100">
+                              <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-700">
                                 {aiInfo}
                               </div>
                             )}
                             {aiError && (
-                              <div className="rounded-xl border border-red-400/20 bg-red-400/10 px-3 py-2 text-xs text-red-100">
+                              <div className="rounded-xl border border-red-400/20 bg-red-400/10 px-3 py-2 text-xs text-red-700">
                                 {aiError}
                               </div>
                             )}
@@ -1097,19 +1097,19 @@ export default function SimulatorCacesPage() {
                       </div>
 
                       {effectiveCategories.length === 0 && (
-                        <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/10 p-3 text-sm text-amber-100">
+                        <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/10 p-3 text-sm text-amber-700">
                           Selecciona al menos una categoría para comenzar.
                         </div>
                       )}
 
                       {filteredQuestions.length === 0 && effectiveCategories.length > 0 && (
-                        <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/10 p-3 text-sm text-amber-100">
+                        <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/10 p-3 text-sm text-amber-700">
                           No hay preguntas disponibles para este filtro.
                         </div>
                       )}
 
                       {configError && (
-                        <div className="mt-3 rounded-xl border border-red-400/20 bg-red-400/10 p-3 text-sm text-red-100">
+                        <div className="mt-3 rounded-xl border border-red-400/20 bg-red-400/10 p-3 text-sm text-red-700">
                           {configError}
                         </div>
                       )}
@@ -1129,7 +1129,7 @@ export default function SimulatorCacesPage() {
                           type="button"
                           onClick={handleGeneratePack}
                           disabled={aiBusy || !enableAIDynamicBank}
-                          className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {aiBusy ? "Generando..." : "Generar lote IA"}
                         </button>
@@ -1152,7 +1152,7 @@ export default function SimulatorCacesPage() {
                             setAiError(null);
                             setAiInfo(null);
                           }}
-                          className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
+                          className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                         >
                           Limpiar filtros
                         </button>
@@ -1160,9 +1160,9 @@ export default function SimulatorCacesPage() {
                     </section>
 
                     {attempt?.result && (
-                      <section className="mt-4 rounded-3xl border border-white/10 bg-white/5 p-5">
-                        <div className="text-lg font-semibold text-white">Resultado final</div>
-                        <div className="mt-1 text-sm text-white/60">
+                      <section className="mt-4 rounded-3xl border border-slate-200 bg-white/80 p-5">
+                        <div className="text-lg font-semibold text-slate-900">Resultado final</div>
+                        <div className="mt-1 text-sm text-slate-500">
                           Se abrió una ventana emergente con el detalle completo y revisión de errores.
                         </div>
 
@@ -1170,7 +1170,7 @@ export default function SimulatorCacesPage() {
                           <button
                             type="button"
                             onClick={() => setShowResultModal(true)}
-                            className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-2 text-sm text-cyan-100 hover:bg-cyan-300/20"
+                            className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-2 text-sm text-cyan-700 hover:bg-cyan-300/20"
                           >
                             Ver detalle del resultado
                           </button>
@@ -1185,7 +1185,7 @@ export default function SimulatorCacesPage() {
                             type="button"
                             onClick={handleSaveCurrentResult}
                             disabled={savedCurrentResult}
-                            className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5 disabled:opacity-50"
+                            className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                           >
                             {savedCurrentResult ? "Guardado en historial" : "Guardar en historial"}
                           </button>
@@ -1193,29 +1193,29 @@ export default function SimulatorCacesPage() {
                       </section>
                     )}
 
-                    <section className="mt-4 rounded-3xl border border-white/10 bg-white/5 p-5">
+                    <section className="mt-4 rounded-3xl border border-slate-200 bg-white/80 p-5">
                       <div className="flex items-center justify-between gap-3">
                         <div>
-                          <div className="text-base font-semibold text-white">Intentos recientes</div>
-                          <div className="mt-1 text-sm text-white/60">Historial local de prácticas y simulacros</div>
+                          <div className="text-base font-semibold text-slate-900">Intentos recientes</div>
+                          <div className="mt-1 text-sm text-slate-500">Historial local de prácticas y simulacros</div>
                         </div>
                       </div>
 
                       {history.length === 0 ? (
-                        <div className="mt-3 rounded-xl border border-white/10 bg-black/25 p-3 text-sm text-white/65">
+                        <div className="mt-3 rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-500">
                           Aún no has realizado simulacros.
                         </div>
                       ) : (
                         <div className="mt-3 space-y-2">
                           {history.slice(0, 6).map((item) => (
-                            <div key={item.id} className="rounded-xl border border-white/10 bg-black/25 p-3 text-sm">
+                            <div key={item.id} className="rounded-xl border border-slate-200 bg-white p-3 text-sm">
                               <div className="flex flex-wrap items-center justify-between gap-2">
-                                <div className="font-semibold text-white">
+                                <div className="font-semibold text-slate-900">
                                   {getModeLabel(item.config.mode)} · {item.result.correct_answers}/{item.result.total_questions}
                                 </div>
-                                <div className="text-xs text-white/55">{new Date(item.created_at).toLocaleString()}</div>
+                                <div className="text-xs text-slate-400">{new Date(item.created_at).toLocaleString()}</div>
                               </div>
-                              <div className="mt-1 text-white/70">
+                              <div className="mt-1 text-slate-600">
                                 {item.result.accuracy}% · Tiempo {formatTimer(item.result.elapsed_seconds)} ·
                                 {item.config.timer_enabled
                                   ? ` Límite ${item.config.estimated_time_minutes ?? item.config.number_of_questions * (item.config.minutes_per_question ?? 2)} min ·`
@@ -1229,33 +1229,33 @@ export default function SimulatorCacesPage() {
                     </section>
                   </>
                 ) : (
-                  <section className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                  <section className="rounded-3xl border border-slate-200 bg-white/80 p-5">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
-                        <div className="text-sm text-white/60">Pregunta {attempt.currentIndex + 1} de {attempt.questions.length}</div>
-                        <div className="mt-1 text-xs text-white/50">
+                        <div className="text-sm text-slate-500">Pregunta {attempt.currentIndex + 1} de {attempt.questions.length}</div>
+                        <div className="mt-1 text-xs text-slate-400">
                           {currentQuestion?.category} · {currentQuestion?.topic}
                         </div>
                       </div>
                       <div className="flex flex-wrap items-center gap-2 text-xs">
-                        <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-white/75">
+                        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
                           Dificultad: {currentQuestion?.difficulty}
                         </span>
                         <span className={`rounded-full border px-3 py-1 ${getPriorityClass(currentQuestion?.difficulty === "alta" ? "Alta" : currentQuestion?.difficulty === "intermedia" ? "Media" : "Baja")}`}>
                           {currentQuestion?.type === "caso_clinico" ? "Caso clínico" : "Directa"}
                         </span>
                         {currentQuestion?.manualProfile?.cognitiveLevel && (
-                          <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-white/75">
+                          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
                             Nivel cognitivo: {currentQuestion.manualProfile.cognitiveLevel}
                           </span>
                         )}
                         {currentQuestion?.manualProfile?.complexityLevel && (
-                          <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-white/75">
+                          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
                             Complejidad: {currentQuestion.manualProfile.complexityLevel}
                           </span>
                         )}
                         {remainingSec != null && (
-                          <span className="rounded-full border border-amber-400/25 bg-amber-400/10 px-3 py-1 text-amber-100">
+                          <span className="rounded-full border border-amber-400/25 bg-amber-400/10 px-3 py-1 text-amber-700">
                             Tiempo: {formatTimer(remainingSec)}
                           </span>
                         )}
@@ -1266,8 +1266,8 @@ export default function SimulatorCacesPage() {
                       <div className="h-2 rounded-full bg-white/70" style={{ width: `${progressPct}%` }} />
                     </div>
 
-                    <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
-                      <div className="text-sm font-medium text-white">{currentQuestion?.question}</div>
+                    <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+                      <div className="text-sm font-medium text-slate-900">{currentQuestion?.question}</div>
 
                       <div className="mt-3 space-y-2">
                         {currentQuestion?.options.map((opt) => {
@@ -1279,8 +1279,8 @@ export default function SimulatorCacesPage() {
                               onClick={() => setSelectedOption(opt.id)}
                               className={`w-full rounded-xl border px-3 py-2 text-left text-sm transition ${
                                 isSelected
-                                  ? "border-white/30 bg-white/10 text-white"
-                                  : "border-white/10 bg-black/30 text-white/75 hover:bg-black/40"
+                                  ? "border-white/30 bg-white/10 text-slate-900"
+                                  : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
                               }`}
                             >
                               <span className="font-semibold">{opt.id}.</span> {opt.text}
@@ -1290,7 +1290,7 @@ export default function SimulatorCacesPage() {
                       </div>
 
                       {answerError && (
-                        <div className="mt-3 rounded-xl border border-red-400/25 bg-red-400/10 p-2 text-sm text-red-100">
+                        <div className="mt-3 rounded-xl border border-red-400/25 bg-red-400/10 p-2 text-sm text-red-700">
                           {answerError}
                         </div>
                       )}
@@ -1299,15 +1299,15 @@ export default function SimulatorCacesPage() {
                         <div
                           className={`mt-3 rounded-2xl border p-3 text-sm ${
                             immediateFeedback.isCorrect
-                              ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-100"
-                              : "border-amber-400/25 bg-amber-400/10 text-amber-100"
+                              ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-700"
+                              : "border-amber-400/25 bg-amber-400/10 text-amber-700"
                           }`}
                         >
                           <div className="font-semibold">
                             {immediateFeedback.isCorrect ? "Respuesta correcta" : "Respuesta incorrecta"}
                           </div>
                           {immediateFeedback.selectedOptionData && (
-                            <div className="mt-2 rounded-xl border border-white/10 bg-black/20 p-3 text-white/85">
+                            <div className="mt-2 rounded-xl border border-slate-200 bg-white/78 p-3 text-slate-800">
                               <div>
                                 Tu elección:
                                 {" "}
@@ -1315,7 +1315,7 @@ export default function SimulatorCacesPage() {
                                   {immediateFeedback.selectedOptionData.id}. {immediateFeedback.selectedOptionData.text}
                                 </span>
                               </div>
-                              <div className="mt-1 text-xs text-white/75">
+                              <div className="mt-1 text-xs text-slate-600">
                                 {immediateFeedback.isCorrect
                                   ? `Es correcta porque ${immediateFeedback.selectedOptionData.rationale}`
                                   : `No es la mejor respuesta porque ${immediateFeedback.selectedOptionData.rationale}`}
@@ -1323,7 +1323,7 @@ export default function SimulatorCacesPage() {
                             </div>
                           )}
                           {immediateFeedback.correctOptionData && (
-                            <div className="mt-2 rounded-xl border border-white/10 bg-black/20 p-3 text-white/85">
+                            <div className="mt-2 rounded-xl border border-slate-200 bg-white/78 p-3 text-slate-800">
                               <div>
                                 Respuesta esperada:
                                 {" "}
@@ -1331,18 +1331,18 @@ export default function SimulatorCacesPage() {
                                   {immediateFeedback.correctOptionData.id}. {immediateFeedback.correctOptionData.text}
                                 </span>
                               </div>
-                              <div className="mt-1 text-xs text-white/75">
+                              <div className="mt-1 text-xs text-slate-600">
                                 Se considera correcta porque {immediateFeedback.correctOptionData.rationale}
                               </div>
                             </div>
                           )}
-                          <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3 text-white/85">
-                            <div className="text-xs font-semibold uppercase tracking-[0.14em] text-white/60">
+                          <div className="mt-3 rounded-xl border border-slate-200 bg-white/78 p-3 text-slate-800">
+                            <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
                               Explicación clínica
                             </div>
                             <div className="mt-1">{currentQuestion?.explanation}</div>
                           </div>
-                          <div className="mt-2 space-y-1 text-xs text-white/80">
+                          <div className="mt-2 space-y-1 text-xs text-slate-700">
                             {currentQuestion?.options.map((opt) => (
                               <div key={`feedback-${opt.id}`}>
                                 <span className="font-semibold">{opt.id}:</span> {opt.rationale}
@@ -1350,8 +1350,8 @@ export default function SimulatorCacesPage() {
                             ))}
                           </div>
                           {shouldShowReference(currentQuestion?.references?.[0]) && (
-                            <div className="mt-3 rounded-xl border border-white/10 bg-black/25 p-2 text-xs text-white/70">
-                              <div className="font-semibold text-white/80">Fuente</div>
+                            <div className="mt-3 rounded-xl border border-slate-200 bg-white p-2 text-xs text-slate-600">
+                              <div className="font-semibold text-slate-700">Fuente</div>
                               <div className="mt-1">
                                 {currentQuestion?.references?.[0]}
                               </div>
@@ -1376,7 +1376,7 @@ export default function SimulatorCacesPage() {
                     </div>
 
                     <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-white/65">
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
                         {feedbackMode === "inmediata" ? (
                           <>
                             <span>Aciertos: {immediateCorrectCount}</span>
@@ -1397,7 +1397,7 @@ export default function SimulatorCacesPage() {
                           type="button"
                           onClick={handleSkip}
                           disabled={Boolean(attempt.immediateFeedbackQuestionId)}
-                          className="rounded-xl border border-white/15 px-3 py-2 text-sm text-white/80 hover:bg-white/5 disabled:opacity-50"
+                          className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                         >
                           Saltar
                         </button>
@@ -1406,8 +1406,8 @@ export default function SimulatorCacesPage() {
                           onClick={handleToggleMark}
                           className={`rounded-xl border px-3 py-2 text-sm ${
                             currentResponse?.marked_for_review
-                              ? "border-amber-400/25 bg-amber-400/10 text-amber-100"
-                              : "border-white/15 text-white/80 hover:bg-white/5"
+                              ? "border-amber-400/25 bg-amber-400/10 text-amber-700"
+                              : "border-slate-200 text-slate-700 hover:bg-slate-50"
                           }`}
                         >
                           {currentResponse?.marked_for_review ? "Marcada para revisar" : "Marcar para revisar"}
@@ -1432,54 +1432,54 @@ export default function SimulatorCacesPage() {
 
       {attempt?.result && showResultModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4">
-          <div className="w-full max-w-5xl max-h-[92vh] overflow-y-auto rounded-3xl border border-white/10 bg-[#0B0F17] p-5 shadow-2xl">
+          <div className="w-full max-w-5xl max-h-[92vh] overflow-y-auto rounded-3xl border border-slate-200 bg-[#0B0F17] p-5 shadow-2xl">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="text-lg font-semibold text-white">Resultado final del simulador</div>
-                <div className="mt-1 text-sm text-white/60">
+                <div className="text-lg font-semibold text-slate-900">Resultado final del simulador</div>
+                <div className="mt-1 text-sm text-slate-500">
                   Puntaje verificado con detalle de aciertos, errores y explicación por pregunta.
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowResultModal(false)}
-                className="rounded-xl border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
+                className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50"
               >
                 Cerrar
               </button>
             </div>
 
             <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4">
-              <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
-                <div className="text-xs text-white/55">Puntaje total</div>
-                <div className="mt-1 text-2xl font-semibold text-white">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <div className="text-xs text-slate-400">Puntaje total</div>
+                <div className="mt-1 text-2xl font-semibold text-slate-900">
                   {attempt.result.total_score}/{attempt.result.total_questions}
                 </div>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
-                <div className="text-xs text-white/55">Porcentaje</div>
-                <div className="mt-1 text-2xl font-semibold text-white">{attempt.result.accuracy}%</div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <div className="text-xs text-slate-400">Porcentaje</div>
+                <div className="mt-1 text-2xl font-semibold text-slate-900">{attempt.result.accuracy}%</div>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
-                <div className="text-xs text-white/55">Correctas / Incorrectas</div>
-                <div className="mt-1 text-2xl font-semibold text-white">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <div className="text-xs text-slate-400">Correctas / Incorrectas</div>
+                <div className="mt-1 text-2xl font-semibold text-slate-900">
                   {attempt.result.correct_answers} / {attempt.result.incorrect_answers}
                 </div>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
-                <div className="text-xs text-white/55">Tiempo total</div>
-                <div className="mt-1 text-2xl font-semibold text-white">{formatTimer(attempt.result.elapsed_seconds)}</div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <div className="text-xs text-slate-400">Tiempo total</div>
+                <div className="mt-1 text-2xl font-semibold text-slate-900">{formatTimer(attempt.result.elapsed_seconds)}</div>
               </div>
             </div>
 
             <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
-              <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
-                <div className="text-sm font-semibold text-white">Desempeño por categoría</div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <div className="text-sm font-semibold text-slate-900">Desempeño por categoría</div>
                 <div className="mt-2 space-y-2 text-sm">
                   {attempt.result.by_category.map((row) => (
-                    <div key={row.category} className="rounded-xl border border-white/10 bg-black/20 p-2">
-                      <div className="font-medium text-white">{row.category}</div>
-                      <div className="mt-1 text-white/70">
+                    <div key={row.category} className="rounded-xl border border-slate-200 bg-white/78 p-2">
+                      <div className="font-medium text-slate-900">{row.category}</div>
+                      <div className="mt-1 text-slate-600">
                         {row.correct}/{row.total} correctas · {row.accuracy}%
                       </div>
                     </div>
@@ -1487,12 +1487,12 @@ export default function SimulatorCacesPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-black/30 p-3">
-                <div className="text-sm font-semibold text-white">Temas débiles</div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <div className="text-sm font-semibold text-slate-900">Temas débiles</div>
                 {attempt.result.weak_topics.length === 0 ? (
-                  <div className="mt-2 text-sm text-white/65">Sin temas débiles predominantes en este intento.</div>
+                  <div className="mt-2 text-sm text-slate-500">Sin temas débiles predominantes en este intento.</div>
                 ) : (
-                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-white/75">
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-600">
                     {attempt.result.weak_topics.map((topic) => (
                       <li key={topic}>{topic}</li>
                     ))}
@@ -1505,7 +1505,7 @@ export default function SimulatorCacesPage() {
               <button
                 type="button"
                 onClick={() => setShowErrorReview((v) => !v)}
-                className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-2 text-sm text-cyan-100 hover:bg-cyan-300/20"
+                className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-2 text-sm text-cyan-700 hover:bg-cyan-300/20"
               >
                 {showErrorReview ? "Ocultar revisión de errores" : "Mostrar revisión de errores"}
               </button>
@@ -1513,7 +1513,7 @@ export default function SimulatorCacesPage() {
                 type="button"
                 onClick={handleSaveCurrentResult}
                 disabled={savedCurrentResult}
-                className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5 disabled:opacity-50"
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
               >
                 {savedCurrentResult ? "Guardado en historial" : "Guardar en historial"}
               </button>
@@ -1529,7 +1529,7 @@ export default function SimulatorCacesPage() {
             {showErrorReview && (
               <div className="mt-4 space-y-3">
                 {attempt.result.review.filter((r) => !r.is_correct).length === 0 ? (
-                  <div className="rounded-xl border border-emerald-400/25 bg-emerald-400/10 p-3 text-sm text-emerald-100">
+                  <div className="rounded-xl border border-emerald-400/25 bg-emerald-400/10 p-3 text-sm text-emerald-700">
                     No hubo errores en este intento.
                   </div>
                 ) : (
@@ -1539,26 +1539,26 @@ export default function SimulatorCacesPage() {
                       const q = resultQuestionMap.get(r.question_id);
                       if (!q) return null;
                       return (
-                        <div key={r.question_id} className="rounded-2xl border border-white/10 bg-black/30 p-3 text-sm">
-                          <div className="text-xs text-white/55">{q.category} · {q.topic}</div>
-                          <div className="mt-1 font-medium text-white">{q.question}</div>
-                          <div className="mt-2 text-white/75">
+                        <div key={r.question_id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm">
+                          <div className="text-xs text-slate-400">{q.category} · {q.topic}</div>
+                          <div className="mt-1 font-medium text-slate-900">{q.question}</div>
+                          <div className="mt-2 text-slate-600">
                             Tu respuesta: {getOptionLabel(q, r.selected)}
                           </div>
                           {r.selected && getOptionById(q, r.selected) && (
-                            <div className="mt-1 text-xs text-amber-100/90">
+                            <div className="mt-1 text-xs text-amber-700/90">
                               Por qué estuvo mal: {getOptionById(q, r.selected)?.rationale}
                             </div>
                           )}
-                          <div className="mt-1 text-emerald-100">
+                          <div className="mt-1 text-emerald-700">
                             Respuesta correcta: {getOptionLabel(q, r.correct)}
                           </div>
                           {getOptionById(q, r.correct) && (
-                            <div className="mt-1 text-xs text-emerald-100/90">
+                            <div className="mt-1 text-xs text-emerald-700/90">
                               Por qué era la correcta: {getOptionById(q, r.correct)?.rationale}
                             </div>
                           )}
-                          <div className="mt-2 text-white/70">{q.explanation}</div>
+                          <div className="mt-2 text-slate-600">{q.explanation}</div>
                         </div>
                       );
                     })

@@ -79,15 +79,15 @@ function chipClass(f: string) {
   const key = String(f).toLowerCase();
   // Chips por prioridad (educativo, no diagnóstico)
   if (key.includes("risk") || key.includes("suic") || key.includes("self") || key.includes("harm")) {
-    return "border-red-400/25 bg-red-400/10 text-red-100";
+    return "border-red-400/25 bg-red-400/10 text-red-700";
   }
   if (key.includes("panic") || key.includes("anx") || key.includes("agitat")) {
-    return "border-amber-400/25 bg-amber-400/10 text-amber-100";
+    return "border-amber-400/25 bg-amber-400/10 text-amber-700";
   }
   if (key.includes("sleep") || key.includes("insom")) {
-    return "border-sky-400/25 bg-sky-400/10 text-sky-100";
+    return "border-sky-400/25 bg-sky-400/10 text-sky-700";
   }
-  return "border-white/15 bg-white/5 text-white/80";
+  return "border-slate-200 bg-white/80 text-slate-700";
 }
 
 function prettyFlag(f: string) {
@@ -175,7 +175,7 @@ function AvatarFace({
 
   return (
     <div
-      className={`relative h-40 w-40 rounded-2xl border border-white/10 bg-gradient-to-b from-white/10 to-black/30 flex items-center justify-center overflow-hidden motion-reduce:animate-none ${
+      className={`relative h-40 w-40 rounded-2xl border border-slate-200 bg-gradient-to-b from-white/10 to-black/30 flex items-center justify-center overflow-hidden motion-reduce:animate-none ${
         cfg.wobble
           ? "animate-[wiggle_1.4s_ease-in-out_infinite]"
           : "animate-[breathe_2.8s_ease-in-out_infinite]"
@@ -284,14 +284,14 @@ function AvatarCard({
   const safeIntensity = Number.isFinite(intensity) ? Math.max(0, Math.min(100, intensity)) : 0;
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-      <div className="text-sm text-white/60">Paciente</div>
-      <div className="mt-1 text-base font-semibold text-white">{name}</div>
+    <div className="rounded-2xl border border-slate-200 bg-white/80 p-5">
+      <div className="text-sm text-slate-500">Paciente</div>
+      <div className="mt-1 text-base font-semibold text-slate-900">{name}</div>
 
-      <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4">
+      <div className="mt-4 rounded-xl border border-slate-200 bg-white/78 p-4">
         <div className="flex items-center justify-between">
-          <div className="text-xs text-white/60">Estado actual</div>
-          <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">{stateLabel}</span>
+          <div className="text-xs text-slate-500">Estado actual</div>
+          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600">{stateLabel}</span>
         </div>
 
         {/* Avatar (expresivo) */}
@@ -301,14 +301,14 @@ function AvatarCard({
 
         {/* Intensidad */}
         <div className="mt-4">
-          <div className="flex items-center justify-between text-xs text-white/60">
+          <div className="flex items-center justify-between text-xs text-slate-500">
             <span>Intensidad</span>
-            <span className="text-white/80">{Math.round(safeIntensity)} / 100</span>
+            <span className="text-slate-700">{Math.round(safeIntensity)} / 100</span>
           </div>
           <div className="mt-2 h-2 w-full rounded-full bg-white/10">
             <div className="h-2 rounded-full bg-white/70" style={{ width: `${Math.round(safeIntensity)}%` }} />
           </div>
-          <div className="mt-2 text-xs text-white/50">(Avatar ya reacciona al estado; luego pulimos estilo/realismo)</div>
+          <div className="mt-2 text-xs text-slate-400">(Avatar ya reacciona al estado; luego pulimos estilo/realismo)</div>
         </div>
       </div>
     </div>
@@ -358,12 +358,12 @@ function VitalSignCard({
   className?: string;
 }) {
   return (
-    <div className={`rounded-2xl border border-white/10 bg-black/25 p-3 ${className}`}>
+    <div className={`rounded-2xl border border-slate-200 bg-white p-3 ${className}`}>
       <div className="flex items-center justify-between gap-2">
-        <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">{label}</div>
-        <div className="text-[10px] uppercase tracking-[0.14em] text-white/35">{unit}</div>
+        <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">{label}</div>
+        <div className="text-[10px] uppercase tracking-[0.14em] text-slate-900/35">{unit}</div>
       </div>
-      <div className="mt-3 break-words font-mono text-[26px] font-semibold leading-none text-white sm:text-[30px]">
+      <div className="mt-3 break-words font-mono text-[26px] font-semibold leading-none text-slate-900 sm:text-[30px]">
         {value}
       </div>
     </div>
@@ -1311,9 +1311,9 @@ export default function SimulatorPage() {
 
   function examStatusClass(status: string) {
     const key = String(status ?? "").toLowerCase();
-    if (key === "critical") return "border-red-400/25 bg-red-400/10 text-red-100";
-    if (key === "altered") return "border-amber-400/25 bg-amber-400/10 text-amber-100";
-    return "border-emerald-400/25 bg-emerald-400/10 text-emerald-100";
+    if (key === "critical") return "border-red-400/25 bg-red-400/10 text-red-700";
+    if (key === "altered") return "border-amber-400/25 bg-amber-400/10 text-amber-700";
+    return "border-emerald-400/25 bg-emerald-400/10 text-emerald-700";
   }
 
   const timeLabel = useMemo(() => {
@@ -2097,18 +2097,18 @@ export default function SimulatorPage() {
 
   if (!caseObject) {
     return (
-      <div className="min-h-screen bg-[#070A0F]">
+      <div className="min-h-screen bg-[linear-gradient(180deg,#f6fbf9_0%,#eef5f2_48%,#e6efeb_100%)]">
         <div className="mx-auto flex max-w-[1480px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
           <Sidebar />
-          <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 p-4 backdrop-blur-xl sm:p-6 flex items-center justify-center">
-            <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-white/5 p-6">
+          <main className="flex-1 rounded-2xl border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] p-4 backdrop-blur-xl sm:p-6 shadow-[0_24px_70px_rgba(99,126,118,0.16)] flex items-center justify-center">
+            <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white/80 p-6">
               <h1 className="text-xl font-semibold">Psyke · No hay un caso activo</h1>
-              <p className="mt-2 text-sm text-white/70">Vuelve a la biblioteca, genera un caso y presiona “Iniciar simulación”.</p>
+              <p className="mt-2 text-sm text-slate-600">Vuelve a la biblioteca, genera un caso y presiona “Iniciar simulación”.</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <Link className="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2 text-black" href="/cases">
                   Simulador de trastornos mentales
                 </Link>
-                <Link className="inline-flex items-center justify-center rounded-xl border border-white/15 px-4 py-2 text-white/85" href="/medical-cases">
+                <Link className="inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-2 text-slate-800" href="/medical-cases">
                   Simulador de patologías
                 </Link>
               </div>
@@ -2121,33 +2121,33 @@ export default function SimulatorPage() {
 
   // --- New Claude-style UI Layout ---
   return (
-    <div className="h-dvh overflow-hidden bg-[#070A0F]">
+    <div className="h-dvh overflow-hidden bg-[linear-gradient(180deg,#f6fbf9_0%,#eef5f2_48%,#e6efeb_100%)]">
       <div className="mx-auto flex h-full max-w-[1480px] gap-3 px-3 pb-3 pt-14 sm:gap-6 sm:px-4 sm:py-4 md:pt-4">
         <Sidebar />
 
-        <main className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl">
+        <main className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] backdrop-blur-xl shadow-[0_24px_70px_rgba(99,126,118,0.16)]">
           {/* TOPNAV */}
-          <header className="flex min-h-[56px] flex-wrap items-center gap-2 border-b border-white/10 bg-white/5 px-3 py-2 sm:px-5">
-            <div className="flex items-center gap-2 text-xs text-white/70 sm:text-sm">
-              <span className="font-semibold text-white">Psyke</span>
-              <span className="text-white/30">·</span>
-              <span className="hidden text-white/60 sm:inline">Sesión</span>
-              <span className="hidden text-white/30 sm:inline">›</span>
-              <span className="font-semibold text-white">Caso en curso</span>
+          <header className="flex min-h-[56px] flex-wrap items-center gap-2 border-b border-slate-200 bg-white/80 px-3 py-2 sm:px-5">
+            <div className="flex items-center gap-2 text-xs text-slate-600 sm:text-sm">
+              <span className="font-semibold text-slate-900">Psyke</span>
+              <span className="text-slate-900/30">·</span>
+              <span className="hidden text-slate-500 sm:inline">Sesión</span>
+              <span className="hidden text-slate-900/30 sm:inline">›</span>
+              <span className="font-semibold text-slate-900">Caso en curso</span>
             </div>
 
             {/* Approach badge */}
             <span
-              className="hidden lg:inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/70"
+              className="hidden lg:inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600"
               title={isMedicalCase ? "Enfoque de entrevista clínica (educativo)" : "Enfoque psicoterapéutico (educativo)"}
             >
               Enfoque: {approachLabel}
             </span>
 
-            <div className="ml-auto hidden w-full max-w-[360px] items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-2 xl:flex">
-              <span className="text-xs text-white/50">Buscar</span>
+            <div className="ml-auto hidden w-full max-w-[360px] items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 xl:flex">
+              <span className="text-xs text-slate-400">Buscar</span>
               <input
-                className="w-full bg-transparent text-sm text-white/80 outline-none placeholder:text-white/35"
+                className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-900/35"
                 placeholder={isMedicalCase ? "Buscar en Biblioteca de patologías…" : "Buscar en Biblioteca Clínica DSM-5…"}
               />
             </div>
@@ -2157,8 +2157,8 @@ export default function SimulatorPage() {
               <div
                 className={`flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-xs sm:px-3 sm:py-2 sm:text-sm ${
                   timeIsLow
-                    ? "border-amber-400/30 bg-amber-400/10 text-amber-200"
-                    : "border-white/15 bg-black/30 text-white/80"
+                    ? "border-amber-400/30 bg-amber-400/10 text-amber-700"
+                    : "border-slate-200 bg-slate-50 text-slate-700"
                 }`}
                 title="Tiempo restante de la sesión"
               >
@@ -2169,7 +2169,7 @@ export default function SimulatorPage() {
               <button
                 type="button"
                 onClick={() => setSettingsOpen(true)}
-                className="rounded-xl border border-white/15 px-2.5 py-1.5 text-xs hover:bg-white/5 sm:px-3 sm:py-2 sm:text-sm"
+                className="rounded-xl border border-slate-200 px-2.5 py-1.5 text-xs hover:bg-slate-50 sm:px-3 sm:py-2 sm:text-sm"
                 title="Configuraciones"
               >
                 Config
@@ -2180,7 +2180,7 @@ export default function SimulatorPage() {
                   setRightPanelCollapsed(false);
                   setMobileRightOpen(true);
                 }}
-                className="rounded-xl border border-white/15 px-2.5 py-1.5 text-xs hover:bg-white/5 lg:hidden"
+                className="rounded-xl border border-slate-200 px-2.5 py-1.5 text-xs hover:bg-slate-50 lg:hidden"
                 title="Abrir panel clínico"
               >
                 Panel
@@ -2188,7 +2188,7 @@ export default function SimulatorPage() {
               <button
                 type="button"
                 onClick={() => setSummaryDebugOpen((v) => !v)}
-                className="hidden rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5 sm:inline-flex"
+                className="hidden rounded-xl border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50 sm:inline-flex"
                 title="Ver/ocultar resumen vivo (debug)"
               >
                 Resumen
@@ -2196,19 +2196,19 @@ export default function SimulatorPage() {
               <button
                 type="button"
                 onClick={() => setRightPanelCollapsed((v) => !v)}
-                className="hidden rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5 lg:inline-flex"
+                className="hidden rounded-xl border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50 lg:inline-flex"
                 title={rightPanelCollapsed ? "Mostrar panel clínico" : "Expandir chat"}
               >
                 {rightPanelCollapsed ? "Mostrar panel clínico" : "Expandir chat"}
               </button>
 
-              <Link href={backHref} className="hidden rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5 sm:inline-flex">
+              <Link href={backHref} className="hidden rounded-xl border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50 sm:inline-flex">
                 Volver
               </Link>
 
               <Link
                 href={clinicalHref}
-                className="hidden rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5 lg:inline-flex"
+                className="hidden rounded-xl border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50 lg:inline-flex"
                 title={isMedicalCase ? "Abrir Biblioteca de patologías" : clinicalDxId ? `Abrir ficha: ${clinicalDxId}` : "Abrir Biblioteca clínica"}
               >
                 {libraryButtonLabel}
@@ -2224,37 +2224,37 @@ export default function SimulatorPage() {
           </header>
 
           {/* EDUCATIONAL PANEL */}
-          <section className="border-b border-white/10 bg-white/5">
+          <section className="border-b border-slate-200 bg-white/80">
             <div className="flex items-center gap-3 px-3 py-3 sm:px-5">
               <button
                 onClick={() => setEduExpanded((v) => !v)}
-                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-1.5 text-xs text-white/70 hover:bg-black/40"
+                className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100"
               >
                 <span className="inline-block h-2 w-2 rounded-full bg-emerald-400" />
                 <span>{eduExpanded ? "Colapsar panel educativo" : "Expandir panel educativo"}</span>
-                <span className="text-white/40">{eduExpanded ? "▴" : "▾"}</span>
+                <span className="text-slate-400">{eduExpanded ? "▴" : "▾"}</span>
               </button>
 
-              <span className="text-xs text-white/50">Panel educativo activo</span>
+              <span className="text-xs text-slate-400">Panel educativo activo</span>
 
               <div className="ml-auto hidden items-center gap-2 md:flex">
-                <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/70">
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600">
                   Modo: Guiado
                 </span>
                 <span
                   className={`rounded-full border px-3 py-1 text-xs ${
                     riskLevel === "Alto"
-                      ? "border-red-400/25 bg-red-400/10 text-red-100"
+                      ? "border-red-400/25 bg-red-400/10 text-red-700"
                       : riskLevel === "Moderado"
-                      ? "border-amber-400/25 bg-amber-400/10 text-amber-100"
+                      ? "border-amber-400/25 bg-amber-400/10 text-amber-700"
                       : riskLevel === "Bajo"
-                      ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-100"
-                      : "border-white/15 bg-black/30 text-white/70"
+                      ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-700"
+                      : "border-slate-200 bg-slate-50 text-slate-600"
                   }`}
                 >
                   {riskBadgeLabel}: {riskLevel}
                 </span>
-                <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/70">
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600">
                   {clinicalDxId ? `${codeBadgeLabel}: ${clinicalDxId}` : `${codeBadgeLabel}: —`}
                 </span>
               </div>
@@ -2263,10 +2263,10 @@ export default function SimulatorPage() {
             {eduExpanded && (
               <div className="px-3 pb-4 sm:px-5">
                 <div className="flex flex-wrap items-start gap-3">
-                  <div className="min-w-[260px] flex-1 rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-xs text-white/50">{isMedicalCase ? "Valoración clínica (guía rápida)" : "DSM-5 (guía rápida)"}</div>
-                    <div className="mt-1 text-sm font-semibold text-white">Estructura sugerida</div>
-                    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-white/75">
+                  <div className="min-w-[260px] flex-1 rounded-2xl border border-slate-200 bg-white/78 p-4">
+                    <div className="text-xs text-slate-400">{isMedicalCase ? "Valoración clínica (guía rápida)" : "DSM-5 (guía rápida)"}</div>
+                    <div className="mt-1 text-sm font-semibold text-slate-900">Estructura sugerida</div>
+                    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-600">
                       {isMedicalCase ? (
                         <>
                           <li>Motivo de consulta + cronología del cuadro.</li>
@@ -2285,18 +2285,18 @@ export default function SimulatorPage() {
                     </ul>
                   </div>
 
-                  <div className="w-full max-w-[340px] rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-xs text-white/50">Tip del tutor IA</div>
-                    <div className="mt-2 text-sm text-white/75">
+                  <div className="w-full max-w-[340px] rounded-2xl border border-slate-200 bg-white/78 p-4">
+                    <div className="text-xs text-slate-400">Tip del tutor IA</div>
+                    <div className="mt-2 text-sm text-slate-600">
                       {isMedicalCase ? (
                         <>
-                          Antes de cerrar, confirma <span className="font-semibold text-white">signos de alarma</span>, estado funcional y
-                          plan de <span className="font-semibold text-white">seguimiento/derivación</span>.
+                          Antes de cerrar, confirma <span className="font-semibold text-slate-900">signos de alarma</span>, estado funcional y
+                          plan de <span className="font-semibold text-slate-900">seguimiento/derivación</span>.
                         </>
                       ) : (
                         <>
-                          Antes de cerrar el MSE, pregunta por <span className="font-semibold text-white">impacto funcional</span> y
-                          una <span className="font-semibold text-white">pregunta de seguridad</span> si hay señales.
+                          Antes de cerrar el MSE, pregunta por <span className="font-semibold text-slate-900">impacto funcional</span> y
+                          una <span className="font-semibold text-slate-900">pregunta de seguridad</span> si hay señales.
                         </>
                       )}
                     </div>
@@ -2316,26 +2316,26 @@ export default function SimulatorPage() {
           {/* CONTENT AREA */}
           <div className="relative flex min-h-0 flex-1">
             {/* CHAT PANEL */}
-            <section className={`flex min-h-0 min-w-0 flex-1 flex-col bg-black/10 ${rightPanelCollapsed ? "lg:flex-[1_1_100%]" : ""}`}>
+            <section className={`flex min-h-0 min-w-0 flex-1 flex-col bg-white/82 ${rightPanelCollapsed ? "lg:flex-[1_1_100%]" : ""}`}>
               {/* Chat header */}
-              <div className="flex flex-wrap items-center gap-3 border-b border-white/10 bg-white/5 px-3 py-3 sm:px-5">
+              <div className="flex flex-wrap items-center gap-3 border-b border-slate-200 bg-white/80 px-3 py-3 sm:px-5">
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                   <div className="h-9 w-9 flex-shrink-0 rounded-full bg-gradient-to-br from-amber-400 to-red-500 text-center text-sm font-semibold leading-9 text-black">
                     {String(patientName).slice(0, 1).toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-semibold text-white">Paciente: “{patientName}”</div>
-                    <div className="text-xs text-white/55">
+                    <div className="truncate text-sm font-semibold text-slate-900">Paciente: “{patientName}”</div>
+                    <div className="text-xs text-slate-400">
                       Modo educativo · No diagnostica · {sessionStartedAt ? `Inicio: ${new Date(sessionStartedAt).toLocaleString()}` : ""}
                     </div>
                   </div>
                 </div>
 
                 <div className="ml-auto hidden min-w-0 flex-1 flex-wrap items-center justify-end gap-2 lg:flex">
-                  <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/70">
+                  <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600">
                     Estado: {emotionLabel[lastMeta.state] ?? lastMeta.state}
                   </span>
-                  <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/70">
+                  <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600">
                     Enfoque: {approachLabel}
                   </span>
                   {pediatricCase && (
@@ -2346,12 +2346,12 @@ export default function SimulatorPage() {
                   <span
                     className={`rounded-full border px-3 py-1 text-xs ${
                       riskLevel === "Alto"
-                        ? "border-red-400/25 bg-red-400/10 text-red-100"
+                        ? "border-red-400/25 bg-red-400/10 text-red-700"
                         : riskLevel === "Moderado"
-                        ? "border-amber-400/25 bg-amber-400/10 text-amber-100"
+                        ? "border-amber-400/25 bg-amber-400/10 text-amber-700"
                         : riskLevel === "Bajo"
-                        ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-100"
-                        : "border-white/15 bg-black/30 text-white/70"
+                        ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-700"
+                        : "border-slate-200 bg-slate-50 text-slate-600"
                     }`}
                   >
                     {riskBadgeLabel}: {riskLevel}
@@ -2359,7 +2359,7 @@ export default function SimulatorPage() {
 
                   {lastProvider && (
                     <span
-                      className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs text-white/70"
+                      className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600"
                       title="Proveedor que generó la respuesta"
                     >
                       {String(lastProvider).toUpperCase()}
@@ -2369,7 +2369,7 @@ export default function SimulatorPage() {
                   <button
                     type="button"
                     onClick={() => setRightTab("risk")}
-                    className="rounded-xl border border-white/15 px-3 py-2 text-sm text-white/80 hover:bg-white/5"
+                    className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
                     title={isMedicalCase ? "Abrir módulo de urgencia y seguridad" : "Abrir módulo de seguridad"}
                   >
                     {isMedicalCase ? "Urgencia" : "Seguridad"}
@@ -2380,23 +2380,23 @@ export default function SimulatorPage() {
               {/* Messages */}
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 sm:px-5">
                 {summaryDebugOpen && (
-                  <div className="mb-4 rounded-2xl border border-white/10 bg-black/35 p-3">
-                    <div className="text-xs text-white/50">Resumen vivo (debug)</div>
-                    <pre className="mt-2 max-h-32 overflow-auto whitespace-pre-wrap text-xs text-white/70">
+                  <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-3">
+                    <div className="text-xs text-slate-400">Resumen vivo (debug)</div>
+                    <pre className="mt-2 max-h-32 overflow-auto whitespace-pre-wrap text-xs text-slate-600">
                       {rollingSummary || "(vacío)"}
                     </pre>
                   </div>
                 )}
 
                 {timeIsLow && remainingSec != null && remainingSec > 0 && (
-                  <div className="mb-4 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-3 text-sm text-amber-100">
+                  <div className="mb-4 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-3 text-sm text-amber-700">
                     Queda poco tiempo: <span className="font-semibold">{timeLabel}</span>. Enfoca el cierre (resumen + plan).
                   </div>
                 )}
 
                 <div className="flex flex-col gap-3">
                   {transcript.length === 0 ? (
-                    <div className="text-sm text-white/70">Escribe tu primer mensaje para iniciar la entrevista.</div>
+                    <div className="text-sm text-slate-600">Escribe tu primer mensaje para iniciar la entrevista.</div>
                   ) : (
                     transcript.map((t, idx) => {
                       const isUser = t.role === "user";
@@ -2422,11 +2422,11 @@ export default function SimulatorPage() {
 
                       const bubbleCls = isTutor
                         ? t.kind === "alert"
-                          ? "border border-amber-400/25 bg-amber-400/10 text-amber-100"
-                          : "border border-emerald-400/20 bg-emerald-400/10 text-emerald-100"
+                          ? "border border-amber-400/25 bg-amber-400/10 text-amber-700"
+                          : "border border-emerald-400/20 bg-emerald-400/10 text-emerald-700"
                         : isUser
                         ? "bg-white text-black"
-                        : "border border-white/10 bg-black/40 text-white/85";
+                        : "border border-slate-200 bg-slate-100 text-slate-800";
 
                       return (
                         <div key={idx} className={`flex gap-2 ${align}`}>
@@ -2437,7 +2437,7 @@ export default function SimulatorPage() {
                           )}
 
                           <div className={`${rightPanelCollapsed ? "max-w-[92%] lg:max-w-[92%]" : "max-w-[92%] lg:max-w-[86%]"} ${isUser ? "text-right" : "text-left"}`}>
-                            <div className={`mb-1 text-[10px] text-white/50 ${isUser ? "text-right" : "text-left"}`}>
+                            <div className={`mb-1 text-[10px] text-slate-400 ${isUser ? "text-right" : "text-left"}`}>
                               {roleLabel}
                             </div>
 
@@ -2446,14 +2446,14 @@ export default function SimulatorPage() {
                                 <div
                                   className={`mb-2 inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-[10px] font-semibold ${
                                     t.kind === "alert"
-                                      ? "bg-amber-400/15 text-amber-200"
-                                      : "bg-emerald-400/15 text-emerald-200"
+                                      ? "bg-amber-400/15 text-amber-700"
+                                      : "bg-emerald-400/15 text-emerald-700"
                                   }`}
                                 >
                                   {t.kind === "alert" ? "Alerta de seguridad" : "Sugerencia clínica"}
                                 </div>
                               )}
-                              <div className={isTutor ? "text-white/90" : undefined}>{t.content}</div>
+                              <div className={isTutor ? "text-slate-900/90" : undefined}>{t.content}</div>
                             </div>
                           </div>
 
@@ -2470,25 +2470,25 @@ export default function SimulatorPage() {
                 </div>
 
                 {error && (
-                  <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-100">
+                  <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-700">
                     {error}
                   </div>
                 )}
               </div>
 
               {/* Input area */}
-              <div className="border-t border-white/10 bg-white/5 px-3 py-3 sm:px-5">
+              <div className="border-t border-slate-200 bg-white/80 px-3 py-3 sm:px-5">
                 {pediatricCase && (
-                  <div className="mb-3 rounded-2xl border border-white/10 bg-black/25 p-3">
-                    <div className="text-xs text-white/55">Fuente dual (pediatría)</div>
+                  <div className="mb-3 rounded-2xl border border-slate-200 bg-white p-3">
+                    <div className="text-xs text-slate-400">Fuente dual (pediatría)</div>
                     <div className="mt-2 flex flex-wrap gap-2">
                       <button
                         type="button"
                         onClick={() => setTargetSpeaker("patient")}
                         className={`rounded-full border px-3 py-1 text-xs ${
                           targetSpeaker === "patient"
-                            ? "border-white/25 bg-white/10 text-white"
-                            : "border-white/15 bg-black/30 text-white/70"
+                            ? "border-white/25 bg-white/10 text-slate-900"
+                            : "border-slate-200 bg-slate-50 text-slate-600"
                         }`}
                       >
                         Preguntar al paciente
@@ -2498,8 +2498,8 @@ export default function SimulatorPage() {
                         onClick={() => setTargetSpeaker("caregiver")}
                         className={`rounded-full border px-3 py-1 text-xs ${
                           targetSpeaker === "caregiver"
-                            ? "border-white/25 bg-white/10 text-white"
-                            : "border-white/15 bg-black/30 text-white/70"
+                            ? "border-white/25 bg-white/10 text-slate-900"
+                            : "border-slate-200 bg-slate-50 text-slate-600"
                         }`}
                       >
                         Preguntar al acompañante
@@ -2510,12 +2510,12 @@ export default function SimulatorPage() {
                           setTargetSpeaker("both");
                           setUserMessage("Quisiera explorar dinámica familiar, escuela y desarrollo reciente.");
                         }}
-                        className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70"
+                        className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600"
                       >
                         Explorar dinámica familiar
                       </button>
                     </div>
-                    <div className="mt-2 text-[11px] text-white/50">
+                    <div className="mt-2 text-[11px] text-slate-400">
                       Activo: {targetSpeaker === "caregiver" ? companionName : targetSpeaker === "both" ? "Ambos" : patientName}
                     </div>
                   </div>
@@ -2534,10 +2534,10 @@ export default function SimulatorPage() {
                           const pick = opts.length ? opts[Math.floor(Math.random() * opts.length)] : "";
                           setUserMessage(pick);
                         }}
-                        className={`max-w-full rounded-full border px-3 py-1.5 text-xs leading-snug transition hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/20 active:scale-[0.99] ${
+                        className={`max-w-full rounded-full border px-3 py-1.5 text-xs leading-snug transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-white/20 active:scale-[0.99] ${
                           isRisk
-                            ? "border-red-400/30 bg-red-400/10 text-red-100"
-                            : "border-white/15 bg-black/30 text-white/70"
+                            ? "border-red-400/30 bg-red-400/10 text-red-700"
+                            : "border-slate-200 bg-slate-50 text-slate-600"
                         }`}
                       >
                         <span className="whitespace-normal break-words">{label}</span>
@@ -2558,7 +2558,7 @@ export default function SimulatorPage() {
                     }}
                     placeholder={remainingSec != null && remainingSec <= 0 ? "Sesión finalizada" : "Escribe tu pregunta clínica…"}
                     disabled={inputDisabled}
-                    className="flex-1 rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/85 outline-none placeholder:text-white/35 focus:ring-2 focus:ring-white/20 disabled:opacity-60"
+                    className="flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-900/35 focus:ring-2 focus:ring-white/20 disabled:opacity-60"
                   />
 
                   <button
@@ -2570,7 +2570,7 @@ export default function SimulatorPage() {
                   </button>
                 </div>
 
-                <p className="mt-2 text-xs text-white/50">Educativo: no diagnostica. Usa información ficticia.</p>
+                <p className="mt-2 text-xs text-slate-400">Educativo: no diagnostica. Usa información ficticia.</p>
               </div>
             </section>
 
@@ -2585,22 +2585,22 @@ export default function SimulatorPage() {
 
             {/* RIGHT PANEL */}
             <aside
-              className={`fixed inset-y-0 right-0 z-50 flex w-[92vw] max-w-[430px] flex-col border-l border-white/10 bg-[#10131A] shadow-[-24px_0_60px_rgba(0,0,0,0.45)] transition-transform duration-200 lg:static lg:inset-auto lg:z-auto lg:w-[390px] lg:max-w-none lg:bg-white/5 lg:shadow-none ${
+              className={`fixed inset-y-0 right-0 z-50 flex w-[92vw] max-w-[430px] flex-col border-l border-slate-200 bg-[#10131A] shadow-[-24px_0_60px_rgba(0,0,0,0.45)] transition-transform duration-200 lg:static lg:inset-auto lg:z-auto lg:w-[390px] lg:max-w-none lg:bg-white/80 lg:shadow-none ${
                 mobileRightOpen ? "translate-x-0" : "translate-x-full"
               } ${rightPanelCollapsed ? "lg:hidden" : "lg:translate-x-0"}`}
             >
-              <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 lg:hidden">
-                <div className="text-xs font-semibold uppercase tracking-wider text-white/50">Panel clínico</div>
+              <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2 lg:hidden">
+                <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">Panel clínico</div>
                 <button
                   type="button"
                   onClick={() => setMobileRightOpen(false)}
-                  className="rounded-lg border border-white/15 px-2 py-1 text-xs text-white/80"
+                  className="rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-700"
                 >
                   Cerrar
                 </button>
               </div>
 
-              <div className="flex gap-1 overflow-x-auto border-b border-white/10 px-3">
+              <div className="flex gap-1 overflow-x-auto border-b border-slate-200 px-3">
                 {[
                   { key: "patient", label: "Paciente" },
                   { key: "mse", label: isMedicalCase ? "Examen" : "MSE" },
@@ -2621,7 +2621,7 @@ export default function SimulatorPage() {
                       if (window.innerWidth < 1024) setMobileRightOpen(false);
                     }}
                     className={`whitespace-nowrap border-b-2 px-3 py-3 text-xs font-semibold transition ${
-                      rightTab === key ? "border-white text-white" : "border-transparent text-white/50 hover:text-white/80"
+                      rightTab === key ? "border-white text-slate-900" : "border-transparent text-slate-400 hover:text-slate-700"
                     }`}
                   >
                     {label}
@@ -2633,20 +2633,20 @@ export default function SimulatorPage() {
                 {rightTab === "patient" && (
                   <div className="space-y-4">
                     {isMedicalCase ? (
-                      <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                        <div className="text-sm text-white/60">Paciente</div>
-                        <div className="mt-1 text-base font-semibold text-white">{patientName}</div>
+                      <div className="rounded-2xl border border-slate-200 bg-white/80 p-5">
+                        <div className="text-sm text-slate-500">Paciente</div>
+                        <div className="mt-1 text-base font-semibold text-slate-900">{patientName}</div>
                         <div className="mt-4 grid grid-cols-2 gap-2">
-                          <div className="rounded-xl border border-white/10 bg-black/25 p-3">
-                            <div className="text-[11px] text-white/55">Estado clínico</div>
-                            <div className="mt-1 text-sm text-white/85">{emotionLabel[lastMeta.state] ?? lastMeta.state}</div>
+                          <div className="rounded-xl border border-slate-200 bg-white p-3">
+                            <div className="text-[11px] text-slate-400">Estado clínico</div>
+                            <div className="mt-1 text-sm text-slate-800">{emotionLabel[lastMeta.state] ?? lastMeta.state}</div>
                           </div>
-                          <div className="rounded-xl border border-white/10 bg-black/25 p-3">
-                            <div className="text-[11px] text-white/55">Prioridad</div>
-                            <div className="mt-1 text-sm text-white/85">{riskLevel}</div>
+                          <div className="rounded-xl border border-slate-200 bg-white p-3">
+                            <div className="text-[11px] text-slate-400">Prioridad</div>
+                            <div className="mt-1 text-sm text-slate-800">{riskLevel}</div>
                           </div>
                         </div>
-                        <div className="mt-3 text-xs text-white/55">
+                        <div className="mt-3 text-xs text-slate-400">
                           Vista compacta para casos de patologías: prioridad en datos clínicos sobre avatar emocional.
                         </div>
                       </div>
@@ -2659,23 +2659,23 @@ export default function SimulatorPage() {
                       />
                     )}
 
-                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                      <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Datos del caso</div>
+                    <div className="rounded-2xl border border-slate-200 bg-white/78 p-4">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">Datos del caso</div>
                       <div className="mt-3 space-y-2 text-sm">
-                        <div className="flex items-center justify-between"><span className="text-white/60">Alias</span><span className="text-white/85">{safeText(caseObject?.patient_profile?.display_name, patientName)}</span></div>
-                        <div className="flex items-center justify-between"><span className="text-white/60">Edad</span><span className="text-white/85">{safeText(caseObject?.patient_profile?.age, "—")}</span></div>
-                        <div className="flex items-center justify-between"><span className="text-white/60">Sexo</span><span className="text-white/85">{safeText(caseObject?.patient_profile?.sex, "—")}</span></div>
-                        <div className="flex items-center justify-between"><span className="text-white/60">Ocupación</span><span className="text-white/85">{safeText(caseObject?.patient_profile?.occupation, "—")}</span></div>
-                        <div className="flex items-center justify-between"><span className="text-white/60">Estado civil</span><span className="text-white/85">{safeText(caseObject?.patient_profile?.marital_status, "—")}</span></div>
-                        <div className="flex items-center justify-between"><span className="text-white/60">Derivación</span><span className="text-white/85">{safeText(caseObject?.patient_profile?.referral_source, "—")}</span></div>
+                        <div className="flex items-center justify-between"><span className="text-slate-500">Alias</span><span className="text-slate-800">{safeText(caseObject?.patient_profile?.display_name, patientName)}</span></div>
+                        <div className="flex items-center justify-between"><span className="text-slate-500">Edad</span><span className="text-slate-800">{safeText(caseObject?.patient_profile?.age, "—")}</span></div>
+                        <div className="flex items-center justify-between"><span className="text-slate-500">Sexo</span><span className="text-slate-800">{safeText(caseObject?.patient_profile?.sex, "—")}</span></div>
+                        <div className="flex items-center justify-between"><span className="text-slate-500">Ocupación</span><span className="text-slate-800">{safeText(caseObject?.patient_profile?.occupation, "—")}</span></div>
+                        <div className="flex items-center justify-between"><span className="text-slate-500">Estado civil</span><span className="text-slate-800">{safeText(caseObject?.patient_profile?.marital_status, "—")}</span></div>
+                        <div className="flex items-center justify-between"><span className="text-slate-500">Derivación</span><span className="text-slate-800">{safeText(caseObject?.patient_profile?.referral_source, "—")}</span></div>
                       </div>
 
                       {asStrArray(caseObject?.background_chips).length > 0 && (
                         <>
-                          <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-white/40">Antecedentes</div>
+                          <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Antecedentes</div>
                           <div className="mt-3 flex flex-wrap gap-2">
                             {asStrArray(caseObject?.background_chips).slice(0, 12).map((c, i) => (
-                              <span key={i} className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">{c}</span>
+                              <span key={i} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600">{c}</span>
                             ))}
                           </div>
                         </>
@@ -2683,7 +2683,7 @@ export default function SimulatorPage() {
 
                       {Array.isArray(caseObject?.timeline) && caseObject.timeline.length > 0 && (
                         <>
-                          <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-white/40">Línea temporal</div>
+                          <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Línea temporal</div>
                           <div className="mt-3 space-y-3">
                             {(caseObject.timeline as any[]).slice(0, 6).map((it, i) => {
                               const lvl = String(it?.level ?? "normal").toLowerCase();
@@ -2692,8 +2692,8 @@ export default function SimulatorPage() {
                                 <div key={i} className="flex gap-3">
                                   <div className={`mt-1 h-2 w-2 rounded-full ${dot}`} />
                                   <div className="min-w-0">
-                                    <div className="text-xs text-white/50">{safeText(it?.date_label, "—")}</div>
-                                    <div className="text-sm text-white/75">{safeText(it?.text, "")}</div>
+                                    <div className="text-xs text-slate-400">{safeText(it?.date_label, "—")}</div>
+                                    <div className="text-sm text-slate-600">{safeText(it?.text, "")}</div>
                                   </div>
                                 </div>
                               );
@@ -2704,12 +2704,12 @@ export default function SimulatorPage() {
                     </div>
 
                     {pediatricCase && (
-                      <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                        <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Checklist pediátrico</div>
-                        <div className="mt-2 text-xs text-white/55">
+                      <div className="rounded-2xl border border-slate-200 bg-white/78 p-4">
+                        <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">Checklist pediátrico</div>
+                        <div className="mt-2 text-xs text-slate-400">
                           Grupo etario detectado: {caseAgeGroup === "child" ? "Niñez" : "Adolescencia"}.
                         </div>
-                        <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-white/75">
+                        <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-slate-600">
                           {pediatricExplorationChecklist().map((item) => (
                             <li key={item}>{item}</li>
                           ))}
@@ -2717,8 +2717,8 @@ export default function SimulatorPage() {
                       </div>
                     )}
 
-                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                      <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Señales (flags)</div>
+                    <div className="rounded-2xl border border-slate-200 bg-white/78 p-4">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">Señales (flags)</div>
                       <div className="mt-3 flex flex-wrap gap-2">
                         {Array.isArray(lastMeta.flags) && lastMeta.flags.length ? (
                           lastMeta.flags
@@ -2729,20 +2729,20 @@ export default function SimulatorPage() {
                               <span key={i} className={`rounded-full border px-3 py-1 text-xs ${chipClass(f)}`}>{prettyFlag(f)}</span>
                             ))
                         ) : (
-                          <span className="text-xs text-white/50">Sin señales marcadas aún.</span>
+                          <span className="text-xs text-slate-400">Sin señales marcadas aún.</span>
                         )}
                       </div>
-                      <div className="mt-2 text-[11px] text-white/45">Guían tu entrevista. No son diagnóstico.</div>
+                      <div className="mt-2 text-[11px] text-slate-400">Guían tu entrevista. No son diagnóstico.</div>
                     </div>
 
-                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                      <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Notas de sesión</div>
+                    <div className="rounded-2xl border border-slate-200 bg-white/78 p-4">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">Notas de sesión</div>
                       {sessionNotes.length === 0 ? (
-                        <div className="mt-2 text-xs text-white/55">Sin notas guardadas aún.</div>
+                        <div className="mt-2 text-xs text-slate-400">Sin notas guardadas aún.</div>
                       ) : (
-                        <ul className="mt-2 space-y-2 text-xs text-white/75">
+                        <ul className="mt-2 space-y-2 text-xs text-slate-600">
                           {sessionNotes.slice(0, 8).map((n, i) => (
-                            <li key={`${i}:${n.slice(0, 18)}`} className="rounded-xl border border-white/10 bg-black/30 p-2">
+                            <li key={`${i}:${n.slice(0, 18)}`} className="rounded-xl border border-slate-200 bg-slate-50 p-2">
                               {n}
                             </li>
                           ))}
@@ -2756,15 +2756,15 @@ export default function SimulatorPage() {
                   <div className="space-y-2">
                     {isMedicalCase ? (
                       <>
-                        <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
+                        <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                           Exámenes clínicos sugeridos
                         </div>
-                        <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                          <label className="text-xs text-white/60">Selecciona examen</label>
+                        <div className="rounded-2xl border border-slate-200 bg-white/78 p-4">
+                          <label className="text-xs text-slate-500">Selecciona examen</label>
                           <select
                             value={selectedMedicalExamId}
                             onChange={(e) => setSelectedMedicalExamId(e.target.value)}
-                            className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
+                            className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none"
                           >
                             {medicalExamCatalog.map((exam) => (
                               <option key={exam.id} value={exam.id}>
@@ -2774,9 +2774,9 @@ export default function SimulatorPage() {
                           </select>
 
                           {selectedMedicalExam && (
-                            <div className="mt-3 text-xs text-white/60">
+                            <div className="mt-3 text-xs text-slate-500">
                               <div>Categoría: {selectedMedicalExam.category}</div>
-                              <div className="mt-1 text-white/50">{selectedMedicalExam.description}</div>
+                              <div className="mt-1 text-slate-400">{selectedMedicalExam.description}</div>
                             </div>
                           )}
 
@@ -2785,7 +2785,7 @@ export default function SimulatorPage() {
                               type="button"
                               onClick={() => selectedMedicalExamId && runSingleMedicalExam(selectedMedicalExamId)}
                               disabled={!selectedMedicalExamId}
-                              className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs text-white/80 disabled:opacity-50"
+                              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 disabled:opacity-50"
                             >
                               Ejecutar examen oculto
                             </button>
@@ -2799,36 +2799,36 @@ export default function SimulatorPage() {
                             </button>
                           </div>
 
-                          <div className="mt-2 text-[11px] text-white/50">
+                          <div className="mt-2 text-[11px] text-slate-400">
                             Ejecución oculta: los resultados no se muestran en el chat, solo en este panel.
                           </div>
                         </div>
 
-                        <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
-                          <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Resultados</div>
+                        <div className="rounded-2xl border border-slate-200 bg-white/78 p-3">
+                          <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">Resultados</div>
                           {medicalExamResults.length === 0 ? (
-                            <div className="mt-2 text-xs text-white/55">Aún no hay exámenes ejecutados.</div>
+                            <div className="mt-2 text-xs text-slate-400">Aún no hay exámenes ejecutados.</div>
                           ) : (
                             <div className="mt-2 space-y-2">
                               {medicalExamResults.slice(0, 8).map((result) => (
-                                <div key={`${result.exam_id}:${result.completed_at}`} className="rounded-xl border border-white/10 bg-black/30 p-3">
+                                <div key={`${result.exam_id}:${result.completed_at}`} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                                   <div className="flex items-center justify-between gap-2">
-                                    <div className="text-sm font-semibold text-white">{result.exam_name}</div>
+                                    <div className="text-sm font-semibold text-slate-900">{result.exam_name}</div>
                                     <span className={`rounded-full border px-2 py-0.5 text-[10px] ${examStatusClass(result.status)}`}>
                                       {examStatusLabel(result.status)}
                                     </span>
                                   </div>
-                                  <div className="mt-1 text-xs text-white/75">{result.summary}</div>
-                                  <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-white/70">
+                                  <div className="mt-1 text-xs text-slate-600">{result.summary}</div>
+                                  <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-slate-600">
                                     {result.findings.slice(0, 3).map((finding) => (
                                       <li key={finding}>{finding}</li>
                                     ))}
                                   </ul>
-                                  <div className="mt-2 text-[11px] text-white/55">{result.interpretation}</div>
+                                  <div className="mt-2 text-[11px] text-slate-400">{result.interpretation}</div>
                                   {result.red_flags.length > 0 && (
                                     <div className="mt-2 flex flex-wrap gap-1">
                                       {result.red_flags.slice(0, 4).map((flag) => (
-                                        <span key={flag} className="rounded-full border border-red-400/25 bg-red-400/10 px-2 py-0.5 text-[10px] text-red-100">
+                                        <span key={flag} className="rounded-full border border-red-400/25 bg-red-400/10 px-2 py-0.5 text-[10px] text-red-700">
                                           {flag}
                                         </span>
                                       ))}
@@ -2838,7 +2838,7 @@ export default function SimulatorPage() {
                                     <button
                                       type="button"
                                       onClick={() => addNote(`[Examen ${result.exam_name}] ${result.summary}. ${result.interpretation}`)}
-                                      className="rounded-xl border border-white/15 bg-black/30 px-2.5 py-1 text-[11px] text-white/80"
+                                      className="rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] text-slate-700"
                                     >
                                       Guardar en notas
                                     </button>
@@ -2852,14 +2852,14 @@ export default function SimulatorPage() {
                         <button
                           type="button"
                           onClick={() => setRightTab("risk")}
-                          className="mt-3 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white/80 hover:bg-black/40"
+                          className="mt-3 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
                         >
                           Ir a Urgencia y seguridad
                         </button>
                       </>
                     ) : (
                       <>
-                        <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Examen Mental (MSE)</div>
+                        <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">Examen Mental (MSE)</div>
                         {(() => {
                           const tmpl = Array.isArray(caseObject?.mse_template) ? (caseObject.mse_template as any[]) : [];
                           const fallback = [
@@ -2878,23 +2878,23 @@ export default function SimulatorPage() {
                             const chips = asStrArray(sec?.chips);
                             const notePrompt = safeText(sec?.note_prompt, "Nota clínica…");
                             return (
-                              <div key={key} className="overflow-hidden rounded-xl border border-white/10 bg-black/20">
+                              <div key={key} className="overflow-hidden rounded-xl border border-slate-200 bg-white/78">
                                 <button onClick={() => toggleMse(key)} className="flex w-full items-center justify-between px-3 py-2 text-left">
-                                  <span className="text-sm text-white/85">{title}</span>
-                                  <span className="text-xs text-white/40">{mseOpen[key] ? "—" : "+"}</span>
+                                  <span className="text-sm text-slate-800">{title}</span>
+                                  <span className="text-xs text-slate-400">{mseOpen[key] ? "—" : "+"}</span>
                                 </button>
                                 {mseOpen[key] && (
-                                  <div className="border-t border-white/10 px-3 py-3">
+                                  <div className="border-t border-slate-200 px-3 py-3">
                                     {chips.length > 0 && (
                                       <div className="flex flex-wrap gap-2">
                                         {chips.slice(0, 16).map((c: string, i: number) => (
-                                          <span key={i} className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">{c}</span>
+                                          <span key={i} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600">{c}</span>
                                         ))}
                                       </div>
                                     )}
                                     <textarea
                                       rows={2}
-                                      className="mt-3 w-full rounded-xl border border-white/10 bg-black/30 p-2 text-sm text-white/80 outline-none placeholder:text-white/35"
+                                      className="mt-3 w-full rounded-xl border border-slate-200 bg-slate-50 p-2 text-sm text-slate-700 outline-none placeholder:text-slate-900/35"
                                       placeholder={notePrompt}
                                     />
                                   </div>
@@ -2906,7 +2906,7 @@ export default function SimulatorPage() {
                         <button
                           type="button"
                           onClick={() => setRightTab("risk")}
-                          className="mt-3 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white/80 hover:bg-black/40"
+                          className="mt-3 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
                         >
                           Ir a Seguridad
                         </button>
@@ -2917,28 +2917,28 @@ export default function SimulatorPage() {
 
                 {rightTab === "ecg" && isMedicalCase && (
                   <div className="space-y-3">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Solicitud de ECG</div>
+                    <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">Solicitud de ECG</div>
                     <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-4">
-                      <div className="text-sm font-semibold text-cyan-100">Simulador de ECG integrado al flujo del caso</div>
-                      <div className="mt-1 text-xs text-cyan-50/90">
+                      <div className="text-sm font-semibold text-cyan-700">Simulador de ECG integrado al flujo del caso</div>
+                      <div className="mt-1 text-xs text-cyan-700">
                         Visualiza el trazado, interpreta, decide estabilidad, selecciona conducta y recibe feedback automático.
                       </div>
 
-                      <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-cyan-50/95 sm:grid-cols-2">
-                        <div className="rounded-xl border border-cyan-300/20 bg-black/25 p-2.5">
-                          <div className="text-cyan-100/85">Visualización</div>
+                      <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-cyan-700 sm:grid-cols-2">
+                        <div className="rounded-xl border border-cyan-300/20 bg-white p-2.5">
+                          <div className="text-cyan-700/85">Visualización</div>
                           <div className="mt-0.5">{getEcgViewModeLabel(ecgConfig.viewMode)}</div>
                         </div>
-                        <div className="rounded-xl border border-cyan-300/20 bg-black/25 p-2.5">
-                          <div className="text-cyan-100/85">Selección</div>
+                        <div className="rounded-xl border border-cyan-300/20 bg-white p-2.5">
+                          <div className="text-cyan-700/85">Selección</div>
                           <div className="mt-0.5">{getEcgSelectionModeLabel(ecgConfig.selectionMode)}</div>
                         </div>
-                        <div className="rounded-xl border border-cyan-300/20 bg-black/25 p-2.5">
-                          <div className="text-cyan-100/85">Dificultad</div>
+                        <div className="rounded-xl border border-cyan-300/20 bg-white p-2.5">
+                          <div className="text-cyan-700/85">Dificultad</div>
                           <div className="mt-0.5">{getEcgDifficultyLabel(ecgConfig.difficulty)}</div>
                         </div>
-                        <div className="rounded-xl border border-cyan-300/20 bg-black/25 p-2.5">
-                          <div className="text-cyan-100/85">Contexto clínico</div>
+                        <div className="rounded-xl border border-cyan-300/20 bg-white p-2.5">
+                          <div className="text-cyan-700/85">Contexto clínico</div>
                           <div className="mt-0.5">{ecgContextLabel}</div>
                         </div>
                       </div>
@@ -2957,7 +2957,7 @@ export default function SimulatorPage() {
                         <button
                           type="button"
                           onClick={() => setRightTab("vitals")}
-                          className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs text-white/85"
+                          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800"
                         >
                           Tomar signos vitales
                         </button>
@@ -2985,7 +2985,7 @@ export default function SimulatorPage() {
                       />
                     )}
 
-                    <div className="rounded-2xl border border-white/10 bg-black/20 p-3 text-xs text-white/70">
+                    <div className="rounded-2xl border border-slate-200 bg-white/78 p-3 text-xs text-slate-600">
                       <div>Dinámico: {ecgConfig.dynamicEnabled ? "sí" : "no"}</div>
                       <div className="mt-1">Pistas: {ecgConfig.showHints ? "sí" : "no"} · Nombre del ritmo: {ecgConfig.showRhythmName ? "sí" : "no"}</div>
                       <div className="mt-1">Derivaciones adicionales: {ecgConfig.allowAdditionalLeads ? "permitidas" : "bloqueadas"}</div>
@@ -2996,9 +2996,9 @@ export default function SimulatorPage() {
 
                 {rightTab === "vitals" && isMedicalCase && (
                   <div className="space-y-3">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Toma de signos vitales</div>
+                    <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">Toma de signos vitales</div>
                     <div className="rounded-2xl border border-emerald-300/20 bg-emerald-300/10 p-4">
-                      <div className="text-sm font-semibold text-emerald-100">Signos vitales integrados al caso</div>
+                      <div className="text-sm font-semibold text-emerald-700">Signos vitales integrados al caso</div>
                       <div className="mt-1 text-xs text-emerald-50/90">
                         Solicita la toma para ver presión arterial, frecuencia cardiaca, frecuencia respiratoria, saturación y temperatura según el caso activo.
                       </div>
@@ -3024,17 +3024,17 @@ export default function SimulatorPage() {
                         <button
                           type="button"
                           onClick={() => setRightTab("ecg")}
-                          className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs text-white/85"
+                          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800"
                         >
                           Ir a Solicitar ECG
                         </button>
                       </div>
                     </div>
 
-                    <div className="rounded-2xl border border-white/10 bg-black/20 p-3 text-xs text-white/70">
+                    <div className="rounded-2xl border border-slate-200 bg-white/78 p-3 text-xs text-slate-600">
                       {latestVitalSignsResult ? (
                         <>
-                          <div className="font-semibold text-white">{latestVitalSignsResult.summary}</div>
+                          <div className="font-semibold text-slate-900">{latestVitalSignsResult.summary}</div>
                           <div className="mt-1">{latestVitalSignsResult.interpretation}</div>
                         </>
                       ) : (
@@ -3046,19 +3046,19 @@ export default function SimulatorPage() {
 
                 {rightTab === "dsm" && (
                   <div className="space-y-3">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                       {isMedicalCase ? "Impresión clínica orientativa" : "DSM-5"}
                     </div>
-                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div className="rounded-2xl border border-slate-200 bg-white/78 p-4">
                       <div className="flex items-center justify-between">
-                        <div className="text-sm font-semibold text-white">
+                        <div className="text-sm font-semibold text-slate-900">
                           {safeText(caseObject?.dsm?.primary?.label, isMedicalCase ? "Problema clínico principal" : "Hipótesis principal")}
                         </div>
-                        <div className="text-xs text-white/60">{safeText(caseObject?.meta?.dsm_tag, "—")}</div>
+                        <div className="text-xs text-slate-500">{safeText(caseObject?.meta?.dsm_tag, "—")}</div>
                       </div>
-                      <div className="mt-2 text-sm text-white/70">
+                      <div className="mt-2 text-sm text-slate-600">
                         {isMedicalCase ? "Prioridad clínica" : "Confianza"}:{" "}
-                        <span className="font-semibold text-white">{safeText(caseObject?.dsm?.primary?.confidence, "—")}</span>
+                        <span className="font-semibold text-slate-900">{safeText(caseObject?.dsm?.primary?.confidence, "—")}</span>
                       </div>
 
                       {Array.isArray(caseObject?.dsm?.primary?.criteria) && caseObject.dsm.primary.criteria.length > 0 && (
@@ -3067,15 +3067,15 @@ export default function SimulatorPage() {
                             const status = String(c?.status ?? "no").toLowerCase();
                             const badge =
                               status === "yes"
-                                ? "bg-emerald-400/15 text-emerald-200 border-emerald-400/20"
+                                ? "bg-emerald-400/15 text-emerald-700 border-emerald-400/20"
                                 : status === "partial"
-                                ? "bg-amber-400/15 text-amber-200 border-amber-400/20"
-                                : "bg-black/30 text-white/60 border-white/10";
+                                ? "bg-amber-400/15 text-amber-700 border-amber-400/20"
+                                : "bg-slate-50 text-slate-500 border-slate-200";
                             const label = status === "yes" ? "✓" : status === "partial" ? "~" : "·";
                             return (
                               <div key={i} className="flex items-start gap-2">
                                 <span className={`mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-md border text-xs ${badge}`}>{label}</span>
-                                <div className="text-sm text-white/75">{safeText(c?.text, "")}</div>
+                                <div className="text-sm text-slate-600">{safeText(c?.text, "")}</div>
                               </div>
                             );
                           })}
@@ -3084,12 +3084,12 @@ export default function SimulatorPage() {
 
                       {asStrArray(caseObject?.dsm?.differentials).length > 0 && (
                         <>
-                          <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-white/40">
+                          <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-slate-400">
                             {isMedicalCase ? "Diagnósticos diferenciales" : "Diferenciales"}
                           </div>
                           <div className="mt-3 flex flex-wrap gap-2">
                             {asStrArray(caseObject?.dsm?.differentials).slice(0, 10).map((d, i) => (
-                              <span key={i} className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">{d}</span>
+                              <span key={i} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600">{d}</span>
                             ))}
                           </div>
                         </>
@@ -3100,7 +3100,7 @@ export default function SimulatorPage() {
 
                 {rightTab === "risk" && (
                   <div className="space-y-3">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                       {isMedicalCase ? "Urgencia y seguridad" : "Seguridad"}
                     </div>
                     <div
@@ -3111,16 +3111,16 @@ export default function SimulatorPage() {
                           ? "border-amber-400/25 bg-amber-400/10"
                           : riskLevel === "Bajo"
                           ? "border-emerald-400/25 bg-emerald-400/10"
-                          : "border-white/10 bg-black/20"
+                          : "border-slate-200 bg-white/78"
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <div className="text-sm font-semibold text-white">
+                        <div className="text-sm font-semibold text-slate-900">
                           {isMedicalCase ? "Prioridad clínica actual" : "Riesgo suicida"}
                         </div>
-                        <div className="text-xs text-white/70">{riskLevel}</div>
+                        <div className="text-xs text-slate-600">{riskLevel}</div>
                       </div>
-                      <div className="mt-2 text-sm text-white/70">
+                      <div className="mt-2 text-sm text-slate-600">
                         {safeText(
                           caseObject?.safety?.summary,
                           isMedicalCase
@@ -3137,7 +3137,7 @@ export default function SimulatorPage() {
                             )
                           }
                           disabled={runningRiskWorkflow != null}
-                          className="w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white/80 hover:bg-black/40 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           {runningRiskWorkflow ===
                           (isMedicalCase ? "medical_alert_checklist" : "mental_cssrs")
@@ -3171,46 +3171,46 @@ export default function SimulatorPage() {
                       {(asStrArray(caseObject?.safety?.risk_factors).length > 0 || asStrArray(caseObject?.safety?.protective_factors).length > 0) && (
                         <div className="mt-4 grid gap-3">
                           {asStrArray(caseObject?.safety?.risk_factors).length > 0 && (
-                            <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
-                              <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
+                            <div className="rounded-2xl border border-slate-200 bg-white/78 p-3">
+                              <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                                 {isMedicalCase ? "Factores agravantes" : "Factores de riesgo"}
                               </div>
                               <div className="mt-2 flex flex-wrap gap-2">
                                 {asStrArray(caseObject?.safety?.risk_factors).slice(0, 10).map((x, i) => (
-                                  <span key={i} className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">{x}</span>
+                                  <span key={i} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600">{x}</span>
                                 ))}
                               </div>
                             </div>
                           )}
 
                           {asStrArray(caseObject?.safety?.protective_factors).length > 0 && (
-                            <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
-                              <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
+                            <div className="rounded-2xl border border-slate-200 bg-white/78 p-3">
+                              <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                                 {isMedicalCase ? "Recursos protectores" : "Factores protectores"}
                               </div>
                               <div className="mt-2 flex flex-wrap gap-2">
                                 {asStrArray(caseObject?.safety?.protective_factors).slice(0, 10).map((x, i) => (
-                                  <span key={i} className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">{x}</span>
+                                  <span key={i} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600">{x}</span>
                                 ))}
                               </div>
                             </div>
                           )}
 
                           {asStrArray(caseObject?.safety?.cssrs_hint).length > 0 && (
-                            <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
-                              <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
+                            <div className="rounded-2xl border border-slate-200 bg-white/78 p-3">
+                              <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                                 {isMedicalCase ? "Preguntas de seguridad sugeridas" : "Mini C-SSRS sugerido"}
                               </div>
                               <div className="mt-2 flex flex-wrap gap-2">
                                 {asStrArray(caseObject?.safety?.cssrs_hint).slice(0, 10).map((x, i) => (
-                                  <span key={i} className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/70">{x}</span>
+                                  <span key={i} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600">{x}</span>
                                 ))}
                               </div>
                             </div>
                           )}
                         </div>
                       )}
-                      <div className="mt-3 text-xs text-white/55">
+                      <div className="mt-3 text-xs text-slate-400">
                         {isMedicalCase ? (
                           <>
                             <span className="font-semibold">Si urgencia alta:</span> activar protocolo institucional y derivación a urgencias.
@@ -3223,9 +3223,9 @@ export default function SimulatorPage() {
                       </div>
                     </div>
 
-                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div className="rounded-2xl border border-slate-200 bg-white/78 p-4">
                       <div className="flex items-center justify-between gap-2">
-                        <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
+                        <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                           {isMedicalCase
                             ? "Acciones de urgencia ejecutadas"
                             : "Acciones de seguridad ejecutadas"}
@@ -3234,14 +3234,14 @@ export default function SimulatorPage() {
                           <button
                             type="button"
                             onClick={() => setRiskWorkflowHistory([])}
-                            className="rounded-lg border border-white/15 px-2 py-1 text-[11px] text-white/70 hover:bg-white/5"
+                            className="rounded-lg border border-slate-200 px-2 py-1 text-[11px] text-slate-600 hover:bg-slate-50"
                           >
                             Limpiar
                           </button>
                         )}
                       </div>
                       {riskWorkflowHistory.length === 0 ? (
-                        <div className="mt-2 text-xs text-white/55">
+                        <div className="mt-2 text-xs text-slate-400">
                           No hay acciones ejecutadas aún. Ejecuta checklist o plan para registrar resultados.
                         </div>
                       ) : (
@@ -3249,24 +3249,24 @@ export default function SimulatorPage() {
                           {riskWorkflowHistory.slice(0, 5).map((entry) => (
                             <div
                               key={entry.id}
-                              className="rounded-xl border border-white/10 bg-black/30 p-3"
+                              className="rounded-xl border border-slate-200 bg-slate-50 p-3"
                             >
                               <div className="flex items-center justify-between gap-2">
-                                <div className="text-sm font-semibold text-white">{entry.title}</div>
-                                <div className="text-[10px] text-white/45">
+                                <div className="text-sm font-semibold text-slate-900">{entry.title}</div>
+                                <div className="text-[10px] text-slate-400">
                                   {new Date(entry.created_at).toLocaleTimeString([], {
                                     hour: "2-digit",
                                     minute: "2-digit",
                                   })}
                                 </div>
                               </div>
-                              <div className="mt-1 text-xs text-white/75">{entry.summary}</div>
-                              <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-white/70">
+                              <div className="mt-1 text-xs text-slate-600">{entry.summary}</div>
+                              <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-slate-600">
                                 {entry.items.slice(0, 4).map((item) => (
                                   <li key={item}>{item}</li>
                                 ))}
                               </ul>
-                              <div className="mt-2 text-[11px] text-white/55">{entry.caution}</div>
+                              <div className="mt-2 text-[11px] text-slate-400">{entry.caution}</div>
                               <button
                                 type="button"
                                 onClick={() =>
@@ -3276,7 +3276,7 @@ export default function SimulatorPage() {
                                       .join(" · ")}`
                                   )
                                 }
-                                className="mt-2 rounded-lg border border-white/15 px-2 py-1 text-[11px] text-white/75 hover:bg-white/5"
+                                className="mt-2 rounded-lg border border-slate-200 px-2 py-1 text-[11px] text-slate-600 hover:bg-slate-50"
                               >
                                 Guardar en notas
                               </button>
@@ -3286,8 +3286,8 @@ export default function SimulatorPage() {
                       )}
                     </div>
 
-                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                      <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Señales detectadas</div>
+                    <div className="rounded-2xl border border-slate-200 bg-white/78 p-4">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">Señales detectadas</div>
                       <div className="mt-3 flex flex-wrap gap-2">
                         {Array.isArray(lastMeta.flags) && lastMeta.flags.length ? (
                           lastMeta.flags
@@ -3298,7 +3298,7 @@ export default function SimulatorPage() {
                               <span key={i} className={`rounded-full border px-3 py-1 text-xs ${chipClass(f)}`}>{prettyFlag(f)}</span>
                             ))
                         ) : (
-                          <span className="text-xs text-white/50">Sin señales de riesgo aún.</span>
+                          <span className="text-xs text-slate-400">Sin señales de riesgo aún.</span>
                         )}
                       </div>
                     </div>
@@ -3307,15 +3307,15 @@ export default function SimulatorPage() {
 
                 {rightTab === "scales" && (
                   <div className="space-y-3">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                       {isMedicalCase ? "Escalas clínicas (patologías)" : "Escalas clínicas"}
                     </div>
-                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                      <label className="text-xs text-white/60">Selecciona escala</label>
+                    <div className="rounded-2xl border border-slate-200 bg-white/78 p-4">
+                      <label className="text-xs text-slate-500">Selecciona escala</label>
                       <select
                         value={selectedScaleId}
                         onChange={(e) => setSelectedScaleId(e.target.value)}
-                        className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
+                        className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none"
                       >
                         {scaleCatalog.map((s) => (
                           <option key={s.id} value={s.id}>
@@ -3325,12 +3325,12 @@ export default function SimulatorPage() {
                       </select>
 
                       {selectedScale && (
-                        <div className="mt-3 text-xs text-white/60">
+                        <div className="mt-3 text-xs text-slate-500">
                           <div>Población: {selectedScale.population}</div>
                           <div>Rango sugerido: {selectedScale.suggested_age_range}</div>
-                          <div className="mt-1 text-white/50">{selectedScale.description}</div>
+                          <div className="mt-1 text-slate-400">{selectedScale.description}</div>
                           {selectedScale.placeholder && (
-                            <div className="mt-2 rounded-xl border border-amber-400/20 bg-amber-400/10 p-2 text-amber-100">
+                            <div className="mt-2 rounded-xl border border-amber-400/20 bg-amber-400/10 p-2 text-amber-700">
                               Placeholder técnico: escala pendiente de validar/reemplazar.
                             </div>
                           )}
@@ -3341,7 +3341,7 @@ export default function SimulatorPage() {
                       <button
                         type="button"
                         onClick={() => startScaleInChat(false)}
-                        className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs text-white/80"
+                        className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700"
                       >
                         Paso a paso (oculto)
                       </button>
@@ -3357,7 +3357,7 @@ export default function SimulatorPage() {
                           type="button"
                           onClick={() => void askCurrentInstrumentItem()}
                           disabled={loading || inputDisabled}
-                          className="rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-3 py-2 text-xs text-cyan-100 disabled:opacity-50"
+                          className="rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-3 py-2 text-xs text-cyan-700 disabled:opacity-50"
                         >
                           Ejecutar siguiente ítem
                         </button>
@@ -3366,7 +3366,7 @@ export default function SimulatorPage() {
                         <button
                           type="button"
                           onClick={cancelActiveInstrument}
-                          className="rounded-xl border border-red-400/25 bg-red-400/10 px-3 py-2 text-xs text-red-100"
+                          className="rounded-xl border border-red-400/25 bg-red-400/10 px-3 py-2 text-xs text-red-700"
                           >
                             Cancelar escala
                           </button>
@@ -3375,31 +3375,31 @@ export default function SimulatorPage() {
                     </div>
 
                     {scaleSession && (
-                      <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                        <div className="text-xs text-white/60">
-                          Estado: <span className="text-white/85">{scaleSession.status}</span>
+                      <div className="rounded-2xl border border-slate-200 bg-white/78 p-4">
+                        <div className="text-xs text-slate-500">
+                          Estado: <span className="text-slate-800">{scaleSession.status}</span>
                         </div>
                         {activeInstrumentContext?.mode === "scale" && (
-                          <div className="mt-1 text-xs text-cyan-100/90">
+                          <div className="mt-1 text-xs text-cyan-700/90">
                             Aplicación oculta en curso (sin mostrar ítems en el chat).
                           </div>
                         )}
-                        <div className="mt-1 text-xs text-white/60">
+                        <div className="mt-1 text-xs text-slate-500">
                           Ítems respondidos: {scaleSession.answers.length} / {selectedScale?.items.length ?? "—"}
                         </div>
                         {lastScaleResult && (
                           <div
                             className={`mt-3 rounded-xl border p-3 text-sm ${
                               lastScaleResult.risk_alert
-                                ? "border-red-400/25 bg-red-400/10 text-red-100"
-                                : "border-white/10 bg-black/30 text-white/80"
+                                ? "border-red-400/25 bg-red-400/10 text-red-700"
+                                : "border-slate-200 bg-slate-50 text-slate-700"
                             }`}
                           >
                             <div className="font-semibold">
                               Score: {lastScaleResult.total_score}/{lastScaleResult.max_score} · {lastScaleResult.severity_label}
                             </div>
                             <div className="mt-1">{lastScaleResult.interpretation}</div>
-                            <div className="mt-1 text-xs text-white/60">{lastScaleResult.educational_note}</div>
+                            <div className="mt-1 text-xs text-slate-500">{lastScaleResult.educational_note}</div>
                             <div className="mt-3 flex flex-wrap gap-2">
                               <button
                                 type="button"
@@ -3408,7 +3408,7 @@ export default function SimulatorPage() {
                                     `[Escala ${selectedScale?.short_name}] ${lastScaleResult.total_score}/${lastScaleResult.max_score} · ${lastScaleResult.severity_label}: ${lastScaleResult.interpretation}`
                                   )
                                 }
-                                className="rounded-xl border border-white/15 bg-black/30 px-3 py-1.5 text-xs text-white/80"
+                                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-700"
                               >
                                 Guardar en notas de sesión
                               </button>
@@ -3417,8 +3417,8 @@ export default function SimulatorPage() {
                                 onClick={() => setUseScaleInFeedback((v) => !v)}
                                 className={`rounded-xl border px-3 py-1.5 text-xs ${
                                   useScaleInFeedback
-                                    ? "border-emerald-400/30 bg-emerald-400/15 text-emerald-100"
-                                    : "border-white/15 bg-black/30 text-white/80"
+                                    ? "border-emerald-400/30 bg-emerald-400/15 text-emerald-700"
+                                    : "border-slate-200 bg-slate-50 text-slate-700"
                                 }`}
                               >
                                 {useScaleInFeedback ? "Usando en feedback final" : "Usar resultado en retroalimentación final"}
@@ -3433,15 +3433,15 @@ export default function SimulatorPage() {
 
                 {rightTab === "tests" && (
                   <div className="space-y-3">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                       {isMedicalCase ? "Tests clínicos orientativos" : "Tests mentales"}
                     </div>
-                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                      <label className="text-xs text-white/60">Selecciona test</label>
+                    <div className="rounded-2xl border border-slate-200 bg-white/78 p-4">
+                      <label className="text-xs text-slate-500">Selecciona test</label>
                       <select
                         value={selectedTestId}
                         onChange={(e) => setSelectedTestId(e.target.value)}
-                        className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
+                        className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none"
                       >
                         {testCatalog.map((t) => (
                           <option key={t.id} value={t.id}>
@@ -3450,10 +3450,10 @@ export default function SimulatorPage() {
                         ))}
                       </select>
                       {selectedTest && (
-                        <div className="mt-3 text-xs text-white/60">
+                        <div className="mt-3 text-xs text-slate-500">
                           <div>Tipo: {selectedTest.kind === "screening" ? "Tamizaje" : "Evaluación orientativa"}</div>
                           <div>Aplica a: {labelAppliesTo(selectedTest.applies_to)}</div>
-                          <div className="mt-1 text-white/50">{selectedTest.description}</div>
+                          <div className="mt-1 text-slate-400">{selectedTest.description}</div>
                         </div>
                       )}
 
@@ -3461,7 +3461,7 @@ export default function SimulatorPage() {
                       <button
                         type="button"
                         onClick={() => startTestInChat(false)}
-                        className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs text-white/80"
+                        className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700"
                       >
                           Paso a paso (oculto)
                       </button>
@@ -3477,7 +3477,7 @@ export default function SimulatorPage() {
                           type="button"
                           onClick={() => void askCurrentInstrumentItem()}
                           disabled={loading || inputDisabled}
-                          className="rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-3 py-2 text-xs text-cyan-100 disabled:opacity-50"
+                          className="rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-3 py-2 text-xs text-cyan-700 disabled:opacity-50"
                         >
                           Ejecutar siguiente ítem
                         </button>
@@ -3486,7 +3486,7 @@ export default function SimulatorPage() {
                         <button
                           type="button"
                           onClick={cancelActiveInstrument}
-                          className="rounded-xl border border-red-400/25 bg-red-400/10 px-3 py-2 text-xs text-red-100"
+                          className="rounded-xl border border-red-400/25 bg-red-400/10 px-3 py-2 text-xs text-red-700"
                           >
                             Cancelar test actual
                           </button>
@@ -3495,37 +3495,37 @@ export default function SimulatorPage() {
                     </div>
 
                     {testSession && (
-                      <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                        <div className="text-xs text-white/60">
-                          Estado: <span className="text-white/85">{testSession.status}</span>
+                      <div className="rounded-2xl border border-slate-200 bg-white/78 p-4">
+                        <div className="text-xs text-slate-500">
+                          Estado: <span className="text-slate-800">{testSession.status}</span>
                         </div>
                         {activeInstrumentContext?.mode === "test" && (
-                          <div className="mt-1 text-xs text-cyan-100/90">
+                          <div className="mt-1 text-xs text-cyan-700/90">
                             Test en ejecución oculta (sin mostrar ítems en el chat).
                           </div>
                         )}
-                        <div className="mt-1 text-xs text-white/60">
+                        <div className="mt-1 text-xs text-slate-500">
                           Ítems respondidos: {testSession.answers.length} / {selectedTest?.items.length ?? "—"}
                         </div>
                         {lastTestResult && (
-                          <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3 text-sm text-white/80">
+                          <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
                             <div className="font-semibold">
                               Score: {lastTestResult.total_score}/{lastTestResult.max_score} · {lastTestResult.classification}
                             </div>
                             <div className="mt-1">{lastTestResult.interpretation}</div>
                             {lastTestResult.observations.length > 0 && (
-                              <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-white/70">
+                              <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-slate-600">
                                 {lastTestResult.observations.map((o, i) => (
                                   <li key={i}>{o}</li>
                                 ))}
                               </ul>
                             )}
                             {lastTestResult.limitations.length > 0 && (
-                              <div className="mt-2 text-xs text-white/60">
+                              <div className="mt-2 text-xs text-slate-500">
                                 Limitaciones: {lastTestResult.limitations.join(" · ")}
                               </div>
                             )}
-                            <div className="mt-1 text-xs text-white/60">{lastTestResult.educational_note}</div>
+                            <div className="mt-1 text-xs text-slate-500">{lastTestResult.educational_note}</div>
                             <div className="mt-3 flex flex-wrap gap-2">
                               <button
                                 type="button"
@@ -3534,7 +3534,7 @@ export default function SimulatorPage() {
                                     `[Test ${selectedTest?.short_name}] ${lastTestResult.total_score}/${lastTestResult.max_score} · ${lastTestResult.classification}: ${lastTestResult.interpretation}`
                                   )
                                 }
-                                className="rounded-xl border border-white/15 bg-black/30 px-3 py-1.5 text-xs text-white/80"
+                                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-700"
                               >
                                 Guardar en notas de sesión
                               </button>
@@ -3543,8 +3543,8 @@ export default function SimulatorPage() {
                                 onClick={() => setUseTestInFeedback((v) => !v)}
                                 className={`rounded-xl border px-3 py-1.5 text-xs ${
                                   useTestInFeedback
-                                    ? "border-emerald-400/30 bg-emerald-400/15 text-emerald-100"
-                                    : "border-white/15 bg-black/30 text-white/80"
+                                    ? "border-emerald-400/30 bg-emerald-400/15 text-emerald-700"
+                                    : "border-slate-200 bg-slate-50 text-slate-700"
                                 }`}
                               >
                                 {useTestInFeedback ? "Usando en feedback final" : "Usar resultado en retroalimentación final"}
@@ -3559,16 +3559,16 @@ export default function SimulatorPage() {
 
                 {rightTab === "batteries" && (
                   <div className="space-y-3">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-white/40">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                       {isMedicalCase ? "Baterías clínicas de patologías" : "Baterías mentales"}
                     </div>
 
-                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                      <label className="text-xs text-white/60">Selecciona batería</label>
+                    <div className="rounded-2xl border border-slate-200 bg-white/78 p-4">
+                      <label className="text-xs text-slate-500">Selecciona batería</label>
                       <select
                         value={selectedBatteryId}
                         onChange={(e) => setSelectedBatteryId(e.target.value)}
-                        className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/85 outline-none"
+                        className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none"
                       >
                         {batteryCatalog.map((battery) => (
                           <option key={battery.id} value={battery.id}>
@@ -3578,18 +3578,18 @@ export default function SimulatorPage() {
                       </select>
 
                       {selectedBattery && (
-                        <div className="mt-3 text-xs text-white/60">
+                        <div className="mt-3 text-xs text-slate-500">
                           <div>Población: {selectedBattery.target_population}</div>
                           <div>Rango sugerido: {selectedBattery.suggested_age_range}</div>
-                          <div className="mt-1 text-white/50">{selectedBattery.description}</div>
-                          <div className="mt-2 rounded-xl border border-white/10 bg-black/30 p-2 text-[11px] text-white/65">
+                          <div className="mt-1 text-slate-400">{selectedBattery.description}</div>
+                          <div className="mt-2 rounded-xl border border-slate-200 bg-slate-50 p-2 text-[11px] text-slate-500">
                             {selectedBattery.educational_note}
                           </div>
-                          <div className="mt-3 text-[11px] font-semibold uppercase tracking-wider text-white/45">Secuencia</div>
+                          <div className="mt-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Secuencia</div>
                           <div className="mt-2 space-y-2">
                             {selectedBattery.steps.map((step, idx) => (
-                              <div key={step.id} className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs text-white/75">
-                                {idx + 1}. {step.label} <span className="text-white/45">({step.mode === "scale" ? "Escala" : "Test"})</span>
+                              <div key={step.id} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                                {idx + 1}. {step.label} <span className="text-slate-400">({step.mode === "scale" ? "Escala" : "Test"})</span>
                               </div>
                             ))}
                           </div>
@@ -3600,7 +3600,7 @@ export default function SimulatorPage() {
                         <button
                           type="button"
                           onClick={() => startBatteryInChat(false)}
-                          className="rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-xs text-white/80"
+                          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700"
                         >
                           Iniciar paso a paso
                         </button>
@@ -3616,7 +3616,7 @@ export default function SimulatorPage() {
                             type="button"
                             onClick={() => void askCurrentInstrumentItem()}
                             disabled={loading || inputDisabled}
-                            className="rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-3 py-2 text-xs text-cyan-100 disabled:opacity-50"
+                            className="rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-3 py-2 text-xs text-cyan-700 disabled:opacity-50"
                           >
                             Ejecutar siguiente ítem
                           </button>
@@ -3625,7 +3625,7 @@ export default function SimulatorPage() {
                           <button
                             type="button"
                             onClick={cancelBatterySession}
-                            className="rounded-xl border border-red-400/25 bg-red-400/10 px-3 py-2 text-xs text-red-100"
+                            className="rounded-xl border border-red-400/25 bg-red-400/10 px-3 py-2 text-xs text-red-700"
                           >
                             Cancelar batería
                           </button>
@@ -3634,9 +3634,9 @@ export default function SimulatorPage() {
                     </div>
 
                     {(batteryViewSession || lastBatterySession) && batteryViewDef && batterySummary && (
-                      <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                        <div className="flex items-center justify-between text-xs text-white/60">
-                          <span>Estado: <span className="text-white/85">{batteryViewSession?.status ?? "completed"}</span></span>
+                      <div className="rounded-2xl border border-slate-200 bg-white/78 p-4">
+                        <div className="flex items-center justify-between text-xs text-slate-500">
+                          <span>Estado: <span className="text-slate-800">{batteryViewSession?.status ?? "completed"}</span></span>
                           <span>
                             {batterySummary.completedSteps}/{batterySummary.totalSteps} pasos
                           </span>
@@ -3658,10 +3658,10 @@ export default function SimulatorPage() {
                                 key={step.id}
                                 className={`rounded-xl border px-3 py-2 text-xs ${
                                   done
-                                    ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-100"
+                                    ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-700"
                                     : isCurrent
-                                    ? "border-cyan-300/25 bg-cyan-300/10 text-cyan-100"
-                                    : "border-white/10 bg-black/30 text-white/70"
+                                    ? "border-cyan-300/25 bg-cyan-300/10 text-cyan-700"
+                                    : "border-slate-200 bg-slate-50 text-slate-600"
                                 }`}
                               >
                                 {idx + 1}. {step.label}
@@ -3671,8 +3671,8 @@ export default function SimulatorPage() {
                         </div>
 
                         {(batteryViewSession?.step_results ?? []).length > 0 && (
-                          <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-white/75">
-                            <div className="font-semibold text-white/90">Reporte integrado</div>
+                          <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+                            <div className="font-semibold text-slate-900/90">Reporte integrado</div>
                             <div className="mt-1">
                               {batterySummary.highRisk
                                 ? "Se detectaron resultados de mayor severidad/riesgo en al menos un instrumento."
@@ -3683,7 +3683,7 @@ export default function SimulatorPage() {
                                 Áreas a reforzar: {batterySummary.weakAreas.join(" · ")}
                               </div>
                             )}
-                            <div className="mt-2 text-white/60">
+                            <div className="mt-2 text-slate-500">
                               Resultado orientativo para entrenamiento. No sustituye valoración clínica real.
                             </div>
                             <div className="mt-3 flex flex-wrap gap-2">
@@ -3698,7 +3698,7 @@ export default function SimulatorPage() {
                                     }.`
                                   );
                                 }}
-                                className="rounded-xl border border-white/15 bg-black/30 px-3 py-1.5 text-xs text-white/80"
+                                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-700"
                               >
                                 Guardar en notas de sesión
                               </button>
@@ -3717,29 +3717,29 @@ export default function SimulatorPage() {
           {/* SETTINGS MODAL */}
           {settingsOpen && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
-              <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#0F1117] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.65)]">
+              <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_24px_80px_rgba(0,0,0,0.65)]">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="text-base font-semibold text-white">Configuraciones</div>
-                    <div className="mt-1 text-sm text-white/60">
+                    <div className="text-base font-semibold text-slate-900">Configuraciones</div>
+                    <div className="mt-1 text-sm text-slate-500">
                       Ajustes educativos para guiar la entrevista. No reemplaza supervisión clínica.
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setSettingsOpen(false)}
-                    className="rounded-xl border border-white/15 px-3 py-2 text-sm text-white/80 hover:bg-white/5"
+                    className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
                   >
                     Cerrar
                   </button>
                 </div>
 
                 <div className="mt-5">
-                  <label className="block text-xs text-white/60">Tutor IA (sugerencias)</label>
-                  <div className="mt-2 flex items-center justify-between rounded-xl border border-white/10 bg-black/20 px-3 py-2">
-                    <div className="text-sm text-white/80">
+                  <label className="block text-xs text-slate-500">Tutor IA (sugerencias)</label>
+                  <div className="mt-2 flex items-center justify-between rounded-xl border border-slate-200 bg-white/78 px-3 py-2">
+                    <div className="text-sm text-slate-700">
                       {tutorEnabled ? "Activado" : "Desactivado"}
-                      <div className="text-xs text-white/50">
+                      <div className="text-xs text-slate-400">
                         {tutorEnabled
                           ? "Mostrará sugerencias/alertas durante la entrevista."
                           : "No se mostrarán mensajes del tutor en el chat."}
@@ -3774,7 +3774,7 @@ export default function SimulatorPage() {
                       className={`relative inline-flex h-8 w-14 items-center rounded-full border transition ${
                         tutorEnabled
                           ? "border-emerald-400/30 bg-emerald-400/20"
-                          : "border-white/15 bg-black/30"
+                          : "border-slate-200 bg-slate-50"
                       }`}
                       aria-pressed={tutorEnabled}
                       title="Activar o desactivar el tutor IA"
@@ -3788,13 +3788,13 @@ export default function SimulatorPage() {
                   </div>
 
                   <div className="mt-4" />
-                  <label className="block text-xs text-white/60">
+                  <label className="block text-xs text-slate-500">
                     {isMedicalCase ? "Enfoque de entrevista clínica (guía)" : "Enfoque psicoterapéutico (guía)"}
                   </label>
                   <select
                     value={cfgApproach}
                     onChange={(e) => setCfgApproach(e.target.value as ApproachValue)}
-                    className="mt-2 w-full rounded-xl bg-black/35 border border-white/10 px-3 py-2 text-sm text-white/85 outline-none focus:ring-2 focus:ring-white/20"
+                    className="mt-2 w-full rounded-xl bg-white border border-slate-200 px-3 py-2 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-white/20"
                   >
                     <option value="humanistic">{isMedicalCase ? "Centrado en persona" : "Humanístico"}</option>
                     <option value="cbt">{isMedicalCase ? "Estructurado por síntomas" : "Cognitivo-conductual (TCC)"}</option>
@@ -3802,21 +3802,21 @@ export default function SimulatorPage() {
                     <option value="systemic">Sistémico / familiar</option>
                   </select>
 
-                  <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white/70">
-                    <div className="font-semibold text-white">¿Qué cambia?</div>
+                  <div className="mt-3 rounded-xl border border-slate-200 bg-white/78 p-3 text-sm text-slate-600">
+                    <div className="font-semibold text-slate-900">¿Qué cambia?</div>
                     {isMedicalCase ? (
                       <ul className="mt-2 list-disc space-y-1 pl-5">
-                        <li><span className="font-semibold text-white">Centrado en persona</span>: empatía clínica y comunicación clara.</li>
-                        <li><span className="font-semibold text-white">Estructurado por síntomas</span>: cronología, severidad y signos de alarma.</li>
-                        <li><span className="font-semibold text-white">Narrativo/antecedentes</span>: contexto, comorbilidades y evolución.</li>
-                        <li><span className="font-semibold text-white">Sistémico</span>: red familiar/social y barreras de adherencia.</li>
+                        <li><span className="font-semibold text-slate-900">Centrado en persona</span>: empatía clínica y comunicación clara.</li>
+                        <li><span className="font-semibold text-slate-900">Estructurado por síntomas</span>: cronología, severidad y signos de alarma.</li>
+                        <li><span className="font-semibold text-slate-900">Narrativo/antecedentes</span>: contexto, comorbilidades y evolución.</li>
+                        <li><span className="font-semibold text-slate-900">Sistémico</span>: red familiar/social y barreras de adherencia.</li>
                       </ul>
                     ) : (
                       <ul className="mt-2 list-disc space-y-1 pl-5">
-                        <li><span className="font-semibold text-white">Humanístico</span>: empatía, validación, reflejos, preguntas abiertas.</li>
-                        <li><span className="font-semibold text-white">TCC</span>: pensamiento–emoción–conducta, ejemplos concretos, activación/evitación.</li>
-                        <li><span className="font-semibold text-white">Psicodinámico</span>: patrones relacionales, significados, defensas (sin interpretar de más).</li>
-                        <li><span className="font-semibold text-white">Sistémico</span>: contexto, red de apoyo, roles y dinámica familiar.</li>
+                        <li><span className="font-semibold text-slate-900">Humanístico</span>: empatía, validación, reflejos, preguntas abiertas.</li>
+                        <li><span className="font-semibold text-slate-900">TCC</span>: pensamiento–emoción–conducta, ejemplos concretos, activación/evitación.</li>
+                        <li><span className="font-semibold text-slate-900">Psicodinámico</span>: patrones relacionales, significados, defensas (sin interpretar de más).</li>
+                        <li><span className="font-semibold text-slate-900">Sistémico</span>: contexto, red de apoyo, roles y dinámica familiar.</li>
                       </ul>
                     )}
                   </div>
@@ -3826,7 +3826,7 @@ export default function SimulatorPage() {
                   <button
                     type="button"
                     onClick={() => setSettingsOpen(false)}
-                    className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
+                    className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                   >
                     Cancelar
                   </button>

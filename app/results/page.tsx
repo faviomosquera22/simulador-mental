@@ -177,7 +177,7 @@ export default function ResultsPage() {
         <div className="flex items-start justify-between gap-3">
           <div>
             <h1 className="text-2xl font-semibold">Resultados</h1>
-            <p className="mt-1 text-sm text-white/70">
+            <p className="mt-1 text-sm text-slate-600">
               Feedback educativo. No es diagnóstico. Modo: {modeLabel}
             </p>
           </div>
@@ -185,7 +185,7 @@ export default function ResultsPage() {
           <div className="flex items-center gap-2">
             <Link
               href="/simulator"
-              className="rounded-xl border border-white/15 px-4 py-2 text-sm hover:bg-white/5"
+              className="rounded-xl border border-slate-200 px-4 py-2 text-sm hover:bg-slate-50"
             >
               Volver al chat
             </Link>
@@ -196,9 +196,9 @@ export default function ResultsPage() {
         </div>
 
         {!caseObject || transcript.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6">
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-white/80 p-6">
             <div className="text-lg font-semibold">No hay sesión para evaluar</div>
-            <p className="mt-2 text-sm text-white/70">
+            <p className="mt-2 text-sm text-slate-600">
               Inicia una entrevista y finaliza la sesión para ver resultados.
             </p>
             <div className="mt-4">
@@ -210,8 +210,8 @@ export default function ResultsPage() {
         ) : (
           <>
             {loading && (
-              <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6">
-                <div className="text-sm text-white/70">Analizando la sesión…</div>
+              <div className="mt-6 rounded-2xl border border-slate-200 bg-white/80 p-6">
+                <div className="text-sm text-slate-600">Analizando la sesión…</div>
               </div>
             )}
 
@@ -223,23 +223,23 @@ export default function ResultsPage() {
 
             {!loading && evaluation && (
               <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                <div className="rounded-2xl border border-slate-200 bg-white/80 p-5">
                   <div className="flex items-center justify-between gap-3">
                     <h2 className="text-base font-semibold">Resumen</h2>
                     {typeof evaluation.overall_score === "number" && (
-                      <span className="rounded-full border border-white/15 bg-black/30 px-3 py-1 text-xs text-white/80">
+                      <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-700">
                         {evaluation.overall_score}/100 • {scoreLabel(evaluation.overall_score)}
                       </span>
                     )}
                   </div>
-                  <p className="mt-3 text-sm text-white/80 whitespace-pre-wrap">
+                  <p className="mt-3 text-sm text-slate-700 whitespace-pre-wrap">
                     {evaluation.summary || "—"}
                   </p>
 
                   {evaluation.next_steps?.length ? (
-                    <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-3">
-                      <div className="text-xs text-white/60">Siguientes pasos</div>
-                      <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-white/80">
+                    <div className="mt-4 rounded-xl border border-slate-200 bg-white/78 p-3">
+                      <div className="text-xs text-slate-500">Siguientes pasos</div>
+                      <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
                         {evaluation.next_steps.slice(0, 5).map((s, i) => <li key={i}>{s}</li>)}
                       </ul>
                     </div>
@@ -247,7 +247,7 @@ export default function ResultsPage() {
 
                   {evaluation.red_flags?.length ? (
                     <div className="mt-4 rounded-xl border border-amber-400/20 bg-amber-400/10 p-3">
-                      <div className="text-xs text-amber-100">Señales a vigilar (educativo)</div>
+                      <div className="text-xs text-amber-700">Señales a vigilar (educativo)</div>
                       <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-amber-50">
                         {evaluation.red_flags.slice(0, 5).map((s, i) => <li key={i}>{s}</li>)}
                       </ul>
@@ -255,39 +255,39 @@ export default function ResultsPage() {
                   ) : null}
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                <div className="rounded-2xl border border-slate-200 bg-white/80 p-5">
                   <h2 className="text-base font-semibold">Fortalezas</h2>
                   {evaluation.strengths.length === 0 ? (
-                    <p className="mt-3 text-sm text-white/70">—</p>
+                    <p className="mt-3 text-sm text-slate-600">—</p>
                   ) : (
-                    <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-white/80">
+                    <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-700">
                       {evaluation.strengths.slice(0, 8).map((s, i) => <li key={i}>{s}</li>)}
                     </ul>
                   )}
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                <div className="rounded-2xl border border-slate-200 bg-white/80 p-5">
                   <h2 className="text-base font-semibold">Mejoras</h2>
                   {evaluation.improvements.length === 0 ? (
-                    <p className="mt-3 text-sm text-white/70">—</p>
+                    <p className="mt-3 text-sm text-slate-600">—</p>
                   ) : (
-                    <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-white/80">
+                    <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-700">
                       {evaluation.improvements.slice(0, 8).map((s, i) => <li key={i}>{s}</li>)}
                     </ul>
                   )}
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                <div className="rounded-2xl border border-slate-200 bg-white/80 p-5">
                   <h2 className="text-base font-semibold">Cobertura por áreas</h2>
                   {coverageEntries.length === 0 ? (
-                    <p className="mt-3 text-sm text-white/70">—</p>
+                    <p className="mt-3 text-sm text-slate-600">—</p>
                   ) : (
                     <div className="mt-4 space-y-3">
                       {coverageEntries.slice(0, 10).map(([k, v]) => (
                         <div key={k}>
-                          <div className="flex items-center justify-between text-xs text-white/60">
+                          <div className="flex items-center justify-between text-xs text-slate-500">
                             <span>{k}</span>
-                            <span className="text-white/80">{Math.round(v)}/100</span>
+                            <span className="text-slate-700">{Math.round(v)}/100</span>
                           </div>
                           <div className="mt-2 h-2 w-full rounded-full bg-white/10">
                             <div
@@ -301,10 +301,10 @@ export default function ResultsPage() {
                   )}
                 </div>
 
-                <div className="lg:col-span-2 rounded-2xl border border-white/10 bg-white/5 p-5">
+                <div className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white/80 p-5">
                   <details>
-                    <summary className="cursor-pointer text-sm text-white/70">Debug (JSON completo)</summary>
-                    <pre className="mt-3 overflow-auto rounded-xl bg-black/40 p-4 text-xs text-white/70">
+                    <summary className="cursor-pointer text-sm text-slate-600">Debug (JSON completo)</summary>
+                    <pre className="mt-3 overflow-auto rounded-xl bg-black/40 p-4 text-xs text-slate-600">
                       {JSON.stringify({ evaluation, caseId, turns: transcript.length }, null, 2)}
                     </pre>
                   </details>

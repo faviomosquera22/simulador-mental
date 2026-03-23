@@ -184,33 +184,33 @@ export default function RcpAlgorithmsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#070A12] text-white">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f6fbf9_0%,#eef5f2_48%,#e6efeb_100%)] text-slate-900">
       <div className="mx-auto flex max-w-[1600px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
         <Sidebar />
 
-        <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 p-5 shadow-[0_20px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+        <main className="flex-1 rounded-2xl border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] p-5 shadow-[0_24px_70px_rgba(99,126,118,0.16)] backdrop-blur-xl">
           <header className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold">RCP y algoritmos</h1>
-              <p className="mt-1 text-sm text-white/70">
+              <p className="mt-1 text-sm text-slate-600">
                 Entrena RCP básica, DEA, ritmos desfibrilables/no desfibrilables y valoración ABCDE por ciclos.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-white/70">
-              <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+              <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1">
                 {mode === "practice" ? "Modo práctica" : "Modo evaluación"}
               </span>
-              <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-cyan-100">
+              <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-cyan-700">
                 Biblioteca: {scenarioPool.length} escenarios
               </span>
-              <span className="rounded-full border border-red-400/30 bg-red-400/10 px-3 py-1 text-red-100">
+              <span className="rounded-full border border-red-400/30 bg-red-400/10 px-3 py-1 text-red-700">
                 Tiempo: {mode === "evaluation" ? formatTimer(timeRemaining) : "Libre"}
               </span>
             </div>
           </header>
 
           <section className="mt-4 rounded-2xl border border-red-400/15 bg-red-400/10 p-4">
-            <div className="text-xs uppercase tracking-[0.16em] text-red-100/70">Cómo usar este módulo</div>
+            <div className="text-xs uppercase tracking-[0.16em] text-red-700/70">Cómo usar este módulo</div>
             <div className="mt-3 grid gap-3 md:grid-cols-4">
               {[
                 ["Paso 1", "Lee el caso y los signos vitales"],
@@ -218,55 +218,55 @@ export default function RcpAlgorithmsPage() {
                 ["Paso 3", "Haz clic en una sola acción"],
                 ["Paso 4", "Continúa hasta ver el score final"],
               ].map(([title, body]) => (
-                <div key={title} className="rounded-2xl border border-white/10 bg-black/20 p-3">
-                  <div className="text-sm font-semibold text-white">{title}</div>
-                  <div className="mt-1 text-sm text-white/70">{body}</div>
+                <div key={title} className="rounded-2xl border border-slate-200 bg-white/78 p-3">
+                  <div className="text-sm font-semibold text-slate-900">{title}</div>
+                  <div className="mt-1 text-sm text-slate-600">{body}</div>
                 </div>
               ))}
             </div>
           </section>
 
-          <section className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-[#0B111D]/85 p-4 md:grid-cols-2 xl:grid-cols-7">
-            <label className="text-xs text-white/70">
+          <section className="mt-4 grid gap-3 rounded-2xl border border-slate-200 bg-white/82 p-4 md:grid-cols-2 xl:grid-cols-7">
+            <label className="text-xs text-slate-600">
               Modo
               <select
                 value={mode}
                 onChange={(event) => setMode(event.target.value as AdvancedMode)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 <option value="practice">Práctica guiada</option>
                 <option value="evaluation">Evaluación</option>
               </select>
             </label>
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Uso
               <select
                 value={usageMode}
                 onChange={(event) => setUsageMode(event.target.value as UsageMode)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 <option value="standalone">Módulo independiente</option>
                 <option value="integrated_case">Integrado al caso</option>
               </select>
             </label>
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Selección
               <select
                 value={selectionMode}
                 onChange={(event) => setSelectionMode(event.target.value as SelectionMode)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 <option value="contextual_random">Aleatorio contextual</option>
                 <option value="random">Aleatorio</option>
                 <option value="manual">Manual</option>
               </select>
             </label>
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Dificultad
               <select
                 value={difficultyFilter}
                 onChange={(event) => setDifficultyFilter(event.target.value as DifficultyFilter)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 <option value="all">Todas</option>
                 <option value="basic">Básico</option>
@@ -274,12 +274,12 @@ export default function RcpAlgorithmsPage() {
                 <option value="advanced">Avanzado</option>
               </select>
             </label>
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Categoría
               <select
                 value={categoryFilter}
                 onChange={(event) => setCategoryFilter(event.target.value as CategoryFilter)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 <option value="all">Todas</option>
                 <option value="bls">RCP básica</option>
@@ -291,13 +291,13 @@ export default function RcpAlgorithmsPage() {
                 <option value="abcde">ABCDE</option>
               </select>
             </label>
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Contexto
               <select
                 value={effectiveContext}
                 onChange={(event) => setContextFilter(event.target.value as ResuscitationContext)}
                 disabled={usageMode === "integrated_case" && Boolean(activeCaseObj)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white disabled:opacity-60"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 disabled:opacity-60"
               >
                 <option value="general">General</option>
                 <option value="prehospital">Prehospitalario</option>
@@ -306,35 +306,35 @@ export default function RcpAlgorithmsPage() {
                 <option value="emergency">Emergencia</option>
               </select>
             </label>
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Buscar
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
                 placeholder="FV, DEA, asistolia..."
               />
             </label>
           </section>
 
-          <section className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-black/25 p-4 xl:grid-cols-[1.35fr_1fr_auto]">
+          <section className="mt-4 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 xl:grid-cols-[1.35fr_1fr_auto]">
             <div>
-              <div className="text-xs uppercase tracking-[0.14em] text-white/45">Escenario actual</div>
-              <div className="mt-1 text-base font-semibold text-white">{scenario.title}</div>
-              <div className="mt-1 text-sm text-white/70">{scenario.clinicalSummary}</div>
-              <div className="mt-1 text-sm text-white/65">
+              <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Escenario actual</div>
+              <div className="mt-1 text-base font-semibold text-slate-900">{scenario.title}</div>
+              <div className="mt-1 text-sm text-slate-600">{scenario.clinicalSummary}</div>
+              <div className="mt-1 text-sm text-slate-500">
                 {scenario.patientProfile.name} · {scenario.patientProfile.age} años · {scenario.patientProfile.setting}
               </div>
             </div>
 
-            <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white/70">
-              <div className="font-semibold text-white/85">Resumen del algoritmo</div>
+            <div className="rounded-xl border border-slate-200 bg-white/80 p-3 text-xs text-slate-600">
+              <div className="font-semibold text-slate-800">Resumen del algoritmo</div>
               <div className="mt-2">Categoría: {resuscitationCategoryLabel(scenario.category)}</div>
               <div className="mt-1">Contexto: {resuscitationContextLabel(scenario.context)}</div>
               <div className="mt-1">Dificultad: {resuscitationDifficultyLabel(scenario.difficulty)}</div>
               <div className="mt-1">Pool filtrado: {selectionMode === "contextual_random" ? contextualPool.length : filteredPool.length}</div>
               {selectionMode === "manual" && (
-                <label className="mt-3 block text-white/70">
+                <label className="mt-3 block text-slate-600">
                   Escenario manual
                   <select
                     value={manualScenarioId}
@@ -344,7 +344,7 @@ export default function RcpAlgorithmsPage() {
                       setScenario(next);
                       resetRun(next);
                     }}
-                    className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                    className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
                   >
                     {filteredPool.map((item) => (
                       <option key={item.id} value={item.id}>
@@ -360,7 +360,7 @@ export default function RcpAlgorithmsPage() {
               <button
                 type="button"
                 onClick={loadNewScenario}
-                className="rounded-xl border border-white/15 bg-black/35 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900/90 hover:bg-slate-50"
               >
                 Nuevo escenario
               </button>
@@ -369,11 +369,11 @@ export default function RcpAlgorithmsPage() {
 
           <section className="mt-4 grid gap-4 xl:grid-cols-[1.4fr_0.9fr]">
             <div className="space-y-4">
-              <div className="rounded-2xl border border-white/10 bg-[#0B101A]/90 p-4">
-                <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/25 p-3">
+              <div className="rounded-2xl border border-slate-200 bg-white/82 p-4">
+                <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3">
                   <div>
-                    <div className="text-xs uppercase tracking-[0.16em] text-white/45">Progreso</div>
-                    <div className="mt-1 text-sm text-white/72">
+                    <div className="text-xs uppercase tracking-[0.16em] text-slate-400">Progreso</div>
+                    <div className="mt-1 text-sm text-slate-600">
                       Has respondido {selectedActionIds.length} de {scenario.stages.length} pasos.
                     </div>
                   </div>
@@ -387,52 +387,52 @@ export default function RcpAlgorithmsPage() {
 
                 <div className="grid gap-3 xl:grid-cols-[0.95fr_1.05fr_0.9fr]">
                   <div className="rounded-2xl border border-red-400/20 bg-red-400/10 p-4">
-                    <div className="text-xs uppercase tracking-[0.18em] text-red-100/70">Estado clínico</div>
-                    <div className="mt-2 text-xl font-semibold text-white">{currentStatus}</div>
-                    <div className="mt-3 text-sm leading-7 text-white/72">
+                    <div className="text-xs uppercase tracking-[0.18em] text-red-700/70">Estado clínico</div>
+                    <div className="mt-2 text-xl font-semibold text-slate-900">{currentStatus}</div>
+                    <div className="mt-3 text-sm leading-7 text-slate-600">
                       {currentRhythm ? `Ritmo actual: ${currentRhythm}.` : ""}
                       {" "}Prioriza perfusión, ventilación y secuencia correcta del algoritmo antes de avanzar.
                     </div>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-                    <div className="text-xs uppercase tracking-[0.18em] text-white/45">Contexto del paciente</div>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="text-xs uppercase tracking-[0.18em] text-slate-400">Contexto del paciente</div>
                     <div className="mt-3 grid gap-3">
-                      <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-3 text-sm">
+                      <div className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm">
                         <div className="flex items-start justify-between gap-3">
-                          <span className="shrink-0 text-[12px] uppercase tracking-[0.12em] text-white/50">Paciente</span>
-                          <span className="min-w-0 max-w-[70%] text-right leading-6 text-white/88 break-words">
+                          <span className="shrink-0 text-[12px] uppercase tracking-[0.12em] text-slate-400">Paciente</span>
+                          <span className="min-w-0 max-w-[70%] text-right leading-6 text-slate-800 break-words">
                             {scenario.patientProfile.name} · {scenario.patientProfile.age} años
                           </span>
                         </div>
                       </div>
-                      <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-3 text-sm">
+                      <div className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm">
                         <div className="flex items-start justify-between gap-3">
-                          <span className="shrink-0 text-[12px] uppercase tracking-[0.12em] text-white/50">Entorno</span>
-                          <span className="min-w-0 max-w-[70%] text-right leading-6 text-white/88 break-words">
+                          <span className="shrink-0 text-[12px] uppercase tracking-[0.12em] text-slate-400">Entorno</span>
+                          <span className="min-w-0 max-w-[70%] text-right leading-6 text-slate-800 break-words">
                             {scenario.patientProfile.setting ?? "No especificado"}
                           </span>
                         </div>
                       </div>
-                      <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-3 text-sm">
+                      <div className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm">
                         <div className="flex items-start justify-between gap-3">
-                          <span className="shrink-0 text-[12px] uppercase tracking-[0.12em] text-white/50">PA actual</span>
-                          <span className="min-w-0 max-w-[70%] text-right leading-6 text-white/88 break-words">
+                          <span className="shrink-0 text-[12px] uppercase tracking-[0.12em] text-slate-400">PA actual</span>
+                          <span className="min-w-0 max-w-[70%] text-right leading-6 text-slate-800 break-words">
                             {formatAdvancedPressure(currentVitals.sbp, currentVitals.dbp)}
                           </span>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-                    <div className="text-xs uppercase tracking-[0.18em] text-white/45">Alertas prioritarias</div>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="text-xs uppercase tracking-[0.18em] text-slate-400">Alertas prioritarias</div>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {scenario.keyFindings.map((alert) => (
-                        <span key={alert} className="rounded-full border border-red-400/20 bg-red-400/10 px-2.5 py-1 text-[11px] text-red-100">
+                        <span key={alert} className="rounded-full border border-red-400/20 bg-red-400/10 px-2.5 py-1 text-[11px] text-red-700">
                           {alert}
                         </span>
                       ))}
                     </div>
-                    <div className="mt-3 text-sm leading-6 text-white/62">
+                    <div className="mt-3 text-sm leading-6 text-slate-500">
                       Revisa primero pulso, perfusión, respiración y cambios eléctricos antes de ejecutar el siguiente paso.
                     </div>
                   </div>
@@ -440,9 +440,9 @@ export default function RcpAlgorithmsPage() {
 
                 {currentStage ? (
                   <div className="mt-4 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4">
-                    <div className="text-xs uppercase tracking-[0.14em] text-cyan-100/75">Paso actual · responde aquí</div>
-                    <div className="mt-2 text-lg font-semibold text-white">{currentStage.prompt}</div>
-                    <div className="mt-1 text-sm text-white/72">
+                    <div className="text-xs uppercase tracking-[0.14em] text-cyan-700/75">Paso actual · responde aquí</div>
+                    <div className="mt-2 text-lg font-semibold text-slate-900">{currentStage.prompt}</div>
+                    <div className="mt-1 text-sm text-slate-600">
                       No debes escribir. Elige una sola acción y el simulador avanzará al siguiente ciclo.
                     </div>
                     <div className="mt-4 space-y-2">
@@ -451,9 +451,9 @@ export default function RcpAlgorithmsPage() {
                           key={action.id}
                           type="button"
                           onClick={() => chooseAction(action.id)}
-                          className="w-full rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-left text-sm text-white/82 transition hover:bg-white/10"
+                          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
                         >
-                          <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-white/5 text-xs text-white/75">
+                          <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white/80 text-xs text-slate-600">
                             {index + 1}
                           </span>
                           {action.label}
@@ -462,13 +462,13 @@ export default function RcpAlgorithmsPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="mt-4 rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-white/70">
+                  <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
                     Secuencia completada. Revisa el score final y las decisiones por ciclo.
                   </div>
                 )}
 
                 {mode === "practice" && lastFeedback && (
-                  <div className="rounded-2xl border border-emerald-400/15 bg-emerald-400/10 p-4 text-sm text-emerald-100">
+                  <div className="rounded-2xl border border-emerald-400/15 bg-emerald-400/10 p-4 text-sm text-emerald-700">
                     {lastFeedback}
                   </div>
                 )}
@@ -476,14 +476,14 @@ export default function RcpAlgorithmsPage() {
             </div>
 
             <div className="space-y-4">
-              <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                <div className="text-xs uppercase tracking-[0.14em] text-white/45">Qué debes mirar</div>
-                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-white/72">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Qué debes mirar</div>
+                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-slate-600">
                   {scenario.keyFindings.map((finding) => (
                     <li key={finding}>{finding}</li>
                   ))}
                 </ul>
-                <div className="mt-4 rounded-2xl border border-white/10 bg-black/30 p-3 text-xs text-white/65">
+                <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500">
                   Perla del algoritmo: {scenario.feedback.algorithmPearl}
                 </div>
               </div>
@@ -513,36 +513,36 @@ export default function RcpAlgorithmsPage() {
               />
 
               {result && (
-                <div className="rounded-2xl border border-white/10 bg-[#0B111D]/90 p-4">
+                <div className="rounded-2xl border border-slate-200 bg-white/82 p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <div className="text-xs uppercase tracking-[0.14em] text-white/45">Resultado final</div>
-                      <div className="mt-1 text-2xl font-semibold text-white">
+                      <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Resultado final</div>
+                      <div className="mt-1 text-2xl font-semibold text-slate-900">
                         {result.totalScore}/{result.maxScore}
                       </div>
                     </div>
-                    <div className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs text-cyan-100">
+                    <div className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs text-cyan-700">
                       {result.outcome}
                     </div>
                   </div>
 
                   <div className="mt-3 space-y-2">
                     {result.stageFeedback.map((item) => (
-                      <div key={`${item.stageTitle}-${item.actionLabel}`} className="rounded-2xl border border-white/10 bg-black/30 p-3">
-                        <div className="text-xs text-white/50">{item.stageTitle}</div>
-                        <div className="mt-1 text-sm font-semibold text-white">{item.actionLabel}</div>
-                        <div className="mt-1 text-sm text-white/68">{item.feedback}</div>
+                      <div key={`${item.stageTitle}-${item.actionLabel}`} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                        <div className="text-xs text-slate-400">{item.stageTitle}</div>
+                        <div className="mt-1 text-sm font-semibold text-slate-900">{item.actionLabel}</div>
+                        <div className="mt-1 text-sm text-slate-600">{item.feedback}</div>
                       </div>
                     ))}
                   </div>
 
-                  <div className="mt-3 rounded-2xl border border-emerald-400/15 bg-emerald-400/10 p-3 text-sm text-emerald-100">
+                  <div className="mt-3 rounded-2xl border border-emerald-400/15 bg-emerald-400/10 p-3 text-sm text-emerald-700">
                     {scenario.feedback.explanation}
                   </div>
-                  <div className="mt-3 rounded-2xl border border-white/10 bg-black/30 p-3 text-sm text-white/72">
+                  <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
                     Conducta esperada: {scenario.feedback.expectedConduct}
                   </div>
-                  <div className="mt-3 text-sm text-white/82">{result.summary}</div>
+                  <div className="mt-3 text-sm text-slate-700">{result.summary}</div>
                 </div>
               )}
             </div>

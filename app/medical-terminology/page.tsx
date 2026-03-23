@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import Sidebar from "@/components/Sidebar";
 import {
@@ -11,11 +11,29 @@ import {
 } from "@/src/lib/medicalTerminologyLibrary";
 
 type CategoryFilter = MedicalTerminologyCategory | "Todas";
+type PracticeTone = "idle" | "success" | "error";
+
+function normalizeTerm(value: string) {
+  return String(value)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 export default function MedicalTerminologyPage() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<CategoryFilter>("Todas");
   const [activeId, setActiveId] = useState<string>(MEDICAL_TERMINOLOGY_LIBRARY[0]?.id ?? "");
+  const [practiceId, setPracticeId] = useState<string>(MEDICAL_TERMINOLOGY_LIBRARY[0]?.id ?? "");
+  const [attempt, setAttempt] = useState("");
+  const [practiceTone, setPracticeTone] = useState<PracticeTone>("idle");
+  const [practiceMessage, setPracticeMessage] = useState("Lee la definición y escribe el término correcto.");
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [attemptCount, setAttemptCount] = useState(0);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -43,6 +61,26 @@ export default function MedicalTerminologyPage() {
     return filtered.find((item) => item.id === activeId) ?? filtered[0] ?? MEDICAL_TERMINOLOGY_LIBRARY[0];
   }, [activeId, filtered]);
 
+  const practiceItem = useMemo(() => {
+    if (!filtered.length) return undefined;
+    return filtered.find((item) => item.id === practiceId) ?? filtered[0];
+  }, [filtered, practiceId]);
+
+  useEffect(() => {
+    if (!filtered.length) {
+      setPracticeId("");
+      return;
+    }
+
+    if (!filtered.some((item) => item.id === practiceId)) {
+      setPracticeId(filtered[0].id);
+      setAttempt("");
+      setPracticeTone("idle");
+      setPracticeMessage("Lee la definición y escribe el término correcto.");
+      setShowAnswer(false);
+    }
+  }, [filtered, practiceId]);
+
   const stats = useMemo(
     () => ({
       total: MEDICAL_TERMINOLOGY_LIBRARY.length,
@@ -52,26 +90,66 @@ export default function MedicalTerminologyPage() {
     []
   );
 
+  function loadNextPractice(excludeId?: string) {
+    const pool = filtered.length ? filtered : MEDICAL_TERMINOLOGY_LIBRARY;
+    if (!pool.length) return;
+
+    const candidates = pool.filter((item) => item.id !== excludeId);
+    const nextPool = candidates.length ? candidates : pool;
+    const next = nextPool[Math.floor(Math.random() * nextPool.length)] ?? nextPool[0];
+
+    setPracticeId(next.id);
+    setAttempt("");
+    setPracticeTone("idle");
+    setPracticeMessage("Lee la definición y escribe el término correcto.");
+    setShowAnswer(false);
+  }
+
+  function checkPracticeAnswer() {
+    if (!practiceItem) return;
+
+    const normalizedAttempt = normalizeTerm(attempt);
+    if (!normalizedAttempt) {
+      setPracticeTone("error");
+      setPracticeMessage("Escribe una respuesta antes de validar.");
+      return;
+    }
+
+    setAttemptCount((value) => value + 1);
+
+    if (normalizedAttempt === normalizeTerm(practiceItem.term)) {
+      setCorrectCount((value) => value + 1);
+      setPracticeTone("success");
+      setPracticeMessage(`Correcto. ${practiceItem.term} se usa cuando ${practiceItem.clinicalUse}`);
+      setShowAnswer(true);
+      return;
+    }
+
+    setPracticeTone("error");
+    setPracticeMessage(`No corresponde. La respuesta correcta es ${practiceItem.term}. ${practiceItem.example}`);
+    setShowAnswer(true);
+  }
+
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#f4faf8_0%,#edf4f1_48%,#e4efeb_100%)] text-white">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f4faf8_0%,#edf4f1_48%,#e4efeb_100%)] text-slate-900">
       <div className="mx-auto flex max-w-[1580px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
         <Sidebar />
 
-        <main className="flex-1 rounded-2xl border border-[#1b2130]/10 bg-[linear-gradient(180deg,rgba(28,37,46,0.82),rgba(18,25,34,0.84))] p-5 shadow-[0_28px_72px_rgba(84,104,112,0.18)] backdrop-blur-xl">
+        <main className="flex-1 rounded-2xl border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] p-5 shadow-[0_24px_70px_rgba(99,126,118,0.16)] backdrop-blur-xl">
           <header className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold">Terminología médica</h1>
-              <p className="mt-1 text-sm text-white/70">
+              <p className="mt-1 text-sm text-slate-600">
                 Glosario rápido para reforzar lenguaje clínico, farmacología básica y conceptos de patologías.
               </p>
               <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-white/80">
+                <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-slate-700">
                   Términos: {stats.total}
                 </span>
-                <span className="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1 text-emerald-100">
+                <span className="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1 text-emerald-700">
                   Farmacología: {stats.pharmacology}
                 </span>
-                <span className="rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-cyan-100">
+                <span className="rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-cyan-700">
                   Patologías: {stats.pathologies}
                 </span>
               </div>
@@ -80,47 +158,154 @@ export default function MedicalTerminologyPage() {
             <div className="flex flex-wrap gap-2">
               <Link
                 href="/medications"
-                className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
               >
                 Ver fármacos
               </Link>
               <Link
                 href="/medical-pathologies"
-                className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
               >
                 Ver patologías
               </Link>
             </div>
           </header>
 
-          <section className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-[#0B111D]/85 p-4 xl:grid-cols-3">
-            <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-              <div className="text-xs uppercase tracking-[0.14em] text-white/45">Qué encontrarás</div>
-              <div className="mt-2 text-sm text-white/80">
+          <section className="mt-4 grid gap-3 rounded-2xl border border-slate-200 bg-white/82 p-4 xl:grid-cols-3">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Qué encontrarás</div>
+              <div className="mt-2 text-sm text-slate-700">
                 Definiciones cortas, utilidad clínica y ejemplos para que el término no se quede solo en memoria teórica.
               </div>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-              <div className="text-xs uppercase tracking-[0.14em] text-white/45">Cómo usarlo</div>
-              <div className="mt-2 text-sm text-white/80">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Cómo usarlo</div>
+              <div className="mt-2 text-sm text-slate-700">
                 Busca por término, categoría o concepto relacionado cuando necesites repasar antes de un caso, un simulacro o una práctica.
               </div>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-              <div className="text-xs uppercase tracking-[0.14em] text-white/45">Conexión con la app</div>
-              <div className="mt-2 text-sm text-white/80">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Conexión con la app</div>
+              <div className="mt-2 text-sm text-slate-700">
                 Este módulo sirve como puente rápido hacia medicamentos y biblioteca de patologías para ampliar el contexto.
               </div>
             </div>
           </section>
 
+          <section className="mt-5 rounded-2xl border border-slate-200 bg-white/82 p-5">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="max-w-3xl">
+                <div className="inline-flex rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-700">
+                  Práctica de completar
+                </div>
+                <h2 className="mt-3 text-xl font-semibold text-slate-900">Escribe el término correcto</h2>
+                <p className="mt-2 text-sm text-slate-600">
+                  Te mostramos el concepto y tú completas la palabra o expresión médica. La práctica usa el mismo banco del glosario y respeta los filtros activos.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-2 text-xs">
+                <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-700">
+                  Intentos: {attemptCount}
+                </span>
+                <span className="rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1 text-emerald-700">
+                  Correctas: {correctCount}
+                </span>
+                <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-700">
+                  Base activa: {filtered.length || stats.total}
+                </span>
+              </div>
+            </div>
+
+            {practiceItem ? (
+              <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_320px]">
+                <div className="rounded-2xl border border-slate-200 bg-white p-5">
+                  <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Concepto</div>
+                  <div className="mt-3 text-lg font-semibold text-slate-900">{practiceItem.definition}</div>
+                  <div className="mt-4 rounded-xl border border-emerald-400/20 bg-emerald-400/10 p-4">
+                    <div className="text-xs uppercase tracking-wider text-emerald-700/80">Pista clínica</div>
+                    <div className="mt-2 text-sm text-emerald-700">{practiceItem.clinicalUse}</div>
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {practiceItem.related.map((item) => (
+                      <span
+                        key={item}
+                        className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                    <input
+                      value={attempt}
+                      onChange={(event) => setAttempt(event.target.value)}
+                      placeholder="Escribe aquí el término..."
+                      className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-cyan-300/40"
+                    />
+                    <button
+                      type="button"
+                      onClick={checkPracticeAnswer}
+                      className="rounded-xl bg-[#183640] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#224652]"
+                    >
+                      Validar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => loadNextPractice(practiceItem.id)}
+                      className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 transition hover:bg-slate-50"
+                    >
+                      Otro concepto
+                    </button>
+                  </div>
+
+                  <div
+                    className={`mt-4 rounded-xl border px-4 py-3 text-sm ${
+                      practiceTone === "success"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        : practiceTone === "error"
+                        ? "border-red-200 bg-red-50 text-red-700"
+                        : "border-slate-200 bg-slate-50 text-slate-600"
+                    }`}
+                  >
+                    {practiceMessage}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-white p-5">
+                  <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Respuesta esperada</div>
+                  {showAnswer ? (
+                    <>
+                      <div className="mt-3 text-2xl font-semibold text-slate-900">{practiceItem.term}</div>
+                      <div className="mt-2 text-sm text-slate-600">{practiceItem.short}</div>
+                      <div className="mt-4 rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-4">
+                        <div className="text-xs uppercase tracking-wider text-cyan-700/80">Ejemplo rápido</div>
+                        <div className="mt-2 text-sm text-cyan-700">{practiceItem.example}</div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="mt-3 text-sm text-slate-500">
+                      La respuesta se muestra después de validar. Si quieres pasar al siguiente concepto sin responder, usa “Otro concepto”.
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500">
+                No hay términos disponibles para la práctica con el filtro actual.
+              </div>
+            )}
+          </section>
+
           <div className="mt-5 grid gap-5 xl:grid-cols-[390px_minmax(0,1fr)]">
-            <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
+            <section className="rounded-2xl border border-slate-200 bg-white/80 p-5">
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Buscar término, concepto o uso clínico..."
-                className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/40 outline-none focus:border-white/20"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-cyan-300/40"
               />
 
               <div className="mt-3 flex flex-wrap gap-2">
@@ -129,8 +314,8 @@ export default function MedicalTerminologyPage() {
                   onClick={() => setCategory("Todas")}
                   className={`rounded-full border px-3 py-1 text-xs ${
                     category === "Todas"
-                      ? "border-white/30 bg-white/10 text-white"
-                      : "border-white/10 bg-black/20 text-white/70 hover:bg-white/5"
+                      ? "border-white/30 bg-white/10 text-slate-900"
+                      : "border-slate-200 bg-white/78 text-slate-600 hover:bg-slate-50"
                   }`}
                 >
                   Todas
@@ -142,8 +327,8 @@ export default function MedicalTerminologyPage() {
                     onClick={() => setCategory(item)}
                     className={`rounded-full border px-3 py-1 text-xs ${
                       category === item
-                        ? "border-white/30 bg-white/10 text-white"
-                        : "border-white/10 bg-black/20 text-white/70 hover:bg-white/5"
+                        ? "border-white/30 bg-white/10 text-slate-900"
+                        : "border-slate-200 bg-white/78 text-slate-600 hover:bg-slate-50"
                     }`}
                   >
                     {item}
@@ -162,56 +347,56 @@ export default function MedicalTerminologyPage() {
                       className={`w-full rounded-xl border px-3 py-3 text-left transition ${
                         selected
                           ? "border-cyan-300/35 bg-cyan-300/10"
-                          : "border-white/10 bg-black/25 hover:bg-black/35"
+                          : "border-slate-200 bg-white hover:bg-white"
                       }`}
                     >
-                      <div className="text-sm font-semibold text-white">{item.term}</div>
-                      <div className="mt-1 text-xs text-white/65">{item.category}</div>
-                      <div className="mt-2 text-sm text-white/70">{item.short}</div>
+                      <div className="text-sm font-semibold text-slate-900">{item.term}</div>
+                      <div className="mt-1 text-xs text-slate-500">{item.category}</div>
+                      <div className="mt-2 text-sm text-slate-600">{item.short}</div>
                     </button>
                   );
                 })}
 
                 {filtered.length === 0 && (
-                  <div className="rounded-xl border border-white/10 bg-black/25 p-3 text-sm text-white/60">
+                  <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-500">
                     No hay términos para este filtro.
                   </div>
                 )}
               </div>
             </section>
 
-            <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
+            <section className="rounded-2xl border border-slate-200 bg-white/80 p-5">
               {!active ? (
-                <div className="text-sm text-white/60">Selecciona un término para ver el detalle.</div>
+                <div className="text-sm text-slate-500">Selecciona un término para ver el detalle.</div>
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <div className="inline-flex rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-100">
+                    <div className="inline-flex rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-700">
                       {active.category}
                     </div>
-                    <h2 className="mt-3 text-2xl font-semibold text-white">{active.term}</h2>
-                    <p className="mt-2 text-sm text-white/75">{active.definition}</p>
+                    <h2 className="mt-3 text-2xl font-semibold text-slate-900">{active.term}</h2>
+                    <p className="mt-2 text-sm text-slate-600">{active.definition}</p>
                   </div>
 
                   <div className="grid gap-3 xl:grid-cols-2">
-                    <div className="rounded-xl border border-white/10 bg-black/25 p-4">
-                      <div className="text-xs uppercase tracking-wider text-white/45">Uso clínico</div>
-                      <div className="mt-2 text-sm text-white/85">{active.clinicalUse}</div>
+                    <div className="rounded-xl border border-slate-200 bg-white p-4">
+                      <div className="text-xs uppercase tracking-wider text-slate-400">Uso clínico</div>
+                      <div className="mt-2 text-sm text-slate-800">{active.clinicalUse}</div>
                     </div>
 
                     <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 p-4">
-                      <div className="text-xs uppercase tracking-wider text-emerald-100/80">Ejemplo rápido</div>
-                      <div className="mt-2 text-sm text-emerald-100">{active.example}</div>
+                      <div className="text-xs uppercase tracking-wider text-emerald-700/80">Ejemplo rápido</div>
+                      <div className="mt-2 text-sm text-emerald-700">{active.example}</div>
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-white/10 bg-black/25 p-4">
-                    <div className="text-xs uppercase tracking-wider text-white/45">Conceptos relacionados</div>
+                  <div className="rounded-xl border border-slate-200 bg-white p-4">
+                    <div className="text-xs uppercase tracking-wider text-slate-400">Conceptos relacionados</div>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {active.related.map((item) => (
                         <span
                           key={item}
-                          className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80"
+                          className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs text-slate-700"
                         >
                           {item}
                         </span>
@@ -222,20 +407,20 @@ export default function MedicalTerminologyPage() {
                   <div className="grid gap-3 md:grid-cols-2">
                     <Link
                       href="/medications"
-                      className="rounded-xl border border-white/10 bg-black/25 p-4 transition hover:bg-black/35"
+                      className="rounded-xl border border-slate-200 bg-white p-4 transition hover:bg-white"
                     >
-                      <div className="text-sm font-semibold text-white">Ir a fármacos</div>
-                      <div className="mt-1 text-sm text-white/70">
+                      <div className="text-sm font-semibold text-slate-900">Ir a fármacos</div>
+                      <div className="mt-1 text-sm text-slate-600">
                         Practica seguridad farmacológica, vías, dosis y grupos terapéuticos.
                       </div>
                     </Link>
 
                     <Link
                       href="/medical-pathologies"
-                      className="rounded-xl border border-white/10 bg-black/25 p-4 transition hover:bg-black/35"
+                      className="rounded-xl border border-slate-200 bg-white p-4 transition hover:bg-white"
                     >
-                      <div className="text-sm font-semibold text-white">Ir a patologías</div>
-                      <div className="mt-1 text-sm text-white/70">
+                      <div className="text-sm font-semibold text-slate-900">Ir a patologías</div>
+                      <div className="mt-1 text-sm text-slate-600">
                         Revisa pistas clínicas, red flags y prioridades de cuidados por enfermedad.
                       </div>
                     </Link>

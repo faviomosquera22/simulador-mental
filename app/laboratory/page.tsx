@@ -237,30 +237,30 @@ export default function LaboratoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#070A12] text-white">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f6fbf9_0%,#eef5f2_48%,#e6efeb_100%)] text-slate-900">
       <div className="mx-auto flex max-w-[1580px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
         <Sidebar />
 
-        <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 p-5 shadow-[0_20px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+        <main className="flex-1 rounded-2xl border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] p-5 shadow-[0_24px_70px_rgba(99,126,118,0.16)] backdrop-blur-xl">
           <header className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold">Laboratorio clínico</h1>
-              <p className="mt-1 text-sm text-white/70">
+              <p className="mt-1 text-sm text-slate-600">
                 Interpreta resultados, prioriza hallazgos y define conducta inicial con feedback automático.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-white/70">
-              <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+              <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1">
                 {mode === "practice" ? "Modo práctica" : "Modo evaluación"}
               </span>
-              <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-cyan-100">
+              <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-cyan-700">
                 Dificultad: {difficultyLabel(labSet.difficulty)}
               </span>
             </div>
           </header>
 
-          <section className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-[#0B111D]/85 p-4 md:grid-cols-2 xl:grid-cols-6">
-            <label className="text-xs text-white/70">
+          <section className="mt-4 grid gap-3 rounded-2xl border border-slate-200 bg-white/82 p-4 md:grid-cols-2 xl:grid-cols-6">
+            <label className="text-xs text-slate-600">
               Modo
               <select
                 value={mode}
@@ -268,31 +268,31 @@ export default function LaboratoryPage() {
                   setMode(event.target.value as LabMode);
                   setResult(null);
                 }}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 <option value="practice">Práctica guiada</option>
                 <option value="evaluation">Evaluación</option>
               </select>
             </label>
 
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Uso
               <select
                 value={usageMode}
                 onChange={(event) => setUsageMode(event.target.value as UsageMode)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 <option value="integrated_case">Integrado al caso</option>
                 <option value="standalone">Módulo independiente</option>
               </select>
             </label>
 
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Selección de laboratorio
               <select
                 value={selectionMode}
                 onChange={(event) => setSelectionMode(event.target.value as SelectionMode)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 <option value="contextual_random">Aleatorio contextual</option>
                 <option value="random">Aleatorio</option>
@@ -300,12 +300,12 @@ export default function LaboratoryPage() {
               </select>
             </label>
 
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Filtro de dificultad
               <select
                 value={difficultyFilter}
                 onChange={(event) => setDifficultyFilter(event.target.value as DifficultyFilter)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 <option value="all">Todas</option>
                 <option value="basic">Básico</option>
@@ -314,7 +314,7 @@ export default function LaboratoryPage() {
               </select>
             </label>
 
-            <label className="text-xs text-white/70 xl:col-span-2">
+            <label className="text-xs text-slate-600 xl:col-span-2">
               Set de laboratorio
               <select
                 value={manualLabId}
@@ -327,7 +327,7 @@ export default function LaboratoryPage() {
                     clearAnswers();
                   }
                 }}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 {labPool.map((item) => (
                   <option key={item.id} value={item.id}>
@@ -335,44 +335,44 @@ export default function LaboratoryPage() {
                   </option>
                 ))}
               </select>
-              <div className="mt-1 text-[11px] text-white/55">
+              <div className="mt-1 text-[11px] text-slate-400">
                 Al elegir un set, el modo cambia automáticamente a Manual.
               </div>
             </label>
           </section>
 
           {poolError && (
-            <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-xs text-amber-100">
+            <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-xs text-amber-700">
               {poolError}
             </div>
           )}
 
-          <section className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-black/25 p-4 xl:grid-cols-[1.5fr_1fr_auto]">
+          <section className="mt-4 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 xl:grid-cols-[1.5fr_1fr_auto]">
             <div>
-              <div className="text-xs uppercase tracking-[0.14em] text-white/45">Contexto</div>
-              <div className="mt-1 text-base font-semibold text-white">{labSet.name}</div>
-              <div className="mt-1 text-sm text-white/70">
+              <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Contexto</div>
+              <div className="mt-1 text-base font-semibold text-slate-900">{labSet.name}</div>
+              <div className="mt-1 text-sm text-slate-600">
                 Paciente: {labSet.patient.name} · {labSet.patient.age} años ·{" "}
                 {labSet.patient.sex === "female" ? "Femenino" : labSet.patient.sex === "male" ? "Masculino" : "No especificado"}
               </div>
-              <div className="text-sm text-white/65">Motivo de consulta: {labSet.patient.chiefComplaint}</div>
+              <div className="text-sm text-slate-500">Motivo de consulta: {labSet.patient.chiefComplaint}</div>
               {useContextualCase && (
-                <div className="mt-2 text-xs text-cyan-100">
+                <div className="mt-2 text-xs text-cyan-700">
                   Caso activo detectado: {caseTitle(activeCaseObj)} · Contexto inferido:{" "}
                   {contextLabel(contextualTag ?? "general")}
                 </div>
               )}
             </div>
-            <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white/70">
-              <div className="font-semibold text-white/85">Integraciones sugeridas</div>
+            <div className="rounded-xl border border-slate-200 bg-white/80 p-3 text-xs text-slate-600">
+              <div className="font-semibold text-slate-800">Integraciones sugeridas</div>
               <div className="mt-2">ECG · Triage · Urgencias · Casos clínicos</div>
               <div className="mt-1">
-                Hallazgo principal esperado: <span className="text-white/85">{labSet.mainFinding}</span>
+                Hallazgo principal esperado: <span className="text-slate-800">{labSet.mainFinding}</span>
               </div>
               <div className="mt-1">Alteraciones seleccionadas por ti: {selectedCount}</div>
               <div className="mt-1">
                 Fuente de casos:{" "}
-                <span className="text-white/85">
+                <span className="text-slate-800">
                   {poolLoading ? "Cargando..." : poolSource === "database" ? "Base de datos" : "Biblioteca local"}
                 </span>
               </div>
@@ -382,7 +382,7 @@ export default function LaboratoryPage() {
               <button
                 type="button"
                 onClick={loadNewCase}
-                className="rounded-xl border border-white/15 bg-black/35 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900/90 hover:bg-slate-50"
               >
                 Nuevo set
               </button>
@@ -390,10 +390,10 @@ export default function LaboratoryPage() {
           </section>
 
           <section className="mt-4 grid gap-4 xl:grid-cols-[1.7fr_1fr]">
-            <div className="rounded-2xl border border-white/10 bg-[#0B101A]/90 p-4">
+            <div className="rounded-2xl border border-slate-200 bg-white/82 p-4">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-lg font-semibold">Resultados de laboratorio</h2>
-                <div className="text-xs text-white/60">
+                <div className="text-xs text-slate-500">
                   {mode === "practice"
                     ? "En práctica se muestran alteraciones visuales."
                     : "En evaluación no se muestran pistas hasta enviar."}
@@ -402,11 +402,11 @@ export default function LaboratoryPage() {
 
               <div className="mt-4 space-y-4">
                 {labSet.panels.map((panel) => (
-                  <div key={panel.id} className="overflow-hidden rounded-2xl border border-white/10">
-                    <div className="bg-white/5 px-3 py-2 text-sm font-semibold text-white/90">{panel.name}</div>
+                  <div key={panel.id} className="overflow-hidden rounded-2xl border border-slate-200">
+                    <div className="bg-white/80 px-3 py-2 text-sm font-semibold text-slate-900/90">{panel.name}</div>
                     <div className="overflow-x-auto">
                       <table className="min-w-full text-sm">
-                        <thead className="bg-black/35 text-xs uppercase tracking-wide text-white/55">
+                        <thead className="bg-white text-xs uppercase tracking-wide text-slate-400">
                           <tr>
                             <th className="px-3 py-2 text-left">Parámetro</th>
                             <th className="px-3 py-2 text-left">Valor</th>
@@ -424,13 +424,13 @@ export default function LaboratoryPage() {
                                 ? "bg-red-500/[0.04]"
                                 : "";
                             return (
-                              <tr key={parameter.id} className={`border-t border-white/10 ${highlighted}`}>
-                                <td className="px-3 py-2 font-medium text-white/90">{parameter.name}</td>
-                                <td className="px-3 py-2 text-white/90">{String(parameter.value)}</td>
-                                <td className="px-3 py-2 text-white/70">{parameter.unit || "—"}</td>
-                                <td className="px-3 py-2 text-white/70">{parameter.referenceRange}</td>
+                              <tr key={parameter.id} className={`border-t border-slate-200 ${highlighted}`}>
+                                <td className="px-3 py-2 font-medium text-slate-900/90">{parameter.name}</td>
+                                <td className="px-3 py-2 text-slate-900/90">{String(parameter.value)}</td>
+                                <td className="px-3 py-2 text-slate-600">{parameter.unit || "—"}</td>
+                                <td className="px-3 py-2 text-slate-600">{parameter.referenceRange}</td>
                                 <td className="px-3 py-2">
-                                  <label className="inline-flex items-center gap-2 text-xs text-white/80">
+                                  <label className="inline-flex items-center gap-2 text-xs text-slate-700">
                                     <input
                                       type="checkbox"
                                       checked={selected}
@@ -446,7 +446,7 @@ export default function LaboratoryPage() {
                                       {statusLabel(parameter.status)}
                                     </span>
                                   ) : (
-                                    <span className="text-xs text-white/40">Oculto</span>
+                                    <span className="text-xs text-slate-400">Oculto</span>
                                   )}
                                 </td>
                               </tr>
@@ -461,19 +461,19 @@ export default function LaboratoryPage() {
             </div>
 
             <aside className="space-y-3">
-              <div className="rounded-2xl border border-white/10 bg-[#0C1422]/90 p-4">
+              <div className="rounded-2xl border border-slate-200 bg-white/82 p-4">
                 <h3 className="text-base font-semibold">Interpretación clínica</h3>
-                <p className="mt-1 text-xs text-white/60">
+                <p className="mt-1 text-xs text-slate-500">
                   Responde primero y luego valida para recibir retroalimentación automática.
                 </p>
 
                 <div className="mt-3 space-y-3">
-                  <label className="block text-xs text-white/70">
+                  <label className="block text-xs text-slate-600">
                     1) Hallazgo principal
                     <select
                       value={mainFindingInput}
                       onChange={(event) => setMainFindingInput(event.target.value)}
-                      className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
+                      className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
                     >
                       <option value="">Selecciona una opción</option>
                       {mainFindingOptions.map((option) => (
@@ -484,25 +484,25 @@ export default function LaboratoryPage() {
                     </select>
                   </label>
 
-                  <label className="block text-xs text-white/70">
+                  <label className="block text-xs text-slate-600">
                     2) Sospecha clínica
                     <textarea
                       value={clinicalSuspicionInput}
                       onChange={(event) => setClinicalSuspicionInput(event.target.value)}
                       rows={3}
                       placeholder="¿Qué sospecha clínica generan estos resultados?"
-                      className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white placeholder:text-white/35"
+                      className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-900/35"
                     />
                   </label>
 
-                  <label className="block text-xs text-white/70">
+                  <label className="block text-xs text-slate-600">
                     3) Conducta inicial
                     <textarea
                       value={nextStepInput}
                       onChange={(event) => setNextStepInput(event.target.value)}
                       rows={3}
                       placeholder="¿Qué harías a continuación?"
-                      className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white placeholder:text-white/35"
+                      className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-900/35"
                     />
                   </label>
                 </div>
@@ -518,7 +518,7 @@ export default function LaboratoryPage() {
                   <button
                     type="button"
                     onClick={clearAnswers}
-                    className="rounded-xl border border-white/15 bg-black/35 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900/90 hover:bg-slate-50"
                   >
                     Reiniciar
                   </button>
@@ -526,26 +526,26 @@ export default function LaboratoryPage() {
               </div>
 
               {result && (
-                <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                   <div className="flex items-center justify-between gap-3">
-                    <div className="text-sm font-semibold text-white">Feedback automático</div>
-                    <div className="rounded-full border border-cyan-400/35 bg-cyan-400/10 px-2.5 py-1 text-xs text-cyan-100">
+                    <div className="text-sm font-semibold text-slate-900">Feedback automático</div>
+                    <div className="rounded-full border border-cyan-400/35 bg-cyan-400/10 px-2.5 py-1 text-xs text-cyan-700">
                       {result.totalScore}/100
                     </div>
                   </div>
 
-                  <div className="mt-3 space-y-2 text-sm text-white/80">
+                  <div className="mt-3 space-y-2 text-sm text-slate-700">
                     <div>Valores alterados: {result.feedback.alteredValues}</div>
                     <div>Hallazgo principal: {result.feedback.mainFinding}</div>
                     <div>Correlación clínica: {result.feedback.clinicalCorrelation}</div>
                     <div>Conducta inicial: {result.feedback.nextStep}</div>
-                    <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-white/85">
+                    <div className="rounded-xl border border-slate-200 bg-white/80 px-3 py-2 text-slate-800">
                       {result.feedback.summary}
                     </div>
                   </div>
 
                   {showExplanation && (
-                    <div className="mt-3 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-100">
+                    <div className="mt-3 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-700">
                       {labSet.educationalExplanation}
                     </div>
                   )}

@@ -211,26 +211,26 @@ export default function MaternoInfantilPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#070A12] text-white">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f6fbf9_0%,#eef5f2_48%,#e6efeb_100%)] text-slate-900">
       <div className="mx-auto flex max-w-[1640px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
         <Sidebar />
 
-        <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 p-5 shadow-[0_20px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+        <main className="flex-1 rounded-2xl border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] p-5 shadow-[0_24px_70px_rgba(99,126,118,0.16)] backdrop-blur-xl">
           <header className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold">Materno-infantil</h1>
-              <p className="mt-1 text-sm text-white/70">
+              <p className="mt-1 text-sm text-slate-600">
                 Entrena escenarios obstétricos, neonatales y pediátricos con decisiones adaptadas a cada población.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-white/70">
-              <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+              <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1">
                 {mode === "practice" ? "Modo práctica" : "Modo evaluación"}
               </span>
               <span className="rounded-full border border-fuchsia-400/30 bg-fuchsia-400/10 px-3 py-1 text-fuchsia-100">
                 Biblioteca: {scenarioPool.length} casos
               </span>
-              <span className="rounded-full border border-red-400/30 bg-red-400/10 px-3 py-1 text-red-100">
+              <span className="rounded-full border border-red-400/30 bg-red-400/10 px-3 py-1 text-red-700">
                 Tiempo: {mode === "evaluation" ? formatTimer(timeRemaining) : "Libre"}
               </span>
             </div>
@@ -245,55 +245,55 @@ export default function MaternoInfantilPage() {
                 ["Paso 3", "Responde en la fase actual"],
                 ["Paso 4", "Continúa hasta el resultado final"],
               ].map(([title, body]) => (
-                <div key={title} className="rounded-2xl border border-white/10 bg-black/20 p-3">
-                  <div className="text-sm font-semibold text-white">{title}</div>
-                  <div className="mt-1 text-sm text-white/70">{body}</div>
+                <div key={title} className="rounded-2xl border border-slate-200 bg-white/78 p-3">
+                  <div className="text-sm font-semibold text-slate-900">{title}</div>
+                  <div className="mt-1 text-sm text-slate-600">{body}</div>
                 </div>
               ))}
             </div>
           </section>
 
-          <section className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-[#0B111D]/85 p-4 md:grid-cols-2 xl:grid-cols-8">
-            <label className="text-xs text-white/70">
+          <section className="mt-4 grid gap-3 rounded-2xl border border-slate-200 bg-white/82 p-4 md:grid-cols-2 xl:grid-cols-8">
+            <label className="text-xs text-slate-600">
               Modo
               <select
                 value={mode}
                 onChange={(event) => setMode(event.target.value as AdvancedMode)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 <option value="practice">Práctica guiada</option>
                 <option value="evaluation">Evaluación</option>
               </select>
             </label>
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Uso
               <select
                 value={usageMode}
                 onChange={(event) => setUsageMode(event.target.value as UsageMode)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 <option value="standalone">Módulo independiente</option>
                 <option value="integrated_case">Integrado al caso</option>
               </select>
             </label>
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Selección
               <select
                 value={selectionMode}
                 onChange={(event) => setSelectionMode(event.target.value as SelectionMode)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 <option value="contextual_random">Aleatorio contextual</option>
                 <option value="random">Aleatorio</option>
                 <option value="manual">Manual</option>
               </select>
             </label>
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Dificultad
               <select
                 value={difficultyFilter}
                 onChange={(event) => setDifficultyFilter(event.target.value as DifficultyFilter)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 <option value="all">Todas</option>
                 <option value="basic">Básico</option>
@@ -301,12 +301,12 @@ export default function MaternoInfantilPage() {
                 <option value="advanced">Avanzado</option>
               </select>
             </label>
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Categoría
               <select
                 value={categoryFilter}
                 onChange={(event) => setCategoryFilter(event.target.value as MaternoInfantCategory | "all")}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 <option value="all">Todas</option>
                 <option value="prenatal_alerts">Prenatal y alarmas</option>
@@ -316,12 +316,12 @@ export default function MaternoInfantilPage() {
                 <option value="pediatric_emergency">Urgencias pediátricas</option>
               </select>
             </label>
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Población
               <select
                 value={effectivePopulation}
                 onChange={(event) => setPopulationFilter(event.target.value as MaternoInfantPopulation | "all")}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 <option value="all">Todas</option>
                 <option value="obstetric">Obstétrico</option>
@@ -329,13 +329,13 @@ export default function MaternoInfantilPage() {
                 <option value="pediatric">Pediátrico</option>
               </select>
             </label>
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Contexto
               <select
                 value={effectiveContext}
                 onChange={(event) => setContextFilter(event.target.value as MaternoInfantContext)}
                 disabled={usageMode === "integrated_case" && Boolean(activeCaseObj)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white disabled:opacity-60"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 disabled:opacity-60"
               >
                 <option value="general">General</option>
                 <option value="prenatal_clinic">Control prenatal</option>
@@ -345,49 +345,49 @@ export default function MaternoInfantilPage() {
                 <option value="pediatric_emergency">Urgencias pediátricas</option>
               </select>
             </label>
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Buscar
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
                 placeholder="puerperio, neonatal, deshidratación..."
               />
             </label>
           </section>
 
-          <section className="mt-3 grid gap-3 rounded-2xl border border-white/10 bg-black/25 p-4 xl:grid-cols-[1.35fr_1fr_auto]">
+          <section className="mt-3 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 xl:grid-cols-[1.35fr_1fr_auto]">
             <div>
-              <div className="text-xs uppercase tracking-[0.14em] text-white/45">Escenario actual</div>
-              <div className="mt-1 text-base font-semibold text-white">{scenario.title}</div>
-              <div className="mt-1 text-sm text-white/70">{scenario.clinicalSummary}</div>
-              <div className="mt-1 text-sm text-white/65">
+              <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Escenario actual</div>
+              <div className="mt-1 text-base font-semibold text-slate-900">{scenario.title}</div>
+              <div className="mt-1 text-sm text-slate-600">{scenario.clinicalSummary}</div>
+              <div className="mt-1 text-sm text-slate-500">
                 {scenario.patientProfile.name} · {scenario.patientProfile.ageLabel ?? `${scenario.patientProfile.age} años`} · {scenario.patientProfile.setting}
               </div>
               <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                <span className="rounded-full border border-white/15 bg-black/25 px-2.5 py-1 text-white/70">
+                <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-slate-600">
                   {maternoInfantCategoryLabel(scenario.category)}
                 </span>
                 <span className="rounded-full border border-fuchsia-400/30 bg-fuchsia-400/10 px-2.5 py-1 text-fuchsia-100">
                   {maternoInfantPopulationLabel(scenario.population)}
                 </span>
-                <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1 text-cyan-100">
+                <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1 text-cyan-700">
                   {maternoInfantDifficultyLabel(scenario.difficulty)}
                 </span>
-                <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-white/70">
+                <span className="rounded-full border border-slate-200 bg-white/80 px-2.5 py-1 text-slate-600">
                   {maternoInfantContextLabel(scenario.context)}
                 </span>
               </div>
             </div>
 
-            <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white/70">
-              <div className="font-semibold text-white/85">Ficha específica</div>
+            <div className="rounded-xl border border-slate-200 bg-white/80 p-3 text-xs text-slate-600">
+              <div className="font-semibold text-slate-800">Ficha específica</div>
               <div className="mt-2">Pool filtrado: {selectionMode === "contextual_random" ? contextualPool.length : filteredPool.length}</div>
               <div className="mt-1">Estado actual: {currentStatus}</div>
               <div className="mt-1">Peso: {scenario.patientProfile.weightKg ? `${scenario.patientProfile.weightKg} kg` : "No aplica"}</div>
               <div className="mt-1">EG: {scenario.patientProfile.gestationalAgeWeeks ? `${scenario.patientProfile.gestationalAgeWeeks} semanas` : "No aplica"}</div>
               {selectionMode === "manual" && (
-                <label className="mt-3 block text-white/70">
+                <label className="mt-3 block text-slate-600">
                   Caso manual
                   <select
                     value={manualScenarioId}
@@ -397,7 +397,7 @@ export default function MaternoInfantilPage() {
                       setScenario(next);
                       resetRun(next);
                     }}
-                    className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                    className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
                   >
                     {filteredPool.map((item) => (
                       <option key={item.id} value={item.id}>
@@ -413,7 +413,7 @@ export default function MaternoInfantilPage() {
               <button
                 type="button"
                 onClick={loadNewScenario}
-                className="rounded-xl border border-white/15 bg-black/35 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900/90 hover:bg-slate-50"
               >
                 Nuevo caso
               </button>
@@ -422,11 +422,11 @@ export default function MaternoInfantilPage() {
 
           <section className="mt-4 grid gap-4 xl:grid-cols-[1.22fr_0.78fr]">
             <div className="space-y-4">
-              <div className="rounded-2xl border border-white/10 bg-[#0B101A]/90 p-4">
-                <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/25 p-3">
+              <div className="rounded-2xl border border-slate-200 bg-white/82 p-4">
+                <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3">
                   <div>
-                    <div className="text-xs uppercase tracking-[0.16em] text-white/45">Progreso</div>
-                    <div className="mt-1 text-sm text-white/72">
+                    <div className="text-xs uppercase tracking-[0.16em] text-slate-400">Progreso</div>
+                    <div className="mt-1 text-sm text-slate-600">
                       Has respondido {selectedActionIds.length} de {scenario.stages.length} etapas.
                     </div>
                   </div>
@@ -441,48 +441,48 @@ export default function MaternoInfantilPage() {
                 <div className="grid gap-3 xl:grid-cols-[0.95fr_1.05fr_0.9fr]">
                   <div className="rounded-2xl border border-fuchsia-400/20 bg-fuchsia-400/10 p-4">
                     <div className="text-xs uppercase tracking-[0.18em] text-fuchsia-100/70">Estado clínico</div>
-                    <div className="mt-2 text-xl font-semibold text-white">{currentStatus}</div>
-                    <div className="mt-3 text-sm leading-7 text-white/72">{scenario.expectedOutcome}</div>
+                    <div className="mt-2 text-xl font-semibold text-slate-900">{currentStatus}</div>
+                    <div className="mt-3 text-sm leading-7 text-slate-600">{scenario.expectedOutcome}</div>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-                    <div className="text-xs uppercase tracking-[0.18em] text-white/45">Contexto del paciente</div>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="text-xs uppercase tracking-[0.18em] text-slate-400">Contexto del paciente</div>
                     <div className="mt-3 grid gap-3">
-                      <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-3 text-sm">
+                      <div className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm">
                         <div className="flex items-start justify-between gap-3">
-                          <span className="shrink-0 text-[12px] uppercase tracking-[0.12em] text-white/50">Paciente</span>
-                          <span className="min-w-0 max-w-[70%] text-right leading-6 text-white/88 break-words">
+                          <span className="shrink-0 text-[12px] uppercase tracking-[0.12em] text-slate-400">Paciente</span>
+                          <span className="min-w-0 max-w-[70%] text-right leading-6 text-slate-800 break-words">
                             {scenario.patientProfile.name} · {scenario.patientProfile.ageLabel ?? `${scenario.patientProfile.age} años`}
                           </span>
                         </div>
                       </div>
-                      <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-3 text-sm">
+                      <div className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm">
                         <div className="flex items-start justify-between gap-3">
-                          <span className="shrink-0 text-[12px] uppercase tracking-[0.12em] text-white/50">Entorno</span>
-                          <span className="min-w-0 max-w-[70%] text-right leading-6 text-white/88 break-words">
+                          <span className="shrink-0 text-[12px] uppercase tracking-[0.12em] text-slate-400">Entorno</span>
+                          <span className="min-w-0 max-w-[70%] text-right leading-6 text-slate-800 break-words">
                             {scenario.patientProfile.setting ?? "No especificado"}
                           </span>
                         </div>
                       </div>
-                      <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-3 text-sm">
+                      <div className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm">
                         <div className="flex items-start justify-between gap-3">
-                          <span className="shrink-0 text-[12px] uppercase tracking-[0.12em] text-white/50">PA actual</span>
-                          <span className="min-w-0 max-w-[70%] text-right leading-6 text-white/88 break-words">
+                          <span className="shrink-0 text-[12px] uppercase tracking-[0.12em] text-slate-400">PA actual</span>
+                          <span className="min-w-0 max-w-[70%] text-right leading-6 text-slate-800 break-words">
                             {formatAdvancedPressure(currentVitals.sbp, currentVitals.dbp)}
                           </span>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-                    <div className="text-xs uppercase tracking-[0.18em] text-white/45">Alertas prioritarias</div>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="text-xs uppercase tracking-[0.18em] text-slate-400">Alertas prioritarias</div>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {scenario.alerts.map((alert) => (
-                        <span key={alert} className="rounded-full border border-red-400/20 bg-red-400/10 px-2.5 py-1 text-[11px] text-red-100">
+                        <span key={alert} className="rounded-full border border-red-400/20 bg-red-400/10 px-2.5 py-1 text-[11px] text-red-700">
                           {alert}
                         </span>
                       ))}
                     </div>
-                    <div className="mt-3 text-sm leading-6 text-white/62">
+                    <div className="mt-3 text-sm leading-6 text-slate-500">
                       Revisa primero perfusión, oxigenación, ventilación y signos de alarma del desarrollo antes de intervenir.
                     </div>
                   </div>
@@ -491,8 +491,8 @@ export default function MaternoInfantilPage() {
                 {currentStage ? (
                   <div className="mt-4 rounded-2xl border border-fuchsia-400/20 bg-fuchsia-400/10 p-4">
                     <div className="text-xs uppercase tracking-[0.14em] text-fuchsia-100/75">Etapa actual · responde aquí</div>
-                    <div className="mt-2 text-lg font-semibold text-white">{currentStage.prompt}</div>
-                    <div className="mt-1 text-sm text-white/72">
+                    <div className="mt-2 text-lg font-semibold text-slate-900">{currentStage.prompt}</div>
+                    <div className="mt-1 text-sm text-slate-600">
                       No debes escribir. Elige una sola conducta y el escenario avanzará a la siguiente etapa.
                     </div>
                     <div className="mt-4 space-y-2">
@@ -501,9 +501,9 @@ export default function MaternoInfantilPage() {
                           key={action.id}
                           type="button"
                           onClick={() => chooseAction(action.id)}
-                          className="w-full rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-left text-sm text-white/82 transition hover:bg-white/10"
+                          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
                         >
-                          <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-white/5 text-xs text-white/75">
+                          <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white/80 text-xs text-slate-600">
                             {index + 1}
                           </span>
                           {action.label}
@@ -512,25 +512,25 @@ export default function MaternoInfantilPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="mt-4 rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-white/70">
+                  <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
                     Escenario completado. Revisa el desempeño final y los puntos específicos de esta población.
                   </div>
                 )}
 
                 {mode === "practice" && lastFeedback && !result && (
-                  <div className="mt-4 rounded-2xl border border-emerald-400/15 bg-emerald-400/10 p-4 text-sm text-emerald-100">
+                  <div className="mt-4 rounded-2xl border border-emerald-400/15 bg-emerald-400/10 p-4 text-sm text-emerald-700">
                     {lastFeedback}
                   </div>
                 )}
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <div className="text-xs uppercase tracking-[0.14em] text-white/45">Cronología clínica</div>
-                    <div className="mt-1 text-sm text-white/60">Cada decisión se registra para análisis posterior.</div>
+                    <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Cronología clínica</div>
+                    <div className="mt-1 text-sm text-slate-500">Cada decisión se registra para análisis posterior.</div>
                   </div>
-                  <div className="text-xs text-white/45">{decisionLog.length} eventos</div>
+                  <div className="text-xs text-slate-400">{decisionLog.length} eventos</div>
                 </div>
                 <div className="mt-4 space-y-3">
                   {decisionLog.map((item) => (
@@ -541,11 +541,11 @@ export default function MaternoInfantilPage() {
                           ? "border-emerald-400/20 bg-emerald-400/10"
                           : item.tone === "warning"
                           ? "border-amber-400/20 bg-amber-400/10"
-                          : "border-white/10 bg-black/25"
+                          : "border-slate-200 bg-white"
                       }`}
                     >
-                      <div className="text-xs uppercase tracking-[0.14em] text-white/45">{item.title}</div>
-                      <div className="mt-1 text-sm text-white/80">{item.body}</div>
+                      <div className="text-xs uppercase tracking-[0.14em] text-slate-400">{item.title}</div>
+                      <div className="mt-1 text-sm text-slate-700">{item.body}</div>
                     </div>
                   ))}
                 </div>
@@ -553,17 +553,17 @@ export default function MaternoInfantilPage() {
             </div>
 
             <div className="space-y-4">
-              <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                <div className="text-xs uppercase tracking-[0.14em] text-white/45">Hallazgos de referencia</div>
-                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-white/72">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Hallazgos de referencia</div>
+                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-slate-600">
                   {scenario.keyFindings.map((finding) => (
                     <li key={finding}>{finding}</li>
                   ))}
                 </ul>
-                <div className="mt-4 rounded-2xl border border-white/10 bg-black/30 p-3 text-sm text-white/72">
+                <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
                   Conducta esperada: {scenario.feedback.expectedConduct}
                 </div>
-                <div className="mt-3 rounded-2xl border border-white/10 bg-black/30 p-3 text-sm text-white/72">
+                <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
                   Perla poblacional: {scenario.feedback.populationPearl}
                 </div>
               </div>
@@ -592,11 +592,11 @@ export default function MaternoInfantilPage() {
               />
 
               {result && (
-                <div className="rounded-2xl border border-white/10 bg-[#0B111D]/90 p-4">
+                <div className="rounded-2xl border border-slate-200 bg-white/82 p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <div className="text-xs uppercase tracking-[0.14em] text-white/45">Resultado final</div>
-                      <div className="mt-1 text-2xl font-semibold text-white">
+                      <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Resultado final</div>
+                      <div className="mt-1 text-2xl font-semibold text-slate-900">
                         {result.totalScore}/{result.maxScore}
                       </div>
                     </div>
@@ -607,18 +607,18 @@ export default function MaternoInfantilPage() {
 
                   <div className="mt-3 space-y-2">
                     {result.stageFeedback.map((item) => (
-                      <div key={`${item.stageTitle}-${item.actionLabel}`} className="rounded-2xl border border-white/10 bg-black/30 p-3">
-                        <div className="text-xs text-white/50">{item.stageTitle}</div>
-                        <div className="mt-1 text-sm font-semibold text-white">{item.actionLabel}</div>
-                        <div className="mt-1 text-sm text-white/68">{item.feedback}</div>
+                      <div key={`${item.stageTitle}-${item.actionLabel}`} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                        <div className="text-xs text-slate-400">{item.stageTitle}</div>
+                        <div className="mt-1 text-sm font-semibold text-slate-900">{item.actionLabel}</div>
+                        <div className="mt-1 text-sm text-slate-600">{item.feedback}</div>
                       </div>
                     ))}
                   </div>
 
-                  <div className="mt-3 rounded-2xl border border-emerald-400/15 bg-emerald-400/10 p-3 text-sm text-emerald-100">
+                  <div className="mt-3 rounded-2xl border border-emerald-400/15 bg-emerald-400/10 p-3 text-sm text-emerald-700">
                     {scenario.feedback.explanation}
                   </div>
-                  <div className="mt-3 text-sm text-white/82">{result.summary}</div>
+                  <div className="mt-3 text-sm text-slate-700">{result.summary}</div>
                 </div>
               )}
             </div>

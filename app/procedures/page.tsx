@@ -117,30 +117,30 @@ export default function ProceduresPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#070A12] text-white">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f6fbf9_0%,#eef5f2_48%,#e6efeb_100%)] text-slate-900">
       <div className="mx-auto flex max-w-[1580px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
         <Sidebar />
 
-        <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 p-5 shadow-[0_20px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+        <main className="flex-1 rounded-2xl border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] p-5 shadow-[0_24px_70px_rgba(99,126,118,0.16)] backdrop-blur-xl">
           <header className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold">Procedimientos de enfermería</h1>
-              <p className="mt-1 text-sm text-white/70">
+              <p className="mt-1 text-sm text-slate-600">
                 Ordena pasos, selecciona insumos y decide conductas seguras durante el procedimiento.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-white/70">
-              <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+              <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1">
                 {mode === "practice" ? "Modo práctica" : "Modo evaluación"}
               </span>
-              <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-cyan-100">
+              <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-cyan-700">
                 Dificultad: {procedureDifficultyLabel(procedure.difficulty)}
               </span>
             </div>
           </header>
 
-          <section className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-[#0B111D]/85 p-4 md:grid-cols-2 xl:grid-cols-5">
-            <label className="text-xs text-white/70">
+          <section className="mt-4 grid gap-3 rounded-2xl border border-slate-200 bg-white/82 p-4 md:grid-cols-2 xl:grid-cols-5">
+            <label className="text-xs text-slate-600">
               Modo
               <select
                 value={mode}
@@ -148,31 +148,31 @@ export default function ProceduresPage() {
                   setMode(event.target.value as ProcedureMode);
                   setResult(null);
                 }}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 <option value="practice">Práctica guiada</option>
                 <option value="evaluation">Evaluación</option>
               </select>
             </label>
 
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Selección
               <select
                 value={selectionMode}
                 onChange={(event) => setSelectionMode(event.target.value as SelectionMode)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 <option value="random">Aleatorio</option>
                 <option value="manual">Manual</option>
               </select>
             </label>
 
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Dificultad
               <select
                 value={difficultyFilter}
                 onChange={(event) => setDifficultyFilter(event.target.value as DifficultyFilter)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 <option value="all">Todas</option>
                 <option value="basic">Básico</option>
@@ -181,7 +181,7 @@ export default function ProceduresPage() {
               </select>
             </label>
 
-            <label className="text-xs text-white/70 xl:col-span-2">
+            <label className="text-xs text-slate-600 xl:col-span-2">
               Procedimiento
               <select
                 value={manualProcedureId}
@@ -193,7 +193,7 @@ export default function ProceduresPage() {
                   setProcedure(next);
                   resetExercise(next);
                 }}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
               >
                 {casePool.map((item) => (
                   <option key={item.id} value={item.id}>
@@ -204,15 +204,15 @@ export default function ProceduresPage() {
             </label>
           </section>
 
-          <section className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-black/25 p-4 xl:grid-cols-[1.35fr_1fr_auto]">
+          <section className="mt-4 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 xl:grid-cols-[1.35fr_1fr_auto]">
             <div>
-              <div className="text-xs uppercase tracking-[0.14em] text-white/45">Procedimiento</div>
-              <div className="mt-1 text-base font-semibold text-white">{procedure.name}</div>
-              <div className="mt-1 text-sm text-white/70">{procedure.context}</div>
+              <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Procedimiento</div>
+              <div className="mt-1 text-base font-semibold text-slate-900">{procedure.name}</div>
+              <div className="mt-1 text-sm text-slate-600">{procedure.context}</div>
             </div>
 
-            <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white/70">
-              <div className="font-semibold text-white/85">Perfil del ejercicio</div>
+            <div className="rounded-xl border border-slate-200 bg-white/80 p-3 text-xs text-slate-600">
+              <div className="font-semibold text-slate-800">Perfil del ejercicio</div>
               <div className="mt-2">Categoría: {procedureCategoryLabel(procedure.category)}</div>
               <div className="mt-1">Errores críticos: {procedure.criticalErrors.join(" · ")}</div>
             </div>
@@ -221,7 +221,7 @@ export default function ProceduresPage() {
               <button
                 type="button"
                 onClick={loadNewProcedure}
-                className="rounded-xl border border-white/15 bg-black/35 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900/90 hover:bg-slate-50"
               >
                 Nuevo procedimiento
               </button>
@@ -229,7 +229,7 @@ export default function ProceduresPage() {
           </section>
 
           <section className="mt-4 grid gap-4 xl:grid-cols-[1.65fr_1fr]">
-            <div className="rounded-2xl border border-white/10 bg-[#0B101A]/90 p-4">
+            <div className="rounded-2xl border border-slate-200 bg-white/82 p-4">
               <div className="grid gap-4 xl:grid-cols-2">
                 <div>
                   <h2 className="text-lg font-semibold">Materiales necesarios</h2>
@@ -240,7 +240,7 @@ export default function ProceduresPage() {
                         <label
                           key={item.id}
                           className={`rounded-xl border px-3 py-2 text-sm ${
-                            checked ? "border-cyan-400/35 bg-cyan-400/10 text-cyan-100" : "border-white/10 bg-black/25 text-white/80"
+                            checked ? "border-cyan-400/35 bg-cyan-400/10 text-cyan-700" : "border-slate-200 bg-white text-slate-700"
                           }`}
                         >
                           <input
@@ -260,8 +260,8 @@ export default function ProceduresPage() {
                   <h2 className="text-lg font-semibold">Ordena los pasos</h2>
                   <div className="mt-3 space-y-2">
                     {displayedSteps.map((step) => (
-                      <div key={step} className="rounded-xl border border-white/10 bg-black/25 p-3">
-                        <div className="text-sm text-white/85">{step}</div>
+                      <div key={step} className="rounded-xl border border-slate-200 bg-white p-3">
+                        <div className="text-sm text-slate-800">{step}</div>
                         <select
                           value={stepOrderMap[step] ?? ""}
                           onChange={(event) =>
@@ -270,7 +270,7 @@ export default function ProceduresPage() {
                               [step]: event.target.value,
                             }))
                           }
-                          className="mt-2 w-full rounded-lg border border-white/15 bg-black/35 px-3 py-2 text-xs text-white"
+                          className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900"
                         >
                           <option value="">Selecciona el orden</option>
                           {orderChoices.map((choice) => (
@@ -286,16 +286,16 @@ export default function ProceduresPage() {
               </div>
 
               {mode === "practice" && (
-                <div className="mt-4 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-sm text-cyan-100">
+                <div className="mt-4 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-sm text-cyan-700">
                   En práctica, piensa siempre en preparación, técnica segura, reevaluación y registro final.
                 </div>
               )}
             </div>
 
             <aside className="space-y-3">
-              <div className="rounded-2xl border border-white/10 bg-[#0C1422]/90 p-4">
+              <div className="rounded-2xl border border-slate-200 bg-white/82 p-4">
                 <h3 className="text-base font-semibold">Decisión durante el procedimiento</h3>
-                <p className="mt-1 text-xs text-white/60">{procedure.decisionPoint.prompt}</p>
+                <p className="mt-1 text-xs text-slate-500">{procedure.decisionPoint.prompt}</p>
 
                 <div className="mt-3 space-y-2">
                   {procedure.decisionPoint.options.map((option) => {
@@ -304,7 +304,7 @@ export default function ProceduresPage() {
                       <label
                         key={option.id}
                         className={`block rounded-xl border px-3 py-2 text-sm ${
-                          checked ? "border-emerald-400/35 bg-emerald-400/10 text-emerald-100" : "border-white/10 bg-black/25 text-white/80"
+                          checked ? "border-emerald-400/35 bg-emerald-400/10 text-emerald-700" : "border-slate-200 bg-white text-slate-700"
                         }`}
                       >
                         <input
@@ -331,7 +331,7 @@ export default function ProceduresPage() {
                   <button
                     type="button"
                     onClick={() => resetExercise()}
-                    className="rounded-xl border border-white/15 bg-black/35 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900/90 hover:bg-slate-50"
                   >
                     Reiniciar
                   </button>
@@ -339,25 +339,25 @@ export default function ProceduresPage() {
               </div>
 
               {result && (
-                <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                   <div className="flex items-center justify-between gap-3">
-                    <div className="text-sm font-semibold text-white">Feedback automático</div>
-                    <div className="rounded-full border border-cyan-400/35 bg-cyan-400/10 px-2.5 py-1 text-xs text-cyan-100">
+                    <div className="text-sm font-semibold text-slate-900">Feedback automático</div>
+                    <div className="rounded-full border border-cyan-400/35 bg-cyan-400/10 px-2.5 py-1 text-xs text-cyan-700">
                       {result.totalScore}/100
                     </div>
                   </div>
 
-                  <div className="mt-3 space-y-2 text-sm text-white/80">
+                  <div className="mt-3 space-y-2 text-sm text-slate-700">
                     <div>{result.feedback.materials}</div>
                     <div>{result.feedback.order}</div>
                     <div>{result.feedback.decision}</div>
-                    <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-white/85">
+                    <div className="rounded-xl border border-slate-200 bg-white/80 px-3 py-2 text-slate-800">
                       {result.feedback.summary}
                     </div>
                   </div>
 
                   {mode === "practice" && (
-                    <div className="mt-3 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-100">
+                    <div className="mt-3 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-700">
                       {procedure.rationale}
                     </div>
                   )}

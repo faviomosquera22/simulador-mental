@@ -37,9 +37,9 @@ type AssistantStep = "data" | "suggestions" | "nanda" | "noc" | "nic" | "evaluat
 
 const SCALE_OPTIONS: ScaleValue[] = [1, 2, 3, 4, 5];
 const SECTION_CARD =
-  "rounded-[28px] border border-white/10 bg-[#09111f]/92 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.28)]";
+  "rounded-[28px] border border-slate-200 bg-white/88 p-5 shadow-[0_18px_50px_rgba(148,163,184,0.12)]";
 const STEP_WINDOW_CLASS =
-  "rounded-[28px] border border-white/10 bg-[#09111f]/96 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.28)]";
+  "rounded-[28px] border border-slate-200 bg-white/92 p-5 shadow-[0_18px_50px_rgba(148,163,184,0.12)]";
 const EVALUATION_PRESETS = [
   {
     id: "pendiente",
@@ -151,10 +151,10 @@ function buildEvaluationText(statusId: string, note: string) {
 }
 
 function scoreTone(score: number) {
-  if (score >= 60) return "border-emerald-400/35 bg-emerald-400/12 text-emerald-100";
-  if (score >= 35) return "border-sky-400/35 bg-sky-400/12 text-sky-100";
+  if (score >= 60) return "border-emerald-400/35 bg-emerald-400/12 text-emerald-700";
+  if (score >= 35) return "border-sky-400/35 bg-sky-400/12 text-sky-700";
   if (score >= 18) return "border-amber-400/35 bg-amber-400/12 text-amber-100";
-  return "border-white/15 bg-white/5 text-white/70";
+  return "border-slate-200 bg-slate-50 text-slate-600";
 }
 
 function buildNandaDescription(item: NandaDiagnosis | null) {
@@ -756,7 +756,7 @@ export default function PaeAssistantPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050816] text-white">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f6fbf9_0%,#eef5f2_48%,#e6efeb_100%)] text-slate-900">
       <div className="flex">
         <Sidebar />
 
@@ -767,15 +767,15 @@ export default function PaeAssistantPage() {
                 <section className={SECTION_CARD}>
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">
+                      <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">
                         Llenado guiado
                       </div>
-                      <h2 className="mt-1 text-base font-semibold text-white">
+                      <h2 className="mt-1 text-base font-semibold text-slate-900">
                         Paso {activeStepIndex + 1} de {ASSISTANT_STEPS.length}
                       </h2>
-                      <p className="mt-1 text-xs text-white/60">{activeStepMeta.helper}</p>
+                      <p className="mt-1 text-xs text-slate-500">{activeStepMeta.helper}</p>
                     </div>
-                    <div className="rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-[11px] text-cyan-100">
+                    <div className="rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-[11px] text-cyan-700">
                       {Math.round(stepProgress)}%
                     </div>
                   </div>
@@ -802,18 +802,18 @@ export default function PaeAssistantPage() {
                               ? "border-cyan-400/55 bg-cyan-400/12"
                               : complete
                               ? "border-emerald-400/25 bg-emerald-400/10"
-                              : "border-white/10 bg-white/5 hover:border-white/20"
+                              : "border-slate-200 bg-white/80 hover:border-slate-300"
                           }`}
                         >
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-xs font-semibold text-white">
+                            <span className="text-xs font-semibold text-slate-900">
                               {index + 1}. {step.shortLabel}
                             </span>
-                            <span className="text-[10px] uppercase tracking-[0.18em] text-white/45">
+                            <span className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
                               {complete ? "listo" : "editar"}
                             </span>
                           </div>
-                          <div className="mt-1 text-[11px] text-white/55 line-clamp-2">
+                          <div className="mt-1 text-[11px] text-slate-400 line-clamp-2">
                             {stepState[step.id].summary}
                           </div>
                         </button>
@@ -826,103 +826,103 @@ export default function PaeAssistantPage() {
                   <section className={STEP_WINDOW_CLASS}>
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <h2 className="text-base font-semibold text-white">1. Datos y motivo clínico</h2>
-                        <p className="mt-1 text-xs text-white/60">
+                        <h2 className="text-base font-semibold text-slate-900">1. Datos y motivo clínico</h2>
+                        <p className="mt-1 text-xs text-slate-500">
                           Completa la base del caso y el PDF se actualizará a la derecha.
                         </p>
                       </div>
-                      <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white/55">
+                      <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-slate-400">
                         Ventana 1
                       </span>
                     </div>
 
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                      <label className="text-xs text-white/70">
+                      <label className="text-xs text-slate-600">
                         Nombre
                         <input
                           type="text"
                           value={patientName}
                           onChange={(event) => setPatientName(event.target.value)}
-                          className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                          className="mt-1.5 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-cyan-300/40"
                         />
                       </label>
-                      <label className="text-xs text-white/70">
+                      <label className="text-xs text-slate-600">
                         Edad
                         <input
                           type="text"
                           value={patientAge}
                           onChange={(event) => setPatientAge(event.target.value)}
-                          className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                          className="mt-1.5 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-cyan-300/40"
                         />
                       </label>
-                      <label className="text-xs text-white/70">
+                      <label className="text-xs text-slate-600">
                         Nº H clínica
                         <input
                           type="text"
                           value={clinicalRecord}
                           onChange={(event) => setClinicalRecord(event.target.value)}
-                          className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                          className="mt-1.5 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-cyan-300/40"
                         />
                       </label>
-                      <label className="text-xs text-white/70">
+                      <label className="text-xs text-slate-600">
                         Cama #
                         <input
                           type="text"
                           value={bedNumber}
                           onChange={(event) => setBedNumber(event.target.value)}
-                          className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                          className="mt-1.5 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-cyan-300/40"
                         />
                       </label>
                     </div>
 
-                    <label className="mt-4 block text-xs text-white/70">
+                    <label className="mt-4 block text-xs text-slate-600">
                       Diagnóstico médico o problema principal
                       <textarea
                         value={medicalDiagnosis}
                         onChange={(event) => setMedicalDiagnosis(event.target.value)}
                         rows={3}
                         placeholder="Ej. neumonía con hipoxemia, dolor postoperatorio, riesgo de infección..."
-                        className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                        className="mt-1.5 w-full rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none transition focus:border-cyan-300/40"
                       />
                     </label>
 
-                    <label className="mt-3 block text-xs text-white/70">
+                    <label className="mt-3 block text-xs text-slate-600">
                       Hallazgos o valoración breve
                       <textarea
                         value={assessmentSummary}
                         onChange={(event) => setAssessmentSummary(event.target.value)}
                         rows={3}
                         placeholder="Ej. disnea, SpO2 88%, dolor 8/10, herida quirúrgica limpia..."
-                        className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                        className="mt-1.5 w-full rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none transition focus:border-cyan-300/40"
                       />
                     </label>
 
                     <div className="mt-4 grid gap-3">
-                      <label className="text-xs text-white/70">
+                      <label className="text-xs text-slate-600">
                         Tratamiento farmacológico / grupos
                         <input
                           type="text"
                           value={pharmacologicGroup}
                           onChange={(event) => setPharmacologicGroup(event.target.value)}
-                          className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                          className="mt-1.5 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-cyan-300/40"
                         />
                       </label>
-                      <label className="text-xs text-white/70">
+                      <label className="text-xs text-slate-600">
                         Tipo de dieta
                         <input
                           type="text"
                           value={dietType}
                           onChange={(event) => setDietType(event.target.value)}
-                          className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                          className="mt-1.5 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-cyan-300/40"
                         />
                       </label>
-                      <label className="text-xs text-white/70">
+                      <label className="text-xs text-slate-600">
                         Nombre del interno/a
                         <input
                           type="text"
                           value={internName}
                           onChange={(event) => setInternName(event.target.value)}
-                          className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                          className="mt-1.5 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-cyan-300/40"
                         />
                       </label>
                     </div>
@@ -933,12 +933,12 @@ export default function PaeAssistantPage() {
                   <section className={STEP_WINDOW_CLASS}>
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <h2 className="text-base font-semibold text-white">2. Sugerencias automáticas</h2>
-                        <p className="mt-1 text-xs text-white/60">
+                        <h2 className="text-base font-semibold text-slate-900">2. Sugerencias automáticas</h2>
+                        <p className="mt-1 text-xs text-slate-500">
                           Elige una propuesta y luego la afinas en las siguientes ventanitas.
                         </p>
                       </div>
-                      <div className="rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-[11px] text-cyan-100">
+                      <div className="rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-[11px] text-cyan-700">
                         {assistantQuery ? getPaeContextLabel(inferredContext) : "Sin contexto"}
                       </div>
                     </div>
@@ -959,15 +959,15 @@ export default function PaeAssistantPage() {
                             className={`w-full rounded-[24px] border p-4 text-left transition ${
                               selected
                                 ? "border-cyan-400/55 bg-cyan-400/12 shadow-[0_0_0_1px_rgba(56,189,248,0.2)]"
-                                : "border-white/10 bg-black/25 hover:border-white/20 hover:bg-white/5"
+                                : "border-slate-200 bg-white/82 hover:border-slate-300 hover:bg-slate-50"
                             }`}
                           >
                             <div className="flex items-start justify-between gap-3">
                               <div>
-                                <div className="text-sm font-semibold text-white">
+                                <div className="text-sm font-semibold text-slate-900">
                                   {item.nanda.code} · {formatCatalogLabel(item.nanda.label)}
                                 </div>
-                                <div className="mt-1 text-[11px] uppercase tracking-[0.16em] text-white/45">
+                                <div className="mt-1 text-[11px] uppercase tracking-[0.16em] text-slate-400">
                                   {formatCatalogLabel(item.nanda.domain)} · {formatCatalogLabel(item.nanda.classLabel)}
                                 </div>
                               </div>
@@ -982,23 +982,23 @@ export default function PaeAssistantPage() {
                               {item.matchedTerms.slice(0, 4).map((term) => (
                                 <span
                                   key={term}
-                                  className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-white/75"
+                                  className="rounded-full border border-slate-200 bg-white/80 px-2.5 py-1 text-[11px] text-slate-600"
                                 >
                                   {term}
                                 </span>
                               ))}
                             </div>
 
-                            <div className="mt-3 grid gap-2 text-xs text-white/65">
+                            <div className="mt-3 grid gap-2 text-xs text-slate-900/65">
                               <div>
-                                <span className="font-medium text-white/82">NOC:</span>{" "}
+                                <span className="font-medium text-slate-700">NOC:</span>{" "}
                                 {item.nocOptions
                                   .slice(0, 2)
                                   .map((option) => `${option.code} ${formatCatalogLabel(option.label)}`)
                                   .join(" · ")}
                               </div>
                               <div>
-                                <span className="font-medium text-white/82">NIC:</span>{" "}
+                                <span className="font-medium text-slate-700">NIC:</span>{" "}
                                 {item.nicOptions
                                   .slice(0, 2)
                                   .map((option) => `${option.code} ${formatCatalogLabel(option.label)}`)
@@ -1010,7 +1010,7 @@ export default function PaeAssistantPage() {
                       })}
 
                       {!taxonomySuggestions.length && (
-                        <div className="rounded-[24px] border border-dashed border-white/12 bg-black/20 px-4 py-5 text-sm text-white/55">
+                        <div className="rounded-[24px] border border-dashed border-slate-200 bg-white/82 px-4 py-5 text-sm text-slate-400">
                           Completa el paso 1 con diagnóstico y hallazgos para activar sugerencias más precisas.
                         </div>
                       )}
@@ -1022,10 +1022,10 @@ export default function PaeAssistantPage() {
                   <section className={STEP_WINDOW_CLASS}>
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <h2 className="text-base font-semibold text-white">3. Diagnóstico NANDA</h2>
-                        <p className="mt-1 text-xs text-white/60">Acepta la sugerencia o cambia el diagnóstico manualmente.</p>
+                        <h2 className="text-base font-semibold text-slate-900">3. Diagnóstico NANDA</h2>
+                        <p className="mt-1 text-xs text-slate-500">Acepta la sugerencia o cambia el diagnóstico manualmente.</p>
                       </div>
-                      <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/60">
+                      <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-[11px] text-slate-500">
                         Lista rápida
                       </span>
                     </div>
@@ -1035,15 +1035,15 @@ export default function PaeAssistantPage() {
                       value={nandaQuery}
                       onChange={(event) => setNandaQuery(event.target.value)}
                       placeholder="Buscar NANDA por código, etiqueta, dominio..."
-                      className="mt-4 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                      className="mt-4 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-cyan-300/40"
                     />
 
-                    <div className="mt-3 flex items-center justify-between gap-3 text-[11px] text-white/55">
+                    <div className="mt-3 flex items-center justify-between gap-3 text-[11px] text-slate-400">
                       <span>Mostrando {filteredNandaOptions.length} de {NANDA_LIBRARY.length} códigos NANDA</span>
                       <button
                         type="button"
                         onClick={() => setShowAllNandaCatalog((current) => !current)}
-                        className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/75 transition hover:border-white/20"
+                        className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-[11px] text-slate-600 transition hover:border-slate-300"
                       >
                         {showAllNandaCatalog ? "Solo sugeridos" : "Ver catálogo completo"}
                       </button>
@@ -1060,13 +1060,13 @@ export default function PaeAssistantPage() {
                             className={`w-full rounded-2xl border px-3 py-3 text-left transition ${
                               active
                                 ? "border-cyan-400/55 bg-cyan-400/12"
-                                : "border-white/10 bg-black/25 hover:border-white/20 hover:bg-white/5"
+                                : "border-slate-200 bg-white/82 hover:border-slate-300 hover:bg-slate-50"
                             }`}
                           >
-                            <div className="text-sm font-medium text-white">
+                            <div className="text-sm font-medium text-slate-900">
                               {item.code} · {formatCatalogLabel(item.label)}
                             </div>
-                            <div className="mt-1 text-xs text-white/55">
+                            <div className="mt-1 text-xs text-slate-400">
                               {formatCatalogLabel(item.domain)} · {formatCatalogLabel(item.classLabel)}
                             </div>
                           </button>
@@ -1075,14 +1075,14 @@ export default function PaeAssistantPage() {
                     </div>
 
                     {selectedNanda && (
-                      <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
-                        <div className="text-sm font-semibold text-white">
+                      <div className="mt-4 rounded-2xl border border-slate-200 bg-white/82 p-4">
+                        <div className="text-sm font-semibold text-slate-900">
                           Seleccionado: {selectedNanda.code} · {formatCatalogLabel(selectedNanda.label)}
                         </div>
-                        <div className="mt-2 text-xs text-white/60">
+                        <div className="mt-2 text-xs text-slate-500">
                           {formatCatalogLabel(selectedNanda.domain)} · {formatCatalogLabel(selectedNanda.classLabel)}
                         </div>
-                        <div className="mt-3 rounded-2xl border border-cyan-400/15 bg-cyan-400/8 px-3 py-3 text-sm leading-6 text-white/78">
+                        <div className="mt-3 rounded-2xl border border-cyan-400/15 bg-cyan-400/8 px-3 py-3 text-sm leading-6 text-slate-600">
                           {selectedNandaDescription}
                         </div>
 
@@ -1093,7 +1093,7 @@ export default function PaeAssistantPage() {
                           ).map((sign) => (
                             <span
                               key={sign}
-                              className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-white/75"
+                              className="rounded-full border border-slate-200 bg-white/80 px-2.5 py-1 text-[11px] text-slate-600"
                             >
                               {formatCatalogLabel(sign)}
                             </span>
@@ -1106,23 +1106,23 @@ export default function PaeAssistantPage() {
 
                 {activeStep === "noc" && (
                   <section className={STEP_WINDOW_CLASS}>
-                    <h2 className="text-base font-semibold text-white">4. Resultado NOC</h2>
-                    <p className="mt-1 text-xs text-white/60">Elige una etiqueta y ajusta valoración/meta por indicador.</p>
+                    <h2 className="text-base font-semibold text-slate-900">4. Resultado NOC</h2>
+                    <p className="mt-1 text-xs text-slate-500">Elige una etiqueta y ajusta valoración/meta por indicador.</p>
 
                     <input
                       type="text"
                       value={nocQuery}
                       onChange={(event) => setNocQuery(event.target.value)}
                       placeholder="Buscar NOC por código, etiqueta o indicador..."
-                      className="mt-4 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                      className="mt-4 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-cyan-300/40"
                     />
 
-                    <div className="mt-3 flex items-center justify-between gap-3 text-[11px] text-white/55">
+                    <div className="mt-3 flex items-center justify-between gap-3 text-[11px] text-slate-400">
                       <span>Mostrando {filteredNocOptions.length} de {NOC_LIBRARY.length} códigos NOC</span>
                       <button
                         type="button"
                         onClick={() => setShowAllNocCatalog((current) => !current)}
-                        className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/75 transition hover:border-white/20"
+                        className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-[11px] text-slate-600 transition hover:border-slate-300"
                       >
                         {showAllNocCatalog ? "Solo sugeridos" : "Ver catálogo completo"}
                       </button>
@@ -1139,13 +1139,13 @@ export default function PaeAssistantPage() {
                             className={`w-full rounded-2xl border px-3 py-3 text-left transition ${
                               active
                                 ? "border-emerald-400/55 bg-emerald-400/12"
-                                : "border-white/10 bg-black/25 hover:border-white/20 hover:bg-white/5"
+                                : "border-slate-200 bg-white/82 hover:border-slate-300 hover:bg-slate-50"
                             }`}
                           >
-                            <div className="text-sm font-medium text-white">
+                            <div className="text-sm font-medium text-slate-900">
                               {item.code} · {formatCatalogLabel(item.label)}
                             </div>
-                            <div className="mt-1 text-xs text-white/55">
+                            <div className="mt-1 text-xs text-slate-400">
                               {formatCatalogLabel(item.domain)} · Clase {inferNocTaxonomy(item).classCode}
                             </div>
                           </button>
@@ -1154,25 +1154,25 @@ export default function PaeAssistantPage() {
                     </div>
 
                     {selectedNoc && (
-                      <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
-                        <div className="text-sm font-semibold text-white">
+                      <div className="mt-4 rounded-2xl border border-slate-200 bg-white/82 p-4">
+                        <div className="text-sm font-semibold text-slate-900">
                           Seleccionado: {selectedNoc.code} · {formatCatalogLabel(selectedNoc.label)}
                         </div>
-                        <div className="mt-2 text-xs text-white/60">
+                        <div className="mt-2 text-xs text-slate-500">
                           Dominio {nocTaxonomy.domainCode} · {nocTaxonomy.domainLabel} · Clase {nocTaxonomy.classCode}
                         </div>
-                        <div className="mt-3 rounded-2xl border border-emerald-400/15 bg-emerald-400/8 px-3 py-3 text-sm leading-6 text-white/78">
+                        <div className="mt-3 rounded-2xl border border-emerald-400/15 bg-emerald-400/8 px-3 py-3 text-sm leading-6 text-slate-600">
                           {selectedNocDescription}
                         </div>
                       </div>
                     )}
 
                     {!!availableIndicators.length && (
-                      <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
-                        <div className="text-sm font-semibold text-white">Indicadores</div>
+                      <div className="mt-4 rounded-2xl border border-slate-200 bg-white/82 p-4">
+                        <div className="text-sm font-semibold text-slate-900">Indicadores</div>
                         <div className="mt-3 space-y-3">
                           {indicatorRows.map((row) => (
-                            <div key={row.label} className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                            <div key={row.label} className="rounded-2xl border border-slate-200 bg-white/80 p-3">
                               <label className="flex items-start gap-3">
                                 <input
                                   type="checkbox"
@@ -1184,12 +1184,12 @@ export default function PaeAssistantPage() {
                                       )
                                     )
                                   }
-                                  className="mt-1 h-4 w-4 rounded border-white/20 bg-black/20 text-cyan-400"
+                                  className="mt-1 h-4 w-4 rounded border-white/20 bg-white/82 text-cyan-400"
                                 />
                                 <div className="flex-1">
-                                  <div className="text-sm text-white/88">{formatCatalogLabel(row.label)}</div>
+                                  <div className="text-sm text-slate-800">{formatCatalogLabel(row.label)}</div>
                                   <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                                    <label className="text-[11px] uppercase tracking-[0.16em] text-white/45">
+                                    <label className="text-[11px] uppercase tracking-[0.16em] text-slate-400">
                                       Valoración
                                       <select
                                         value={row.assessment}
@@ -1205,7 +1205,7 @@ export default function PaeAssistantPage() {
                                             )
                                           )
                                         }
-                                        className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none"
+                                        className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none"
                                       >
                                         {SCALE_OPTIONS.map((value) => (
                                           <option key={value} value={value}>
@@ -1214,7 +1214,7 @@ export default function PaeAssistantPage() {
                                         ))}
                                       </select>
                                     </label>
-                                    <label className="text-[11px] uppercase tracking-[0.16em] text-white/45">
+                                    <label className="text-[11px] uppercase tracking-[0.16em] text-slate-400">
                                       Meta
                                       <select
                                         value={row.goal}
@@ -1230,7 +1230,7 @@ export default function PaeAssistantPage() {
                                             )
                                           )
                                         }
-                                        className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white outline-none"
+                                        className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none"
                                       >
                                         {SCALE_OPTIONS.map((value) => (
                                           <option key={value} value={value}>
@@ -1252,23 +1252,23 @@ export default function PaeAssistantPage() {
 
                 {activeStep === "nic" && (
                   <section className={STEP_WINDOW_CLASS}>
-                    <h2 className="text-base font-semibold text-white">5. Intervención NIC</h2>
-                    <p className="mt-1 text-xs text-white/60">Selecciona una NIC y deja activas solo las actividades que usarás.</p>
+                    <h2 className="text-base font-semibold text-slate-900">5. Intervención NIC</h2>
+                    <p className="mt-1 text-xs text-slate-500">Selecciona una NIC y deja activas solo las actividades que usarás.</p>
 
                     <input
                       type="text"
                       value={nicQuery}
                       onChange={(event) => setNicQuery(event.target.value)}
                       placeholder="Buscar NIC por código, etiqueta o actividad..."
-                      className="mt-4 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                      className="mt-4 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-cyan-300/40"
                     />
 
-                    <div className="mt-3 flex items-center justify-between gap-3 text-[11px] text-white/55">
+                    <div className="mt-3 flex items-center justify-between gap-3 text-[11px] text-slate-400">
                       <span>Mostrando {filteredNicOptions.length} de {NIC_LIBRARY.length} códigos NIC</span>
                       <button
                         type="button"
                         onClick={() => setShowAllNicCatalog((current) => !current)}
-                        className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/75 transition hover:border-white/20"
+                        className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-[11px] text-slate-600 transition hover:border-slate-300"
                       >
                         {showAllNicCatalog ? "Solo sugeridos" : "Ver catálogo completo"}
                       </button>
@@ -1285,13 +1285,13 @@ export default function PaeAssistantPage() {
                             className={`w-full rounded-2xl border px-3 py-3 text-left transition ${
                               active
                                 ? "border-fuchsia-400/55 bg-fuchsia-400/12"
-                                : "border-white/10 bg-black/25 hover:border-white/20 hover:bg-white/5"
+                                : "border-slate-200 bg-white/82 hover:border-slate-300 hover:bg-slate-50"
                             }`}
                           >
-                            <div className="text-sm font-medium text-white">
+                            <div className="text-sm font-medium text-slate-900">
                               {item.code} · {formatCatalogLabel(item.label)}
                             </div>
-                            <div className="mt-1 text-xs text-white/55">
+                            <div className="mt-1 text-xs text-slate-400">
                               Campo {inferNicTaxonomy(item).domainCode} · Clase {inferNicTaxonomy(item).classCode}
                             </div>
                           </button>
@@ -1300,22 +1300,22 @@ export default function PaeAssistantPage() {
                     </div>
 
                     {selectedNic && (
-                      <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
-                        <div className="text-sm font-semibold text-white">
+                      <div className="mt-4 rounded-2xl border border-slate-200 bg-white/82 p-4">
+                        <div className="text-sm font-semibold text-slate-900">
                           Seleccionado: {selectedNic.code} · {formatCatalogLabel(selectedNic.label)}
                         </div>
-                        <div className="mt-2 text-xs text-white/60">
+                        <div className="mt-2 text-xs text-slate-500">
                           Campo {nicTaxonomy.domainCode} · {nicTaxonomy.domainLabel} · Clase {nicTaxonomy.classCode}
                         </div>
-                        <div className="mt-3 rounded-2xl border border-fuchsia-400/15 bg-fuchsia-400/8 px-3 py-3 text-sm leading-6 text-white/78">
+                        <div className="mt-3 rounded-2xl border border-fuchsia-400/15 bg-fuchsia-400/8 px-3 py-3 text-sm leading-6 text-slate-600">
                           {selectedNicDescription}
                         </div>
                       </div>
                     )}
 
                     {!!availableActivities.length && (
-                      <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
-                        <div className="text-sm font-semibold text-white">Actividades</div>
+                      <div className="mt-4 rounded-2xl border border-slate-200 bg-white/82 p-4">
+                        <div className="text-sm font-semibold text-slate-900">Actividades</div>
                         <div className="mt-3 flex flex-wrap gap-2">
                           {availableActivities.map((activity) => {
                             const active = selectedActivities.includes(activity);
@@ -1332,8 +1332,8 @@ export default function PaeAssistantPage() {
                                 }
                                 className={`rounded-2xl border px-3 py-2 text-left text-xs transition ${
                                   active
-                                    ? "border-fuchsia-400/55 bg-fuchsia-400/14 text-white"
-                                    : "border-white/10 bg-white/5 text-white/70 hover:border-white/20"
+                                    ? "border-fuchsia-400/55 bg-fuchsia-400/14 text-slate-900"
+                                    : "border-slate-200 bg-white/80 text-slate-600 hover:border-slate-300"
                                 }`}
                               >
                                 {formatCatalogLabel(activity)}
@@ -1350,10 +1350,10 @@ export default function PaeAssistantPage() {
                   <section className={STEP_WINDOW_CLASS}>
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <h2 className="text-base font-semibold text-white">6. Evaluación y salida</h2>
-                        <p className="mt-1 text-xs text-white/60">Cierra el PAE y genera el mismo formato listo para imprimir.</p>
+                        <h2 className="text-base font-semibold text-slate-900">6. Evaluación y salida</h2>
+                        <p className="mt-1 text-xs text-slate-500">Cierra el PAE y genera el mismo formato listo para imprimir.</p>
                       </div>
-                      <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/60">
+                      <div className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-[11px] text-slate-500">
                         Poca escritura
                       </div>
                     </div>
@@ -1366,8 +1366,8 @@ export default function PaeAssistantPage() {
                           onClick={() => setEvaluationStatus(option.id)}
                           className={`rounded-full border px-3 py-1.5 text-xs transition ${
                             evaluationStatus === option.id
-                              ? "border-cyan-400/55 bg-cyan-400/12 text-cyan-100"
-                              : "border-white/10 bg-white/5 text-white/70 hover:border-white/20"
+                              ? "border-cyan-400/55 bg-cyan-400/12 text-cyan-700"
+                              : "border-slate-200 bg-white/80 text-slate-600 hover:border-slate-300"
                           }`}
                         >
                           {option.label}
@@ -1375,14 +1375,14 @@ export default function PaeAssistantPage() {
                       ))}
                     </div>
 
-                    <label className="mt-4 block text-xs text-white/70">
+                    <label className="mt-4 block text-xs text-slate-600">
                       Nota breve opcional
                       <textarea
                         value={evaluationNote}
                         onChange={(event) => setEvaluationNote(event.target.value)}
                         rows={3}
                         placeholder="Ej. tolera oxigenoterapia, se educa sobre signos de alarma, continúa vigilancia..."
-                        className="mt-1.5 w-full rounded-2xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white outline-none transition focus:border-cyan-400/50"
+                        className="mt-1.5 w-full rounded-2xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none transition focus:border-cyan-300/40"
                       />
                     </label>
 
@@ -1397,7 +1397,7 @@ export default function PaeAssistantPage() {
                       <button
                         type="button"
                         onClick={resetAssistantForm}
-                        className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-white/78 transition hover:border-white/20 hover:bg-white/8"
+                        className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
                       >
                         Reiniciar
                       </button>
@@ -1408,12 +1408,12 @@ export default function PaeAssistantPage() {
                 <section className={SECTION_CARD}>
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">
+                      <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">
                         Navegación
                       </div>
-                      <div className="mt-1 text-sm font-semibold text-white">{activeStepMeta.label}</div>
+                      <div className="mt-1 text-sm font-semibold text-slate-900">{activeStepMeta.label}</div>
                     </div>
-                    <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/60">
+                    <div className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-[11px] text-slate-500">
                       Vista viva
                     </div>
                   </div>
@@ -1423,7 +1423,7 @@ export default function PaeAssistantPage() {
                       type="button"
                       onClick={goToPreviousStep}
                       disabled={!canGoBack}
-                      className="flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-40 hover:border-white/20"
+                      className="flex-1 rounded-2xl border border-slate-200 bg-white/80 px-4 py-2.5 text-sm font-medium text-slate-900 transition disabled:cursor-not-allowed disabled:opacity-40 hover:border-slate-300"
                     >
                       Anterior
                     </button>
@@ -1439,15 +1439,15 @@ export default function PaeAssistantPage() {
                 </section>
               </aside>
 
-              <section className="overflow-x-auto rounded-[30px] border border-white/10 bg-[#07101d] p-3 sm:p-5 xl:sticky xl:top-5 xl:self-start">
+              <section className="overflow-x-auto rounded-[30px] border border-slate-200 bg-white/92 p-3 sm:p-5 xl:sticky xl:top-5 xl:self-start">
                 <div className="no-print mb-4 flex items-center justify-between gap-3 px-2">
                   <div>
-                    <h2 className="text-base font-semibold text-white">Vista final del formato</h2>
-                    <p className="mt-1 text-xs text-white/60">
+                    <h2 className="text-base font-semibold text-slate-900">Vista final del formato</h2>
+                    <p className="mt-1 text-xs text-slate-500">
                       La hoja replica la estructura del archivo institucional y se imprime en horizontal.
                     </p>
                   </div>
-                  <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] text-white/60">
+                  <div className="rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-[11px] text-slate-500">
                     Actualización en vivo
                   </div>
                 </div>

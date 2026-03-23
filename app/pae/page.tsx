@@ -437,25 +437,25 @@ export default function PaePage() {
       : (selectedDiagnosisIds.map(rowByNanda).filter(Boolean) as TaxonomyRow[]);
 
   return (
-    <div className="min-h-screen bg-[#070A12] text-white">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f6fbf9_0%,#eef5f2_48%,#e6efeb_100%)] text-slate-900">
       <div className="mx-auto flex max-w-[1660px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
         <Sidebar />
 
-        <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 p-5 shadow-[0_20px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+        <main className="flex-1 rounded-2xl border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] p-5 shadow-[0_24px_70px_rgba(99,126,118,0.16)] backdrop-blur-xl">
           <header className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold">PAE inteligente</h1>
-              <p className="mt-1 text-sm text-white/70">
+              <p className="mt-1 text-sm text-slate-600">
                 Ahora incluye flujo guiado o autónomo con base taxonómica NANDA/NOC/NIC.
               </p>
             </div>
-            <div className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white/70">
+            <div className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs text-slate-600">
               {getPaeModeLabel(mode)} · {guidanceMode === "guided" ? "Flujo guiado" : "Flujo autónomo"}
             </div>
           </header>
 
-          <section className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-[#0D121E]/90 p-4 md:grid-cols-2 xl:grid-cols-7">
-            <label className="text-xs text-white/70">
+          <section className="mt-4 grid gap-3 rounded-2xl border border-slate-200 bg-white/82 p-4 md:grid-cols-2 xl:grid-cols-7">
+            <label className="text-xs text-slate-600">
               Modalidad
               <select
                 value={mode}
@@ -463,14 +463,14 @@ export default function PaePage() {
                   setMode(event.target.value as PaeMode);
                   setValidationVisible(false);
                 }}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
               >
                 <option value="practice">Práctica</option>
                 <option value="evaluation">Evaluación</option>
               </select>
             </label>
 
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Estructura
               <select
                 value={guidanceMode}
@@ -478,31 +478,31 @@ export default function PaePage() {
                   setGuidanceMode(event.target.value as GuidanceMode);
                   resetDraft();
                 }}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
               >
                 <option value="guided">Guiada (sugerencias)</option>
                 <option value="autonomous">No guiada (NANDA/NOC/NIC)</option>
               </select>
             </label>
 
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Uso
               <select
                 value={usageMode}
                 onChange={(event) => setUsageMode(event.target.value as UsageMode)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
               >
                 <option value="integrated_case">Desde caso clínico</option>
                 <option value="standalone">Módulo independiente</option>
               </select>
             </label>
 
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Generación de caso
               <select
                 value={selectionMode}
                 onChange={(event) => setSelectionMode(event.target.value as SelectionMode)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
               >
                 <option value="random">Aleatorio</option>
                 <option value="by_category">Aleatorio por categoría</option>
@@ -511,13 +511,13 @@ export default function PaePage() {
               </select>
             </label>
 
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Categoría clínica
               <select
                 value={caseCategory}
                 onChange={(event) => setCaseCategory(event.target.value as PaeTemplateContextFilter)}
                 disabled={selectionMode === "contextual_random" && useIntegratedContext}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white disabled:opacity-50"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 disabled:opacity-50"
               >
                 <option value="all">Todas</option>
                 <option value="respiratory">Respiratorio</option>
@@ -529,7 +529,7 @@ export default function PaePage() {
               </select>
             </label>
 
-            <label className="text-xs text-white/70 xl:col-span-2">
+            <label className="text-xs text-slate-600 xl:col-span-2">
               Plantilla PAE
               <select
                 value={manualTemplateId}
@@ -542,7 +542,7 @@ export default function PaePage() {
                   }
                 }}
                 disabled={selectionMode !== "manual"}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white disabled:opacity-50"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 disabled:opacity-50"
               >
                 {PAE_TEMPLATE_LIBRARY.map((item) => (
                   <option key={item.id} value={item.id}>
@@ -553,12 +553,12 @@ export default function PaePage() {
             </label>
           </section>
 
-          <section className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-4">
+          <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
             <div className="grid gap-2 xl:grid-cols-[1.2fr_1fr_auto]">
               <div>
-                <div className="text-xs uppercase tracking-[0.12em] text-white/45">Caso / escenario</div>
+                <div className="text-xs uppercase tracking-[0.12em] text-slate-400">Caso / escenario</div>
                 <div className="mt-1 text-lg font-semibold">{template.name}</div>
-                <div className="text-sm text-white/70">
+                <div className="text-sm text-slate-600">
                   {template.patient.name} · {template.patient.age} años ·{" "}
                   {template.patient.sex === "female"
                     ? "Femenino"
@@ -566,33 +566,33 @@ export default function PaePage() {
                     ? "Masculino"
                     : "No especificado"}
                 </div>
-                <div className="text-sm text-white/70">Motivo: {template.patient.chiefComplaint}</div>
-                <div className="mt-1 text-xs text-cyan-100">
+                <div className="text-sm text-slate-600">Motivo: {template.patient.chiefComplaint}</div>
+                <div className="mt-1 text-xs text-cyan-700">
                   Categoría del caso: {getPaeContextLabel(template.context)}
                 </div>
                 {useIntegratedContext && (
-                  <div className="mt-1 text-xs text-cyan-100">
+                  <div className="mt-1 text-xs text-cyan-700">
                     Contexto del caso activo: {getPaeContextLabel(integratedContext)}
                   </div>
                 )}
               </div>
 
-              <div className="rounded-xl border border-white/10 bg-[#0A101A] p-3 text-xs text-white/70">
-                <div className="font-semibold text-white/85">Diseño estructurado</div>
+              <div className="rounded-xl border border-slate-200 bg-white/82 p-3 text-xs text-slate-600">
+                <div className="font-semibold text-slate-800">Diseño estructurado</div>
                 <div className="mt-1">
                   Flujo en 6 etapas + formato final tipo plan de atención. En modo autónomo puedes elegir taxonomías
                   NANDA/NOC/NIC manualmente.
                 </div>
-                <div className="mt-2 text-white/60">Diagnóstico médico: {template.patient.medicalDiagnosis}</div>
-                <div className="mt-1 text-white/60">Tratamiento: {template.patient.pharmacologicGroup}</div>
-                <div className="mt-1 text-white/60">Dieta: {template.patient.dietType}</div>
+                <div className="mt-2 text-slate-500">Diagnóstico médico: {template.patient.medicalDiagnosis}</div>
+                <div className="mt-1 text-slate-500">Tratamiento: {template.patient.pharmacologicGroup}</div>
+                <div className="mt-1 text-slate-500">Dieta: {template.patient.dietType}</div>
               </div>
 
               <div className="flex items-start justify-end gap-2">
                 <button
                   type="button"
                   onClick={chooseNewTemplate}
-                  className="rounded-xl border border-white/15 bg-black/30 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
+                  className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-900/90 hover:bg-slate-50"
                 >
                   Generar caso
                 </button>
@@ -611,11 +611,11 @@ export default function PaePage() {
                   onClick={() => setStage(current)}
                   className={`rounded-xl border px-3 py-2 text-left text-sm transition ${
                     active
-                      ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-100"
-                      : "border-white/10 bg-black/25 text-white/75 hover:bg-white/10"
+                      ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-700"
+                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                   }`}
                 >
-                  <div className="text-xs text-white/55">Etapa {raw}</div>
+                  <div className="text-xs text-slate-400">Etapa {raw}</div>
                   <div className="font-medium">{stageLabel(current)}</div>
                 </button>
               );
@@ -623,11 +623,11 @@ export default function PaePage() {
           </section>
 
           <section className="mt-4 grid gap-4 xl:grid-cols-[1.5fr_1fr]">
-            <article className="rounded-2xl border border-white/10 bg-[#0B101A]/90 p-4">
+            <article className="rounded-2xl border border-slate-200 bg-white/82 p-4">
               {stage === 1 && (
                 <div>
                   <h2 className="text-lg font-semibold">Etapa 1 · Valoración</h2>
-                  <p className="mt-1 text-sm text-white/65">
+                  <p className="mt-1 text-sm text-slate-500">
                     Selecciona hallazgos subjetivos/objetivos y completa notas clínicas.
                   </p>
 
@@ -639,8 +639,8 @@ export default function PaePage() {
                           key={cue.id}
                           className={`rounded-xl border p-3 text-sm transition ${
                             selected
-                              ? "border-cyan-400/35 bg-cyan-400/10 text-cyan-100"
-                              : "border-white/10 bg-black/25 text-white/80"
+                              ? "border-cyan-400/35 bg-cyan-400/10 text-cyan-700"
+                              : "border-slate-200 bg-white text-slate-700"
                           }`}
                         >
                           <input
@@ -650,29 +650,29 @@ export default function PaePage() {
                             className="mr-2 h-4 w-4 align-middle"
                           />
                           <span className="align-middle">{cue.label}</span>
-                          <span className="mt-1 block text-xs text-white/60">{getCueTypeLabel(cue.type)}</span>
+                          <span className="mt-1 block text-xs text-slate-500">{getCueTypeLabel(cue.type)}</span>
                         </label>
                       );
                     })}
                   </div>
 
                   <div className="mt-4 grid gap-3">
-                    <label className="text-xs text-white/70">
+                    <label className="text-xs text-slate-600">
                       Datos subjetivos (narrativa)
                       <textarea
                         value={subjectiveNotes}
                         onChange={(event) => setSubjectiveNotes(event.target.value)}
                         rows={3}
-                        className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
+                        className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
                       />
                     </label>
-                    <label className="text-xs text-white/70">
+                    <label className="text-xs text-slate-600">
                       Datos objetivos (exploración/signos)
                       <textarea
                         value={objectiveNotes}
                         onChange={(event) => setObjectiveNotes(event.target.value)}
                         rows={3}
-                        className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
+                        className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
                       />
                     </label>
                   </div>
@@ -682,7 +682,7 @@ export default function PaePage() {
               {stage === 2 && guidanceMode === "guided" && (
                 <div>
                   <h2 className="text-lg font-semibold">Etapa 2 · Diagnóstico (guiado)</h2>
-                  <p className="mt-1 text-sm text-white/65">
+                  <p className="mt-1 text-sm text-slate-500">
                     Elige diagnósticos sugeridos según hallazgos seleccionados.
                   </p>
 
@@ -693,11 +693,11 @@ export default function PaePage() {
                         <label
                           key={item.diagnosis.id}
                           className={`block rounded-xl border p-3 ${
-                            selected ? "border-cyan-400/35 bg-cyan-400/10" : "border-white/10 bg-black/25"
+                            selected ? "border-cyan-400/35 bg-cyan-400/10" : "border-slate-200 bg-white"
                           }`}
                         >
                           <div className="flex flex-wrap items-center justify-between gap-2">
-                            <div className="text-sm font-semibold text-white/90">{item.diagnosis.diagnosticLabel}</div>
+                            <div className="text-sm font-semibold text-slate-900/90">{item.diagnosis.diagnosticLabel}</div>
                             <span
                               className={`inline-flex rounded-full border px-2 py-0.5 text-xs ${getPriorityTone(
                                 item.diagnosis.priority
@@ -706,11 +706,11 @@ export default function PaePage() {
                               Prioridad {item.diagnosis.priority === "high" ? "alta" : item.diagnosis.priority}
                             </span>
                           </div>
-                          <div className="mt-1 text-xs text-white/60">
+                          <div className="mt-1 text-xs text-slate-500">
                             {item.diagnosis.domain} · {item.diagnosis.classLabel}
                           </div>
                           {mode === "practice" && (
-                            <div className="mt-1 text-xs text-cyan-100/90">
+                            <div className="mt-1 text-xs text-cyan-700/90">
                               Compatibilidad: {item.score}/100 · hallazgos coincidentes {item.matchedCueCount}
                             </div>
                           )}
@@ -723,21 +723,21 @@ export default function PaePage() {
                               }
                               className="mr-2 h-4 w-4"
                             />
-                            <span className="text-sm text-white/85">Seleccionar diagnóstico</span>
+                            <span className="text-sm text-slate-800">Seleccionar diagnóstico</span>
                           </div>
                         </label>
                       );
                     })}
                   </div>
 
-                  <label className="mt-4 block text-xs text-white/70">
+                  <label className="mt-4 block text-xs text-slate-600">
                     Justificación diagnóstica
                     <textarea
                       value={diagnosisJustification}
                       onChange={(event) => setDiagnosisJustification(event.target.value)}
                       rows={4}
                       placeholder="Justifica por qué elegiste estos diagnósticos."
-                      className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
+                      className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
                     />
                   </label>
                 </div>
@@ -746,7 +746,7 @@ export default function PaePage() {
               {stage === 2 && guidanceMode === "autonomous" && (
                 <div>
                   <h2 className="text-lg font-semibold">Etapa 2 · Selección NANDA (no guiado)</h2>
-                  <p className="mt-1 text-sm text-white/65">
+                  <p className="mt-1 text-sm text-slate-500">
                     Selecciona manualmente diagnósticos NANDA para practicar razonamiento autónomo.
                   </p>
 
@@ -755,7 +755,7 @@ export default function PaePage() {
                     value={nandaQuery}
                     onChange={(event) => setNandaQuery(event.target.value)}
                     placeholder="Buscar NANDA por código, etiqueta o dominio"
-                    className="mt-3 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
+                    className="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
                   />
 
                   <div className="mt-3 space-y-2 max-h-[430px] overflow-auto pr-1">
@@ -765,26 +765,26 @@ export default function PaePage() {
                         <label
                           key={item.id}
                           className={`block rounded-xl border p-3 ${
-                            selected ? "border-cyan-400/35 bg-cyan-400/10" : "border-white/10 bg-black/25"
+                            selected ? "border-cyan-400/35 bg-cyan-400/10" : "border-slate-200 bg-white"
                           }`}
                         >
                           <div className="flex flex-wrap items-center justify-between gap-2">
-                            <div className="text-sm font-semibold text-white/90">
+                            <div className="text-sm font-semibold text-slate-900/90">
                               {item.code} · {item.label}
                             </div>
-                            <div className="text-xs text-white/55">NANDA</div>
+                            <div className="text-xs text-slate-400">NANDA</div>
                           </div>
-                          <div className="mt-1 text-xs text-white/60">
+                          <div className="mt-1 text-xs text-slate-500">
                             {item.domain} · {item.classLabel}
                           </div>
-                          <div className="mt-1 text-xs text-cyan-100/85">
+                          <div className="mt-1 text-xs text-cyan-700/85">
                             Contexto sugerido: {item.contexts.map((ctx) => getPaeContextLabel(ctx)).join(" · ")}
                           </div>
-                          <div className="mt-1 text-xs text-white/65">
+                          <div className="mt-1 text-xs text-slate-500">
                             Diagnóstico de respuesta humana para priorizar problemas de enfermería en este caso.
                           </div>
                           {mode === "practice" && (
-                            <div className="mt-1 text-xs text-white/70">
+                            <div className="mt-1 text-xs text-slate-600">
                               Características clave:{" "}
                               {item.definingCharacteristics.length
                                 ? item.definingCharacteristics.slice(0, 3).join(" · ")
@@ -798,7 +798,7 @@ export default function PaePage() {
                               onChange={() => setSelectedDiagnosisIds((prev) => toggleSelection(prev, item.id))}
                               className="mr-2 h-4 w-4"
                             />
-                            <span className="text-sm text-white/85">Seleccionar NANDA</span>
+                            <span className="text-sm text-slate-800">Seleccionar NANDA</span>
                           </div>
                         </label>
                       );
@@ -810,12 +810,12 @@ export default function PaePage() {
               {stage === 3 && guidanceMode === "guided" && (
                 <div>
                   <h2 className="text-lg font-semibold">Etapa 3 · Resultados esperados</h2>
-                  <p className="mt-1 text-sm text-white/65">
+                  <p className="mt-1 text-sm text-slate-500">
                     Define metas e indicadores relacionados con cada diagnóstico.
                   </p>
 
                   {!selectedDiagnosisIds.length && (
-                    <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-100">
+                    <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-700">
                       Selecciona diagnósticos en la etapa anterior para habilitar resultados sugeridos.
                     </div>
                   )}
@@ -827,12 +827,12 @@ export default function PaePage() {
                         <label
                           key={outcome.id}
                           className={`block rounded-xl border p-3 ${
-                            selected ? "border-emerald-400/35 bg-emerald-400/10" : "border-white/10 bg-black/25"
+                            selected ? "border-emerald-400/35 bg-emerald-400/10" : "border-slate-200 bg-white"
                           }`}
                         >
-                          <div className="text-sm font-semibold text-white/90">{outcome.label}</div>
-                          <div className="mt-1 text-xs text-white/60">Meta: {outcome.target}</div>
-                          <div className="mt-1 text-xs text-white/70">
+                          <div className="text-sm font-semibold text-slate-900/90">{outcome.label}</div>
+                          <div className="mt-1 text-xs text-slate-500">Meta: {outcome.target}</div>
+                          <div className="mt-1 text-xs text-slate-600">
                             Indicadores: {outcome.indicators.join(" · ")}
                           </div>
                           <div className="mt-2">
@@ -842,7 +842,7 @@ export default function PaePage() {
                               onChange={() => setSelectedOutcomeIds((prev) => toggleSelection(prev, outcome.id))}
                               className="mr-2 h-4 w-4"
                             />
-                            <span className="text-sm text-white/85">Seleccionar resultado</span>
+                            <span className="text-sm text-slate-800">Seleccionar resultado</span>
                           </div>
                         </label>
                       );
@@ -854,12 +854,12 @@ export default function PaePage() {
               {stage === 3 && guidanceMode === "autonomous" && (
                 <div>
                   <h2 className="text-lg font-semibold">Etapa 3 · Selección NOC (no guiado)</h2>
-                  <p className="mt-1 text-sm text-white/65">
+                  <p className="mt-1 text-sm text-slate-500">
                     Elige resultados NOC relacionados a tus diagnósticos NANDA seleccionados.
                   </p>
 
                   {!selectedDiagnosisIds.length && (
-                    <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-100">
+                    <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-700">
                       Selecciona NANDA primero para filtrar NOC relacionados.
                     </div>
                   )}
@@ -869,7 +869,7 @@ export default function PaePage() {
                     value={nocQuery}
                     onChange={(event) => setNocQuery(event.target.value)}
                     placeholder="Buscar NOC por código, etiqueta o dominio"
-                    className="mt-3 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
+                    className="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
                   />
 
                   <div className="mt-3 space-y-2 max-h-[430px] overflow-auto pr-1">
@@ -879,21 +879,21 @@ export default function PaePage() {
                         <label
                           key={item.id}
                           className={`block rounded-xl border p-3 ${
-                            selected ? "border-emerald-400/35 bg-emerald-400/10" : "border-white/10 bg-black/25"
+                            selected ? "border-emerald-400/35 bg-emerald-400/10" : "border-slate-200 bg-white"
                           }`}
                         >
-                          <div className="text-sm font-semibold text-white/90">
+                          <div className="text-sm font-semibold text-slate-900/90">
                             {item.code} · {item.label}
                           </div>
-                          <div className="mt-1 text-xs text-white/60">{item.domain}</div>
-                          <div className="mt-1 text-xs text-emerald-100/85">
+                          <div className="mt-1 text-xs text-slate-500">{item.domain}</div>
+                          <div className="mt-1 text-xs text-emerald-700/85">
                             Este NOC mide evolución clínica y respuesta al cuidado de enfermería.
                           </div>
-                          <div className="mt-1 text-xs text-white/65">
+                          <div className="mt-1 text-xs text-slate-500">
                             Sugerencia de escala: 1 (muy comprometido) a 5 (objetivo alcanzado).
                           </div>
                           {mode === "practice" && (
-                            <div className="mt-1 text-xs text-white/70">
+                            <div className="mt-1 text-xs text-slate-600">
                               Indicadores:{" "}
                               {item.indicators.length
                                 ? item.indicators.slice(0, 3).join(" · ")
@@ -907,7 +907,7 @@ export default function PaePage() {
                               onChange={() => setSelectedOutcomeIds((prev) => toggleSelection(prev, item.id))}
                               className="mr-2 h-4 w-4"
                             />
-                            <span className="text-sm text-white/85">Seleccionar NOC</span>
+                            <span className="text-sm text-slate-800">Seleccionar NOC</span>
                           </div>
                         </label>
                       );
@@ -919,12 +919,12 @@ export default function PaePage() {
               {stage === 4 && guidanceMode === "guided" && (
                 <div>
                   <h2 className="text-lg font-semibold">Etapa 4 · Intervenciones</h2>
-                  <p className="mt-1 text-sm text-white/65">
+                  <p className="mt-1 text-sm text-slate-500">
                     Selecciona intervenciones coherentes con diagnóstico y objetivos.
                   </p>
 
                   {!selectedDiagnosisIds.length && (
-                    <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-100">
+                    <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-700">
                       Selecciona diagnósticos para habilitar intervenciones sugeridas.
                     </div>
                   )}
@@ -936,15 +936,15 @@ export default function PaePage() {
                         <label
                           key={intervention.id}
                           className={`block rounded-xl border p-3 ${
-                            selected ? "border-sky-400/35 bg-sky-400/10" : "border-white/10 bg-black/25"
+                            selected ? "border-sky-400/35 bg-sky-400/10" : "border-slate-200 bg-white"
                           }`}
                         >
-                          <div className="text-sm font-semibold text-white/90">{intervention.label}</div>
-                          <div className="mt-1 text-xs text-white/70">
+                          <div className="text-sm font-semibold text-slate-900/90">{intervention.label}</div>
+                          <div className="mt-1 text-xs text-slate-600">
                             Actividades: {intervention.activities.join(" · ")}
                           </div>
                           {mode === "practice" && (
-                            <div className="mt-1 text-xs text-cyan-100/90">Fundamento: {intervention.rationale}</div>
+                            <div className="mt-1 text-xs text-cyan-700/90">Fundamento: {intervention.rationale}</div>
                           )}
                           <div className="mt-2">
                             <input
@@ -953,7 +953,7 @@ export default function PaePage() {
                               onChange={() => setSelectedInterventionIds((prev) => toggleSelection(prev, intervention.id))}
                               className="mr-2 h-4 w-4"
                             />
-                            <span className="text-sm text-white/85">Seleccionar intervención</span>
+                            <span className="text-sm text-slate-800">Seleccionar intervención</span>
                           </div>
                         </label>
                       );
@@ -965,12 +965,12 @@ export default function PaePage() {
               {stage === 4 && guidanceMode === "autonomous" && (
                 <div>
                   <h2 className="text-lg font-semibold">Etapa 4 · Selección NIC (no guiado)</h2>
-                  <p className="mt-1 text-sm text-white/65">
+                  <p className="mt-1 text-sm text-slate-500">
                     Elige intervenciones NIC asociadas a tus diagnósticos NANDA.
                   </p>
 
                   {!selectedDiagnosisIds.length && (
-                    <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-100">
+                    <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm text-amber-700">
                       Selecciona NANDA primero para filtrar NIC relacionados.
                     </div>
                   )}
@@ -980,7 +980,7 @@ export default function PaePage() {
                     value={nicQuery}
                     onChange={(event) => setNicQuery(event.target.value)}
                     placeholder="Buscar NIC por código, etiqueta o clase"
-                    className="mt-3 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
+                    className="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
                   />
 
                   <div className="mt-3 space-y-2 max-h-[430px] overflow-auto pr-1">
@@ -990,21 +990,21 @@ export default function PaePage() {
                         <label
                           key={item.id}
                           className={`block rounded-xl border p-3 ${
-                            selected ? "border-sky-400/35 bg-sky-400/10" : "border-white/10 bg-black/25"
+                            selected ? "border-sky-400/35 bg-sky-400/10" : "border-slate-200 bg-white"
                           }`}
                         >
-                          <div className="text-sm font-semibold text-white/90">
+                          <div className="text-sm font-semibold text-slate-900/90">
                             {item.code} · {item.label}
                           </div>
-                          <div className="mt-1 text-xs text-white/60">Clase: {item.classLabel}</div>
-                          <div className="mt-1 text-xs text-sky-100/85">
+                          <div className="mt-1 text-xs text-slate-500">Clase: {item.classLabel}</div>
+                          <div className="mt-1 text-xs text-sky-700/85">
                             Contexto: intervención inicial para actuar sobre la prioridad NANDA seleccionada.
                           </div>
-                          <div className="mt-1 text-xs text-white/65">
+                          <div className="mt-1 text-xs text-slate-500">
                             Define escala NIC e indicadores de ejecución para dejar el PAE más operativo.
                           </div>
                           {mode === "practice" && (
-                            <div className="mt-1 text-xs text-white/70">
+                            <div className="mt-1 text-xs text-slate-600">
                               Actividades:{" "}
                               {item.activities.length
                                 ? item.activities.slice(0, 3).join(" · ")
@@ -1026,20 +1026,20 @@ export default function PaePage() {
                               }
                               className="mr-2 h-4 w-4"
                             />
-                            <span className="text-sm text-white/85">Seleccionar NIC</span>
+                            <span className="text-sm text-slate-800">Seleccionar NIC</span>
                           </div>
                           {selected && (
-                            <div className="mt-3 rounded-lg border border-sky-300/20 bg-black/35 p-3">
-                              <div className="text-xs font-medium text-sky-100">Indicadores y escala NIC</div>
+                            <div className="mt-3 rounded-lg border border-sky-300/20 bg-white p-3">
+                              <div className="text-xs font-medium text-sky-700">Indicadores y escala NIC</div>
                               <div className="mt-2 grid gap-2 md:grid-cols-2">
-                                <label className="text-[11px] text-white/70">
+                                <label className="text-[11px] text-slate-600">
                                   Línea base
                                   <select
                                     value={nicScaleById[item.id]?.baseline ?? 2}
                                     onChange={(event) =>
                                       setNicScaleValue(item.id, "baseline", Number(event.target.value) as NicScaleValue)
                                     }
-                                    className="mt-1 w-full rounded-lg border border-white/15 bg-black/40 px-2 py-1 text-xs text-white"
+                                    className="mt-1 w-full rounded-lg border border-slate-200 bg-black/40 px-2 py-1 text-xs text-slate-900"
                                   >
                                     {NIC_SCALE_VALUES.map((value) => (
                                       <option key={`${item.id}-base-${value}`} value={value}>
@@ -1048,14 +1048,14 @@ export default function PaePage() {
                                     ))}
                                   </select>
                                 </label>
-                                <label className="text-[11px] text-white/70">
+                                <label className="text-[11px] text-slate-600">
                                   Meta
                                   <select
                                     value={nicScaleById[item.id]?.target ?? 4}
                                     onChange={(event) =>
                                       setNicScaleValue(item.id, "target", Number(event.target.value) as NicScaleValue)
                                     }
-                                    className="mt-1 w-full rounded-lg border border-white/15 bg-black/40 px-2 py-1 text-xs text-white"
+                                    className="mt-1 w-full rounded-lg border border-slate-200 bg-black/40 px-2 py-1 text-xs text-slate-900"
                                   >
                                     {NIC_SCALE_VALUES.map((value) => (
                                       <option key={`${item.id}-target-${value}`} value={value}>
@@ -1066,12 +1066,12 @@ export default function PaePage() {
                                 </label>
                               </div>
 
-                              <div className="mt-2 text-[11px] text-white/70">Indicadores de ejecución</div>
+                              <div className="mt-2 text-[11px] text-slate-600">Indicadores de ejecución</div>
                               <div className="mt-1 grid gap-1">
                                 {nicIndicatorOptions(item).map((indicator) => {
                                   const checked = nicScaleById[item.id]?.indicators.includes(indicator) ?? false;
                                   return (
-                                    <label key={`${item.id}-${indicator}`} className="text-xs text-white/75">
+                                    <label key={`${item.id}-${indicator}`} className="text-xs text-slate-600">
                                       <input
                                         type="checkbox"
                                         checked={checked}
@@ -1095,17 +1095,17 @@ export default function PaePage() {
               {stage === 5 && (
                 <div>
                   <h2 className="text-lg font-semibold">Etapa 5 · Fundamentación</h2>
-                  <p className="mt-1 text-sm text-white/65">
+                  <p className="mt-1 text-sm text-slate-500">
                     Resume el razonamiento clínico del PAE y por qué tus decisiones son coherentes.
                   </p>
-                  <label className="mt-3 block text-xs text-white/70">
+                  <label className="mt-3 block text-xs text-slate-600">
                     Fundamentación clínica
                     <textarea
                       value={rationaleText}
                       onChange={(event) => setRationaleText(event.target.value)}
                       rows={8}
                       placeholder="Relaciona valoración + diagnóstico + resultados + intervenciones."
-                      className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
+                      className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
                     />
                   </label>
                 </div>
@@ -1114,22 +1114,22 @@ export default function PaePage() {
               {stage === 6 && (
                 <div>
                   <h2 className="text-lg font-semibold">Etapa 6 · Evaluación</h2>
-                  <p className="mt-1 text-sm text-white/65">
+                  <p className="mt-1 text-sm text-slate-500">
                     Registra evolución y cumplimiento de objetivos para cerrar el PAE.
                   </p>
 
-                  <div className="mt-3 rounded-xl border border-white/10 bg-black/25 p-3 text-sm text-white/85">
+                  <div className="mt-3 rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-800">
                     Criterios sugeridos: {template.evaluationCriteria.join(" · ")}
                   </div>
 
-                  <label className="mt-3 block text-xs text-white/70">
+                  <label className="mt-3 block text-xs text-slate-600">
                     Evaluación final
                     <textarea
                       value={evaluationText}
                       onChange={(event) => setEvaluationText(event.target.value)}
                       rows={6}
                       placeholder="Describe evolución clínica y grado de cumplimiento de metas."
-                      className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
+                      className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
                     />
                   </label>
                 </div>
@@ -1140,7 +1140,7 @@ export default function PaePage() {
                   type="button"
                   onClick={goPrev}
                   disabled={stage === 1}
-                  className="rounded-xl border border-white/15 bg-black/35 px-4 py-2 text-sm text-white/90 disabled:opacity-40"
+                  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900/90 disabled:opacity-40"
                 >
                   Anterior
                 </button>
@@ -1148,7 +1148,7 @@ export default function PaePage() {
                   type="button"
                   onClick={goNext}
                   disabled={stage === 6}
-                  className="rounded-xl border border-white/15 bg-black/35 px-4 py-2 text-sm text-white/90 disabled:opacity-40"
+                  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900/90 disabled:opacity-40"
                 >
                   Siguiente
                 </button>
@@ -1162,7 +1162,7 @@ export default function PaePage() {
                 <button
                   type="button"
                   onClick={resetDraft}
-                  className="rounded-xl border border-white/15 bg-black/35 px-4 py-2 text-sm text-white/90"
+                  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900/90"
                 >
                   Reiniciar
                 </button>
@@ -1170,43 +1170,43 @@ export default function PaePage() {
             </article>
 
             <aside className="space-y-3">
-              <div className="rounded-2xl border border-white/10 bg-[#0B121F]/90 p-4">
-                <h3 className="text-sm font-semibold text-white">Datos de identificación</h3>
+              <div className="rounded-2xl border border-slate-200 bg-white/82 p-4">
+                <h3 className="text-sm font-semibold text-slate-900">Datos de identificación</h3>
                 <div className="mt-3 grid gap-2">
-                  <label className="text-xs text-white/70">
+                  <label className="text-xs text-slate-600">
                     Cama #
                     <input
                       type="text"
                       value={bedNumber}
                       onChange={(event) => setBedNumber(event.target.value)}
-                      className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                      className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
                     />
                   </label>
-                  <label className="text-xs text-white/70">
+                  <label className="text-xs text-slate-600">
                     N° Historia clínica
                     <input
                       type="text"
                       value={clinicalRecord}
                       onChange={(event) => setClinicalRecord(event.target.value)}
-                      className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                      className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
                     />
                   </label>
-                  <label className="text-xs text-white/70">
+                  <label className="text-xs text-slate-600">
                     Nombre del interno/a
                     <input
                       type="text"
                       value={internName}
                       onChange={(event) => setInternName(event.target.value)}
-                      className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm text-white"
+                      className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
                     />
                   </label>
                 </div>
               </div>
 
               {mode === "practice" && guidanceMode === "guided" && (
-                <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                   <h3 className="text-sm font-semibold">Asistencia inteligente</h3>
-                  <ul className="mt-2 space-y-1 text-xs text-white/75">
+                  <ul className="mt-2 space-y-1 text-xs text-slate-600">
                     {template.automaticFeedback.map((note) => (
                       <li key={note}>• {note}</li>
                     ))}
@@ -1215,40 +1215,40 @@ export default function PaePage() {
               )}
 
               {mode === "practice" && guidanceMode === "autonomous" && (
-                <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                   <h3 className="text-sm font-semibold">Base taxonómica activa</h3>
-                  <div className="mt-2 text-xs text-white/75">NANDA: {NANDA_LIBRARY.length} entradas</div>
-                  <div className="mt-1 text-xs text-white/75">NOC: {NOC_LIBRARY.length} entradas</div>
-                  <div className="mt-1 text-xs text-white/75">NIC: {NIC_LIBRARY.length} entradas</div>
-                  <div className="mt-2 text-xs text-cyan-100/90">
+                  <div className="mt-2 text-xs text-slate-600">NANDA: {NANDA_LIBRARY.length} entradas</div>
+                  <div className="mt-1 text-xs text-slate-600">NOC: {NOC_LIBRARY.length} entradas</div>
+                  <div className="mt-1 text-xs text-slate-600">NIC: {NIC_LIBRARY.length} entradas</div>
+                  <div className="mt-2 text-xs text-cyan-700/90">
                     En modo no guiado la calificación evalúa coherencia entre NANDA, NOC y NIC seleccionados.
                   </div>
                 </div>
               )}
 
               {validationVisible && (
-                <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="text-sm font-semibold">
                       {guidanceMode === "guided" ? "Coherencia del PAE" : "Coherencia NANDA/NOC/NIC"}
                     </h3>
-                    <span className="rounded-full border border-cyan-400/35 bg-cyan-400/10 px-2 py-0.5 text-xs text-cyan-100">
+                    <span className="rounded-full border border-cyan-400/35 bg-cyan-400/10 px-2 py-0.5 text-xs text-cyan-700">
                       {draftValidation.totalScore}/100
                     </span>
                   </div>
-                  <div className="mt-2 text-xs text-white/70">{draftValidation.summary}</div>
+                  <div className="mt-2 text-xs text-slate-600">{draftValidation.summary}</div>
 
-                  <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-white/70">
-                    <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1">Valoración: {draftValidation.rubric.assessment}</div>
-                    <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1">Diagnóstico: {draftValidation.rubric.diagnosis}</div>
-                    <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1">Resultados: {draftValidation.rubric.outcomes}</div>
-                    <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1">Intervenciones: {draftValidation.rubric.interventions}</div>
-                    <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1">Fundamentación: {draftValidation.rubric.rationale}</div>
-                    <div className="rounded-lg border border-white/10 bg-black/25 px-2 py-1">Evaluación: {draftValidation.rubric.evaluation}</div>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-600">
+                    <div className="rounded-lg border border-slate-200 bg-white px-2 py-1">Valoración: {draftValidation.rubric.assessment}</div>
+                    <div className="rounded-lg border border-slate-200 bg-white px-2 py-1">Diagnóstico: {draftValidation.rubric.diagnosis}</div>
+                    <div className="rounded-lg border border-slate-200 bg-white px-2 py-1">Resultados: {draftValidation.rubric.outcomes}</div>
+                    <div className="rounded-lg border border-slate-200 bg-white px-2 py-1">Intervenciones: {draftValidation.rubric.interventions}</div>
+                    <div className="rounded-lg border border-slate-200 bg-white px-2 py-1">Fundamentación: {draftValidation.rubric.rationale}</div>
+                    <div className="rounded-lg border border-slate-200 bg-white px-2 py-1">Evaluación: {draftValidation.rubric.evaluation}</div>
                   </div>
 
                   {draftValidation.criticalGaps.length > 0 && (
-                    <div className="mt-3 rounded-lg border border-red-400/30 bg-red-400/10 p-2 text-xs text-red-100">
+                    <div className="mt-3 rounded-lg border border-red-400/30 bg-red-400/10 p-2 text-xs text-red-700">
                       {draftValidation.criticalGaps.map((gap) => (
                         <div key={gap}>• {gap}</div>
                       ))}
@@ -1256,7 +1256,7 @@ export default function PaePage() {
                   )}
 
                   {draftValidation.notices.length > 0 && (
-                    <div className="mt-2 rounded-lg border border-amber-400/30 bg-amber-400/10 p-2 text-xs text-amber-100">
+                    <div className="mt-2 rounded-lg border border-amber-400/30 bg-amber-400/10 p-2 text-xs text-amber-700">
                       {draftValidation.notices.map((notice) => (
                         <div key={notice}>• {notice}</div>
                       ))}
@@ -1267,15 +1267,15 @@ export default function PaePage() {
             </aside>
           </section>
 
-          <section className="mt-5 rounded-2xl border border-white/10 bg-[#0A0F18]/90 p-4">
+          <section className="mt-5 rounded-2xl border border-slate-200 bg-white/82 p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
               <h2 className="text-base font-semibold">Formato final de Plan de Atención de Enfermería</h2>
-              <span className="text-xs text-white/55">Vista resumen editable</span>
+              <span className="text-xs text-slate-400">Vista resumen editable</span>
             </div>
 
-            <div className="overflow-x-auto rounded-xl border border-white/10">
+            <div className="overflow-x-auto rounded-xl border border-slate-200">
               <table className="min-w-full text-sm">
-                <thead className="bg-white/5 text-xs uppercase tracking-wide text-white/60">
+                <thead className="bg-white/80 text-xs uppercase tracking-wide text-slate-500">
                   <tr>
                     <th className="px-3 py-2 text-left">Diagnóstico de Enfermería</th>
                     <th className="px-3 py-2 text-left">Resultados de Enfermería</th>
@@ -1287,22 +1287,22 @@ export default function PaePage() {
                   {mappedRows.map((row) => (
                     <tr
                       key={row.kind === "guided" ? row.diagnosis.id : row.nanda.id}
-                      className="border-t border-white/10 align-top"
+                      className="border-t border-slate-200 align-top"
                     >
                       <td className="px-3 py-3">
                         {row.kind === "guided" ? (
                           <>
-                            <div className="font-semibold text-white/90">{row.diagnosis.diagnosticLabel}</div>
-                            <div className="text-xs text-white/60">{row.diagnosis.domain}</div>
-                            <div className="text-xs text-white/60">{row.diagnosis.classLabel}</div>
+                            <div className="font-semibold text-slate-900/90">{row.diagnosis.diagnosticLabel}</div>
+                            <div className="text-xs text-slate-500">{row.diagnosis.domain}</div>
+                            <div className="text-xs text-slate-500">{row.diagnosis.classLabel}</div>
                           </>
                         ) : (
                           <>
-                            <div className="font-semibold text-white/90">
+                            <div className="font-semibold text-slate-900/90">
                               {row.nanda.code} · {row.nanda.label}
                             </div>
-                            <div className="text-xs text-white/60">{row.nanda.domain}</div>
-                            <div className="text-xs text-white/60">{row.nanda.classLabel}</div>
+                            <div className="text-xs text-slate-500">{row.nanda.domain}</div>
+                            <div className="text-xs text-slate-500">{row.nanda.classLabel}</div>
                           </>
                         )}
                       </td>
@@ -1311,14 +1311,14 @@ export default function PaePage() {
                           row.outcomes.map((outcome) => (
                             <div
                               key={outcome.id}
-                              className="mb-2 rounded-lg border border-white/10 bg-black/25 p-2"
+                              className="mb-2 rounded-lg border border-slate-200 bg-white p-2"
                             >
-                              <div className="font-medium text-white/90">
+                              <div className="font-medium text-slate-900/90">
                                 {"target" in outcome
                                   ? outcome.label
                                   : `${outcome.code} · ${outcome.label}`}
                               </div>
-                              <div className="text-xs text-white/65">
+                              <div className="text-xs text-slate-500">
                                 {"target" in outcome
                                   ? `Meta: ${outcome.target}`
                                   : outcome.indicators.slice(0, 2).join(" · ")}
@@ -1326,7 +1326,7 @@ export default function PaePage() {
                             </div>
                           ))
                         ) : (
-                          <span className="text-xs text-white/50">Sin resultado seleccionado</span>
+                          <span className="text-xs text-slate-400">Sin resultado seleccionado</span>
                         )}
                       </td>
                       <td className="px-3 py-3">
@@ -1334,20 +1334,20 @@ export default function PaePage() {
                           row.interventions.map((intervention) => (
                             <div
                               key={intervention.id}
-                              className="mb-2 rounded-lg border border-white/10 bg-black/25 p-2"
+                              className="mb-2 rounded-lg border border-slate-200 bg-white p-2"
                             >
-                              <div className="font-medium text-white/90">
+                              <div className="font-medium text-slate-900/90">
                                 {"rationale" in intervention
                                   ? intervention.label
                                   : `${intervention.code} · ${intervention.label}`}
                               </div>
-                              <div className="text-xs text-white/65">
+                              <div className="text-xs text-slate-500">
                                 {intervention.activities.length
                                   ? intervention.activities.slice(0, 2).join(" · ")
                                   : "Sin actividades cargadas en catálogo."}
                               </div>
                               {guidanceMode === "autonomous" && nicScaleById[intervention.id] && (
-                                <div className="mt-1 text-[11px] text-sky-100/90">
+                                <div className="mt-1 text-[11px] text-sky-700/90">
                                   Escala NIC: {nicScaleById[intervention.id].baseline} →{" "}
                                   {nicScaleById[intervention.id].target}
                                   {nicScaleById[intervention.id].indicators.length
@@ -1358,11 +1358,11 @@ export default function PaePage() {
                             </div>
                           ))
                         ) : (
-                          <span className="text-xs text-white/50">Sin intervención seleccionada</span>
+                          <span className="text-xs text-slate-400">Sin intervención seleccionada</span>
                         )}
                       </td>
                       <td className="px-3 py-3">
-                        <div className="text-xs text-white/70">
+                        <div className="text-xs text-slate-600">
                           {evaluationText.trim() || "Pendiente de completar evaluación final."}
                         </div>
                       </td>
@@ -1370,8 +1370,8 @@ export default function PaePage() {
                   ))}
 
                   {!mappedRows.length && (
-                    <tr className="border-t border-white/10">
-                      <td colSpan={4} className="px-3 py-6 text-center text-sm text-white/60">
+                    <tr className="border-t border-slate-200">
+                      <td colSpan={4} className="px-3 py-6 text-center text-sm text-slate-500">
                         Completa etapas 2, 3 y 4 para generar la matriz final del PAE.
                       </td>
                     </tr>
@@ -1380,17 +1380,17 @@ export default function PaePage() {
               </table>
             </div>
 
-            <div className="mt-3 grid gap-2 text-xs text-white/65 md:grid-cols-4">
-              <div className="rounded-lg border border-white/10 bg-black/25 px-3 py-2">
+            <div className="mt-3 grid gap-2 text-xs text-slate-500 md:grid-cols-4">
+              <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
                 Diagnóstico médico: {template.patient.medicalDiagnosis}
               </div>
-              <div className="rounded-lg border border-white/10 bg-black/25 px-3 py-2">
+              <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
                 Tratamiento farmacológico: {template.patient.pharmacologicGroup}
               </div>
-              <div className="rounded-lg border border-white/10 bg-black/25 px-3 py-2">
+              <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
                 Tipo de dieta: {template.patient.dietType}
               </div>
-              <div className="rounded-lg border border-white/10 bg-black/25 px-3 py-2">
+              <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
                 Interno/a: {internName.trim() || "—"}
               </div>
             </div>

@@ -776,21 +776,21 @@ export default function CasesPage() {
 
   const riskBadgeClass =
     caseRiskLevel === "alto"
-      ? "border-red-400/30 bg-red-400/10 text-red-100"
+      ? "border-red-400/30 bg-red-400/10 text-red-700"
       : caseRiskLevel === "medio"
-      ? "border-amber-400/30 bg-amber-400/10 text-amber-100"
-      : "border-emerald-400/30 bg-emerald-400/10 text-emerald-100";
+      ? "border-amber-400/30 bg-amber-400/10 text-amber-700"
+      : "border-emerald-400/30 bg-emerald-400/10 text-emerald-700";
 
   const topicsHref = computedDx
     ? `/topics?dx=${encodeURIComponent(computedDx)}`
     : "/topics";
 
   return (
-    <div className="min-h-screen bg-[#070A12] text-white">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f6fbf9_0%,#eef5f2_48%,#e6efeb_100%)] text-slate-900">
       <div className="mx-auto flex max-w-7xl gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
         <Sidebar />
 
-        <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+        <main className="flex-1 rounded-2xl border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] p-5 shadow-[0_24px_70px_rgba(99,126,118,0.16)] backdrop-blur-xl">
           <div className="relative mx-auto w-full max-w-6xl">
             <div
               aria-hidden
@@ -800,7 +800,7 @@ export default function CasesPage() {
             <header className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h1 className="text-2xl font-semibold">Simulador de trastornos mentales</h1>
-                <p className="mt-1 text-sm text-white/70">
+                <p className="mt-1 text-sm text-slate-600">
                   Casos clínicos de salud mental para práctica de entrevista y razonamiento clínico.
                 </p>
               </div>
@@ -808,13 +808,13 @@ export default function CasesPage() {
               <div className="flex items-center gap-2">
                 <Link
                   href="/topics"
-                  className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                 >
                   Biblioteca clínica
                 </Link>
                 <Link
                   href="/"
-                  className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                 >
                   Volver a inicio
                 </Link>
@@ -832,8 +832,8 @@ export default function CasesPage() {
                   key={step.id}
                   className={`rounded-xl border px-3 py-2 text-sm ${
                     step.done
-                      ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100"
-                      : "border-white/10 bg-black/25 text-white/65"
+                      ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-700"
+                      : "border-slate-200 bg-white text-slate-500"
                   }`}
                 >
                   {step.id}. {step.label}
@@ -841,10 +841,10 @@ export default function CasesPage() {
               ))}
             </section>
 
-            <section className="mt-5 rounded-2xl border border-white/10 bg-[#0C111D]/80 p-5">
+            <section className="mt-5 rounded-2xl border border-slate-200 bg-white/82 p-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <div className="text-sm text-white/60">Paso 1</div>
+                  <div className="text-sm text-slate-500">Paso 1</div>
                   <h2 className="text-lg font-semibold">Elige la temática del caso</h2>
                 </div>
 
@@ -852,7 +852,7 @@ export default function CasesPage() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Buscar temática…"
-                  className="w-full rounded-xl border border-white/10 bg-black/35 px-4 py-2.5 text-sm outline-none focus:border-white/20 sm:w-[300px]"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-cyan-300/40 sm:w-[300px]"
                 />
               </div>
 
@@ -870,8 +870,8 @@ export default function CasesPage() {
                     onClick={() => setCatalogFilter(value)}
                     className={`rounded-full border px-3 py-1.5 text-xs transition ${
                       catalogFilter === value
-                        ? "border-white/30 bg-white/10 text-white"
-                        : "border-white/10 bg-black/25 text-white/70 hover:bg-white/5"
+                        ? "border-white/30 bg-white/10 text-slate-900"
+                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                     }`}
                   >
                     {label}
@@ -879,13 +879,13 @@ export default function CasesPage() {
                 ))}
               </div>
 
-              <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+              <div className="mt-4 rounded-2xl border border-slate-200 bg-white/78 p-4">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/75">
+                    <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600">
                       Seleccionado: {selectedCard?.title ?? "—"}
                     </span>
-                    <span className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/75">
+                    <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600">
                       Enfoque: {prettyApproach(cfgApproach)}
                     </span>
                   </div>
@@ -901,14 +901,14 @@ export default function CasesPage() {
                     <button
                       onClick={(e) => openConfig(e.currentTarget)}
                       disabled={!caseObj}
-                      className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/85 hover:bg-white/5 disabled:opacity-50"
+                      className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-800 hover:bg-slate-50 disabled:opacity-50"
                     >
                       Configurar caso
                     </button>
                     <button
                       onClick={handleGenerate}
                       disabled={loading || isCooldownActive}
-                      className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-2 text-sm text-cyan-100 disabled:opacity-60"
+                      className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-4 py-2 text-sm text-cyan-700 disabled:opacity-60"
                     >
                       {loading
                         ? "Generando caso…"
@@ -921,9 +921,9 @@ export default function CasesPage() {
               </div>
 
               {!caseObj && (
-                <section className="mt-4 rounded-2xl border border-dashed border-white/15 bg-black/20 p-5">
+                <section className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-white/78 p-5">
                   <div className="text-base font-semibold">Aún no hay caso generado</div>
-                  <p className="mt-2 text-sm text-white/65">
+                  <p className="mt-2 text-sm text-slate-500">
                     Elige una temática y genera un caso IA para continuar al simulador.
                   </p>
                 </section>
@@ -950,7 +950,7 @@ export default function CasesPage() {
                       className={`relative overflow-hidden rounded-2xl border p-4 text-left transition ${
                         selected
                           ? "border-cyan-400/35 bg-cyan-500/10 ring-2 ring-cyan-400/25"
-                          : "border-white/10 bg-black/25 hover:bg-black/35"
+                          : "border-slate-200 bg-white hover:bg-white"
                       }`}
                     >
                       <div
@@ -959,12 +959,12 @@ export default function CasesPage() {
                       <div className="relative">
                         <div className="flex items-center justify-between gap-2">
                           <div className="text-base font-semibold">{item.title}</div>
-                          <span className="rounded-full border border-white/15 bg-black/25 px-2 py-0.5 text-[10px] text-white/70">
+                          <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] text-slate-600">
                             {item.tag}
                           </span>
                         </div>
-                        <div className="mt-1 text-sm text-white/70">{item.desc}</div>
-                        <div className="mt-3 text-[11px] text-white/55">
+                        <div className="mt-1 text-sm text-slate-600">{item.desc}</div>
+                        <div className="mt-3 text-[11px] text-slate-400">
                           Grupo etario:{" "}
                           {item.age_group === "adult"
                             ? "Adulto"
@@ -980,37 +980,37 @@ export default function CasesPage() {
             </section>
 
             {error && (
-              <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-100">
+              <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-700">
                 {error}
               </div>
             )}
 
             {caseObj && essentials && (
-              <section className="mt-5 rounded-2xl border border-white/10 bg-[#0C111D]/85 p-5">
+              <section className="mt-5 rounded-2xl border border-slate-200 bg-white/82 p-5">
                 <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.5fr_1fr]">
-                  <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                    <div className="text-xs uppercase tracking-wider text-white/55">
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div className="text-xs uppercase tracking-wider text-slate-400">
                       Resumen clínico
                     </div>
                     <div className="mt-2 text-xl font-semibold">{essentials.title}</div>
-                    <div className="mt-2 text-sm text-white/75">
+                    <div className="mt-2 text-sm text-slate-600">
                       {essentials.summary || "Caso generado correctamente. Revisa motivo y contexto para iniciar."}
                     </div>
-                    <div className="mt-3 rounded-xl border border-white/10 bg-black/25 p-3">
-                      <div className="text-xs text-white/55">Motivo de consulta</div>
-                      <div className="mt-1 text-sm text-white/85">
+                    <div className="mt-3 rounded-xl border border-slate-200 bg-white p-3">
+                      <div className="text-xs text-slate-400">Motivo de consulta</div>
+                      <div className="mt-1 text-sm text-slate-800">
                         {cfgChiefComplaint || essentials.chiefComplaint || "—"}
                       </div>
-                      <div className="mt-3 text-xs text-white/55">Contexto breve</div>
-                      <div className="mt-1 text-sm text-white/75">
+                      <div className="mt-3 text-xs text-slate-400">Contexto breve</div>
+                      <div className="mt-1 text-sm text-slate-600">
                         {cfgContext || essentials.context || "—"}
                       </div>
                     </div>
                   </div>
 
                   <div className="space-y-3">
-                    <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                      <div className="text-xs uppercase tracking-wider text-white/55">
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                      <div className="text-xs uppercase tracking-wider text-slate-400">
                         Riesgo educativo
                       </div>
                       <span
@@ -1018,26 +1018,26 @@ export default function CasesPage() {
                       >
                         Nivel {caseRiskLevel}
                       </span>
-                      <p className="mt-2 text-xs text-white/70">
+                      <p className="mt-2 text-xs text-slate-600">
                         Resultado orientativo para priorizar seguridad en el entrenamiento.
                       </p>
                     </div>
 
-                    <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                      <div className="text-xs uppercase tracking-wider text-white/55">
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                      <div className="text-xs uppercase tracking-wider text-slate-400">
                         Datos del caso
                       </div>
                       <div className="mt-2 flex flex-wrap gap-2">
-                        <span className="rounded-full border border-white/15 bg-black/20 px-2.5 py-1 text-xs text-white/75">
+                        <span className="rounded-full border border-slate-200 bg-white/78 px-2.5 py-1 text-xs text-slate-600">
                           {prettySex(cfgSex)} · {cfgAge} años
                         </span>
-                        <span className="rounded-full border border-white/15 bg-black/20 px-2.5 py-1 text-xs text-white/75">
+                        <span className="rounded-full border border-slate-200 bg-white/78 px-2.5 py-1 text-xs text-slate-600">
                           {prettyDifficulty(cfgDifficulty)}
                         </span>
-                        <span className="rounded-full border border-white/15 bg-black/20 px-2.5 py-1 text-xs text-white/75">
+                        <span className="rounded-full border border-slate-200 bg-white/78 px-2.5 py-1 text-xs text-slate-600">
                           {cfgTargetMinutes} min
                         </span>
-                        <span className="rounded-full border border-white/15 bg-black/20 px-2.5 py-1 text-xs text-white/75">
+                        <span className="rounded-full border border-slate-200 bg-white/78 px-2.5 py-1 text-xs text-slate-600">
                           {cfgAgeGroup === "adult"
                             ? "Adulto"
                             : cfgAgeGroup === "adolescent"
@@ -1045,12 +1045,12 @@ export default function CasesPage() {
                             : "Niñez"}
                         </span>
                         {cfgCompanionAvailable && (
-                          <span className="rounded-full border border-white/15 bg-black/20 px-2.5 py-1 text-xs text-white/75">
+                          <span className="rounded-full border border-slate-200 bg-white/78 px-2.5 py-1 text-xs text-slate-600">
                             Acompañante: {prettyCompanionRole(cfgCompanionRole)}
                           </span>
                         )}
                       </div>
-                      <div className="mt-3 text-xs text-white/60">
+                      <div className="mt-3 text-xs text-slate-500">
                         DSM: {safeStr((caseObj as any)?.meta?.dsm_tag, deriveDsmTag(selectedCategory, selectedCard) || "—")}
                       </div>
                     </div>
@@ -1058,42 +1058,42 @@ export default function CasesPage() {
                 </div>
 
                 <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
-                  <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                    <div className="text-xs uppercase tracking-wider text-white/55">
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div className="text-xs uppercase tracking-wider text-slate-400">
                       Objetivo docente
                     </div>
-                    <div className="mt-2 text-sm text-white/85">
+                    <div className="mt-2 text-sm text-slate-800">
                       {cfgLearningObjective || essentials.learningObjective || "—"}
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                    <div className="text-xs uppercase tracking-wider text-white/55">
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                    <div className="text-xs uppercase tracking-wider text-slate-400">
                       Sugerencias para entrevista
                     </div>
-                    <div className="mt-2 text-sm text-white/80">
+                    <div className="mt-2 text-sm text-slate-700">
                       Escalas: {interviewSuggestions.scales.join(" · ")}
                     </div>
-                    <div className="mt-1 text-sm text-white/80">
+                    <div className="mt-1 text-sm text-slate-700">
                       Tests: {interviewSuggestions.tests.join(" · ")}
                     </div>
-                    <div className="mt-2 text-xs text-white/65">
+                    <div className="mt-2 text-xs text-slate-500">
                       {interviewSuggestions.focus[0]}
                     </div>
-                    <div className="mt-1 text-xs text-white/65">
+                    <div className="mt-1 text-xs text-slate-500">
                       {interviewSuggestions.focus[1]}
                     </div>
-                    <div className="mt-1 text-xs text-white/65">
+                    <div className="mt-1 text-xs text-slate-500">
                       {interviewSuggestions.focus[2]}
                     </div>
                   </div>
 
                   {isPediatricCase && (
                     <div className="rounded-2xl border border-cyan-300/25 bg-cyan-300/10 p-4 lg:col-span-2">
-                      <div className="text-sm font-semibold text-cyan-100">
+                      <div className="text-sm font-semibold text-cyan-700">
                         Checklist pediátrico sugerido
                       </div>
-                      <div className="mt-2 text-xs text-cyan-100/90">
+                      <div className="mt-2 text-xs text-cyan-700/90">
                         Desarrollo · Escolaridad · Conducta en casa · Conducta en escuela · Sueño · Alimentación · Socialización · Antecedentes perinatales.
                       </div>
                     </div>
@@ -1103,14 +1103,14 @@ export default function CasesPage() {
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Link
                     href={topicsHref}
-                    className="rounded-xl border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
+                    className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50"
                   >
                     Abrir referencia clínica
                   </Link>
                   <button
                     type="button"
                     onClick={(e) => openConfig(e.currentTarget)}
-                    className="rounded-xl border border-white/15 px-3 py-2 text-xs text-white/80 hover:bg-white/5"
+                    className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50"
                   >
                     Ajustar escenario
                   </button>
@@ -1124,10 +1124,10 @@ export default function CasesPage() {
                 </div>
 
                 <details className="mt-4">
-                  <summary className="cursor-pointer text-xs text-white/60">
+                  <summary className="cursor-pointer text-xs text-slate-500">
                     Ver JSON (debug)
                   </summary>
-                  <pre className="mt-2 overflow-auto rounded-xl bg-black/40 p-3 text-xs text-white/70">
+                  <pre className="mt-2 overflow-auto rounded-xl bg-slate-100 p-3 text-xs text-slate-600">
                     {JSON.stringify(caseObj, null, 2)}
                   </pre>
                 </details>
@@ -1137,26 +1137,26 @@ export default function CasesPage() {
             {showConfig && (
               <div className="fixed inset-0 z-50">
                 <div
-                  className="absolute inset-0 bg-black/70"
+                  className="absolute inset-0 bg-white/90"
                   onClick={() => setShowConfig(false)}
                 />
 
                 <div className="relative h-full w-full overflow-y-auto px-2 py-3 sm:px-4 sm:py-4">
                   <div
-                    className="relative mx-auto mb-6 flex max-h-[calc(100dvh-20px)] w-full max-w-[1080px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0A1020]/95 shadow-2xl backdrop-blur-xl sm:max-h-[calc(100dvh-32px)]"
+                    className="relative mx-auto mb-6 flex max-h-[calc(100dvh-20px)] w-full max-w-[1080px] flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-xl sm:max-h-[calc(100dvh-32px)]"
                     style={{ marginTop: configModalTopOffset }}
                   >
-                    <div className="border-b border-white/10 px-4 py-4 sm:px-6 sm:py-5">
+                    <div className="border-b border-slate-200 px-4 py-4 sm:px-6 sm:py-5">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
-                        <div className="text-sm text-white/60">Configurar caso</div>
+                        <div className="text-sm text-slate-500">Configurar caso</div>
                         <h3 className="mt-1 text-lg font-semibold">
                           Ajusta el escenario antes de iniciar
                         </h3>
                       </div>
                       <button
                         onClick={() => setShowConfig(false)}
-                        className="rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5"
+                        className="rounded-xl border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50"
                       >
                         Cerrar
                       </button>
@@ -1174,8 +1174,8 @@ export default function CasesPage() {
                           onClick={() => setConfigStep(step)}
                           className={`rounded-full border px-3 py-1 text-xs ${
                             configStep === step
-                              ? "border-cyan-300/40 bg-cyan-300/10 text-cyan-100"
-                              : "border-white/10 bg-black/20 text-white/65"
+                              ? "border-cyan-300/40 bg-cyan-300/10 text-cyan-700"
+                              : "border-slate-200 bg-white/78 text-slate-500"
                           }`}
                         >
                           {step}. {label}
@@ -1187,21 +1187,21 @@ export default function CasesPage() {
                     <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
                       {configStep === 1 && (
                         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                          <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                            <label className="text-xs text-white/60">Nombre</label>
+                          <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                            <label className="text-xs text-slate-500">Nombre</label>
                             <input
                               value={cfgName}
                               onChange={(e) => setCfgName(e.target.value)}
-                              className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                              className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none"
                             />
 
                             <div className="mt-3 grid grid-cols-2 gap-2">
                               <div>
-                                <label className="text-xs text-white/60">Sexo</label>
+                                <label className="text-xs text-slate-500">Sexo</label>
                                 <select
                                   value={cfgSex}
                                   onChange={(e) => setCfgSex(e.target.value as SexValue)}
-                                  className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none"
                                 >
                                   <option value="unspecified">No especificado</option>
                                   <option value="female">Mujer</option>
@@ -1210,7 +1210,7 @@ export default function CasesPage() {
                                 </select>
                               </div>
                               <div>
-                                <label className="text-xs text-white/60">Edad</label>
+                                <label className="text-xs text-slate-500">Edad</label>
                                 <input
                                   type="number"
                                   value={cfgAge}
@@ -1219,28 +1219,28 @@ export default function CasesPage() {
                                   onChange={(e) =>
                                     setCfgAge(clampInt(Number(e.target.value), 5, 95))
                                   }
-                                  className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none"
                                 />
                               </div>
                             </div>
 
-                            <label className="mt-3 block text-xs text-white/60">Contexto breve</label>
+                            <label className="mt-3 block text-xs text-slate-500">Contexto breve</label>
                             <textarea
                               value={cfgContext}
                               onChange={(e) => setCfgContext(e.target.value)}
-                              className="mt-1 min-h-[120px] w-full resize-none rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                              className="mt-1 min-h-[120px] w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none"
                             />
                           </div>
 
-                          <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                          <div className="rounded-2xl border border-slate-200 bg-white p-4">
                             <div className="text-sm font-semibold">Vista rápida</div>
-                            <div className="mt-3 text-sm text-white/80">
+                            <div className="mt-3 text-sm text-slate-700">
                               Paciente: {cfgName || "—"}
                             </div>
-                            <div className="mt-1 text-sm text-white/80">
+                            <div className="mt-1 text-sm text-slate-700">
                               Perfil: {prettySex(cfgSex)} · {cfgAge} años
                             </div>
-                            <div className="mt-3 rounded-xl border border-white/10 bg-black/25 p-3 text-xs text-white/70">
+                            <div className="mt-3 rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-600">
                               Completa estos datos para que la narrativa del caso sea coherente antes
                               de configurar parámetros docentes.
                             </div>
@@ -1250,16 +1250,16 @@ export default function CasesPage() {
 
                     {configStep === 2 && (
                       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                        <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                        <div className="rounded-2xl border border-slate-200 bg-white p-4">
                           <div className="grid grid-cols-2 gap-2">
                             <div>
-                              <label className="text-xs text-white/60">Dificultad</label>
+                              <label className="text-xs text-slate-500">Dificultad</label>
                               <select
                                 value={cfgDifficulty}
                                 onChange={(e) =>
                                   setCfgDifficulty(e.target.value as DifficultyValue)
                                 }
-                                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none"
                               >
                                 <option value="beginner">Básico</option>
                                 <option value="intermediate">Intermedio</option>
@@ -1267,13 +1267,13 @@ export default function CasesPage() {
                               </select>
                             </div>
                             <div>
-                              <label className="text-xs text-white/60">Duración (min)</label>
+                              <label className="text-xs text-slate-500">Duración (min)</label>
                               <select
                                 value={cfgTargetMinutes}
                                 onChange={(e) =>
                                   setCfgTargetMinutes(clampInt(Number(e.target.value), 5, 30))
                                 }
-                                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none"
                               >
                                 {[5, 10, 15, 20, 25, 30].map((m) => (
                                   <option key={m} value={m}>
@@ -1286,7 +1286,7 @@ export default function CasesPage() {
 
                           <div className="mt-3 grid grid-cols-2 gap-2">
                             <div>
-                              <label className="text-xs text-white/60">Grupo etario</label>
+                              <label className="text-xs text-slate-500">Grupo etario</label>
                               <select
                                 value={cfgAgeGroup}
                                 onChange={(e) => {
@@ -1295,7 +1295,7 @@ export default function CasesPage() {
                                   setCfgAgeGroup(value);
                                   if (pediatric) setCfgCompanionAvailable(true);
                                 }}
-                                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none"
                               >
                                 <option value="adult">Adulto</option>
                                 <option value="adolescent">Adolescente</option>
@@ -1304,13 +1304,13 @@ export default function CasesPage() {
                               </select>
                             </div>
                             <div>
-                              <label className="text-xs text-white/60">Acompañante</label>
+                              <label className="text-xs text-slate-500">Acompañante</label>
                               <select
                                 value={cfgCompanionAvailable ? "yes" : "no"}
                                 onChange={(e) =>
                                   setCfgCompanionAvailable(e.target.value === "yes")
                                 }
-                                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none"
                               >
                                 <option value="no">No</option>
                                 <option value="yes">Sí</option>
@@ -1320,12 +1320,12 @@ export default function CasesPage() {
 
                           <div className="mt-3 grid grid-cols-2 gap-2">
                             <div>
-                              <label className="text-xs text-white/60">Rol acompañante</label>
+                              <label className="text-xs text-slate-500">Rol acompañante</label>
                               <select
                                 value={cfgCompanionRole}
                                 onChange={(e) => setCfgCompanionRole(e.target.value as any)}
                                 disabled={!cfgCompanionAvailable}
-                                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none disabled:opacity-50"
+                                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none disabled:opacity-50"
                               >
                                 <option value="madre">Madre</option>
                                 <option value="padre">Padre</option>
@@ -1335,11 +1335,11 @@ export default function CasesPage() {
                               </select>
                             </div>
                             <div>
-                              <label className="text-xs text-white/60">Enfoque</label>
+                              <label className="text-xs text-slate-500">Enfoque</label>
                               <select
                                 value={cfgApproach}
                                 onChange={(e) => setCfgApproach(e.target.value as ApproachValue)}
-                                className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none"
                               >
                                 <option value="humanistic">Humanístico</option>
                                 <option value="cbt">Cognitivo-conductual (TCC)</option>
@@ -1350,11 +1350,11 @@ export default function CasesPage() {
                           </div>
                         </div>
 
-                        <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                          <div className="flex items-center justify-between rounded-xl border border-white/10 bg-black/25 px-3 py-2">
+                        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2">
                             <div>
                               <div className="text-sm font-medium">Tutor IA</div>
-                              <div className="text-xs text-white/60">
+                              <div className="text-xs text-slate-500">
                                 Sugerencias durante la entrevista (opcional)
                               </div>
                             </div>
@@ -1364,18 +1364,18 @@ export default function CasesPage() {
                               className={`relative inline-flex h-7 w-12 items-center rounded-full border transition ${
                                 cfgTutorEnabled
                                   ? "border-white/20 bg-white/85"
-                                  : "border-white/15 bg-black/40"
+                                  : "border-slate-200 bg-slate-100"
                               }`}
                             >
                               <span
-                                className={`inline-block h-5 w-5 rounded-full bg-black transition ${
+                                className={`inline-block h-5 w-5 rounded-full bg-slate-400 transition ${
                                   cfgTutorEnabled ? "translate-x-6" : "translate-x-1"
                                 }`}
                               />
                             </button>
                           </div>
 
-                          <div className="mt-3 rounded-xl border border-white/10 bg-black/25 p-3 text-xs text-white/70">
+                          <div className="mt-3 rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-600">
                             Usa este paso para fijar el nivel de exigencia y la dinámica del caso
                             antes de trabajar objetivos clínicos.
                           </div>
@@ -1385,32 +1385,32 @@ export default function CasesPage() {
 
                     {configStep === 3 && (
                       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                        <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                          <label className="text-xs text-white/60">
+                        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                          <label className="text-xs text-slate-500">
                             Motivo de consulta (1 línea)
                           </label>
                           <input
                             value={cfgChiefComplaint}
                             onChange={(e) => setCfgChiefComplaint(e.target.value)}
-                            className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                            className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none"
                           />
 
-                          <label className="mt-3 block text-xs text-white/60">
+                          <label className="mt-3 block text-xs text-slate-500">
                             Objetivo de aprendizaje
                           </label>
                           <textarea
                             value={cfgLearningObjective}
                             onChange={(e) => setCfgLearningObjective(e.target.value)}
-                            className="mt-1 min-h-[120px] w-full resize-none rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none"
+                            className="mt-1 min-h-[120px] w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none"
                           />
                         </div>
 
                         <div className="space-y-3">
-                          <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                            <div className="text-xs uppercase tracking-wider text-white/55">
+                          <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                            <div className="text-xs uppercase tracking-wider text-slate-400">
                               Validación rápida
                             </div>
-                            <div className="mt-2 text-sm text-white/80">
+                            <div className="mt-2 text-sm text-slate-700">
                               Riesgo orientativo:{" "}
                               <span
                                 className={`rounded-full border px-2 py-0.5 text-xs ${riskBadgeClass}`}
@@ -1419,20 +1419,20 @@ export default function CasesPage() {
                               </span>
                             </div>
                             {isPediatricCase && !cfgCompanionAvailable && (
-                              <div className="mt-2 rounded-xl border border-amber-400/25 bg-amber-400/10 p-2 text-xs text-amber-100">
+                              <div className="mt-2 rounded-xl border border-amber-400/25 bg-amber-400/10 p-2 text-xs text-amber-700">
                                 Caso pediátrico sin acompañante: confirma si esto es intencional.
                               </div>
                             )}
                           </div>
 
-                          <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                            <div className="text-xs uppercase tracking-wider text-white/55">
+                          <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                            <div className="text-xs uppercase tracking-wider text-slate-400">
                               Herramientas sugeridas
                             </div>
-                            <div className="mt-2 text-xs text-white/75">
+                            <div className="mt-2 text-xs text-slate-600">
                               Escalas: {interviewSuggestions.scales.join(" · ")}
                             </div>
-                            <div className="mt-1 text-xs text-white/75">
+                            <div className="mt-1 text-xs text-slate-600">
                               Tests: {interviewSuggestions.tests.join(" · ")}
                             </div>
                           </div>
@@ -1441,15 +1441,15 @@ export default function CasesPage() {
                     )}
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-black/25 px-4 py-3 sm:px-6 sm:py-4">
-                    <div className="text-xs text-white/60">Paso {configStep} de 3</div>
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 bg-white px-4 py-3 sm:px-6 sm:py-4">
+                    <div className="text-xs text-slate-500">Paso {configStep} de 3</div>
 
                     <div className="flex flex-wrap gap-2">
                       {configStep > 1 && (
                         <button
                           type="button"
                           onClick={() => setConfigStep((s) => (Math.max(1, s - 1) as ConfigStep))}
-                          className="rounded-xl border border-white/15 px-3 py-2 text-sm text-white/85 hover:bg-white/5"
+                          className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 hover:bg-slate-50"
                         >
                           Anterior
                         </button>
@@ -1459,7 +1459,7 @@ export default function CasesPage() {
                         <button
                           type="button"
                           onClick={() => setConfigStep((s) => (Math.min(3, s + 1) as ConfigStep))}
-                          className="rounded-xl border border-white/15 px-3 py-2 text-sm text-white/85 hover:bg-white/5"
+                          className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 hover:bg-slate-50"
                         >
                           Siguiente
                         </button>
@@ -1470,7 +1470,7 @@ export default function CasesPage() {
                           <button
                             type="button"
                             onClick={saveConfig}
-                            className="rounded-xl border border-white/15 px-3 py-2 text-sm text-white/85 hover:bg-white/5"
+                            className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 hover:bg-slate-50"
                           >
                             Guardar cambios
                           </button>
@@ -1493,7 +1493,7 @@ export default function CasesPage() {
             </div>
             )}
 
-            <div className="mt-8 text-xs text-white/40">
+            <div className="mt-8 text-xs text-slate-400">
               Psyke es una herramienta educativa. Los casos son ficticios. Resultado orientativo.
               No sustituye valoración clínica real.
             </div>

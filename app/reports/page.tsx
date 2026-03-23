@@ -238,10 +238,10 @@ useEffect(() => {
   const score = useMemo(() => computeScore(caseObj, transcript), [caseObj, transcript]);
 
   const scoreColor = useMemo(() => {
-    if (score.total >= 85) return "text-emerald-200";
-    if (score.total >= 75) return "text-sky-200";
-    if (score.total >= 65) return "text-amber-200";
-    return "text-red-200";
+    if (score.total >= 85) return "text-emerald-700";
+    if (score.total >= 75) return "text-sky-700";
+    if (score.total >= 65) return "text-amber-700";
+    return "text-red-700";
   }, [score.total]);
 
   const ringDeg = useMemo(() => {
@@ -252,21 +252,21 @@ useEffect(() => {
   const dsmTag = useMemo(() => safeStr(caseObj?.meta?.dsm_tag, "—"), [caseObj]);
 
   return (
-    <div className="min-h-screen bg-[#070A0F]">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f6fbf9_0%,#eef5f2_48%,#e6efeb_100%)]">
       <div className="mx-auto flex max-w-[1480px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
         <Sidebar />
 
-        <main className="flex-1 overflow-hidden rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl">
+        <main className="flex-1 overflow-hidden rounded-2xl border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] backdrop-blur-xl shadow-[0_24px_70px_rgba(99,126,118,0.16)]">
           {/* TOPNAV */}
-          <header className="flex h-14 items-center gap-3 border-b border-white/10 bg-white/5 px-5">
-            <div className="flex items-center gap-2 text-sm text-white/70">
-              <span className="text-white/60">Reportes</span>
-              <span className="text-white/30">›</span>
-              <span className="font-semibold text-white">Resultado de sesión</span>
+          <header className="flex h-14 items-center gap-3 border-b border-slate-200 bg-white/80 px-5">
+            <div className="flex items-center gap-2 text-sm text-slate-600">
+              <span className="text-slate-500">Reportes</span>
+              <span className="text-slate-900/30">›</span>
+              <span className="font-semibold text-slate-900">Resultado de sesión</span>
             </div>
 
             <div className="ml-auto flex items-center gap-2">
-              <Link href="/cases" className="rounded-xl border border-white/15 px-3 py-2 text-sm hover:bg-white/5">
+              <Link href="/cases" className="rounded-xl border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50">
                 Biblioteca
               </Link>
               <Link href="/simulator" className="rounded-xl bg-white px-3 py-2 text-sm font-semibold text-black">
@@ -277,16 +277,16 @@ useEffect(() => {
 
           <div className="overflow-y-auto px-5 py-6">
             <div className="mb-6">
-              <div className="text-2xl font-semibold text-white">Resultado de sesión</div>
-              <div className="mt-1 text-sm text-white/60">
-                Caso: <span className="text-white/85">{caseTitle}</span>
-                <span className="text-white/30"> · </span>
-                <span className="text-white/55">Cargado {loadedAt ? new Date(loadedAt).toLocaleString() : "—"}</span>
+              <div className="text-2xl font-semibold text-slate-900">Resultado de sesión</div>
+              <div className="mt-1 text-sm text-slate-500">
+                Caso: <span className="text-slate-800">{caseTitle}</span>
+                <span className="text-slate-900/30"> · </span>
+                <span className="text-slate-400">Cargado {loadedAt ? new Date(loadedAt).toLocaleString() : "—"}</span>
               </div>
             </div>
 
             {/* Score hero */}
-            <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-[#0F1117] to-[#1E2433] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.55)]">
+            <section className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-[#f4faf8] to-[#edf4f1] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.55)]">
               <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
                 <div className="flex items-center gap-5">
                   <div className="text-center">
@@ -296,37 +296,37 @@ useEffect(() => {
                         background: `conic-gradient(#2563EB 0deg, #2563EB ${ringDeg}deg, rgba(255,255,255,0.10) ${ringDeg}deg)`,
                       }}
                     >
-                      <div className="grid h-[86px] w-[86px] place-items-center rounded-full bg-[#0F1117]">
-                        <div className="text-3xl font-bold text-white leading-none">{score.total}</div>
-                        <div className="text-[11px] text-white/45">/100</div>
+                      <div className="grid h-[86px] w-[86px] place-items-center rounded-full bg-white">
+                        <div className="text-3xl font-bold text-slate-900 leading-none">{score.total}</div>
+                        <div className="text-[11px] text-slate-400">/100</div>
                       </div>
                     </div>
-                    <div className="mt-2 text-xs text-white/50">Puntuación global</div>
+                    <div className="mt-2 text-xs text-slate-400">Puntuación global</div>
                   </div>
 
                   <div>
                     <div className={"text-3xl font-bold " + scoreColor}>{score.label}</div>
-                    <div className="mt-2 text-sm text-white/65 max-w-[64ch]">{score.desc}</div>
+                    <div className="mt-2 text-sm text-slate-500 max-w-[64ch]">{score.desc}</div>
 
                     <div className="mt-4 flex flex-wrap gap-3">
-                      <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3">
-                        <div className="text-[10px] uppercase tracking-wider text-white/40">Duración</div>
-                        <div className="mt-1 text-sm font-semibold text-white">{score.durationMin} min</div>
+                      <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                        <div className="text-[10px] uppercase tracking-wider text-slate-400">Duración</div>
+                        <div className="mt-1 text-sm font-semibold text-slate-900">{score.durationMin} min</div>
                       </div>
-                      <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3">
-                        <div className="text-[10px] uppercase tracking-wider text-white/40">Mensajes</div>
-                        <div className="mt-1 text-sm font-semibold text-white">{score.messages}</div>
+                      <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                        <div className="text-[10px] uppercase tracking-wider text-slate-400">Mensajes</div>
+                        <div className="mt-1 text-sm font-semibold text-slate-900">{score.messages}</div>
                       </div>
-                      <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3">
-                        <div className="text-[10px] uppercase tracking-wider text-white/40">Paciente</div>
-                        <div className="mt-1 text-sm font-semibold text-white">
+                      <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                        <div className="text-[10px] uppercase tracking-wider text-slate-400">Paciente</div>
+                        <div className="mt-1 text-sm font-semibold text-slate-900">
                           {patient.name}
-                          <span className="text-white/40 font-normal">{patient.age ? ` · ${patient.age}a` : ""}{patient.sex && patient.sex !== "—" ? ` · ${patient.sex}` : ""}</span>
+                          <span className="text-slate-400 font-normal">{patient.age ? ` · ${patient.age}a` : ""}{patient.sex && patient.sex !== "—" ? ` · ${patient.sex}` : ""}</span>
                         </div>
                       </div>
-                      <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3">
-                        <div className="text-[10px] uppercase tracking-wider text-white/40">DSM tag</div>
-                        <div className="mt-1 text-sm font-semibold text-white">{dsmTag}</div>
+                      <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                        <div className="text-[10px] uppercase tracking-wider text-slate-400">DSM tag</div>
+                        <div className="mt-1 text-sm font-semibold text-slate-900">{dsmTag}</div>
                       </div>
                     </div>
                   </div>
@@ -344,12 +344,12 @@ useEffect(() => {
                   ["Seguridad", score.safety, "from-amber-500/15"],
                 ] as const
               ).map(([label, val, tint]) => (
-                <div key={label} className="rounded-3xl border border-white/10 bg-white/5 p-5">
-                  <div className={"h-9 w-9 rounded-xl border border-white/10 bg-gradient-to-br " + tint + " to-transparent grid place-items-center text-white/80"}>
+                <div key={label} className="rounded-3xl border border-slate-200 bg-white/80 p-5">
+                  <div className={"h-9 w-9 rounded-xl border border-slate-200 bg-gradient-to-br " + tint + " to-transparent grid place-items-center text-slate-700"}>
                     ✦
                   </div>
-                  <div className="mt-3 text-xs text-white/55">{label}</div>
-                  <div className="mt-1 text-2xl font-bold text-white">{val}<span className="text-sm font-normal text-white/45">/100</span></div>
+                  <div className="mt-3 text-xs text-slate-400">{label}</div>
+                  <div className="mt-1 text-2xl font-bold text-slate-900">{val}<span className="text-sm font-normal text-slate-400">/100</span></div>
                   <div className="mt-3 h-2 w-full rounded-full bg-white/10">
                     <div className="h-2 rounded-full bg-white/70" style={{ width: `${val}%` }} />
                   </div>
@@ -359,24 +359,24 @@ useEffect(() => {
 
             {/* Strengths / improvements */}
             <section className="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-2">
-              <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
-                <div className="text-sm font-semibold text-emerald-200">✔ Fortalezas</div>
-                <ul className="mt-4 space-y-2 text-sm text-white/70">
+              <div className="rounded-3xl border border-slate-200 bg-white/80 p-5">
+                <div className="text-sm font-semibold text-emerald-700">✔ Fortalezas</div>
+                <ul className="mt-4 space-y-2 text-sm text-slate-600">
                   {score.strengths.map((s, i) => (
                     <li key={i} className="flex gap-2">
-                      <span className="mt-0.5 text-emerald-200">✔</span>
+                      <span className="mt-0.5 text-emerald-700">✔</span>
                       <span>{s}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
-                <div className="text-sm font-semibold text-amber-200">⚠ Oportunidades de mejora</div>
-                <ul className="mt-4 space-y-2 text-sm text-white/70">
+              <div className="rounded-3xl border border-slate-200 bg-white/80 p-5">
+                <div className="text-sm font-semibold text-amber-700">⚠ Oportunidades de mejora</div>
+                <ul className="mt-4 space-y-2 text-sm text-slate-600">
                   {score.improvements.map((s, i) => (
                     <li key={i} className="flex gap-2">
-                      <span className="mt-0.5 text-amber-200">⚠</span>
+                      <span className="mt-0.5 text-amber-700">⚠</span>
                       <span>{s}</span>
                     </li>
                   ))}
@@ -385,12 +385,12 @@ useEffect(() => {
             </section>
 
             {(feedbackContext?.use_scale_result || feedbackContext?.use_test_result) && (
-              <section className="mt-5 rounded-3xl border border-white/10 bg-white/5 p-5">
-                <div className="text-sm font-semibold text-white">Instrumentos incluidos en retroalimentación final</div>
-                <div className="mt-3 space-y-3 text-sm text-white/75">
+              <section className="mt-5 rounded-3xl border border-slate-200 bg-white/80 p-5">
+                <div className="text-sm font-semibold text-slate-900">Instrumentos incluidos en retroalimentación final</div>
+                <div className="mt-3 space-y-3 text-sm text-slate-600">
                   {feedbackContext?.use_scale_result && feedbackContext?.scale_result && (
-                    <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
-                      <div className="font-semibold text-white">
+                    <div className="rounded-2xl border border-slate-200 bg-white p-3">
+                      <div className="font-semibold text-slate-900">
                         Escala: {feedbackContext?.scale_definition?.short_name ?? feedbackContext?.scale_definition?.name ?? "Escala"}
                       </div>
                       <div className="mt-1">
@@ -398,14 +398,14 @@ useEffect(() => {
                         {feedbackContext.scale_result.severity_label ?? "Sin clasificación"}
                       </div>
                       {feedbackContext.scale_result.interpretation && (
-                        <div className="mt-1 text-white/65">{feedbackContext.scale_result.interpretation}</div>
+                        <div className="mt-1 text-slate-500">{feedbackContext.scale_result.interpretation}</div>
                       )}
                     </div>
                   )}
 
                   {feedbackContext?.use_test_result && feedbackContext?.test_result && (
-                    <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
-                      <div className="font-semibold text-white">
+                    <div className="rounded-2xl border border-slate-200 bg-white p-3">
+                      <div className="font-semibold text-slate-900">
                         Test: {feedbackContext?.test_definition?.short_name ?? feedbackContext?.test_definition?.name ?? "Test"}
                       </div>
                       <div className="mt-1">
@@ -413,25 +413,25 @@ useEffect(() => {
                         {feedbackContext.test_result.classification ?? "Sin clasificación"}
                       </div>
                       {feedbackContext.test_result.interpretation && (
-                        <div className="mt-1 text-white/65">{feedbackContext.test_result.interpretation}</div>
+                        <div className="mt-1 text-slate-500">{feedbackContext.test_result.interpretation}</div>
                       )}
                     </div>
                   )}
                 </div>
-                <div className="mt-3 text-xs text-white/55">
+                <div className="mt-3 text-xs text-slate-400">
                   Uso educativo. No sustituye valoración clínica real ni constituye diagnóstico definitivo.
                 </div>
               </section>
             )}
 
             {/* Missing questions */}
-            <section className="mt-5 rounded-3xl border border-white/10 bg-white/5 p-5">
-              <div className="text-sm font-semibold text-white">Preguntas que no exploraste</div>
+            <section className="mt-5 rounded-3xl border border-slate-200 bg-white/80 p-5">
+              <div className="text-sm font-semibold text-slate-900">Preguntas que no exploraste</div>
               <div className="mt-4 flex flex-wrap gap-2">
                 {score.missingQuestions.map((q, i) => (
                   <span
                     key={i}
-                    className="rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/70"
+                    className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600"
                   >
                     {q}
                   </span>
@@ -440,11 +440,11 @@ useEffect(() => {
             </section>
 
             {/* Export / actions */}
-            <section className="mt-5 rounded-3xl border border-white/10 bg-white/5 p-5">
+            <section className="mt-5 rounded-3xl border border-slate-200 bg-white/80 p-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <div className="text-base font-semibold text-white">¿Qué deseas hacer con este resultado?</div>
-                  <div className="mt-1 text-sm text-white/60">Guardado local activo · Sesión educativa</div>
+                  <div className="text-base font-semibold text-slate-900">¿Qué deseas hacer con este resultado?</div>
+                  <div className="mt-1 text-sm text-slate-500">Guardado local activo · Sesión educativa</div>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
@@ -469,7 +469,7 @@ useEffect(() => {
                         // noop
                       }
                     }}
-                    className="rounded-xl border border-white/15 bg-black/25 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                   >
                     Exportar JSON
                   </button>
@@ -477,7 +477,7 @@ useEffect(() => {
                   <button
                     type="button"
                     onClick={() => window.print()}
-                    className="rounded-xl border border-white/15 bg-black/25 px-4 py-2 text-sm text-white/80 hover:bg-white/5"
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
                   >
                     Imprimir / PDF
                   </button>
@@ -494,8 +494,8 @@ useEffect(() => {
 
             {/* Debug */}
             <details className="mt-5">
-              <summary className="cursor-pointer text-xs text-white/60">Ver datos (debug)</summary>
-              <pre className="mt-2 overflow-auto rounded-2xl bg-black/40 p-4 text-xs text-white/70">
+              <summary className="cursor-pointer text-xs text-slate-500">Ver datos (debug)</summary>
+              <pre className="mt-2 overflow-auto rounded-2xl bg-black/40 p-4 text-xs text-slate-600">
 {JSON.stringify({ hasCase: !!caseObj, transcriptLen: transcript.length, dsmTag, feedbackContext }, null, 2)}
               </pre>
             </details>

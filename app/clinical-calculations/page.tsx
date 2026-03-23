@@ -69,10 +69,10 @@ function formatTime(totalSec: number) {
 }
 
 function scoreTone(correctRate: number) {
-  if (correctRate >= 85) return "text-emerald-100 border-emerald-400/35 bg-emerald-400/10";
-  if (correctRate >= 65) return "text-sky-100 border-sky-400/35 bg-sky-400/10";
-  if (correctRate >= 45) return "text-amber-100 border-amber-400/35 bg-amber-400/10";
-  return "text-red-100 border-red-400/35 bg-red-400/10";
+  if (correctRate >= 85) return "text-emerald-700 border-emerald-400/35 bg-emerald-400/10";
+  if (correctRate >= 65) return "text-sky-700 border-sky-400/35 bg-sky-400/10";
+  if (correctRate >= 45) return "text-amber-700 border-amber-400/35 bg-amber-400/10";
+  return "text-red-700 border-red-400/35 bg-red-400/10";
 }
 
 function normalizeCalcExpression(value: string) {
@@ -315,15 +315,15 @@ export default function ClinicalCalculationsPage() {
   const bmiCategory = result?.isCorrect && isBmiExercise ? classifyBmi(result.expectedAnswer) : null;
 
   return (
-    <div className="min-h-screen bg-[#070A12] text-white">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f6fbf9_0%,#eef5f2_48%,#e6efeb_100%)] text-slate-900">
       <div className="mx-auto flex max-w-[1540px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
         <Sidebar />
 
-        <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 p-5 shadow-[0_20px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+        <main className="flex-1 rounded-2xl border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] p-5 shadow-[0_24px_70px_rgba(99,126,118,0.16)] backdrop-blur-xl">
           <header className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold">Cálculo clínico</h1>
-              <p className="mt-1 text-sm text-white/70">
+              <p className="mt-1 text-sm text-slate-600">
                 Practica dosis, formulaciones al %, infusión, balance hídrico e IMC con validación automática y explicación.
               </p>
             </div>
@@ -333,8 +333,8 @@ export default function ClinicalCalculationsPage() {
             </div>
           </header>
 
-          <section className="mt-4 grid gap-3 rounded-2xl border border-white/10 bg-[#0C111C]/90 p-4 md:grid-cols-2 xl:grid-cols-6">
-            <label className="text-xs text-white/70">
+          <section className="mt-4 grid gap-3 rounded-2xl border border-slate-200 bg-white/82 p-4 md:grid-cols-2 xl:grid-cols-6">
+            <label className="text-xs text-slate-600">
               Modo
               <select
                 value={mode}
@@ -344,19 +344,19 @@ export default function ClinicalCalculationsPage() {
                   setResult(null);
                   setStartedAt(Date.now());
                 }}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
               >
                 <option value="practice">Práctica</option>
                 <option value="evaluation">Evaluación</option>
               </select>
             </label>
 
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Categoría
               <select
                 value={categoryFilter}
                 onChange={(event) => setCategoryFilter(event.target.value as CategoryFilter)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
               >
                 <option value="all">Todas</option>
                 <option value="dose_medication">Dosis y medicación</option>
@@ -366,12 +366,12 @@ export default function ClinicalCalculationsPage() {
               </select>
             </label>
 
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Dificultad
               <select
                 value={difficultyFilter}
                 onChange={(event) => setDifficultyFilter(event.target.value as DifficultyFilter)}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
               >
                 <option value="all">Todas</option>
                 <option value="basic">Básico</option>
@@ -380,31 +380,31 @@ export default function ClinicalCalculationsPage() {
               </select>
             </label>
 
-            <label className="text-xs text-white/70">
+            <label className="text-xs text-slate-600">
               Cronómetro
               <select
                 value={timerEnabled ? "yes" : "no"}
                 onChange={(event) => setTimerEnabled(event.target.value === "yes")}
                 disabled={mode !== "evaluation"}
-                className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white disabled:opacity-50"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 disabled:opacity-50"
               >
                 <option value="yes">Activado</option>
                 <option value="no">Desactivado</option>
               </select>
             </label>
 
-            <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-xs text-white/70">
-              <div className="uppercase tracking-[0.12em] text-white/45">Set actual</div>
-              <div className="mt-1 text-sm font-semibold text-white/90">{filteredCount} ejercicios disponibles</div>
+            <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
+              <div className="uppercase tracking-[0.12em] text-slate-400">Set actual</div>
+              <div className="mt-1 text-sm font-semibold text-slate-900/90">{filteredCount} ejercicios disponibles</div>
               <div className="mt-1">Tipo: {getExerciseTypeLabel(exercise.type)}</div>
               <div className="mt-1">
                 Fuente: {poolLoading ? "Cargando..." : poolSource === "combined" ? "Base de datos + local" : poolSource === "database" ? "Base de datos" : "Local"}
               </div>
             </div>
 
-            <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-xs text-white/70">
-              <div className="uppercase tracking-[0.12em] text-white/45">Tiempo</div>
-              <div className="mt-1 text-sm font-semibold text-white/90">
+            <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
+              <div className="uppercase tracking-[0.12em] text-slate-400">Tiempo</div>
+              <div className="mt-1 text-sm font-semibold text-slate-900/90">
                 {mode === "evaluation" && timerEnabled ? formatTime(elapsedSec) : "Sin cronómetro"}
               </div>
               <div className="mt-1">Promedio histórico: {formatTime(stats.meanSec)}</div>
@@ -412,49 +412,49 @@ export default function ClinicalCalculationsPage() {
           </section>
 
           {poolError && (
-            <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-xs text-amber-100">
+            <div className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-xs text-amber-700">
               {poolError}
             </div>
           )}
 
           <section className="mt-4 grid gap-4 xl:grid-cols-[1.6fr_1fr]">
-            <article className="rounded-2xl border border-white/10 bg-[#0B101A]/90 p-4">
+            <article className="rounded-2xl border border-slate-200 bg-white/82 p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <div className="text-xs uppercase tracking-[0.14em] text-white/50">Ejercicio clínico</div>
+                  <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Ejercicio clínico</div>
                   <h2 className="mt-1 text-lg font-semibold">{exercise.title}</h2>
                 </div>
                 <div className="space-y-1 text-right text-xs">
-                  <div className="rounded-full border border-cyan-400/35 bg-cyan-400/10 px-2 py-1 text-cyan-100">
+                  <div className="rounded-full border border-cyan-400/35 bg-cyan-400/10 px-2 py-1 text-cyan-700">
                     {getCalculationCategoryLabel(exercise.category)}
                   </div>
-                  <div className="text-white/65">{getCalculationDifficultyLabel(exercise.difficulty)}</div>
+                  <div className="text-slate-500">{getCalculationDifficultyLabel(exercise.difficulty)}</div>
                 </div>
               </div>
 
-              <p className="mt-3 text-sm text-white/80">{exercise.statement}</p>
+              <p className="mt-3 text-sm text-slate-700">{exercise.statement}</p>
 
-              <div className="mt-4 rounded-xl border border-white/10 bg-black/25 p-3">
-                <div className="text-xs uppercase tracking-wide text-white/50">Datos del paciente</div>
+              <div className="mt-4 rounded-xl border border-slate-200 bg-white p-3">
+                <div className="text-xs uppercase tracking-wide text-slate-400">Datos del paciente</div>
                 <div className="mt-2 grid gap-2 sm:grid-cols-2">
                   {exercise.patientData.map((item) => (
-                    <div key={item.label} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm">
-                      <span className="text-white/60">{item.label}:</span>{" "}
-                      <span className="font-medium text-white/90">{item.value}</span>
+                    <div key={item.label} className="rounded-lg border border-slate-200 bg-white/80 px-3 py-2 text-sm">
+                      <span className="text-slate-500">{item.label}:</span>{" "}
+                      <span className="font-medium text-slate-900/90">{item.value}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               <div className="mt-4 grid gap-2">
-                <label className="text-xs text-white/70">
+                <label className="text-xs text-slate-600">
                   Respuesta ({exercise.answerUnit})
                   <input
                     type="text"
                     value={answerInput}
                     onChange={(event) => setAnswerInput(event.target.value)}
                     placeholder={`Ingresa el valor en ${exercise.answerUnit}`}
-                    className="mt-1 w-full rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm text-white placeholder:text-white/35"
+                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-900/35"
                   />
                 </label>
               </div>
@@ -470,7 +470,7 @@ export default function ClinicalCalculationsPage() {
                 <button
                   type="button"
                   onClick={() => pickNextExercise(exercise.id)}
-                  className="rounded-xl border border-white/15 bg-black/35 px-4 py-2 text-sm text-white/90 hover:bg-white/10"
+                  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900/90 hover:bg-slate-50"
                 >
                   Nuevo ejercicio
                 </button>
@@ -479,14 +479,14 @@ export default function ClinicalCalculationsPage() {
 
             <aside className="space-y-3">
               {showGuidedInfo && (
-                <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-                  <h3 className="text-sm font-semibold text-white">Guía de resolución</h3>
-                  <div className="mt-2 text-xs text-white/65">Fórmula esperada</div>
-                  <div className="mt-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/85">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <h3 className="text-sm font-semibold text-slate-900">Guía de resolución</h3>
+                  <div className="mt-2 text-xs text-slate-500">Fórmula esperada</div>
+                  <div className="mt-1 rounded-lg border border-slate-200 bg-white/80 px-3 py-2 text-sm text-slate-800">
                     {exercise.formula}
                   </div>
-                  <div className="mt-3 text-xs text-white/65">Pistas</div>
-                  <ul className="mt-1 space-y-1 text-sm text-white/80">
+                  <div className="mt-3 text-xs text-slate-500">Pistas</div>
+                  <ul className="mt-1 space-y-1 text-sm text-slate-700">
                     {exercise.hints.map((hint) => (
                       <li key={hint}>• {hint}</li>
                     ))}
@@ -494,25 +494,25 @@ export default function ClinicalCalculationsPage() {
                 </div>
               )}
 
-              <div className="rounded-2xl border border-white/10 bg-[#0C1422]/90 p-4">
+              <div className="rounded-2xl border border-slate-200 bg-white/82 p-4">
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-sm font-semibold text-white">Mini calculadora</h3>
+                  <h3 className="text-sm font-semibold text-slate-900">Mini calculadora</h3>
                   <button
                     type="button"
                     onClick={() => setAnswerInput(calcDisplay === "Error" ? "" : calcDisplay)}
-                    className="rounded-lg border border-cyan-400/35 bg-cyan-400/10 px-2.5 py-1 text-xs text-cyan-100 hover:bg-cyan-400/20"
+                    className="rounded-lg border border-cyan-400/35 bg-cyan-400/10 px-2.5 py-1 text-xs text-cyan-700 hover:bg-cyan-400/20"
                   >
                     Usar en respuesta
                   </button>
                 </div>
 
-                <div className="mt-3 rounded-lg border border-white/10 bg-black/35 px-3 py-2 text-right">
-                  <div className="text-xs text-white/50">{calcExpression || " "}</div>
-                  <div className="text-xl font-semibold text-white">{calcDisplay}</div>
+                <div className="mt-3 rounded-lg border border-slate-200 bg-white px-3 py-2 text-right">
+                  <div className="text-xs text-slate-400">{calcExpression || " "}</div>
+                  <div className="text-xl font-semibold text-slate-900">{calcDisplay}</div>
                 </div>
 
                 {calcError && (
-                  <div className="mt-2 rounded-lg border border-amber-400/30 bg-amber-400/10 px-2 py-1 text-xs text-amber-100">
+                  <div className="mt-2 rounded-lg border border-amber-400/30 bg-amber-400/10 px-2 py-1 text-xs text-amber-700">
                     {calcError}
                   </div>
                 )}
@@ -540,10 +540,10 @@ export default function ClinicalCalculationsPage() {
                         }}
                         className={`rounded-lg border px-2 py-2 transition ${
                           key === "="
-                            ? "border-cyan-400/35 bg-cyan-400/10 text-cyan-100 hover:bg-cyan-400/20"
+                            ? "border-cyan-400/35 bg-cyan-400/10 text-cyan-700 hover:bg-cyan-400/20"
                             : key === "C" || key === "⌫"
-                            ? "border-amber-400/30 bg-amber-400/10 text-amber-100 hover:bg-amber-400/20"
-                            : "border-white/10 bg-black/25 text-white/85 hover:bg-white/10"
+                            ? "border-amber-400/30 bg-amber-400/10 text-amber-700 hover:bg-amber-400/20"
+                            : "border-slate-200 bg-white text-slate-800 hover:bg-slate-50"
                         }`}
                       >
                         {key}
@@ -554,37 +554,37 @@ export default function ClinicalCalculationsPage() {
               </div>
 
               {result && (
-                <div className="rounded-2xl border border-white/10 bg-[#0C1422]/90 p-4">
+                <div className="rounded-2xl border border-slate-200 bg-white/82 p-4">
                   <h3 className="text-sm font-semibold">Resultado</h3>
-                  <div className="mt-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/85">
+                  <div className="mt-2 rounded-lg border border-slate-200 bg-white/80 px-3 py-2 text-sm text-slate-800">
                     {result.feedback}
                   </div>
 
-                  <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-white/70">
-                    <div className="rounded-lg border border-white/10 bg-black/25 px-3 py-2">
-                      Esperado: <span className="font-semibold text-white/90">{result.expectedAnswer}</span>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-600">
+                    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+                      Esperado: <span className="font-semibold text-slate-900/90">{result.expectedAnswer}</span>
                     </div>
-                    <div className="rounded-lg border border-white/10 bg-black/25 px-3 py-2">
+                    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
                       Tu respuesta:{" "}
-                      <span className="font-semibold text-white/90">
+                      <span className="font-semibold text-slate-900/90">
                         {result.parsedAnswer == null ? "—" : result.parsedAnswer}
                       </span>
                     </div>
-                    <div className="rounded-lg border border-white/10 bg-black/25 px-3 py-2 col-span-2">
+                    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 col-span-2">
                       Rango válido: {result.acceptedMin.toFixed(2)} a {result.acceptedMax.toFixed(2)}
                     </div>
                   </div>
 
                   {!result.isCorrect && result.commonErrorHint && (
-                    <div className="mt-3 rounded-lg border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-xs text-amber-100">
+                    <div className="mt-3 rounded-lg border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-xs text-amber-700">
                       Error frecuente detectado: {result.commonErrorHint}
                     </div>
                   )}
 
                   {(mode === "practice" || result.isCorrect) && (
                     <div className="mt-3">
-                      <div className="text-xs text-white/60">Resolución paso a paso</div>
-                      <ol className="mt-1 space-y-1 text-sm text-white/80">
+                      <div className="text-xs text-slate-500">Resolución paso a paso</div>
+                      <ol className="mt-1 space-y-1 text-sm text-slate-700">
                         {exercise.stepByStep.map((step, index) => (
                           <li key={step}>
                             {index + 1}. {step}
@@ -595,7 +595,7 @@ export default function ClinicalCalculationsPage() {
                   )}
 
                   {bmiCategory && (
-                    <div className="mt-3 rounded-lg border border-cyan-400/25 bg-cyan-400/10 px-3 py-2 text-xs text-cyan-100">
+                    <div className="mt-3 rounded-lg border border-cyan-400/25 bg-cyan-400/10 px-3 py-2 text-xs text-cyan-700">
                       Clasificación IMC: {bmiCategory}
                     </div>
                   )}
