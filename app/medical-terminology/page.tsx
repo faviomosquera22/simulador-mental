@@ -12,6 +12,7 @@ import {
 
 type CategoryFilter = MedicalTerminologyCategory | "Todas";
 type PracticeTone = "idle" | "success" | "error";
+type PracticeScope = "solo_terminos" | "incluye_afijos";
 
 function normalizeTerm(value: string) {
   return String(value)
@@ -23,11 +24,51 @@ function normalizeTerm(value: string) {
     .trim();
 }
 
+function getTermKind(item: (typeof MEDICAL_TERMINOLOGY_LIBRARY)[number]) {
+  if (item.term.endsWith("-")) return "prefijo";
+  if (item.term.startsWith("-")) return "sufijo";
+  return "termino";
+}
+
+function isWordPartItem(item: (typeof MEDICAL_TERMINOLOGY_LIBRARY)[number]) {
+  return getTermKind(item) !== "termino" || item.related.includes("Prefijos y sufijos");
+}
+
+function simplifyDefinition(item: (typeof MEDICAL_TERMINOLOGY_LIBRARY)[number]) {
+  const kind = getTermKind(item);
+  if (kind === "prefijo") {
+    return item.definition.replace(/^Prefijo que indica\s*/i, "").replace(/[.]+$/u, "").trim();
+  }
+  if (kind === "sufijo") {
+    return item.definition.replace(/^Sufijo que indica\s*/i, "").replace(/[.]+$/u, "").trim();
+  }
+  return item.definition;
+}
+
+function getPracticeHeading(item: (typeof MEDICAL_TERMINOLOGY_LIBRARY)[number]) {
+  const kind = getTermKind(item);
+  if (kind === "prefijo") return "Escribe el prefijo correcto";
+  if (kind === "sufijo") return "Escribe el sufijo correcto";
+  return "Escribe el término correcto";
+}
+
+function getPracticeHelper(item: (typeof MEDICAL_TERMINOLOGY_LIBRARY)[number]) {
+  const kind = getTermKind(item);
+  if (kind === "prefijo") {
+    return "Es una partícula que va al inicio de una palabra médica. Escríbela con el guion final.";
+  }
+  if (kind === "sufijo") {
+    return "Es una partícula que va al final de una palabra médica. Escríbela con el guion inicial.";
+  }
+  return "Corresponde a un término clínico completo, no a un prefijo o sufijo.";
+}
+
 export default function MedicalTerminologyPage() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<CategoryFilter>("Todas");
   const [activeId, setActiveId] = useState<string>(MEDICAL_TERMINOLOGY_LIBRARY[0]?.id ?? "");
   const [practiceId, setPracticeId] = useState<string>(MEDICAL_TERMINOLOGY_LIBRARY[0]?.id ?? "");
+  const [practiceScope, setPracticeScope] = useState<PracticeScope>("solo_terminos");
   const [attempt, setAttempt] = useState("");
   const [practiceTone, setPracticeTone] = useState<PracticeTone>("idle");
   const [practiceMessage, setPracticeMessage] = useState("Lee la definición y escribe el término correcto.");
@@ -57,29 +98,35 @@ export default function MedicalTerminologyPage() {
     });
   }, [category, query]);
 
+  const practicePool = useMemo(() => {
+    const base = filtered.length ? filtered : MEDICAL_TERMINOLOGY_LIBRARY;
+    if (practiceScope === "incluye_afijos") return base;
+    return base.filter((item) => !isWordPartItem(item));
+  }, [filtered, practiceScope]);
+
   const active = useMemo(() => {
     return filtered.find((item) => item.id === activeId) ?? filtered[0] ?? MEDICAL_TERMINOLOGY_LIBRARY[0];
   }, [activeId, filtered]);
 
   const practiceItem = useMemo(() => {
-    if (!filtered.length) return undefined;
-    return filtered.find((item) => item.id === practiceId) ?? filtered[0];
-  }, [filtered, practiceId]);
+    if (!practicePool.length) return undefined;
+    return practicePool.find((item) => item.id === practiceId) ?? practicePool[0];
+  }, [practicePool, practiceId]);
 
   useEffect(() => {
-    if (!filtered.length) {
+    if (!practicePool.length) {
       setPracticeId("");
       return;
     }
 
-    if (!filtered.some((item) => item.id === practiceId)) {
-      setPracticeId(filtered[0].id);
+    if (!practicePool.some((item) => item.id === practiceId)) {
+      setPracticeId(practicePool[0].id);
       setAttempt("");
       setPracticeTone("idle");
       setPracticeMessage("Lee la definición y escribe el término correcto.");
       setShowAnswer(false);
     }
-  }, [filtered, practiceId]);
+  }, [practicePool, practiceId]);
 
   const stats = useMemo(
     () => ({
@@ -91,7 +138,7 @@ export default function MedicalTerminologyPage() {
   );
 
   function loadNextPractice(excludeId?: string) {
-    const pool = filtered.length ? filtered : MEDICAL_TERMINOLOGY_LIBRARY;
+    const pool = practicePool.length ? practicePool : MEDICAL_TERMINOLOGY_LIBRARY.filter((item) => !isWordPartItem(item));
     if (!pool.length) return;
 
     const candidates = pool.filter((item) => item.id !== excludeId);
@@ -202,6 +249,30 @@ export default function MedicalTerminologyPage() {
                 <p className="mt-2 text-sm text-slate-600">
                   Te mostramos el concepto y tú completas la palabra o expresión médica. La práctica usa el mismo banco del glosario y respeta los filtros activos.
                 </p>
+                <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setPracticeScope("solo_terminos")}
+                    className={`rounded-full border px-3 py-1 ${
+                      practiceScope === "solo_terminos"
+                        ? "border-teal-200 bg-teal-50 font-semibold text-teal-700"
+                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    Solo términos completos
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPracticeScope("incluye_afijos")}
+                    className={`rounded-full border px-3 py-1 ${
+                      practiceScope === "incluye_afijos"
+                        ? "border-cyan-200 bg-cyan-50 font-semibold text-cyan-700"
+                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    Incluir prefijos y sufijos
+                  </button>
+                </div>
               </div>
 
               <div className="flex flex-wrap gap-2 text-xs">
@@ -212,7 +283,7 @@ export default function MedicalTerminologyPage() {
                   Correctas: {correctCount}
                 </span>
                 <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-700">
-                  Base activa: {filtered.length || stats.total}
+                  Base práctica: {practicePool.length || 0}
                 </span>
               </div>
             </div>
@@ -220,11 +291,24 @@ export default function MedicalTerminologyPage() {
             {practiceItem ? (
               <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_320px]">
                 <div className="rounded-2xl border border-slate-200 bg-white p-5">
-                  <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Concepto</div>
-                  <div className="mt-3 text-lg font-semibold text-slate-900">{practiceItem.definition}</div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Práctica guiada</div>
+                    <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700">
+                      {getTermKind(practiceItem) === "prefijo"
+                        ? "Prefijo"
+                        : getTermKind(practiceItem) === "sufijo"
+                        ? "Sufijo"
+                        : "Término"}
+                    </span>
+                  </div>
+                  <div className="mt-3 text-lg font-semibold text-slate-900">{getPracticeHeading(practiceItem)}</div>
+                  <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="text-xs uppercase tracking-wider text-slate-500">Significado</div>
+                    <div className="mt-2 text-base font-medium text-slate-900">{simplifyDefinition(practiceItem)}</div>
+                  </div>
                   <div className="mt-4 rounded-xl border border-emerald-400/20 bg-emerald-400/10 p-4">
-                    <div className="text-xs uppercase tracking-wider text-emerald-700/80">Pista clínica</div>
-                    <div className="mt-2 text-sm text-emerald-700">{practiceItem.clinicalUse}</div>
+                    <div className="text-xs uppercase tracking-wider text-emerald-700/80">Cómo responder</div>
+                    <div className="mt-2 text-sm text-emerald-700">{getPracticeHelper(practiceItem)}</div>
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -242,7 +326,13 @@ export default function MedicalTerminologyPage() {
                     <input
                       value={attempt}
                       onChange={(event) => setAttempt(event.target.value)}
-                      placeholder="Escribe aquí el término..."
+                      placeholder={
+                        getTermKind(practiceItem) === "prefijo"
+                          ? "Ejemplo: Hiper-"
+                          : getTermKind(practiceItem) === "sufijo"
+                          ? "Ejemplo: -itis"
+                          : "Escribe aquí el término..."
+                      }
                       className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-cyan-300/40"
                     />
                     <button
@@ -280,6 +370,9 @@ export default function MedicalTerminologyPage() {
                     <>
                       <div className="mt-3 text-2xl font-semibold text-slate-900">{practiceItem.term}</div>
                       <div className="mt-2 text-sm text-slate-600">{practiceItem.short}</div>
+                      <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+                        {getPracticeHelper(practiceItem)}
+                      </div>
                       <div className="mt-4 rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-4">
                         <div className="text-xs uppercase tracking-wider text-cyan-700/80">Ejemplo rápido</div>
                         <div className="mt-2 text-sm text-cyan-700">{practiceItem.example}</div>
@@ -294,7 +387,7 @@ export default function MedicalTerminologyPage() {
               </div>
             ) : (
               <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500">
-                No hay términos disponibles para la práctica con el filtro actual.
+                No hay términos disponibles para la práctica con el filtro actual. Prueba cambiar a “Incluir prefijos y sufijos” o ajustar la categoría.
               </div>
             )}
           </section>
@@ -373,6 +466,13 @@ export default function MedicalTerminologyPage() {
                   <div>
                     <div className="inline-flex rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-700">
                       {active.category}
+                    </div>
+                    <div className="ml-2 inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-700">
+                      {getTermKind(active) === "prefijo"
+                        ? "Prefijo médico"
+                        : getTermKind(active) === "sufijo"
+                        ? "Sufijo médico"
+                        : "Término clínico"}
                     </div>
                     <h2 className="mt-3 text-2xl font-semibold text-slate-900">{active.term}</h2>
                     <p className="mt-2 text-sm text-slate-600">{active.definition}</p>
