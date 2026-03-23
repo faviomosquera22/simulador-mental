@@ -53,6 +53,114 @@ const EHEP_BASE_REFERENCES = [
   "Bibliografía académica vigente y guías clínicas actualizadas del área temática.",
 ];
 
+function normalizeStemSpacing(value: string) {
+  return String(value ?? "")
+    .replace(/\s*:\s*¿/g, ": ¿")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function capitalizeFirstLetter(value: string) {
+  if (!value) return value;
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function stripCasePrefix(value: string) {
+  return String(value ?? "")
+    .replace(/^mini caso clínico:\s*/i, "")
+    .replace(/^mini caso:\s*/i, "")
+    .replace(/^escenario clínico:\s*/i, "")
+    .replace(/^caso clínico breve:\s*/i, "")
+    .replace(/^caso clínico:\s*/i, "")
+    .trim();
+}
+
+function extractQuestionFocus(value: string) {
+  let out = normalizeStemSpacing(stripCasePrefix(value));
+
+  out = out
+    .replace(/^de los siguientes[:,]?\s*/i, "")
+    .replace(/^(cu[aá]l(?: de los siguientes)? es(?: la| el| un| una)?|qué(?: acción| conducta| intervención| alternativa| opción| medida)?|identifica(?: la)?(?: alternativa| opción)?|seleccione(?: la)?(?: alternativa| opción)?|marque(?: la)?(?: alternativa| opción)?|respecto a|en relación con|en relacion con|sobre)\s*/i, "")
+    .replace(/^[:;,\-]\s*/i, "")
+    .replace(/^¿/u, "")
+    .replace(/\?\s*$/u, "")
+    .replace(/[.]+$/u, "")
+    .trim();
+
+  return out;
+}
+
+function countKeywordHits(text: string, keywords: string[]) {
+  return keywords.reduce((count, keyword) => count + (text.includes(keyword) ? 1 : 0), 0);
+}
+
+function hasMeaningfulClinicalContext(value: string) {
+  const text = normalizeCacesText(value);
+  if (!text || text.length < 24) return false;
+
+  const patientMarkers = [
+    "paciente",
+    "usuario",
+    "persona",
+    "gestante",
+    "embarazada",
+    "puerpera",
+    "recien nacido",
+    "neonato",
+    "lactante",
+    "nino",
+    "nina",
+    "adulto mayor",
+    "mujer",
+    "hombre",
+    "madre",
+  ];
+  const clinicalMarkers = [
+    "ingresa",
+    "acude",
+    "consulta",
+    "presenta",
+    "recibe",
+    "valoracion",
+    "evaluacion",
+    "diagnostico",
+    "tratamiento",
+    "seguimiento",
+    "uci",
+    "urgencias",
+    "hospital",
+    "dolor",
+    "fiebre",
+    "disnea",
+    "signos",
+    "sintomas",
+    "hallazgos",
+    "antecedentes",
+    "parto",
+    "puerperio",
+    "neonatal",
+  ];
+
+  const patientHits = countKeywordHits(text, patientMarkers);
+  const clinicalHits = countKeywordHits(text, clinicalMarkers);
+
+  if (patientHits > 0 && clinicalHits > 0) return true;
+  if (patientHits >= 2) return true;
+  if ((text.includes("caso clinico") || text.includes("escenario clinico")) && text.length >= 80) {
+    return true;
+  }
+
+  return false;
+}
+
+function sanitizeManualTopic(value: string) {
+  const raw = normalizeStemSpacing(String(value ?? "").trim());
+  if (!raw) return raw;
+  const focused = extractQuestionFocus(raw);
+  const cleaned = focused.length >= 10 ? focused : raw.replace(/^de los siguientes[:,]?\s*/i, "").trim();
+  return capitalizeFirstLetter(cleaned.replace(/[.]+$/u, "").trim());
+}
+
 function inferCognitiveLevel(
   difficulty: CacesDifficulty,
   type: CacesQuestionType
@@ -89,7 +197,7 @@ function sanitizeManualRationale(value: string) {
 }
 
 function sanitizeManualStem(question: CacesQuestion) {
-  const raw = String(question.question ?? "").trim();
+  const raw = normalizeStemSpacing(String(question.question ?? "").trim());
   const withQuestionMark = raw.endsWith("?") ? raw : `${raw}?`;
 
   if (question.type === "caso_clinico") {
@@ -97,7 +205,8 @@ function sanitizeManualStem(question: CacesQuestion) {
       .replace(/^mini caso clínico:\s*/i, "")
       .replace(/^mini caso:\s*/i, "")
       .trim();
-    if (/^caso clínico\b/i.test(normalized)) return normalized;
+    if (/^(caso clínico|escenario clínico|caso clínico breve)\b/i.test(normalized)) return normalized;
+    if (!hasMeaningfulClinicalContext(normalized)) return normalized;
     return `Caso clínico: ${normalized}`;
   }
 
@@ -123,6 +232,7 @@ export function alignQuestionToEhepManual(question: CacesQuestion): CacesQuestio
   return {
     ...question,
     question: sanitizeManualStem(question),
+    topic: sanitizeManualTopic(question.topic),
     options: optionsAligned,
     references:
       Array.isArray(question.references) && question.references.length > 0
@@ -1849,26 +1959,80 @@ function rotateSupplementDifficulty(base: CacesDifficulty, step: number): CacesD
   return SUPPLEMENT_DIFFICULTY_ORDER[next];
 }
 
-function toSupplementScenario(rawStem: string, topic: string) {
-  let out = String(rawStem ?? "").trim();
-  out = out
-    .replace(/^caso clínico:\s*/i, "")
-    .replace(/^mini caso:\s*/i, "")
-    .replace(/^en relación con\s*/i, "");
+function inferSyntheticSubject(seed: Pick<CacesQuestion, "question" | "topic" | "subcomponent" | "category" | "component">) {
+  const text = normalizeCacesText(
+    [seed.question, seed.topic, seed.subcomponent, seed.category, seed.component].join(" ")
+  );
+
+  if (text.includes("recien nacido") || text.includes("neonat") || text.includes("neonato")) {
+    return "un recién nacido bajo vigilancia de enfermería";
+  }
+  if (text.includes("gestante") || text.includes("embaraz") || text.includes("obstetr") || text.includes("puerper")) {
+    return "una paciente obstétrica en valoración clínica";
+  }
+  if (text.includes("lactante") || text.includes("pediatr") || text.includes("nino") || text.includes("nina")) {
+    return "un paciente pediátrico en valoración";
+  }
+  if (text.includes("salud mental") || text.includes("psiqu") || text.includes("suic") || text.includes("ansiedad") || text.includes("depres")) {
+    return "un paciente con compromiso de salud mental";
+  }
+  if (text.includes("adulto mayor") || text.includes("geriatr")) {
+    return "un paciente adulto mayor en seguimiento";
+  }
+
+  return "un paciente en valoración de enfermería";
+}
+
+function inferSyntheticSetting(seed: Pick<CacesQuestion, "topic" | "subcomponent" | "category" | "component">) {
+  const text = normalizeCacesText([seed.topic, seed.subcomponent, seed.category, seed.component].join(" "));
+
+  if (text.includes("uci") || text.includes("cuidados criticos")) return "en una unidad de cuidados críticos";
+  if (text.includes("urgenc")) return "en el área de urgencias";
+  if (text.includes("recien nacido") || text.includes("neonat")) return "en el área neonatal";
+  if (text.includes("obstetr") || text.includes("gestante") || text.includes("embaraz") || text.includes("parto")) {
+    return "en atención obstétrica";
+  }
+  if (text.includes("salud mental") || text.includes("psiqu")) return "en un entorno de salud mental";
+  if (text.includes("laboratorio") || text.includes("gasometr") || text.includes("muestra")) {
+    return "durante una valoración diagnóstica";
+  }
+
+  const label = sanitizeManualTopic(seed.subcomponent || seed.category || seed.component).toLowerCase();
+  return label ? `en ${label}` : "en un entorno asistencial";
+}
+
+function buildSyntheticCaseScenario(
+  seed: Pick<CacesQuestion, "question" | "topic" | "subcomponent" | "category" | "component">
+) {
+  const subject = inferSyntheticSubject(seed);
+  const setting = inferSyntheticSetting(seed);
+  const focus = extractQuestionFocus(seed.question) || sanitizeManualTopic(seed.topic).toLowerCase();
+  const safeFocus = focus.length >= 12 ? focus : `la prioridad clínica vinculada con ${String(seed.topic).toLowerCase()}`;
+
+  return `Durante la valoración inicial de ${subject} ${setting}, el equipo de enfermería debe decidir la conducta más segura relacionada con ${safeFocus}`;
+}
+
+function toSupplementScenario(
+  seed: Pick<CacesQuestion, "question" | "topic" | "subcomponent" | "category" | "component">
+) {
+  let out = normalizeStemSpacing(stripCasePrefix(seed.question));
+  out = out.replace(/^en relación con\s*/i, "");
   out = out.replace(/¿[^?]*\?\s*$/u, "").replace(/\?\s*$/u, "").trim();
   out = out.replace(/[.]+$/u, "").trim();
-  if (out.length < 24) {
-    out = `Paciente en contexto de ${String(topic).toLowerCase()}`;
+
+  if (!hasMeaningfulClinicalContext(out)) {
+    return buildSyntheticCaseScenario(seed);
   }
+
   return out;
 }
 
 function buildVariantScenario(seed: CacesQuestion) {
-  if (seed.type === "caso_clinico") {
-    return toSupplementScenario(seed.question, seed.topic);
-  }
-
-  return `Paciente en contexto de ${String(seed.topic).toLowerCase()}`;
+  const scenario = toSupplementScenario(seed);
+  return {
+    text: scenario,
+    contextual: hasMeaningfulClinicalContext(scenario),
+  };
 }
 
 function rotateQuestionOptions(
@@ -1894,6 +2058,36 @@ function rotateQuestionOptions(
     options: rebuilt,
     correctAnswer: letters[Math.max(0, correctIndex)] ?? "A",
   };
+}
+
+function isNumericCombinationOption(value: string) {
+  const normalized = String(value ?? "")
+    .replace(/[.]+$/u, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return /^\d+(?:\s*,\s*\d+){1,}$/.test(normalized);
+}
+
+function isAugmentationCompatibleSeed(question: CacesQuestion) {
+  const numericComboOptions = question.options.filter((opt) =>
+    isNumericCombinationOption(String(opt.text ?? ""))
+  ).length;
+
+  if (numericComboOptions >= 3) return false;
+
+  const normalizedStem = normalizeCacesText(question.question);
+  const hasSelectionPattern =
+    /(seleccione|ordene|orden|ordene la secuencia|orden de|secuencia|relacione|empareje|correlacione|enuncie)/.test(
+      normalizedStem
+    );
+  const hasEmbeddedNumberedList = /\b1\.\s*\S[\s\S]*\b2\.\s*\S/u.test(String(question.question ?? ""));
+
+  if (numericComboOptions >= 1 && (hasSelectionPattern || hasEmbeddedNumberedList)) {
+    return false;
+  }
+
+  return true;
 }
 
 const AUGMENTATION_DIRECT_FOCUS = [
@@ -1958,8 +2152,8 @@ const AUGMENTATION_CASE_BUILDERS: Array<
     `Caso clínico: ${scenario}. Con énfasis en ${focus}, ¿cuál es la conducta de enfermería más adecuada?`,
   (seed, focus, scenario) =>
     `Caso clínico en ${String(seed.component).toLowerCase()}: ${scenario}. ¿Qué decisión inicial mantiene mejor ${focus}?`,
-  (seed, focus, scenario) =>
-    `Durante la atención de un paciente con ${String(seed.topic).toLowerCase()}, ${scenario.toLowerCase()}. ¿Qué respuesta prioriza ${focus}?`,
+  (_seed, focus, scenario) =>
+    `Durante la atención del siguiente caso, ${scenario.toLowerCase()}. ¿Qué respuesta prioriza ${focus}?`,
   (seed, focus, scenario) =>
     `Paciente en entrenamiento clínico: ${scenario}. Desde ${focus}, ¿cuál alternativa es la más defendible?`,
   (seed, focus, scenario) =>
@@ -1968,16 +2162,31 @@ const AUGMENTATION_CASE_BUILDERS: Array<
     `Caso clínico de ${String(seed.subcomponent).toLowerCase()}: ${scenario}. ¿Qué opción favorece mejor ${focus}?`,
   (seed, focus, scenario) =>
     `En una reevaluación del siguiente caso, ${scenario.toLowerCase()}. ¿Qué conducta conserva mejor ${focus}?`,
-  (seed, focus, scenario) =>
-    `Paciente con evolución compatible con ${String(seed.topic).toLowerCase()}: ${scenario.toLowerCase()}. ¿Qué respuesta es más segura desde ${focus}?`,
+  (_seed, focus, scenario) =>
+    `Con base en la evolución descrita, ${scenario.toLowerCase()}. ¿Qué respuesta es más segura desde ${focus}?`,
   (seed, focus, scenario) =>
     `Caso de práctica CACES: ${scenario}. ¿Cuál es la mejor conducta si el objetivo es mantener ${focus}?`,
   (seed, focus, scenario) =>
     `Ante el siguiente cuadro, ${scenario.toLowerCase()}. ¿Qué intervención representa mejor ${focus}?`,
 ];
 
+const AUGMENTATION_FALLBACK_CASE_BUILDERS: Array<
+  (seed: CacesQuestion, focus: string, scenario: string) => string
+> = [
+  (_seed, focus, scenario) =>
+    `Caso clínico breve: ${scenario}. ¿Qué alternativa de enfermería mantiene mejor ${focus}?`,
+  (_seed, focus, scenario) =>
+    `Caso de práctica: ${scenario}. Con énfasis en ${focus}, ¿cuál es la decisión más segura?`,
+  (_seed, focus, scenario) =>
+    `A partir del siguiente contexto asistencial, ${scenario.toLowerCase()}. ¿Qué respuesta es la más adecuada desde ${focus}?`,
+  (_seed, focus, scenario) =>
+    `Durante este caso de entrenamiento, ${scenario.toLowerCase()}. ¿Qué conducta prioriza mejor ${focus}?`,
+];
+
 function pickSeedsForCategory(category: string, bank: CacesQuestion[]) {
-  const categorySeeds = bank.filter((question) => question.category === category);
+  const categorySeeds = bank.filter(
+    (question) => question.category === category && isAugmentationCompatibleSeed(question)
+  );
   const byDifficulty = new Map<CacesDifficulty, CacesQuestion[]>();
 
   for (const difficulty of SUPPLEMENT_DIFFICULTY_ORDER) {
@@ -2017,11 +2226,16 @@ function buildAugmentedQuestion(args: {
   index: number;
 }): CacesQuestion {
   const { seed, category, difficulty, type, index } = args;
+  const scenarioInfo = buildVariantScenario(seed);
   const focusPool = type === "caso_clinico" ? AUGMENTATION_CASE_FOCUS : AUGMENTATION_DIRECT_FOCUS;
-  const builderPool = type === "caso_clinico" ? AUGMENTATION_CASE_BUILDERS : AUGMENTATION_DIRECT_BUILDERS;
+  const builderPool =
+    type === "caso_clinico"
+      ? scenarioInfo.contextual
+        ? AUGMENTATION_CASE_BUILDERS
+        : AUGMENTATION_FALLBACK_CASE_BUILDERS
+      : AUGMENTATION_DIRECT_BUILDERS;
   const focus = focusPool[index % focusPool.length] ?? "razonamiento clínico";
   const builder = builderPool[Math.floor(index / focusPool.length) % builderPool.length] ?? builderPool[0];
-  const scenario = buildVariantScenario(seed);
   const rotation = index % 4;
   const rotated = rotateQuestionOptions(seed, rotation);
 
@@ -2034,7 +2248,7 @@ function buildAugmentedQuestion(args: {
     subcomponent: seed.subcomponent,
     topic: seed.topic,
     type,
-    question: builder(seed, focus, scenario),
+    question: builder(seed, focus, scenarioInfo.text),
     options: rotated.options,
     correctAnswer: rotated.correctAnswer,
     explanation: `${seed.explanation} Esta variante se enfoca en ${focus} dentro de la categoría ${category}.`,
@@ -2110,7 +2324,7 @@ function ensureTargetCoverageBank(bank: CacesQuestion[]) {
 }
 
 function pickSupplementCaseSeeds(source: CacesQuestion[], target: number) {
-  const caseCandidates = source.filter((q) => q.type === "caso_clinico");
+  const caseCandidates = source.filter((q) => q.type === "caso_clinico" && isAugmentationCompatibleSeed(q));
   const grouped = new Map<string, CacesQuestion[]>();
 
   for (const question of caseCandidates) {
@@ -2171,7 +2385,7 @@ const CACES_SUPPLEMENTAL_BANK: CacesQuestion[] = (() => {
   for (let i = 0; i < seeds.length; i++) {
     const seed = seeds[i];
     const serial = i + 1;
-    const scenario = toSupplementScenario(seed.question, seed.topic);
+    const scenario = toSupplementScenario(seed);
     const baseTags = [...new Set([...(seed.tags ?? []), "suplemento_2026"])];
     const caseOptions = cloneQuestionOptions(seed.options);
 

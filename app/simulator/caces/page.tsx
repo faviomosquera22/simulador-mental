@@ -1233,8 +1233,13 @@ export default function SimulatorCacesPage() {
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <div className="text-sm text-slate-500">Pregunta {attempt.currentIndex + 1} de {attempt.questions.length}</div>
-                        <div className="mt-1 text-xs text-slate-400">
-                          {currentQuestion?.category} · {currentQuestion?.topic}
+                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                          <span className="rounded-full border border-teal-200 bg-teal-50 px-3 py-1 font-semibold text-teal-700">
+                            {currentQuestion?.category}
+                          </span>
+                          <span className="rounded-full border border-slate-300 bg-slate-100 px-3 py-1 font-medium text-slate-700">
+                            {currentQuestion?.topic}
+                          </span>
                         </div>
                       </div>
                       <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -1267,7 +1272,7 @@ export default function SimulatorCacesPage() {
                     </div>
 
                     <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
-                      <div className="text-sm font-medium text-slate-900">{currentQuestion?.question}</div>
+                      <div className="whitespace-pre-line text-sm font-medium text-slate-900">{currentQuestion?.question}</div>
 
                       <div className="mt-3 space-y-2">
                         {currentQuestion?.options.map((opt) => {
@@ -1277,13 +1282,30 @@ export default function SimulatorCacesPage() {
                               key={opt.id}
                               type="button"
                               onClick={() => setSelectedOption(opt.id)}
-                              className={`w-full rounded-xl border px-3 py-2 text-left text-sm transition ${
+                              className={`w-full rounded-xl border px-3 py-3 text-left text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-300 ${
                                 isSelected
-                                  ? "border-white/30 bg-white/10 text-slate-900"
-                                  : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
+                                  ? "border-teal-500 bg-teal-50 text-slate-900 shadow-[0_0_0_3px_rgba(94,234,212,0.22)]"
+                                  : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-slate-100"
                               }`}
+                              aria-pressed={isSelected}
                             >
-                              <span className="font-semibold">{opt.id}.</span> {opt.text}
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="pr-2">
+                                  <span className={`font-semibold ${isSelected ? "text-teal-700" : "text-slate-800"}`}>
+                                    {opt.id}.
+                                  </span>{" "}
+                                  {opt.text}
+                                </div>
+                                <span
+                                  className={`shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] ${
+                                    isSelected
+                                      ? "border-teal-500 bg-white text-teal-700"
+                                      : "border-transparent bg-slate-200/70 text-slate-500"
+                                  }`}
+                                >
+                                  {isSelected ? "Elegida" : "Opción"}
+                                </span>
+                              </div>
                             </button>
                           );
                         })}
@@ -1431,8 +1453,8 @@ export default function SimulatorCacesPage() {
       </div>
 
       {attempt?.result && showResultModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4">
-          <div className="w-full max-w-5xl max-h-[92vh] overflow-y-auto rounded-3xl border border-slate-200 bg-[#0B0F17] p-5 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/20 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-5xl max-h-[92vh] overflow-y-auto rounded-3xl border border-slate-200 bg-white/96 p-5 shadow-[0_24px_80px_rgba(15,23,42,0.18)]">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="text-lg font-semibold text-slate-900">Resultado final del simulador</div>
@@ -1443,41 +1465,41 @@ export default function SimulatorCacesPage() {
               <button
                 type="button"
                 onClick={() => setShowResultModal(false)}
-                className="rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50"
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 hover:bg-slate-50"
               >
                 Cerrar
               </button>
             </div>
 
             <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-4">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                <div className="text-xs text-slate-400">Puntaje total</div>
+              <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+                <div className="text-xs font-medium text-slate-500">Puntaje total</div>
                 <div className="mt-1 text-2xl font-semibold text-slate-900">
                   {attempt.result.total_score}/{attempt.result.total_questions}
                 </div>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                <div className="text-xs text-slate-400">Porcentaje</div>
+              <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+                <div className="text-xs font-medium text-slate-500">Porcentaje</div>
                 <div className="mt-1 text-2xl font-semibold text-slate-900">{attempt.result.accuracy}%</div>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                <div className="text-xs text-slate-400">Correctas / Incorrectas</div>
+              <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+                <div className="text-xs font-medium text-slate-500">Correctas / Incorrectas</div>
                 <div className="mt-1 text-2xl font-semibold text-slate-900">
                   {attempt.result.correct_answers} / {attempt.result.incorrect_answers}
                 </div>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                <div className="text-xs text-slate-400">Tiempo total</div>
+              <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+                <div className="text-xs font-medium text-slate-500">Tiempo total</div>
                 <div className="mt-1 text-2xl font-semibold text-slate-900">{formatTimer(attempt.result.elapsed_seconds)}</div>
               </div>
             </div>
 
             <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
                 <div className="text-sm font-semibold text-slate-900">Desempeño por categoría</div>
                 <div className="mt-2 space-y-2 text-sm">
                   {attempt.result.by_category.map((row) => (
-                    <div key={row.category} className="rounded-xl border border-slate-200 bg-white/78 p-2">
+                    <div key={row.category} className="rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
                       <div className="font-medium text-slate-900">{row.category}</div>
                       <div className="mt-1 text-slate-600">
                         {row.correct}/{row.total} correctas · {row.accuracy}%
@@ -1487,7 +1509,7 @@ export default function SimulatorCacesPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
                 <div className="text-sm font-semibold text-slate-900">Temas débiles</div>
                 {attempt.result.weak_topics.length === 0 ? (
                   <div className="mt-2 text-sm text-slate-500">Sin temas débiles predominantes en este intento.</div>
@@ -1513,7 +1535,7 @@ export default function SimulatorCacesPage() {
                 type="button"
                 onClick={handleSaveCurrentResult}
                 disabled={savedCurrentResult}
-                className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
               >
                 {savedCurrentResult ? "Guardado en historial" : "Guardar en historial"}
               </button>
@@ -1539,9 +1561,9 @@ export default function SimulatorCacesPage() {
                       const q = resultQuestionMap.get(r.question_id);
                       if (!q) return null;
                       return (
-                        <div key={r.question_id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm">
-                          <div className="text-xs text-slate-400">{q.category} · {q.topic}</div>
-                          <div className="mt-1 font-medium text-slate-900">{q.question}</div>
+                        <div key={r.question_id} className="rounded-2xl border border-slate-200 bg-white p-3 text-sm shadow-sm">
+                          <div className="text-xs text-slate-500">{q.category} · {q.topic}</div>
+                          <div className="mt-1 whitespace-pre-line font-medium text-slate-900">{q.question}</div>
                           <div className="mt-2 text-slate-600">
                             Tu respuesta: {getOptionLabel(q, r.selected)}
                           </div>

@@ -1322,13 +1322,35 @@ const MANUAL_VARIANT_BUILDERS: Array<(seed: SpecialQuestionSeed) => string> = [
 ];
 
 function cleanImportedText(value: string) {
-  return String(value ?? "")
+  const compact = String(value ?? "")
     .replace(/…/g, "")
     .replace(/\s+/g, " ")
     .replace(/^(?:\d+\.\s*){2,}/, "")
     .replace(/^\d+\.\d+\s+/, "")
     .replace(/^\d+\s+/, "")
     .replace(/^(?:desarrollo\s+)?7\.1\s+/i, "")
+    .trim();
+
+  if (
+    /^A las mujeres que se realiza(?:n)? una cesárea bajo anestesia regional,\s*requieren de una sonda vesical\.\s*¿Cuál de las siguientes razones fundamenta esta intervención de enfermería\??$/i.test(
+      compact
+    )
+  ) {
+    return "En mujeres sometidas a cesárea bajo anestesia regional, ¿cuál es la razón principal para indicar una sonda vesical como intervención de enfermería?";
+  }
+
+  if (
+    /^A las mujeres que se realiza(?:n)? una cesárea bajo anestesia regional,\s*requieren de una sonda vesical\.\s*¿Cuál de…$/i.test(
+      compact
+    )
+  ) {
+    return "Indicación de sonda vesical en cesárea bajo anestesia regional";
+  }
+
+  return compact
+    .replace(/\s*:\s*¿/g, ": ¿")
+    .replace(/([.?!])([A-Za-zÁÉÍÓÚáéíóúÑñ])/g, "$1 $2")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
@@ -1384,6 +1406,44 @@ function normalizeAnswerText(value: string) {
   return cleanImportedText(value).replace(/[.]+$/u, "").trim();
 }
 
+function isNumericCombinationOption(value: string) {
+  return /^\d+(?:\s*,\s*\d+){1,}\.?$/u.test(String(value ?? "").trim());
+}
+
+function formatEnumeratedImportedQuestion(
+  question: string,
+  options: RawImportedQuestion["options"]
+) {
+  const compact = cleanImportedText(question);
+  const numericComboCount = options.filter((value) => isNumericCombinationOption(value)).length;
+  if (numericComboCount < 3) return compact;
+
+  const splitByNumber = compact.replace(/\s(?=\d+\.)/g, "\n");
+  if (splitByNumber !== compact && /\n1\./.test(splitByNumber)) {
+    return splitByNumber;
+  }
+
+  const sentences = compact
+    .split(/(?<=\.)\s+/u)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (sentences.length < 4) return compact;
+  if (!/^(seleccione|¿cu[aá]les son|cuales son|ordene|relacione|correlacione|complete)/i.test(sentences[0] ?? "")) {
+    return compact;
+  }
+
+  const lead = sentences[0].replace(/[.]+$/u, "").trim();
+  const items = sentences.slice(1);
+  if (items.length < 3 || items.some((item) => item.length > 140 || item.includes("?"))) {
+    return compact;
+  }
+
+  return `${lead}:\n${items
+    .map((item, idx) => `${idx + 1}. ${item.replace(/[.]+$/u, "").trim()}.`)
+    .join("\n")}`;
+}
+
 function buildImportedClueSnippet(item: RawImportedQuestion) {
   const cleanedQuestion = cleanImportedText(item.question);
   const base = cleanedQuestion.includes("¿")
@@ -1431,7 +1491,7 @@ function mapImportedType(item: RawImportedQuestion): CacesQuestionType {
 }
 
 function buildRawStem(rule: DerivedRule, item: RawImportedQuestion) {
-  const cleanedQuestion = cleanImportedText(item.question);
+  const cleanedQuestion = formatEnumeratedImportedQuestion(item.question, item.options);
   const topic = cleanImportedText(item.topic) || cleanImportedText(item.question);
 
   if (rule.category !== "Score MAMÁ" && cleanedQuestion.length > 0) {

@@ -41,6 +41,71 @@ function normalizeImportedTopic(item: RawImportedQuestion) {
   return String(item.topic ?? "").trim();
 }
 
+function rewriteImportedPrompt(value: string) {
+  const text = String(value ?? "").trim();
+  if (!text) return text;
+
+  if (
+    /^A las mujeres que se realiza(?:n)? una cesárea bajo anestesia regional,\s*requieren de una sonda vesical\.\s*¿Cuál de las siguientes razones fundamenta esta intervención de enfermería\??$/i.test(
+      text
+    )
+  ) {
+    return "En mujeres sometidas a cesárea bajo anestesia regional, ¿cuál es la razón principal para indicar una sonda vesical como intervención de enfermería?";
+  }
+
+  if (
+    /^A las mujeres que se realiza(?:n)? una cesárea bajo anestesia regional,\s*requieren de una sonda vesical\.\s*¿Cuál de…$/i.test(
+      text
+    )
+  ) {
+    return "Indicación de sonda vesical en cesárea bajo anestesia regional";
+  }
+
+  return text
+    .replace(/\s*:\s*¿/g, ": ¿")
+    .replace(/([.?!])([A-Za-zÁÉÍÓÚáéíóúÑñ])/g, "$1 $2")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function isNumericCombinationOption(value: string) {
+  return /^\d+(?:\s*,\s*\d+){1,}\.?$/u.test(String(value ?? "").trim());
+}
+
+function formatEnumeratedImportedQuestion(
+  question: string,
+  options: RawImportedQuestion["options"]
+) {
+  const compact = stripImportedNoise(question);
+  const numericComboCount = options.filter((value) => isNumericCombinationOption(value)).length;
+  if (numericComboCount < 3) return compact;
+
+  const splitByNumber = compact.replace(/\s(?=\d+\.)/g, "\n");
+  if (splitByNumber !== compact && /\n1\./.test(splitByNumber)) {
+    return splitByNumber;
+  }
+
+  const sentences = compact
+    .split(/(?<=\.)\s+/u)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (sentences.length < 4) return compact;
+  if (!/^(seleccione|¿cu[aá]les son|cuales son|ordene|relacione|correlacione|complete)/i.test(sentences[0] ?? "")) {
+    return compact;
+  }
+
+  const lead = sentences[0].replace(/[.]+$/u, "").trim();
+  const items = sentences.slice(1);
+  if (items.length < 3 || items.some((item) => item.length > 140 || item.includes("?"))) {
+    return compact;
+  }
+
+  return `${lead}:\n${items
+    .map((item, idx) => `${idx + 1}. ${item.replace(/[.]+$/u, "").trim()}.`)
+    .join("\n")}`;
+}
+
 function stripImportedNoise(value: string) {
   let compact = String(value ?? "")
     .replace(/…/g, "")
@@ -62,7 +127,7 @@ function stripImportedNoise(value: string) {
     .replace(/^(?:desarrollo\s+)?7\.1\s+/i, "")
     .trim();
 
-  return compact;
+  return rewriteImportedPrompt(compact);
 }
 
 const TRAILING_FRAGMENT_WORDS = new Set([
@@ -159,7 +224,7 @@ function buildScoreMamaSourceGroup(item: RawImportedQuestion) {
 
 function buildImportedQuestionStem(item: RawImportedQuestion) {
   if (item.source !== "score_mama_2025") {
-    return stripImportedNoise(String(item.question ?? "").trim());
+    return formatEnumeratedImportedQuestion(String(item.question ?? "").trim(), item.options);
   }
 
   const topicLabel = cleanTopicLabel(normalizeImportedTopic(item));
