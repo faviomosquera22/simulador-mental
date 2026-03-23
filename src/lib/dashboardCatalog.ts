@@ -155,6 +155,18 @@ export const DASHBOARD_MODULES: DashboardModuleMeta[] = [
     status: "Práctica con validación",
   },
   {
+    id: "medical-terminology",
+    label: "Terminología médica",
+    href: "/medical-terminology",
+    group: "practica",
+    summary: "Glosario rápido de términos clínicos, farmacología y conceptos base de patologías.",
+    accent: "from-slate-500/16 via-cyan-500/8 to-transparent",
+    count: 17,
+    countLabel: "términos",
+    status: "Nuevo glosario clínico",
+    highlight: true,
+  },
+  {
     id: "medications",
     label: "Medicamentos",
     href: "/medications",

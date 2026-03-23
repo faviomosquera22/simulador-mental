@@ -1817,6 +1817,13 @@ const CACES_EXTRA_CLINICAL_CASE_BANK: CacesQuestion[] = (() => {
 
 const SUPPLEMENT_CASE_TARGET = 50;
 const SUPPLEMENT_DIRECT_PER_CASE = 4;
+const MIN_REQUIRED_QUESTIONS_PER_CATEGORY_DIFFICULTY = 100;
+const MIN_REQUIRED_CASES_PER_CATEGORY_DIFFICULTY = 50;
+const TARGET_COVERAGE_BUFFER = 6;
+const TARGET_QUESTIONS_PER_CATEGORY_DIFFICULTY =
+  MIN_REQUIRED_QUESTIONS_PER_CATEGORY_DIFFICULTY + TARGET_COVERAGE_BUFFER;
+const TARGET_CASES_PER_CATEGORY_DIFFICULTY =
+  MIN_REQUIRED_CASES_PER_CATEGORY_DIFFICULTY + TARGET_COVERAGE_BUFFER;
 
 const SUPPLEMENT_DIRECT_STEM_BUILDERS: Array<(seed: CacesQuestion) => string> = [
   (seed) =>
@@ -1854,6 +1861,252 @@ function toSupplementScenario(rawStem: string, topic: string) {
     out = `Paciente en contexto de ${String(topic).toLowerCase()}`;
   }
   return out;
+}
+
+function buildVariantScenario(seed: CacesQuestion) {
+  if (seed.type === "caso_clinico") {
+    return toSupplementScenario(seed.question, seed.topic);
+  }
+
+  return `Paciente en contexto de ${String(seed.topic).toLowerCase()}`;
+}
+
+function rotateQuestionOptions(
+  question: CacesQuestion,
+  shift: number
+): Pick<CacesQuestion, "options" | "correctAnswer"> {
+  const letters: CacesOptionId[] = ["A", "B", "C", "D"];
+  const base = cloneQuestionOptions(question.options);
+  const safeShift = ((shift % base.length) + base.length) % base.length;
+  const rotated = base.map((_, idx) => base[(idx + safeShift) % base.length]);
+  const correctOriginal = question.options.find((opt) => opt.id === question.correctAnswer) ?? question.options[0];
+
+  const rebuilt = rotated.map((opt, idx) => ({
+    ...opt,
+    id: letters[idx],
+  })) as CacesQuestion["options"];
+
+  const correctIndex = rotated.findIndex(
+    (opt) => opt.text === correctOriginal.text && opt.rationale === correctOriginal.rationale
+  );
+
+  return {
+    options: rebuilt,
+    correctAnswer: letters[Math.max(0, correctIndex)] ?? "A",
+  };
+}
+
+const AUGMENTATION_DIRECT_FOCUS = [
+  "priorización clínica",
+  "seguridad del paciente",
+  "continuidad del cuidado",
+  "interpretación de hallazgos",
+  "prevención de complicaciones",
+  "reevaluación",
+  "documentación clínica",
+  "educación al paciente",
+  "decisión inicial de enfermería",
+  "seguimiento terapéutico",
+  "uso seguro del protocolo",
+  "integración de datos clínicos",
+];
+
+const AUGMENTATION_CASE_FOCUS = [
+  "priorización inicial",
+  "seguridad inmediata",
+  "vigilancia clínica",
+  "detección de deterioro",
+  "continuidad del cuidado",
+  "respuesta profesional segura",
+  "reevaluación temprana",
+  "prevención de eventos adversos",
+  "escalamiento oportuno",
+  "juicio clínico de enfermería",
+  "conducta inicial",
+  "coherencia con el cuadro clínico",
+];
+
+const AUGMENTATION_DIRECT_BUILDERS: Array<
+  (seed: CacesQuestion, focus: string, scenario: string) => string
+> = [
+  (seed, focus) =>
+    `En ${String(seed.topic).toLowerCase()}, ¿qué alternativa refleja mejor ${focus}?`,
+  (seed, focus) =>
+    `Respecto a ${String(seed.topic).toLowerCase()}, identifica la opción más consistente con ${focus}.`,
+  (seed, focus) =>
+    `En ${String(seed.subcomponent).toLowerCase()}, ¿qué decisión se alinea mejor con ${focus} al abordar ${String(seed.topic).toLowerCase()}?`,
+  (seed, focus) =>
+    `Si debes resolver una pregunta sobre ${String(seed.topic).toLowerCase()}, ¿qué respuesta mantiene mejor ${focus}?`,
+  (seed, focus) =>
+    `En el contexto de ${String(seed.component).toLowerCase()}, ¿qué opción resume mejor ${focus} para ${String(seed.topic).toLowerCase()}?`,
+  (seed, focus) =>
+    `¿Cuál alternativa demuestra mejor ${focus} cuando se analiza ${String(seed.topic).toLowerCase()}?`,
+  (seed, focus) =>
+    `En formación CACES sobre ${String(seed.topic).toLowerCase()}, ¿qué respuesta prioriza ${focus}?`,
+  (seed, focus) =>
+    `Al revisar ${String(seed.topic).toLowerCase()}, ¿qué decisión es la más sólida desde ${focus}?`,
+  (seed, focus) =>
+    `¿Qué opción evita errores críticos y mantiene ${focus} en ${String(seed.topic).toLowerCase()}?`,
+  (seed, focus, scenario) =>
+    `Tras analizar el escenario ${scenario.toLowerCase()}, ¿qué alternativa se ajusta mejor a ${focus}?`,
+];
+
+const AUGMENTATION_CASE_BUILDERS: Array<
+  (seed: CacesQuestion, focus: string, scenario: string) => string
+> = [
+  (seed, focus, scenario) =>
+    `Caso clínico: ${scenario}. Con énfasis en ${focus}, ¿cuál es la conducta de enfermería más adecuada?`,
+  (seed, focus, scenario) =>
+    `Caso clínico en ${String(seed.component).toLowerCase()}: ${scenario}. ¿Qué decisión inicial mantiene mejor ${focus}?`,
+  (seed, focus, scenario) =>
+    `Durante la atención de un paciente con ${String(seed.topic).toLowerCase()}, ${scenario.toLowerCase()}. ¿Qué respuesta prioriza ${focus}?`,
+  (seed, focus, scenario) =>
+    `Paciente en entrenamiento clínico: ${scenario}. Desde ${focus}, ¿cuál alternativa es la más defendible?`,
+  (seed, focus, scenario) =>
+    `Escenario clínico: ${scenario}. ¿Qué acción fortalece ${focus} sin perder coherencia con el cuadro?`,
+  (seed, focus, scenario) =>
+    `Caso clínico de ${String(seed.subcomponent).toLowerCase()}: ${scenario}. ¿Qué opción favorece mejor ${focus}?`,
+  (seed, focus, scenario) =>
+    `En una reevaluación del siguiente caso, ${scenario.toLowerCase()}. ¿Qué conducta conserva mejor ${focus}?`,
+  (seed, focus, scenario) =>
+    `Paciente con evolución compatible con ${String(seed.topic).toLowerCase()}: ${scenario.toLowerCase()}. ¿Qué respuesta es más segura desde ${focus}?`,
+  (seed, focus, scenario) =>
+    `Caso de práctica CACES: ${scenario}. ¿Cuál es la mejor conducta si el objetivo es mantener ${focus}?`,
+  (seed, focus, scenario) =>
+    `Ante el siguiente cuadro, ${scenario.toLowerCase()}. ¿Qué intervención representa mejor ${focus}?`,
+];
+
+function pickSeedsForCategory(category: string, bank: CacesQuestion[]) {
+  const categorySeeds = bank.filter((question) => question.category === category);
+  const byDifficulty = new Map<CacesDifficulty, CacesQuestion[]>();
+
+  for (const difficulty of SUPPLEMENT_DIFFICULTY_ORDER) {
+    byDifficulty.set(
+      difficulty,
+      categorySeeds.filter((question) => question.difficulty === difficulty)
+    );
+  }
+
+  return { categorySeeds, byDifficulty };
+}
+
+function selectAugmentationSeed(
+  category: string,
+  difficulty: CacesDifficulty,
+  index: number,
+  bank: CacesQuestion[]
+) {
+  const { categorySeeds, byDifficulty } = pickSeedsForCategory(category, bank);
+  const sameDifficulty = byDifficulty.get(difficulty) ?? [];
+  if (sameDifficulty.length > 0) return sameDifficulty[index % sameDifficulty.length];
+
+  const otherDifficulties = SUPPLEMENT_DIFFICULTY_ORDER.filter((item) => item !== difficulty);
+  for (const level of otherDifficulties) {
+    const pool = byDifficulty.get(level) ?? [];
+    if (pool.length > 0) return pool[index % pool.length];
+  }
+
+  return categorySeeds[index % categorySeeds.length] ?? null;
+}
+
+function buildAugmentedQuestion(args: {
+  seed: CacesQuestion;
+  category: string;
+  difficulty: CacesDifficulty;
+  type: CacesQuestionType;
+  index: number;
+}): CacesQuestion {
+  const { seed, category, difficulty, type, index } = args;
+  const focusPool = type === "caso_clinico" ? AUGMENTATION_CASE_FOCUS : AUGMENTATION_DIRECT_FOCUS;
+  const builderPool = type === "caso_clinico" ? AUGMENTATION_CASE_BUILDERS : AUGMENTATION_DIRECT_BUILDERS;
+  const focus = focusPool[index % focusPool.length] ?? "razonamiento clínico";
+  const builder = builderPool[Math.floor(index / focusPool.length) % builderPool.length] ?? builderPool[0];
+  const scenario = buildVariantScenario(seed);
+  const rotation = index % 4;
+  const rotated = rotateQuestionOptions(seed, rotation);
+
+  return {
+    ...seed,
+    id: `caces-target-${category.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${difficulty}-${type}-${seed.id}-${String(index + 1).padStart(3, "0")}`,
+    sourceGroup: `target:${category}:${difficulty}:${type}:${seed.id}:${index + 1}`,
+    category,
+    component: seed.component,
+    subcomponent: seed.subcomponent,
+    topic: seed.topic,
+    type,
+    question: builder(seed, focus, scenario),
+    options: rotated.options,
+    correctAnswer: rotated.correctAnswer,
+    explanation: `${seed.explanation} Esta variante se enfoca en ${focus} dentro de la categoría ${category}.`,
+    difficulty,
+    tags: [...new Set([...(seed.tags ?? []), "target_coverage_2026", type, difficulty])],
+  };
+}
+
+function countQuestionsByCategoryDifficulty(bank: CacesQuestion[]) {
+  const counts = new Map<string, { total: number; cases: number }>();
+
+  for (const question of bank) {
+    const key = `${question.category}||${question.difficulty}`;
+    const entry = counts.get(key) ?? { total: 0, cases: 0 };
+    entry.total += 1;
+    if (question.type === "caso_clinico") entry.cases += 1;
+    counts.set(key, entry);
+  }
+
+  return counts;
+}
+
+function ensureTargetCoverageBank(bank: CacesQuestion[]) {
+  const augmented = [...bank];
+  const counts = countQuestionsByCategoryDifficulty(augmented);
+
+  for (const category of CACES_CATEGORIES) {
+    const categorySeedPool = bank.filter((question) => question.category === category);
+    if (categorySeedPool.length === 0) continue;
+
+    for (const difficulty of SUPPLEMENT_DIFFICULTY_ORDER) {
+      const key = `${category}||${difficulty}`;
+      const entry = counts.get(key) ?? { total: 0, cases: 0 };
+
+      let caseIndex = 0;
+      while (entry.cases < TARGET_CASES_PER_CATEGORY_DIFFICULTY) {
+        const seed = selectAugmentationSeed(category, difficulty, caseIndex, bank);
+        if (!seed) break;
+        const question = buildAugmentedQuestion({
+          seed,
+          category,
+          difficulty,
+          type: "caso_clinico",
+          index: caseIndex,
+        });
+        augmented.push(question);
+        entry.total += 1;
+        entry.cases += 1;
+        caseIndex += 1;
+      }
+
+      let directIndex = 0;
+      while (entry.total < TARGET_QUESTIONS_PER_CATEGORY_DIFFICULTY) {
+        const seed = selectAugmentationSeed(category, difficulty, directIndex, bank);
+        if (!seed) break;
+        const question = buildAugmentedQuestion({
+          seed,
+          category,
+          difficulty,
+          type: "directa",
+          index: directIndex,
+        });
+        augmented.push(question);
+        entry.total += 1;
+        directIndex += 1;
+      }
+
+      counts.set(key, entry);
+    }
+  }
+
+  return augmented;
 }
 
 function pickSupplementCaseSeeds(source: CacesQuestion[], target: number) {
@@ -1965,16 +2218,18 @@ const CACES_SUPPLEMENTAL_BANK: CacesQuestion[] = (() => {
 })();
 
 export const CACES_QUESTION_BANK: CacesQuestion[] = dedupeCacesQuestions(
-  dedupeCacesQuestionsByStem(
-    [
-      ...CACES_SPECIAL_COLLECTION_BANK,
-      ...CACES_CORE_QUESTION_BANK,
-      ...CACES_EXTRA_CLINICAL_CASE_BANK,
-      ...CACES_EXPANDED_QUESTION_BANK,
-      ...CACES_SUPPLEMENTAL_BANK,
-      ...CACES_IMPORTED_PDF_BANK,
-      ...CACES_SCORE_MAMA_GYNE_BANK,
-    ].map(alignQuestionToEhepManual)
+  ensureTargetCoverageBank(
+    dedupeCacesQuestionsByStem(
+      [
+        ...CACES_SPECIAL_COLLECTION_BANK,
+        ...CACES_CORE_QUESTION_BANK,
+        ...CACES_EXTRA_CLINICAL_CASE_BANK,
+        ...CACES_EXPANDED_QUESTION_BANK,
+        ...CACES_SUPPLEMENTAL_BANK,
+        ...CACES_IMPORTED_PDF_BANK,
+        ...CACES_SCORE_MAMA_GYNE_BANK,
+      ].map(alignQuestionToEhepManual)
+    )
   )
 );
 

@@ -141,6 +141,15 @@ const navIcons = {
       <path d="M10 15h4" />
     </svg>
   ),
+  terminology: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H20" />
+      <path d="M6.5 4H20v16H6.5A2.5 2.5 0 0 0 4 22V6.5" />
+      <path d="M8 9h8" />
+      <path d="M8 13h8" />
+      <path d="M8 17h5" />
+    </svg>
+  ),
   procedures: (
     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
       <path d="M4 20l6-6" />
@@ -256,6 +265,7 @@ const NAV_SECTIONS: NavSection[] = [
     title: "Práctica clínica",
     items: [
       { label: "Cálculo clínico", href: "/clinical-calculations", icon: navIcons.calculations },
+      { label: "Terminología médica", href: "/medical-terminology", icon: navIcons.terminology },
       { label: "Medicamentos", href: "/medications", icon: navIcons.medications },
       { label: "Procedimientos", href: "/procedures", icon: navIcons.procedures },
       { label: "Notas clínicas", href: "/clinical-notes", icon: navIcons.notes },
