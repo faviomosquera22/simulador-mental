@@ -238,7 +238,7 @@ export default function MedicalTerminologyPage() {
                 <div className="inline-flex rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-700">
                   Práctica de completar
                 </div>
-                <h2 className="mt-3 text-xl font-semibold text-slate-900">Práctica guiada</h2>
+                <h2 className="mt-3 text-xl font-semibold text-slate-900">Completa según el significado</h2>
                 <p className="mt-2 text-sm text-slate-600">
                   Te mostramos el concepto y tú completas la palabra o expresión médica. La práctica usa el mismo banco del glosario y respeta los filtros activos.
                 </p>
@@ -285,7 +285,6 @@ export default function MedicalTerminologyPage() {
               <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_320px]">
                 <div className="rounded-2xl border border-slate-200 bg-white p-5">
                   <div className="flex flex-wrap items-center gap-2">
-                    <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Práctica guiada</div>
                     <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700">
                       {getTermKind(practiceItem) === "prefijo"
                         ? "Prefijo"
