@@ -518,18 +518,18 @@ function readHistorySessions(): StoredSession[] {
 }
 
 function riskBadgeClass(level: StoredSession["riskLevel"]) {
-  if (level === "Alto") return "border-red-400/25 bg-red-400/10 text-red-100";
-  if (level === "Moderado") return "border-amber-400/25 bg-amber-400/10 text-amber-100";
-  if (level === "Bajo") return "border-emerald-400/25 bg-emerald-400/10 text-emerald-100";
-  return "border-white/15 bg-black/30 text-white/70";
+  if (level === "Alto") return "border-red-200 bg-red-50 text-red-700";
+  if (level === "Moderado") return "border-amber-200 bg-amber-50 text-amber-700";
+  if (level === "Bajo") return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  return "border-slate-200 bg-slate-100 text-slate-700";
 }
 
 function groupBadgeClass(group: DashboardModuleGroup) {
-  if (group === "simulacion") return "border-cyan-400/20 bg-cyan-400/10 text-cyan-100";
-  if (group === "diagnostico") return "border-emerald-400/20 bg-emerald-400/10 text-emerald-100";
-  if (group === "avanzado") return "border-fuchsia-400/20 bg-fuchsia-400/10 text-fuchsia-100";
-  if (group === "practica") return "border-orange-400/20 bg-orange-400/10 text-orange-100";
-  return "border-slate-300/20 bg-slate-300/10 text-slate-100";
+  if (group === "simulacion") return "border-cyan-200 bg-cyan-50 text-cyan-700";
+  if (group === "diagnostico") return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  if (group === "avanzado") return "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700";
+  if (group === "practica") return "border-orange-200 bg-orange-50 text-orange-700";
+  return "border-slate-200 bg-slate-100 text-slate-700";
 }
 
 function getIntentLabel(intent: AdvisorIntent) {
@@ -619,9 +619,9 @@ function getFocusState(intent: AdvisorIntent, hasActive: boolean, hasHighRisk: b
 }
 
 function getNoticeClass(tone: ProfileNotice["tone"]) {
-  if (tone === "success") return "border-emerald-400/25 bg-emerald-400/10 text-emerald-100";
-  if (tone === "error") return "border-red-400/25 bg-red-400/10 text-red-100";
-  return "border-sky-400/25 bg-sky-400/10 text-sky-100";
+  if (tone === "success") return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  if (tone === "error") return "border-red-200 bg-red-50 text-red-700";
+  return "border-sky-200 bg-sky-50 text-sky-700";
 }
 
 function inferCareerTrack(career?: string, role?: string): CareerTrack {
@@ -1055,73 +1055,73 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070A0F]">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f6fbf9_0%,#eef5f2_48%,#e6efeb_100%)]">
       <div className="mx-auto flex max-w-[1520px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
         <Sidebar />
 
-        <main className="flex-1 overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(8,11,17,0.96),rgba(8,11,17,0.88))] shadow-[0_30px_90px_rgba(0,0,0,0.42)] backdrop-blur-xl">
-          <header className="flex flex-col gap-4 border-b border-white/10 bg-white/[0.03] px-5 py-4 xl:flex-row xl:items-center">
+        <main className="flex-1 overflow-hidden rounded-[30px] border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] shadow-[0_28px_80px_rgba(99,126,118,0.16)] backdrop-blur-xl">
+          <header className="flex flex-col gap-4 border-b border-[#d9e7e1] bg-white/70 px-5 py-4 xl:flex-row xl:items-center">
             <div>
-              <div className="text-sm text-white/55">Dashboard</div>
-              <div className="mt-1 text-xl font-semibold text-white">Navegador clínico del ecosistema Psyke</div>
+              <div className="text-sm text-slate-500">Dashboard</div>
+              <div className="mt-1 text-xl font-semibold text-slate-900">Navegador clínico del ecosistema Psyke</div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 xl:ml-auto">
-              <Link href="/reports" className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 transition hover:bg-white/5">
+              <Link href="/reports" className="rounded-xl border border-slate-200 bg-white/70 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50">
                 Reportes
               </Link>
-              <Link href="/history" className="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 transition hover:bg-white/5">
+              <Link href="/history" className="rounded-xl border border-slate-200 bg-white/70 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50">
                 Historial
               </Link>
-              <Link href="/cases" className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90">
+              <Link href="/cases" className="rounded-xl bg-[#183640] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#224652]">
                 + Nuevo caso
               </Link>
             </div>
           </header>
 
           <div className="overflow-y-auto px-5 py-6">
-            <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[#0A1018] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.5)] sm:p-6">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.18),transparent_34%),radial-gradient(circle_at_78%_18%,rgba(249,115,22,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.12),transparent_24%),linear-gradient(135deg,#0B1018,#101826_55%,#0A0F17)]" />
+            <section className="relative overflow-hidden rounded-[32px] border border-[#d7e6df] bg-[linear-gradient(135deg,rgba(255,255,255,0.96),rgba(244,250,247,0.94))] p-5 shadow-[0_24px_70px_rgba(130,154,146,0.16)] sm:p-6">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.12),transparent_34%),radial-gradient(circle_at_78%_18%,rgba(249,115,22,0.10),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.10),transparent_24%),linear-gradient(135deg,rgba(255,255,255,0.82),rgba(240,247,244,0.9)_55%,rgba(232,242,238,0.96))]" />
 
               <div className="relative grid gap-5 xl:grid-cols-[minmax(0,1.08fr)_0.92fr] 2xl:grid-cols-[minmax(0,1.12fr)_0.88fr]">
                 <div>
-                  <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-100">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-700">
                     {profileComplete ? "Ruta personalizada activa" : "Onboarding clínico"}
                   </div>
-                  <h1 className="mt-4 max-w-[18ch] text-3xl font-semibold leading-tight text-white sm:text-[2.55rem]">
+                  <h1 className="mt-4 max-w-[18ch] text-3xl font-semibold leading-tight text-slate-900 sm:text-[2.55rem]">
                     Hola, {displayName}. {profileComplete ? "Tu siguiente bloque ya está orientado." : "Completa tu perfil y activamos tu ruta ideal."}
                   </h1>
-                  <p className="mt-4 max-w-[68ch] text-sm leading-6 text-white/70 sm:text-[15px]">
+                  <p className="mt-4 max-w-[68ch] text-sm leading-6 text-slate-600 sm:text-[15px]">
                     {profileComplete
                       ? `${focusState.description} Tu perfil actual se interpreta como ${careerTrack.label.toLowerCase()} y usa tu historial para priorizar módulos.`
                       : "Usa este bloque para dejar listo tu perfil académico y, al mismo tiempo, recibir recomendaciones por carrera, tiempo disponible e historial reciente."}
                   </p>
 
                   <div className="mt-5 flex flex-wrap gap-2">
-                    <span className="rounded-full border border-white/10 bg-white/8 px-3 py-1.5 text-xs text-white/75">
+                    <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-xs text-slate-600">
                       {DASHBOARD_MODULES.length} módulos activos
                     </span>
-                    <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1.5 text-xs text-cyan-100">
+                    <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-xs text-cyan-700">
                       {careerTrack.label}
                     </span>
                     <span className={`rounded-full border px-3 py-1.5 text-xs ${riskBadgeClass(currentRiskLevel)}`}>
                       Riesgo {currentRiskLevel}
                     </span>
-                    <span className="rounded-full border border-white/10 bg-white/8 px-3 py-1.5 text-xs text-white/75">
+                    <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-xs text-slate-600">
                       Tiempo activo: {getTimeLabel(selectedTime)}
                     </span>
                   </div>
 
                   {!profileComplete ? (
-                    <form onSubmit={saveProfileFromDashboard} className="mt-6 rounded-[28px] border border-white/10 bg-black/22 p-5">
+                    <form onSubmit={saveProfileFromDashboard} className="mt-6 rounded-[28px] border border-slate-200/90 bg-white/78 p-5 shadow-[0_18px_50px_rgba(148,163,184,0.12)]">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                          <div className="text-sm font-semibold text-white">Completa tu perfil inicial</div>
-                          <div className="mt-1 text-sm text-white/58">
+                          <div className="text-sm font-semibold text-slate-900">Completa tu perfil inicial</div>
+                          <div className="mt-1 text-sm text-slate-500">
                             Esto reemplaza el popup de bienvenida y deja listo el dashboard desde aquí.
                           </div>
                         </div>
-                        <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-white/70">
+                        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600">
                           {profileCompletion}% completo
                         </span>
                       </div>
@@ -1138,28 +1138,28 @@ export default function DashboardPage() {
                           value={profileDraft.name ?? ""}
                           onChange={handleProfileFieldChange("name")}
                           placeholder="Nombre completo"
-                          className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-white/28 focus:border-cyan-300/35"
+                          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-cyan-400"
                         />
                         <input
                           type="email"
                           value={profileDraft.email ?? ""}
                           onChange={handleProfileFieldChange("email")}
                           placeholder="Correo"
-                          className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-white/28 focus:border-cyan-300/35"
+                          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-cyan-400"
                         />
                         <input
                           type="text"
                           value={profileDraft.role ?? ""}
                           onChange={handleProfileFieldChange("role")}
                           placeholder="Rol académico"
-                          className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-white/28 focus:border-cyan-300/35"
+                          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-cyan-400"
                         />
                         <input
                           type="text"
                           value={profileDraft.career ?? ""}
                           onChange={handleProfileFieldChange("career")}
                           placeholder="Carrera o programa"
-                          className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-white/28 focus:border-cyan-300/35"
+                          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-cyan-400"
                         />
                       </div>
 
@@ -1167,53 +1167,53 @@ export default function DashboardPage() {
                         <button
                           type="submit"
                           disabled={!profileReady}
-                          className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90 disabled:opacity-60"
+                          className="rounded-xl bg-[#183640] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#224652] disabled:opacity-60"
                         >
                           Guardar perfil y personalizar
                         </button>
-                        <span className="text-xs text-white/45">
+                        <span className="text-xs text-slate-500">
                           {authDetected ? "Cuenta detectada: usaremos estos datos en toda la plataforma." : "Modo local: el perfil se guarda en este navegador."}
                         </span>
                       </div>
                     </form>
                   ) : (
                     <div className="mt-6 grid gap-4 2xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.92fr)]">
-                      <div className="rounded-[28px] border border-white/10 bg-black/22 p-5">
+                      <div className="rounded-[28px] border border-slate-200/90 bg-white/78 p-5 shadow-[0_18px_50px_rgba(148,163,184,0.12)]">
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <div className="text-sm font-semibold text-white">Perfil listo</div>
-                            <div className="mt-1 text-sm text-white/58">{careerTrack.helper}</div>
+                            <div className="text-sm font-semibold text-slate-900">Perfil listo</div>
+                            <div className="mt-1 text-sm text-slate-500">{careerTrack.helper}</div>
                           </div>
-                          <Link href="/profile" className="rounded-xl border border-white/15 bg-white/[0.03] px-3 py-2 text-xs text-white/82 transition hover:bg-white/8">
+                          <Link href="/profile" className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 transition hover:bg-slate-50">
                             Editar perfil
                           </Link>
                         </div>
                         <div className="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
-                          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                            <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Rol</div>
-                            <div className="mt-2 text-sm font-semibold text-white">{displayRole}</div>
+                          <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                            <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Rol</div>
+                            <div className="mt-2 text-sm font-semibold text-slate-900">{displayRole}</div>
                           </div>
-                          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                            <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Carrera</div>
-                            <div className="mt-2 text-sm font-semibold text-white">{displayCareer}</div>
+                          <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                            <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Carrera</div>
+                            <div className="mt-2 text-sm font-semibold text-slate-900">{displayCareer}</div>
                           </div>
-                          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:col-span-2 2xl:col-span-1">
-                            <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">Ruta sugerida</div>
-                            <div className="mt-2 text-sm font-semibold text-white">{getIntentLabel(suggestedAdvisor.intent)}</div>
+                          <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:col-span-2 2xl:col-span-1">
+                            <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Ruta sugerida</div>
+                            <div className="mt-2 text-sm font-semibold text-slate-900">{getIntentLabel(suggestedAdvisor.intent)}</div>
                           </div>
                         </div>
                       </div>
 
-                      <div className="rounded-[28px] border border-white/10 bg-black/22 p-5">
+                      <div className="rounded-[28px] border border-slate-200/90 bg-white/78 p-5 shadow-[0_18px_50px_rgba(148,163,184,0.12)]">
                         <div className="flex items-center justify-between gap-3">
                           <div>
-                            <div className="text-sm font-semibold text-white">Práctica rápida</div>
-                            <div className="mt-1 text-sm text-white/58">Ajusta solo el tiempo y mantenemos la recomendación.</div>
+                            <div className="text-sm font-semibold text-slate-900">Práctica rápida</div>
+                            <div className="mt-1 text-sm text-slate-500">Ajusta solo el tiempo y mantenemos la recomendación.</div>
                           </div>
                           <button
                             type="button"
                             onClick={resetTimeSuggestion}
-                            className="rounded-xl border border-white/15 bg-white/[0.03] px-3 py-2 text-xs text-white/82 transition hover:bg-white/8"
+                            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 transition hover:bg-slate-50"
                           >
                             Restaurar
                           </button>
@@ -1226,16 +1226,16 @@ export default function DashboardPage() {
                               onClick={() => selectTime(option.id)}
                               className={`rounded-2xl border px-4 py-3 text-left transition ${
                                 selectedTime === option.id
-                                  ? "border-orange-300/30 bg-orange-400/12 text-white"
-                                  : "border-white/10 bg-white/[0.03] text-white/76 hover:bg-white/8"
+                                  ? "border-orange-300 bg-orange-50 text-slate-900"
+                                  : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                               }`}
                             >
                               <div className="text-sm font-semibold">{option.label}</div>
-                              <div className="mt-2 text-xs leading-5 text-white/55">{option.helper}</div>
+                              <div className="mt-2 text-xs leading-5 text-slate-500">{option.helper}</div>
                             </button>
                           ))}
                         </div>
-                        <div className="mt-4 text-xs text-white/48">
+                        <div className="mt-4 text-xs text-slate-500">
                           Sugerencia automática: {getIntentLabel(suggestedAdvisor.intent)} · {getFormatLabel(suggestedAdvisor.format)} · {getTimeLabel(suggestedAdvisor.time)}
                         </div>
                       </div>
@@ -1244,49 +1244,49 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
-                  <div className="flex h-full flex-col rounded-[30px] border border-white/10 bg-black/28 p-5">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Simulador ideal según tu perfil</div>
-                    <div className="mt-2 text-xl font-semibold text-white">{idealSimulator?.label ?? "Sin recomendación"}</div>
-                    <div className="mt-3 text-sm leading-6 text-white/72">
+                  <div className="flex h-full flex-col rounded-[30px] border border-slate-200/90 bg-white/78 p-5 shadow-[0_18px_50px_rgba(148,163,184,0.12)]">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Simulador ideal según tu perfil</div>
+                    <div className="mt-2 text-xl font-semibold text-slate-900">{idealSimulator?.label ?? "Sin recomendación"}</div>
+                    <div className="mt-3 text-sm leading-6 text-slate-600">
                       {careerTrack.helper}
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2">
                       <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs ${groupBadgeClass(idealSimulator?.group ?? "seguimiento")}`}>
                         {idealSimulator ? DASHBOARD_GROUP_LABELS[idealSimulator.group] : "—"}
                       </span>
-                      <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs text-white/75">
+                      <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600">
                         {displayCareer}
                       </span>
                     </div>
                     <Link
                       href={idealSimulator?.href ?? "/cases"}
-                      className="mt-auto inline-flex rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90"
+                      className="mt-auto inline-flex rounded-xl bg-[#183640] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#224652]"
                     >
                       Abrir simulador ideal
                     </Link>
                   </div>
 
-                  <div className="flex h-full flex-col rounded-[30px] border border-white/10 bg-black/28 p-5">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Práctica rápida según tiempo</div>
-                    <div className="mt-2 text-xl font-semibold text-white">{quickPractice?.label ?? "Sin sugerencia"}</div>
-                    <div className="mt-3 text-sm leading-6 text-white/72">
+                  <div className="flex h-full flex-col rounded-[30px] border border-slate-200/90 bg-white/78 p-5 shadow-[0_18px_50px_rgba(148,163,184,0.12)]">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Práctica rápida según tiempo</div>
+                    <div className="mt-2 text-xl font-semibold text-slate-900">{quickPractice?.label ?? "Sin sugerencia"}</div>
+                    <div className="mt-3 text-sm leading-6 text-slate-600">
                       {quickPractice ? compactText(quickPractice.summary, 16) : "Selecciona un bloque de tiempo para ver la mejor sesión corta."}
                     </div>
-                    <div className="mt-4 text-xs text-white/55">
+                    <div className="mt-4 text-xs text-slate-500">
                       Mejor encaje para {getTimeLabel(selectedTime)} en modalidad {getFormatLabel(suggestedAdvisor.format).toLowerCase()}.
                     </div>
                     <Link
                       href={quickPractice?.href ?? "/cases"}
-                      className="mt-auto inline-flex rounded-xl border border-white/15 bg-white/[0.03] px-4 py-2.5 text-sm text-white/82 transition hover:bg-white/8"
+                      className="mt-auto inline-flex rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50"
                     >
                       Entrar a práctica rápida
                     </Link>
                   </div>
 
-                  <div className="flex h-full flex-col rounded-[30px] border border-white/10 bg-black/28 p-5">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Siguiente módulo según historial</div>
-                    <div className="mt-2 text-xl font-semibold text-white">{nextModule?.label ?? "Sin siguiente paso"}</div>
-                    <div className="mt-3 text-sm leading-6 text-white/72">
+                  <div className="flex h-full flex-col rounded-[30px] border border-slate-200/90 bg-white/78 p-5 shadow-[0_18px_50px_rgba(148,163,184,0.12)]">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Siguiente módulo según historial</div>
+                    <div className="mt-2 text-xl font-semibold text-slate-900">{nextModule?.label ?? "Sin siguiente paso"}</div>
+                    <div className="mt-3 text-sm leading-6 text-slate-600">
                       {hasActive
                         ? "Lo colocamos después de tu caso activo para mantener continuidad sin cortar el flujo."
                         : lastClosed
@@ -1295,29 +1295,29 @@ export default function DashboardPage() {
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2">
                       {topRoute.slice(0, 3).map((module) => (
-                        <span key={module.id} className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-white/75">
+                        <span key={module.id} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600">
                           {module.label}
                         </span>
                       ))}
                     </div>
                     <Link
                       href={nextModule?.href ?? "/cases"}
-                      className="mt-auto inline-flex rounded-xl border border-white/15 bg-white/[0.03] px-4 py-2.5 text-sm text-white/82 transition hover:bg-white/8"
+                      className="mt-auto inline-flex rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50"
                     >
                       Abrir siguiente módulo
                     </Link>
                   </div>
 
-                  <div className="flex h-full flex-col rounded-[30px] border border-white/10 bg-black/28 p-5">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Refuerzo de áreas débiles</div>
-                    <div className="mt-2 text-xl font-semibold text-white">{weaknessFocus.title}</div>
-                    <div className="mt-3 text-sm leading-6 text-white/72">{weaknessFocus.helper}</div>
+                  <div className="flex h-full flex-col rounded-[30px] border border-slate-200/90 bg-white/78 p-5 shadow-[0_18px_50px_rgba(148,163,184,0.12)]">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Refuerzo de áreas débiles</div>
+                    <div className="mt-2 text-xl font-semibold text-slate-900">{weaknessFocus.title}</div>
+                    <div className="mt-3 text-sm leading-6 text-slate-600">{weaknessFocus.helper}</div>
                     <div className="mt-4 flex flex-wrap gap-2">
                       {weaknessFocus.modules.slice(0, 3).map((module) => (
                         <Link
                           key={module.id}
                           href={module.href}
-                          className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-white/75 transition hover:bg-white/8"
+                          className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600 transition hover:bg-white"
                         >
                           {module.label}
                         </Link>
@@ -1329,15 +1329,15 @@ export default function DashboardPage() {
             </section>
 
             <section className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_340px] 2xl:grid-cols-[minmax(0,1.45fr)_360px]">
-              <div className="rounded-[30px] border border-white/10 bg-white/[0.03] p-5">
+              <div className="rounded-[30px] border border-slate-200/90 bg-white/80 p-5 shadow-[0_18px_50px_rgba(148,163,184,0.12)]">
                 <div className="flex items-end justify-between gap-3">
                   <div>
-                    <div className="text-base font-semibold text-white">Opciones sugeridas para hoy</div>
-                    <div className="mt-1 text-sm text-white/58">
+                    <div className="text-base font-semibold text-slate-900">Opciones sugeridas para hoy</div>
+                    <div className="mt-1 text-sm text-slate-500">
                       Las tarjetas cambian según objetivo, modalidad, tiempo y contexto clínico reciente.
                     </div>
                   </div>
-                  <div className="text-xs text-white/45">Top 4 recomendaciones</div>
+                  <div className="text-xs text-slate-400">Top 4 recomendaciones</div>
                 </div>
 
                 <div className="mt-4 grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
@@ -1347,37 +1347,37 @@ export default function DashboardPage() {
                       href={module!.href}
                       className={`group rounded-[28px] border p-5 transition hover:-translate-y-0.5 ${
                         index === 0
-                          ? "border-cyan-300/25 bg-gradient-to-br from-cyan-400/10 to-black/20 shadow-[0_20px_55px_rgba(0,0,0,0.35)]"
-                          : "border-white/10 bg-black/20 hover:bg-white/8"
+                          ? "border-cyan-200 bg-gradient-to-br from-cyan-50 via-white to-orange-50 shadow-[0_18px_40px_rgba(125,211,252,0.18)]"
+                          : "border-slate-200 bg-white hover:bg-slate-50"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">
+                          <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">
                             {index === 0 ? "Mejor ajuste" : "Alternativa"}
                           </div>
-                          <div className="mt-2 text-lg font-semibold text-white">{module!.label}</div>
+                          <div className="mt-2 text-lg font-semibold text-slate-900">{module!.label}</div>
                         </div>
                         <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] ${groupBadgeClass(module!.group)}`}>
                           {DASHBOARD_GROUP_LABELS[module!.group]}
                         </span>
                       </div>
 
-                      <div className={`mt-4 rounded-2xl border border-white/10 bg-gradient-to-r ${module!.accent} p-4`}>
-                        <div className="text-sm leading-6 text-white/72">{compactText(module!.summary, 16)}</div>
+                      <div className={`mt-4 rounded-2xl border border-slate-200 bg-gradient-to-r ${module!.accent} p-4`}>
+                        <div className="text-sm leading-6 text-slate-700">{compactText(module!.summary, 16)}</div>
                       </div>
 
                       <div className="mt-4 space-y-2">
                         {module!.reasons.slice(0, 2).map((reason) => (
-                          <div key={reason} className="text-xs text-white/55">
+                          <div key={reason} className="text-xs text-slate-500">
                             {reason}
                           </div>
                         ))}
                       </div>
 
                       <div className="mt-4 flex items-center justify-between gap-3">
-                        <span className="text-xs text-white/45">{module!.status}</span>
-                        <span className="rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-xs font-medium text-white/82">
+                        <span className="text-xs text-slate-400">{module!.status}</span>
+                        <span className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700">
                           Abrir módulo
                         </span>
                       </div>
@@ -1387,13 +1387,13 @@ export default function DashboardPage() {
               </div>
 
               <div className="space-y-5">
-                <div className="rounded-[30px] border border-white/10 bg-white/[0.03] p-5">
+                <div className="rounded-[30px] border border-slate-200/90 bg-white/80 p-5 shadow-[0_18px_50px_rgba(148,163,184,0.12)]">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
                         Estado actual
                       </div>
-                      <div className="mt-2 text-xl font-semibold text-white">
+                      <div className="mt-2 text-xl font-semibold text-slate-900">
                         {hasActive ? "Caso en progreso" : "Sin sesión activa"}
                       </div>
                     </div>
@@ -1404,68 +1404,68 @@ export default function DashboardPage() {
 
                   <div className="mt-5 space-y-3 text-sm">
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-white/58">Caso</span>
-                      <span className="max-w-[220px] truncate text-right text-white/88">
+                      <span className="text-slate-500">Caso</span>
+                      <span className="max-w-[220px] truncate text-right text-slate-800">
                         {hasActive ? meta.title : safeText(lastClosed?.caseTitle, "—")}
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-white/58">Paciente</span>
-                      <span className="max-w-[220px] truncate text-right text-white/88">
+                      <span className="text-slate-500">Paciente</span>
+                      <span className="max-w-[220px] truncate text-right text-slate-800">
                         {hasActive ? meta.patientName : safeText(lastClosed?.patientName, "—")}
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-white/58">Duración</span>
-                      <span className="text-white/88">
+                      <span className="text-slate-500">Duración</span>
+                      <span className="text-slate-800">
                         {hasActive ? (meta.targetMinutes ? `${meta.targetMinutes} min` : "Libre") : avgDuration ? `${avgDuration} min` : "—"}
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-white/58">Último cierre</span>
-                      <span className="text-right text-white/88">{formatDate(lastClosed?.endedAt ?? endedInfo?.ended_at)}</span>
+                      <span className="text-slate-500">Último cierre</span>
+                      <span className="text-right text-slate-800">{formatDate(lastClosed?.endedAt ?? endedInfo?.ended_at)}</span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-white/58">Motivo</span>
-                      <span className="text-white/88">{shortReason(lastClosed?.reason ?? endedInfo?.reason)}</span>
+                      <span className="text-slate-500">Motivo</span>
+                      <span className="text-slate-800">{shortReason(lastClosed?.reason ?? endedInfo?.reason)}</span>
                     </div>
                   </div>
 
                   <div className="mt-5 flex flex-wrap gap-3">
                     <Link
                       href={primaryAction.href}
-                      className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90"
+                      className="rounded-xl bg-[#183640] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#224652]"
                     >
                       {primaryAction.label}
                     </Link>
                     <Link
                       href="/history"
-                      className="rounded-xl border border-white/15 bg-white/[0.03] px-4 py-2.5 text-sm text-white/82 transition hover:bg-white/8"
+                      className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50"
                     >
                       Ver historial
                     </Link>
                   </div>
 
-                  <div className="mt-3 text-xs text-white/50">{primaryAction.helper}</div>
+                  <div className="mt-3 text-xs text-slate-500">{primaryAction.helper}</div>
                 </div>
 
-                <div className="rounded-[30px] border border-white/10 bg-white/[0.03] p-5">
+                <div className="rounded-[30px] border border-slate-200/90 bg-white/80 p-5 shadow-[0_18px_50px_rgba(148,163,184,0.12)]">
                   <div className="flex items-end justify-between gap-3">
                     <div>
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
                         Contexto del sistema
                       </div>
-                      <div className="mt-2 text-lg font-semibold text-white">Resumen de orientación</div>
+                      <div className="mt-2 text-lg font-semibold text-slate-900">Resumen de orientación</div>
                     </div>
-                    <div className="text-xs text-white/45">Local y en tiempo real</div>
+                    <div className="text-xs text-slate-400">Local y en tiempo real</div>
                   </div>
 
                   <div className="mt-4 grid grid-cols-2 gap-3">
                     {contextMetrics.map((metric) => (
-                      <div key={metric.label} className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                        <div className="text-[11px] uppercase tracking-[0.18em] text-white/42">{metric.label}</div>
-                        <div className="mt-2 text-2xl font-semibold text-white">{metric.value}</div>
-                        <div className="mt-2 text-xs leading-5 text-white/52">{metric.helper}</div>
+                      <div key={metric.label} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">{metric.label}</div>
+                        <div className="mt-2 text-2xl font-semibold text-slate-900">{metric.value}</div>
+                        <div className="mt-2 text-xs leading-5 text-slate-500">{metric.helper}</div>
                       </div>
                     ))}
                   </div>
@@ -1476,39 +1476,39 @@ export default function DashboardPage() {
             <section className="mt-6">
               <div className="flex items-end justify-between gap-3">
                 <div>
-                  <div className="text-base font-semibold text-white">Explorar por dominio</div>
-                  <div className="mt-1 text-sm text-white/58">
+                  <div className="text-base font-semibold text-slate-900">Explorar por dominio</div>
+                  <div className="mt-1 text-sm text-slate-500">
                     Si no quieres usar la recomendación automática, puedes entrar por el área clínica que más te interese.
                   </div>
                 </div>
-                <Link href="/topics" className="rounded-xl border border-white/15 bg-black/20 px-4 py-2 text-sm text-white/82 transition hover:bg-white/5">
+                <Link href="/topics" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50">
                   Ir a biblioteca clínica
                 </Link>
               </div>
 
               <div className="mt-4 grid grid-cols-1 gap-3 xl:grid-cols-2 2xl:grid-cols-4">
                 {groupedModules.map(({ group, label, items }) => (
-                  <div key={group} className="rounded-[28px] border border-white/10 bg-white/[0.03] p-5">
+                  <div key={group} className="rounded-[28px] border border-slate-200/90 bg-white/80 p-5 shadow-[0_18px_50px_rgba(148,163,184,0.12)]">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] ${groupBadgeClass(group)}`}>
                           {label}
                         </span>
-                        <div className="mt-3 text-lg font-semibold text-white">{items.length} módulos</div>
+                        <div className="mt-3 text-lg font-semibold text-slate-900">{items.length} módulos</div>
                       </div>
-                      <Link href={GROUP_PRIMARY_LINKS[group]} className="rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-xs text-white/80 transition hover:bg-white/5">
+                      <Link href={GROUP_PRIMARY_LINKS[group]} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 transition hover:bg-slate-50">
                         Abrir
                       </Link>
                     </div>
 
-                    <div className="mt-3 text-sm leading-6 text-white/65">{compactText(GROUP_DESCRIPTIONS[group], 10)}</div>
+                    <div className="mt-3 text-sm leading-6 text-slate-600">{compactText(GROUP_DESCRIPTIONS[group], 10)}</div>
 
                     <div className="mt-4 flex flex-wrap gap-2">
                       {items.map((item) => (
                         <Link
                           key={item.id}
                           href={item.href}
-                          className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-xs text-white/75 transition hover:bg-white/5"
+                          className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-600 transition hover:bg-white"
                         >
                           {item.label}
                         </Link>
@@ -1519,21 +1519,21 @@ export default function DashboardPage() {
               </div>
             </section>
 
-            <section className="mt-6 rounded-[30px] border border-white/10 bg-white/[0.03] p-5">
+            <section className="mt-6 rounded-[30px] border border-slate-200/90 bg-white/80 p-5 shadow-[0_18px_50px_rgba(148,163,184,0.12)]">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-base font-semibold text-white">Últimas sesiones</div>
-                  <div className="mt-1 text-sm text-white/60">
+                  <div className="text-base font-semibold text-slate-900">Últimas sesiones</div>
+                  <div className="mt-1 text-sm text-slate-500">
                     Revisión rápida de cierres recientes para mantener continuidad y reabrir reportes.
                   </div>
                 </div>
-                <Link href="/history" className="rounded-xl border border-white/15 bg-black/25 px-4 py-2 text-sm text-white/80 transition hover:bg-white/5">
+                <Link href="/history" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50">
                   Ver todas
                 </Link>
               </div>
 
-              <div className="mt-4 overflow-hidden rounded-2xl border border-white/10">
-                <div className="grid grid-cols-12 bg-black/25 px-4 py-2 text-xs font-semibold text-white/50">
+              <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200">
+                <div className="grid grid-cols-12 bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-500">
                   <div className="col-span-4">Caso</div>
                   <div className="col-span-3">Fecha cierre</div>
                   <div className="col-span-2">Riesgo</div>
@@ -1542,23 +1542,23 @@ export default function DashboardPage() {
                 </div>
 
                 {(history.length ? history.slice(0, 6) : []).map((session) => (
-                  <div key={session.id} className="grid grid-cols-12 border-t border-white/10 px-4 py-3 text-sm">
+                  <div key={session.id} className="grid grid-cols-12 border-t border-slate-200 px-4 py-3 text-sm">
                     <div className="col-span-4 min-w-0">
-                      <div className="truncate font-semibold text-white">{safeText(session.caseTitle, "Sesión")}</div>
-                      <div className="truncate text-xs text-white/50">{safeText(session.patientName, "Paciente")}</div>
+                      <div className="truncate font-semibold text-slate-900">{safeText(session.caseTitle, "Sesión")}</div>
+                      <div className="truncate text-xs text-slate-500">{safeText(session.patientName, "Paciente")}</div>
                     </div>
-                    <div className="col-span-3 text-white/70">{formatDate(session.endedAt)}</div>
+                    <div className="col-span-3 text-slate-600">{formatDate(session.endedAt)}</div>
                     <div className="col-span-2">
                       <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs ${riskBadgeClass(session.riskLevel)}`}>
                         {session.riskLevel}
                       </span>
                     </div>
-                    <div className="col-span-1 text-right text-white/85">{typeof session.score === "number" ? session.score : "—"}</div>
+                    <div className="col-span-1 text-right text-slate-700">{typeof session.score === "number" ? session.score : "—"}</div>
                     <div className="col-span-2 text-right">
                       <button
                         type="button"
                         onClick={() => openSessionReport(session)}
-                        className="rounded-lg border border-white/15 bg-black/25 px-3 py-1.5 text-xs text-white/80 transition hover:bg-white/5"
+                        className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 transition hover:bg-slate-50"
                       >
                         Ver reporte
                       </button>
@@ -1567,14 +1567,14 @@ export default function DashboardPage() {
                 ))}
 
                 {!history.length && (
-                  <div className="px-4 py-6 text-sm text-white/60">
+                  <div className="px-4 py-6 text-sm text-slate-500">
                     Aún no hay sesiones guardadas. Usa el orientador para elegir un módulo y empezar a construir historial.
                   </div>
                 )}
               </div>
             </section>
 
-            <div className="mt-6 text-xs text-white/45">Psyke es una herramienta educativa. No sustituye valoración clínica real.</div>
+            <div className="mt-6 text-xs text-slate-400">Psyke es una herramienta educativa. No sustituye valoración clínica real.</div>
           </div>
         </main>
       </div>
