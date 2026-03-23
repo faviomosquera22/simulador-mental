@@ -795,12 +795,12 @@ export default function SimulatorCacesPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#070A0F]">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f4faf8_0%,#edf4f1_48%,#e4efeb_100%)]">
       <div className="mx-auto flex max-w-[1480px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
         <Sidebar />
 
-        <main className="flex-1 overflow-hidden rounded-2xl border border-white/10 bg-black/20 backdrop-blur-xl">
-          <header className="border-b border-white/10 bg-white/5 px-5 py-4">
+        <main className="flex-1 overflow-hidden rounded-2xl border border-[#1b2130]/10 bg-[linear-gradient(180deg,rgba(26,35,43,0.82),rgba(18,25,34,0.84))] shadow-[0_28px_72px_rgba(84,104,112,0.18)] backdrop-blur-xl">
+          <header className="border-b border-white/10 bg-white/6 px-5 py-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h1 className="text-2xl font-semibold text-white">Preguntas CACES</h1>

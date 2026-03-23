@@ -56,11 +56,11 @@ export default function MedicalPathologiesPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#070A0F]">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f4faf8_0%,#edf4f1_48%,#e4efeb_100%)]">
       <div className="mx-auto flex max-w-[1480px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
         <Sidebar />
 
-        <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 p-6 backdrop-blur-xl">
+        <main className="flex-1 rounded-2xl border border-[#1b2130]/10 bg-[linear-gradient(180deg,rgba(28,37,46,0.82),rgba(18,25,34,0.84))] p-6 shadow-[0_28px_72px_rgba(84,104,112,0.18)] backdrop-blur-xl">
           <header className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold text-white">Biblioteca de patologías médicas</h1>

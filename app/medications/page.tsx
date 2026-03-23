@@ -112,11 +112,11 @@ export default function MedicationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#070A12] text-white">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#f4faf8_0%,#edf4f1_48%,#e4efeb_100%)] text-white">
       <div className="mx-auto flex max-w-[1580px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
         <Sidebar />
 
-        <main className="flex-1 rounded-2xl border border-white/10 bg-black/20 p-5 shadow-[0_20px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+        <main className="flex-1 rounded-2xl border border-[#1b2130]/10 bg-[linear-gradient(180deg,rgba(28,37,46,0.82),rgba(18,25,34,0.84))] p-5 shadow-[0_28px_72px_rgba(84,104,112,0.18)] backdrop-blur-xl">
           <header className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold">Administración de medicamentos</h1>
