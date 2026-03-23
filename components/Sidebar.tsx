@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/src/lib/supabaseClient";
+import PsykeLogo from "@/components/brand/PsykeLogo";
 import {
   EMPTY_PROFILE,
   PROFILE_KEYS,
@@ -421,9 +422,9 @@ export default function Sidebar() {
     return (
       <div className={compact ? "space-y-3" : "space-y-4"}>
         {NAV_SECTIONS.map((section) => (
-          <div key={section.title} className={cn(compact ? "border-t border-white/5 pt-3 first:border-t-0 first:pt-0" : "")}>
+          <div key={section.title} className={cn(compact ? "border-t border-[#1b2130]/6 pt-3 first:border-t-0 first:pt-0" : "")}>
             {!compact && (
-              <div className="px-2 pb-2 text-[10px] font-semibold tracking-[0.14em] text-white/25">
+              <div className="px-2 pb-2 text-[10px] font-semibold tracking-[0.14em] text-[#6d808a]">
                 {section.title.toUpperCase()}
               </div>
             )}
@@ -448,10 +449,10 @@ export default function Sidebar() {
                       className={cn(
                         "group flex items-center gap-3 rounded-2xl px-3 py-2 text-sm transition",
                         active
-                          ? "bg-blue-400/10 text-sky-300"
+                          ? "bg-[#6f95a0]/12 text-[#28414b]"
                           : disabledCase
-                          ? "text-white/35 hover:bg-white/5 hover:text-white/60"
-                          : "text-white/70 hover:bg-white/5 hover:text-white"
+                          ? "text-[#9cacb4] hover:bg-white/60 hover:text-[#71828b]"
+                          : "text-[#526874] hover:bg-white/70 hover:text-[#17212A]"
                       )}
                       aria-current={active ? "page" : undefined}
                       title={
@@ -462,7 +463,7 @@ export default function Sidebar() {
                           : undefined
                       }
                     >
-                      <span className={cn("flex h-6 w-6 items-center justify-center", active ? "text-sky-300" : "text-white/70")}>
+                      <span className={cn("flex h-6 w-6 items-center justify-center", active ? "text-[#54747e]" : "text-[#718690]")}>
                         {item.icon}
                       </span>
 
@@ -473,7 +474,7 @@ export default function Sidebar() {
                       )}
 
                       {!compact && item.label === "Caso en curso" && hasActiveCase && (
-                        <span className="ml-auto rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-semibold text-white">1</span>
+                        <span className="ml-auto rounded-full bg-[#6f95a0] px-2 py-0.5 text-[10px] font-semibold text-white">1</span>
                       )}
                     </Link>
                   </li>
@@ -490,21 +491,21 @@ export default function Sidebar() {
     <>
       <Link
         href="/profile"
-        className="fixed right-3 top-3 z-40 hidden max-w-[calc(100vw-4.5rem)] items-center gap-3 rounded-2xl border border-white/10 bg-[#0F1117]/90 px-3 py-2 text-left shadow-[0_18px_55px_rgba(0,0,0,0.42)] backdrop-blur-xl max-md:flex"
+        className="fixed right-3 top-3 z-40 hidden max-w-[calc(100vw-4.5rem)] items-center gap-3 rounded-2xl border border-[#1b2130]/10 bg-white/85 px-3 py-2 text-left shadow-[0_18px_55px_rgba(84,104,112,0.18)] backdrop-blur-xl max-md:flex"
       >
-        <div className="flex h-9 w-9 items-center justify-center rounded-full border border-sky-400/20 bg-sky-400/10 text-sm font-semibold text-sky-100">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[#6f95a0]/20 bg-[#6f95a0]/10 text-sm font-semibold text-[#4f6d77]">
           {displayInitial}
         </div>
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-white/40">Sesión activa</div>
-          <div className="max-w-[180px] truncate text-sm font-semibold text-white">{displayName}</div>
+          <div className="text-[10px] uppercase tracking-[0.18em] text-[#6d808a]">Sesion activa</div>
+          <div className="max-w-[180px] truncate text-sm font-semibold text-[#17212A]">{displayName}</div>
         </div>
       </Link>
 
       <button
         type="button"
         onClick={() => setMobileOpen(true)}
-        className="fixed left-3 top-3 z-50 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-[#0F1117]/95 text-white shadow-[0_12px_35px_rgba(0,0,0,0.45)] md:hidden"
+        className="fixed left-3 top-3 z-50 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#1b2130]/10 bg-white/90 text-[#17212A] shadow-[0_12px_35px_rgba(84,104,112,0.18)] md:hidden"
         aria-label="Abrir menú principal"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -516,47 +517,39 @@ export default function Sidebar() {
         <button
           type="button"
           onClick={() => setMobileOpen(false)}
-          className="fixed inset-0 z-40 bg-black/60 md:hidden"
+          className="fixed inset-0 z-40 bg-[#17212A]/30 md:hidden"
           aria-label="Cerrar menú"
         />
       )}
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-[304px] max-w-[88vw] border-r border-white/10 bg-[#0F1117] shadow-[0_30px_120px_rgba(0,0,0,0.55)] transition-transform duration-200 md:hidden",
+          "fixed inset-y-0 left-0 z-50 w-[304px] max-w-[88vw] border-r border-[#1b2130]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(240,246,244,0.96))] shadow-[0_30px_120px_rgba(84,104,112,0.22)] transition-transform duration-200 md:hidden",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <div className="flex h-full min-h-0 flex-col overflow-hidden">
-          <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-4">
+          <div className="flex items-center justify-between gap-3 border-b border-[#1b2130]/10 px-4 py-4">
             <div className="flex items-center gap-3">
-              <div className="grid h-8 w-8 flex-shrink-0 place-items-center rounded-lg bg-gradient-to-br from-blue-600 to-teal-500">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
-                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                </svg>
-              </div>
-              <div className="min-w-0">
-                <div className="truncate text-sm font-semibold text-white">Psyke</div>
-                <div className="text-[10px] text-white/40">Simulador clínico</div>
-              </div>
+              <PsykeLogo compact />
             </div>
             <button
               type="button"
               onClick={() => setMobileOpen(false)}
-              className="rounded-lg border border-white/15 px-2 py-1 text-xs text-white/80"
+              className="rounded-lg border border-[#1b2130]/10 bg-white/70 px-2 py-1 text-xs text-[#526874]"
             >
               Cerrar
             </button>
           </div>
 
-          <div className="border-b border-white/10 px-4 py-4">
-            <Link href="/profile" className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3">
-              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border border-sky-400/20 bg-sky-400/10 text-sm font-semibold text-sky-100">
+          <div className="border-b border-[#1b2130]/10 px-4 py-4">
+            <Link href="/profile" className="flex items-center gap-3 rounded-2xl border border-[#1b2130]/10 bg-white/72 px-3 py-3 shadow-[0_16px_30px_rgba(84,104,112,0.08)]">
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border border-[#6f95a0]/20 bg-[#6f95a0]/10 text-sm font-semibold text-[#4f6d77]">
                 {displayInitial}
               </div>
               <div className="min-w-0">
-                <div className="truncate text-sm font-semibold text-white">{displayName}</div>
-                <div className="truncate text-xs text-white/45">{displayRole}</div>
+                <div className="truncate text-sm font-semibold text-[#17212A]">{displayName}</div>
+                <div className="truncate text-xs text-[#6d808a]">{displayRole}</div>
               </div>
             </Link>
           </div>
@@ -565,13 +558,13 @@ export default function Sidebar() {
             {renderNavItems({ closeOnNavigate: true })}
           </nav>
 
-          <div className="border-t border-white/10 p-2">
+          <div className="border-t border-[#1b2130]/10 p-2">
             <button
               type="button"
               onClick={handleLogout}
               className={cn(
                 "mt-1 flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm transition",
-                "text-white/70 hover:bg-white/5 hover:text-white"
+                "text-[#526874] hover:bg-white/70 hover:text-[#17212A]"
               )}
             >
               <span className="flex h-6 w-6 items-center justify-center">
@@ -591,42 +584,31 @@ export default function Sidebar() {
       <aside className="hidden md:flex md:shrink-0">
         <div
           className={cn(
-            "h-full min-h-0 rounded-3xl border border-white/10 bg-[#0F1117] shadow-[0_30px_120px_rgba(0,0,0,0.55)]",
+            "h-full min-h-0 rounded-3xl border border-[#1b2130]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(240,246,244,0.95))] shadow-[0_30px_120px_rgba(84,104,112,0.18)]",
             "flex min-h-0 flex-col overflow-hidden",
             collapsed ? "w-[76px]" : "w-[292px]"
           )}
         >
-          <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4">
-            <div className="grid h-8 w-8 flex-shrink-0 place-items-center rounded-lg bg-gradient-to-br from-blue-600 to-teal-500">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-              </svg>
-            </div>
-
-            {!collapsed && (
-              <div className="min-w-0">
-                <div className="truncate text-sm font-semibold text-white">Psyke</div>
-                <div className="text-[10px] text-white/40">Simulador clínico</div>
-              </div>
-            )}
+          <div className={cn("flex items-center gap-3 border-b border-[#1b2130]/10 px-4 py-4", collapsed && "justify-center")}>
+            <PsykeLogo compact markOnly={collapsed} showTagline={!collapsed} />
           </div>
 
-          <div className="border-b border-white/10 px-3 py-4">
+          <div className="border-b border-[#1b2130]/10 px-3 py-4">
             <Link
               href="/profile"
               className={cn(
-                "flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] transition hover:bg-white/8",
+                "flex items-center gap-3 rounded-2xl border border-[#1b2130]/10 bg-white/72 shadow-[0_16px_30px_rgba(84,104,112,0.08)] transition hover:bg-white",
                 collapsed ? "justify-center px-2 py-3" : "px-3 py-3"
               )}
               title={collapsed ? displayName : undefined}
             >
-              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border border-sky-400/20 bg-sky-400/10 text-sm font-semibold text-sky-100">
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border border-[#6f95a0]/20 bg-[#6f95a0]/10 text-sm font-semibold text-[#4f6d77]">
                 {displayInitial}
               </div>
               {!collapsed && (
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-semibold text-white">{displayName}</div>
-                  <div className="truncate text-xs text-white/45">{displayRole}</div>
+                  <div className="truncate text-sm font-semibold text-[#17212A]">{displayName}</div>
+                  <div className="truncate text-xs text-[#6d808a]">{displayRole}</div>
                 </div>
               )}
             </Link>
@@ -636,13 +618,13 @@ export default function Sidebar() {
             {renderNavItems({ compact: collapsed })}
           </nav>
 
-          <div className="border-t border-white/10 p-2">
+          <div className="border-t border-[#1b2130]/10 p-2">
             <button
               type="button"
               onClick={() => setCollapsed((v) => !v)}
               className={cn(
                 "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm transition",
-                "text-white/50 hover:bg-white/5 hover:text-white/80"
+                "text-[#6d808a] hover:bg-white/70 hover:text-[#17212A]"
               )}
             >
               <span className="flex h-6 w-6 items-center justify-center">
@@ -658,7 +640,7 @@ export default function Sidebar() {
               onClick={handleLogout}
               className={cn(
                 "mt-1 flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm transition",
-                "text-white/70 hover:bg-white/5 hover:text-white"
+                "text-[#526874] hover:bg-white/70 hover:text-[#17212A]"
               )}
             >
               <span className="flex h-6 w-6 items-center justify-center">

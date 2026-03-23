@@ -91,6 +91,13 @@ function getOptionById(question: CacesQuestion | null | undefined, optionId: Cac
   return question.options.find((opt) => opt.id === optionId) ?? null;
 }
 
+function shouldShowReference(reference: string | undefined) {
+  const value = String(reference ?? "").trim();
+  if (!value) return false;
+  if (/^colección derivada desde banco importado/i.test(value)) return false;
+  return true;
+}
+
 export default function SimulatorCacesPage() {
   const [loadingBank, setLoadingBank] = useState(true);
   const [history, setHistory] = useState<CacesHistoryEntry[]>([]);
@@ -1329,7 +1336,12 @@ export default function SimulatorCacesPage() {
                               </div>
                             </div>
                           )}
-                          <div className="mt-2 text-white/85">{currentQuestion?.explanation}</div>
+                          <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3 text-white/85">
+                            <div className="text-xs font-semibold uppercase tracking-[0.14em] text-white/60">
+                              Explicación clínica
+                            </div>
+                            <div className="mt-1">{currentQuestion?.explanation}</div>
+                          </div>
                           <div className="mt-2 space-y-1 text-xs text-white/80">
                             {currentQuestion?.options.map((opt) => (
                               <div key={`feedback-${opt.id}`}>
@@ -1337,11 +1349,11 @@ export default function SimulatorCacesPage() {
                               </div>
                             ))}
                           </div>
-                          {!!currentQuestion?.references?.length && (
+                          {shouldShowReference(currentQuestion?.references?.[0]) && (
                             <div className="mt-3 rounded-xl border border-white/10 bg-black/25 p-2 text-xs text-white/70">
-                              <div className="font-semibold text-white/80">Referencia base</div>
+                              <div className="font-semibold text-white/80">Fuente</div>
                               <div className="mt-1">
-                                {currentQuestion.references[0]}
+                                {currentQuestion?.references?.[0]}
                               </div>
                             </div>
                           )}

@@ -65,8 +65,71 @@ function stripImportedNoise(value: string) {
   return compact;
 }
 
+const TRAILING_FRAGMENT_WORDS = new Set([
+  "a",
+  "al",
+  "ante",
+  "bajo",
+  "con",
+  "contra",
+  "de",
+  "del",
+  "desde",
+  "durante",
+  "el",
+  "en",
+  "entre",
+  "hacia",
+  "hasta",
+  "la",
+  "las",
+  "lo",
+  "los",
+  "para",
+  "por",
+  "segun",
+  "sin",
+  "so",
+  "sobre",
+  "su",
+  "sus",
+  "tras",
+  "un",
+  "una",
+  "y",
+]);
+
+function trimTrailingFragment(value: string) {
+  const normalized = stripImportedNoise(value).replace(/[,:;.-]+$/u, "").trim();
+  if (!normalized) return "";
+
+  const parts = normalized.split(/\s+/);
+  const last = parts.at(-1)?.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
+  if (parts.length >= 6 && last && TRAILING_FRAGMENT_WORDS.has(last)) {
+    parts.pop();
+    return parts.join(" ").trim();
+  }
+
+  return normalized;
+}
+
+function normalizeAnswerText(value: string) {
+  return stripImportedNoise(value).replace(/[.]+$/u, "").trim();
+}
+
+function buildImportedClueSnippet(item: RawImportedQuestion) {
+  const cleanedQuestion = stripImportedNoise(String(item.question ?? ""));
+  const base = cleanedQuestion.includes("¿")
+    ? cleanedQuestion.split("¿")[0]?.trim() ?? cleanedQuestion
+    : cleanedQuestion;
+  const normalized = base.replace(/[,:;.-]+$/u, "").trim();
+
+  if (!normalized) return "los datos clínicos y conceptuales del enunciado";
+  return normalized.length > 220 ? `${normalized.slice(0, 217).trim()}...` : normalized;
+}
+
 function cleanTopicLabel(value: string) {
-  const compact = stripImportedNoise(value);
+  const compact = trimTrailingFragment(value);
 
   if (!compact) return "tema clínico importado";
   return compact.length > 120 ? `${compact.slice(0, 117).trim()}...` : compact;
@@ -165,14 +228,15 @@ function buildImportedOption(
   text: string,
   isCorrect: boolean
 ): CacesQuestionOption {
+  const clueSnippet = buildImportedClueSnippet(item);
   if (item.source === "score_mama_2025") {
     const topicLabel = cleanTopicLabel(normalizeImportedTopic(item));
     return {
       id,
       text,
       rationale: isCorrect
-        ? `Es la alternativa que mejor coincide con el protocolo Score MAMÁ 2025 para ${topicLabel}.`
-        : `No es la alternativa priorizada por el protocolo Score MAMÁ 2025 para ${topicLabel}.`,
+        ? `Es la alternativa que mejor coincide con el protocolo Score MAMÁ 2025 y con los datos del enunciado sobre ${topicLabel}.`
+        : `No coincide de forma suficiente con el protocolo Score MAMÁ 2025 ni con los datos del enunciado sobre ${topicLabel}.`,
     };
   }
 
@@ -180,24 +244,26 @@ function buildImportedOption(
     return {
       id,
       text,
-      rationale: "Alternativa de referencia en el banco importado.",
+      rationale: `Se ajusta mejor a los datos clave del enunciado: ${clueSnippet}.`,
     };
   }
 
   return {
     id,
     text,
-    rationale: "Distractor del banco importado.",
+    rationale: `No explica de forma consistente los datos clave del enunciado: ${clueSnippet}.`,
   };
 }
 
 function buildImportedExplanation(item: RawImportedQuestion) {
+  const answer = normalizeAnswerText(String(item.options[0] ?? "la alternativa correcta"));
+  const clueSnippet = buildImportedClueSnippet(item);
   if (item.source === "score_mama_2025") {
     const topicLabel = cleanTopicLabel(normalizeImportedTopic(item));
-    return `La respuesta correcta es la que coincide con el protocolo oficial Score MAMÁ 2025 para ${topicLabel}.`;
+    return `La respuesta correcta es ${answer} porque es la opción que mejor coincide con el protocolo oficial Score MAMÁ 2025 para ${topicLabel} y con los datos del enunciado.`;
   }
 
-  return "Pregunta importada desde banco PDF CACES; se mantiene la alternativa de referencia del documento fuente.";
+  return `La respuesta correcta es ${answer} porque es la opción que mejor se ajusta a los datos clave del enunciado: ${clueSnippet}.`;
 }
 
 const LETTERS: CacesOptionId[] = ["A", "B", "C", "D"];

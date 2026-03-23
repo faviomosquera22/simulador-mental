@@ -93,8 +93,11 @@ function sanitizeManualStem(question: CacesQuestion) {
   const withQuestionMark = raw.endsWith("?") ? raw : `${raw}?`;
 
   if (question.type === "caso_clinico") {
-    const normalized = withQuestionMark.replace(/^mini caso:/i, "Caso clínico:");
-    if (/^caso clínico:/i.test(normalized)) return normalized;
+    const normalized = withQuestionMark
+      .replace(/^mini caso clínico:\s*/i, "")
+      .replace(/^mini caso:\s*/i, "")
+      .trim();
+    if (/^caso clínico\b/i.test(normalized)) return normalized;
     return `Caso clínico: ${normalized}`;
   }
 

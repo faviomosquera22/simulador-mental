@@ -18,7 +18,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className="min-h-screen bg-[#070A0F] text-white antialiased font-sans overflow-x-hidden">
+      <body className="min-h-screen antialiased font-sans overflow-x-hidden text-[var(--text-primary)]">
         <div id="app" className="relative z-10">
           <div className="mx-auto w-full max-w-[1680px] px-4 py-6">
             {children}

@@ -1332,6 +1332,75 @@ function cleanImportedText(value: string) {
     .trim();
 }
 
+const TRAILING_FRAGMENT_WORDS = new Set([
+  "a",
+  "al",
+  "ante",
+  "bajo",
+  "con",
+  "contra",
+  "de",
+  "del",
+  "desde",
+  "durante",
+  "el",
+  "en",
+  "entre",
+  "hacia",
+  "hasta",
+  "la",
+  "las",
+  "lo",
+  "los",
+  "para",
+  "por",
+  "segun",
+  "sin",
+  "so",
+  "sobre",
+  "su",
+  "sus",
+  "tras",
+  "un",
+  "una",
+  "y",
+]);
+
+function trimTrailingFragment(value: string) {
+  const normalized = cleanImportedText(value).replace(/[,:;.-]+$/u, "").trim();
+  if (!normalized) return "";
+
+  const parts = normalized.split(/\s+/);
+  const last = parts.at(-1)?.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
+  if (parts.length >= 6 && last && TRAILING_FRAGMENT_WORDS.has(last)) {
+    parts.pop();
+    return parts.join(" ").trim();
+  }
+
+  return normalized;
+}
+
+function normalizeAnswerText(value: string) {
+  return cleanImportedText(value).replace(/[.]+$/u, "").trim();
+}
+
+function buildImportedClueSnippet(item: RawImportedQuestion) {
+  const cleanedQuestion = cleanImportedText(item.question);
+  const base = cleanedQuestion.includes("¿")
+    ? cleanedQuestion.split("¿")[0]?.trim() ?? cleanedQuestion
+    : cleanedQuestion;
+
+  const normalized = base.replace(/[,:;.-]+$/u, "").trim();
+  if (!normalized) return "los datos clínicos y conceptuales incluidos en el enunciado";
+  return normalized.length > 220 ? `${normalized.slice(0, 217).trim()}...` : normalized;
+}
+
+function buildDerivedExplanation(rule: DerivedRule, item: RawImportedQuestion) {
+  const answer = normalizeAnswerText(String(item.options[0] ?? "la alternativa correcta"));
+  const clueSnippet = buildImportedClueSnippet(item);
+  return `La respuesta correcta es ${answer} porque es la alternativa que mejor se ajusta a los hallazgos y datos clave del enunciado: ${clueSnippet}.`;
+}
+
 function buildRawHaystack(item: RawImportedQuestion) {
   return [
     item.category,
@@ -1362,7 +1431,13 @@ function mapImportedType(item: RawImportedQuestion): CacesQuestionType {
 }
 
 function buildRawStem(rule: DerivedRule, item: RawImportedQuestion) {
+  const cleanedQuestion = cleanImportedText(item.question);
   const topic = cleanImportedText(item.topic) || cleanImportedText(item.question);
+
+  if (rule.category !== "Score MAMÁ" && cleanedQuestion.length > 0) {
+    return cleanedQuestion;
+  }
+
   if (rule.category === "Score MAMÁ") {
     if (mapImportedType(item) === "caso_clinico") {
       return `Caso clínico obstétrico: con base en Score MAMÁ 2025, identifica la afirmación correcta sobre ${topic}.`;
@@ -1379,14 +1454,16 @@ function buildRawStem(rule: DerivedRule, item: RawImportedQuestion) {
 
 function buildRawOptions(rule: DerivedRule, item: RawImportedQuestion) {
   const letters: CacesOptionId[] = ["A", "B", "C", "D"];
+  const clueSnippet = buildImportedClueSnippet(item);
   return letters.map((letter, idx) => {
     const isCorrect = idx === 0;
+    const optionText = cleanImportedText(String(item.options[idx] ?? ""));
     return option(
       letter,
-      cleanImportedText(String(item.options[idx] ?? "")),
+      optionText,
       isCorrect
-        ? `Es la alternativa más consistente con la colección ${rule.category}.`
-        : `No es la alternativa priorizada en la colección ${rule.category}.`
+        ? `Se alinea mejor con los datos clave del enunciado: ${clueSnippet}.`
+        : `No explica de forma consistente los datos clave del enunciado: ${clueSnippet}.`
     );
   }) as [CacesQuestionOption, CacesQuestionOption, CacesQuestionOption, CacesQuestionOption];
 }
@@ -1422,18 +1499,19 @@ function buildManualVariantQuestion(seed: SpecialQuestionSeed, variantIdx: numbe
 }
 
 function buildDerivedQuestion(rule: DerivedRule, item: RawImportedQuestion): CacesQuestion {
+  const normalizedTopic = trimTrailingFragment(item.topic) || trimTrailingFragment(item.question);
   return {
     id: `caces-derived-${rule.category.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${item.id}`,
     component: rule.category,
     subcomponent: rule.subcomponent,
-    topic: cleanImportedText(item.topic) || cleanImportedText(item.question),
+    topic: normalizedTopic,
     sourceGroup: `derived:${rule.category}:${item.id}`,
     category: rule.category,
     type: mapImportedType(item),
     question: buildRawStem(rule, item),
     options: buildRawOptions(rule, item),
     correctAnswer: "A",
-    explanation: `Pregunta derivada y curada para la colección ${rule.category} a partir del banco importado.`,
+    explanation: buildDerivedExplanation(rule, item),
     difficulty: rule.category === "Alta dificultad CACES" ? "alta" : item.difficulty,
     tags: [...new Set([rule.category.toLowerCase().replace(/\s+/g, "_"), ...(item.tags ?? []), item.source])],
     references: [`Colección derivada desde banco importado para ${rule.category}.`],

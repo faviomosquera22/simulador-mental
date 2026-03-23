@@ -4,44 +4,45 @@
 /* Fonts (Claude UI) */
 
 /* ============================================
-   DESIGN TOKENS (Claude UI) — adaptado a tu tema oscuro
+   DESIGN TOKENS (Psyke) - paleta inspirada en el logo
    ============================================ */
 :root {
   /* Tipografía */
   --font-body: 'DM Sans', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
   --font-mono: 'DM Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 
-  /* Base (modo oscuro por defecto en tu app) */
-  --bg-app: #07070a;
-  --bg-surface: rgba(255,255,255,0.05);
-  --bg-surface-2: rgba(0,0,0,0.35);
+  /* Base */
+  --bg-app: #edf4f1;
+  --bg-app-2: #e1eeea;
+  --bg-surface: rgba(255,255,255,0.8);
+  --bg-surface-2: rgba(232,240,237,0.92);
 
-  --text-primary: rgba(255,255,255,0.92);
-  --text-secondary: rgba(255,255,255,0.70);
-  --text-muted: rgba(255,255,255,0.55);
+  --text-primary: #17212a;
+  --text-secondary: #465c69;
+  --text-muted: #6f8590;
 
-  --accent: #2563EB;
-  --accent-light: rgba(37,99,235,0.14);
-  --accent-hover: #1D4ED8;
+  --accent: #6f97a0;
+  --accent-light: rgba(111,151,160,0.16);
+  --accent-hover: #5b7e86;
 
-  --teal: #0D9488;
-  --teal-light: rgba(13,148,136,0.14);
-  --amber: #D97706;
-  --amber-light: rgba(217,119,6,0.14);
-  --red: #DC2626;
-  --red-light: rgba(220,38,38,0.14);
-  --green: #16A34A;
-  --green-light: rgba(22,163,74,0.14);
-  --purple: #7C3AED;
-  --purple-light: rgba(124,58,237,0.14);
+  --teal: #89b2a7;
+  --teal-light: rgba(137,178,167,0.16);
+  --amber: #b88c53;
+  --amber-light: rgba(184,140,83,0.14);
+  --red: #bf5d57;
+  --red-light: rgba(191,93,87,0.14);
+  --green: #5f9177;
+  --green-light: rgba(95,145,119,0.14);
+  --purple: #718099;
+  --purple-light: rgba(113,128,153,0.14);
 
-  --border: rgba(255,255,255,0.10);
-  --border-strong: rgba(255,255,255,0.18);
+  --border: rgba(27,33,48,0.1);
+  --border-strong: rgba(27,33,48,0.18);
 
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.25);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.28);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.32);
-  --shadow-xl: 0 16px 40px rgba(0,0,0,0.38);
+  --shadow-sm: 0 8px 18px rgba(72, 93, 103, 0.08);
+  --shadow-md: 0 16px 36px rgba(72, 93, 103, 0.12);
+  --shadow-lg: 0 28px 58px rgba(72, 93, 103, 0.16);
+  --shadow-xl: 0 40px 76px rgba(72, 93, 103, 0.18);
 
   /* Spacing */
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
@@ -60,10 +61,10 @@ html, body {
 
 body {
   background:
-    radial-gradient(1200px 600px at 20% 10%, rgba(255, 255, 255, 0.08), transparent 60%),
-    radial-gradient(900px 500px at 80% 30%, rgba(99, 102, 241, 0.16), transparent 60%),
-    radial-gradient(900px 500px at 50% 90%, rgba(16, 185, 129, 0.10), transparent 60%),
-    #07070a;
+    radial-gradient(1200px 620px at 12% 8%, rgba(143, 178, 168, 0.26), transparent 60%),
+    radial-gradient(960px 540px at 86% 14%, rgba(111, 149, 160, 0.18), transparent 58%),
+    radial-gradient(960px 540px at 50% 100%, rgba(255, 255, 255, 0.74), transparent 48%),
+    linear-gradient(180deg, #f4faf8 0%, #edf4f1 46%, #e5efec 100%);
   color: var(--text-primary);
   font-family: var(--font-body);
   position: relative;
@@ -77,11 +78,10 @@ body::before {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.08;
+  opacity: 0.4;
   background-image:
-    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.035) 1px, transparent 1px, transparent 2px),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 3px);
-  mix-blend-mode: overlay;
+    repeating-linear-gradient(0deg, rgba(23, 33, 42, 0.018), rgba(23, 33, 42, 0.018) 1px, transparent 1px, transparent 3px),
+    repeating-linear-gradient(90deg, rgba(23, 33, 42, 0.014), rgba(23, 33, 42, 0.014) 1px, transparent 1px, transparent 4px);
 }
 
 /* Vignette for depth */
@@ -91,7 +91,7 @@ body::after {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.35) 65%, rgba(0, 0, 0, 0.7) 100%);
+  background: radial-gradient(circle at center, transparent 0%, rgba(220, 232, 227, 0.08) 68%, rgba(215, 226, 221, 0.32) 100%);
 }
 
 /* Make sure app content stays above overlays */
@@ -113,23 +113,23 @@ html {
 
 /* Consistent focus ring */
 :focus-visible {
-  outline: 2px solid rgba(255,255,255,0.22);
+  outline: 2px solid rgba(111,151,160,0.28);
   outline-offset: 2px;
 }
 
 /* Slim scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.18) transparent;
+  scrollbar-color: rgba(23,33,42,0.18) transparent;
 }
 
 *::-webkit-scrollbar { width: 6px; height: 6px; }
 *::-webkit-scrollbar-track { background: transparent; }
 *::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.16);
+  background: rgba(23,33,42,0.16);
   border-radius: 999px;
 }
-*::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+*::-webkit-scrollbar-thumb:hover { background: rgba(23,33,42,0.24); }
 
 /* Optional helpers for tokenized borders/shadows if los usas en componentes */
 .ui-surface {
