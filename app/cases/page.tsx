@@ -894,7 +894,7 @@ export default function CasesPage() {
                     <button
                       onClick={goStart}
                       disabled={!caseObj}
-                      className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-50"
+                      className="psyke-primary-button rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-50"
                     >
                       Iniciar entrevista
                     </button>
@@ -1117,7 +1117,7 @@ export default function CasesPage() {
                   <button
                     type="button"
                     onClick={goStart}
-                    className="rounded-xl bg-white px-3 py-2 text-xs font-medium text-black"
+                    className="psyke-primary-button rounded-xl px-3 py-2 text-xs font-medium"
                   >
                     Iniciar entrevista ahora
                   </button>

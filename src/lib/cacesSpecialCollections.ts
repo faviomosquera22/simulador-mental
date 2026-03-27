@@ -6,6 +6,7 @@ import type {
   CacesQuestionType,
 } from "./types";
 import rawImportedQuestions from "./data/cacesPdfImportedRaw.json";
+import { isStructurallyCoherentImportedQuestion } from "./cacesImportedQuality";
 
 type ChoiceSeed = {
   text: string;
@@ -552,7 +553,7 @@ const SPECIAL_COLLECTION_SEEDS: SpecialQuestionSeed[] = [
     type: "caso_clinico",
     difficulty: "intermedia",
     question:
-      "Adulto con dolor torácico opresivo, diaforesis y náusea activa ingresa al área de emergencias. ¿Qué medida inicial refleja mejor priorización clínica?",
+      "Adulto con dolor torácico opresivo, diaforesis y náusea activa ingresa al área de emergencias. ¿Qué conducta inicial debe priorizarse?",
     correct: {
       text: "Asignar prioridad alta, monitorizar y acelerar ECG/valoración según ruta de dolor torácico.",
       rationale: "El cuadro sugiere evento coronario tiempo-dependiente.",
@@ -738,7 +739,7 @@ const SPECIAL_COLLECTION_SEEDS: SpecialQuestionSeed[] = [
     type: "directa",
     difficulty: "intermedia",
     question:
-      "Ante sospecha de sepsis, ¿qué principio resume mejor la relación entre hemocultivos y antibioticoterapia inicial?",
+      "Ante sospecha de sepsis, ¿cómo deben integrarse los hemocultivos con el inicio de la antibioticoterapia?",
     correct: {
       text: "Obtener cultivos si es posible sin retrasar el inicio oportuno del tratamiento antimicrobiano.",
       rationale: "La rapidez terapéutica sigue siendo prioritaria.",
@@ -986,7 +987,7 @@ const SPECIAL_COLLECTION_SEEDS: SpecialQuestionSeed[] = [
     type: "directa",
     difficulty: "basica",
     question:
-      "¿Qué enfoque resume mejor la prevención de caídas en un paciente hospitalizado de riesgo?",
+      "En un paciente hospitalizado con riesgo de caídas, ¿qué estrategia preventiva es más adecuada?",
     correct: {
       text: "Aplicar valoración multifactorial, medidas ambientales seguras y vigilancia según nivel de riesgo.",
       rationale: "La prevención eficaz combina evaluación y acciones adaptadas al paciente.",
@@ -1110,7 +1111,7 @@ const SPECIAL_COLLECTION_SEEDS: SpecialQuestionSeed[] = [
     type: "caso_clinico",
     difficulty: "alta",
     question:
-      "Paciente con hematemesis abundante, taquicardia, llenado capilar lento y mareo al incorporarse. ¿Qué prioridad clínica resume mejor la situación?",
+      "Paciente con hematemesis abundante, taquicardia, llenado capilar lento y mareo al incorporarse. ¿Cuál debe ser la prioridad clínica inicial?",
     correct: {
       text: "Existe alto riesgo de compromiso hemodinámico, por lo que se priorizan vía venosa, monitorización y respuesta urgente estructurada.",
       rationale: "Los signos sugieren sangrado activo con repercusión sistémica.",
@@ -1301,24 +1302,37 @@ const DERIVED_RULES: DerivedRule[] = [
   },
 ];
 
+function buildManualVariantScenario(seed: SpecialQuestionSeed) {
+  const compact = String(seed.question ?? "").replace(/\s+/g, " ").trim();
+  const [lead] = compact.split("¿");
+  const cleanedLead = lead?.replace(/[.?!:;]+$/u, "").trim() ?? "";
+
+  if (cleanedLead.length >= 30) return cleanedLead;
+  return `Contexto clínico relacionado con ${String(seed.topic).toLowerCase()}`;
+}
+
 const MANUAL_VARIANT_BUILDERS: Array<(seed: SpecialQuestionSeed) => string> = [
   (seed) => seed.question,
-  (seed) => `En relación con ${String(seed.topic).toLowerCase()}, ¿cuál alternativa refleja mejor la decisión clínica prioritaria?`,
-  (seed) => `Respecto a ${String(seed.topic).toLowerCase()}, identifica la conducta más segura para el personal de enfermería.`,
-  (seed) => `Caso clínico: contexto de ${String(seed.topic).toLowerCase()}. ¿Qué intervención es más adecuada como primera respuesta?`,
-  (seed) => `En una pregunta de alta prioridad sobre ${String(seed.topic).toLowerCase()}, ¿qué opción mantiene mejor la seguridad del paciente?`,
-  (seed) => `¿Qué decisión demuestra razonamiento clínico sólido al abordar ${String(seed.topic).toLowerCase()}?`,
-  (seed) => `Durante la valoración de ${String(seed.topic).toLowerCase()}, ¿qué acción debe priorizarse?`,
-  (seed) => `¿Cuál es el error más importante que debe evitarse en ${String(seed.topic).toLowerCase()}?`,
-  (seed) => `Al analizar ${String(seed.topic).toLowerCase()}, ¿qué medida favorece mejor la continuidad del cuidado?`,
-  (seed) => `En un escenario docente sobre ${String(seed.topic).toLowerCase()}, ¿qué respuesta sería la más correcta?`,
-  (seed) => `Si el caso se agrava en ${String(seed.topic).toLowerCase()}, ¿qué conducta sigue siendo la más segura?`,
-  (seed) => `En la práctica CACES, ¿qué alternativa resume mejor el manejo de ${String(seed.topic).toLowerCase()}?`,
-  (seed) => `¿Qué hallazgo o decisión se alinea de forma más consistente con ${String(seed.subcomponent).toLowerCase()}?`,
-  (seed) => `Tras una reevaluación clínica sobre ${String(seed.topic).toLowerCase()}, ¿qué opción fortalece más la respuesta profesional?`,
-  (seed) => `En una discusión de caso sobre ${String(seed.topic).toLowerCase()}, ¿cuál enunciado es más defendible?`,
-  (seed) => `¿Qué conducta evita omisiones críticas al abordar ${String(seed.topic).toLowerCase()}?`,
-  (seed) => `En formación para el CACES, ¿cuál respuesta sería la mejor frente a ${String(seed.topic).toLowerCase()}?`,
+  (seed) => {
+    const scenario = buildManualVariantScenario(seed);
+    return `A partir del siguiente contexto clínico: ${scenario}. ¿Cuál es la conducta de enfermería más adecuada?`;
+  },
+  (seed) => {
+    const scenario = buildManualVariantScenario(seed);
+    return `Con base en ${scenario}, ¿qué intervención debe priorizarse?`;
+  },
+  (seed) => {
+    const scenario = buildManualVariantScenario(seed);
+    return `Frente a ${scenario}, ¿qué decisión es más segura para la paciente o el paciente?`;
+  },
+  (seed) => {
+    const scenario = buildManualVariantScenario(seed);
+    return `En este escenario asistencial, ${scenario}. ¿Qué acción mantiene mejor la seguridad clínica y la continuidad del cuidado?`;
+  },
+  (seed) => {
+    const scenario = buildManualVariantScenario(seed);
+    return `Si el objetivo es evitar deterioro u omisiones críticas en ${scenario}, ¿qué conducta es la más adecuada?`;
+  },
 ];
 
 function cleanImportedText(value: string) {
@@ -1350,6 +1364,31 @@ function cleanImportedText(value: string) {
   return compact
     .replace(/\s*:\s*¿/g, ": ¿")
     .replace(/([.?!])([A-Za-zÁÉÍÓÚáéíóúÑñ])/g, "$1 $2")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function hasUsableImportedScoreMamaPrompt(
+  question: string,
+  options: RawImportedQuestion["options"]
+) {
+  const cleaned = formatEnumeratedImportedQuestion(question, options);
+  if (cleaned.length < 28) return false;
+
+  if (
+    /^(seg[uú]n el protocolo score mam[aá] 2025|caso de entrenamiento obst[eé]trico:\s*con base en score mam[aá] 2025)/i.test(
+      cleaned
+    )
+  ) {
+    return false;
+  }
+
+  return /[¿?]/u.test(cleaned) || /^(gestante|pu[eé]rpera|paciente|mujer|en|durante|tras|seleccione|indique|marque)/i.test(cleaned);
+}
+
+function cleanImportedOptionText(value: string) {
+  return String(value ?? "")
+    .replace(/…/g, "")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -1403,7 +1442,7 @@ function trimTrailingFragment(value: string) {
 }
 
 function normalizeAnswerText(value: string) {
-  return cleanImportedText(value).replace(/[.]+$/u, "").trim();
+  return cleanImportedOptionText(value).replace(/[.]+$/u, "").trim();
 }
 
 function isNumericCombinationOption(value: string) {
@@ -1499,17 +1538,20 @@ function buildRawStem(rule: DerivedRule, item: RawImportedQuestion) {
   }
 
   if (rule.category === "Score MAMÁ") {
-    if (mapImportedType(item) === "caso_clinico") {
-      return `Caso clínico obstétrico: con base en Score MAMÁ 2025, identifica la afirmación correcta sobre ${topic}.`;
+    if (hasUsableImportedScoreMamaPrompt(item.question, item.options)) {
+      return cleanedQuestion;
     }
-    return `Según Score MAMÁ 2025, ¿cuál enunciado es correcto sobre ${topic}?`;
+    if (mapImportedType(item) === "caso_clinico") {
+      return `Caso clínico obstétrico relacionado con ${topic}. ¿Cuál es la conducta más adecuada?`;
+    }
+    return `Según Score MAMÁ 2025, ¿cuál afirmación es correcta sobre ${topic}?`;
   }
 
   if (mapImportedType(item) === "caso_clinico") {
     return `Caso clínico de ${rule.category.toLowerCase()}: identifica la alternativa correcta sobre ${topic}.`;
   }
 
-  return `En ${rule.category.toLowerCase()}, ¿cuál enunciado es correcto sobre ${topic}?`;
+  return `En ${rule.category.toLowerCase()}, ¿cuál afirmación es correcta sobre ${topic}?`;
 }
 
 function buildRawOptions(rule: DerivedRule, item: RawImportedQuestion) {
@@ -1517,7 +1559,7 @@ function buildRawOptions(rule: DerivedRule, item: RawImportedQuestion) {
   const clueSnippet = buildImportedClueSnippet(item);
   return letters.map((letter, idx) => {
     const isCorrect = idx === 0;
-    const optionText = cleanImportedText(String(item.options[idx] ?? ""));
+    const optionText = cleanImportedOptionText(String(item.options[idx] ?? ""));
     return option(
       letter,
       optionText,
@@ -1579,7 +1621,7 @@ function buildDerivedQuestion(rule: DerivedRule, item: RawImportedQuestion): Cac
 }
 
 function buildSpecialCollectionBank() {
-  const rawPool = rawImportedQuestions as RawImportedQuestion[];
+  const rawPool = (rawImportedQuestions as RawImportedQuestion[]).filter(isStructurallyCoherentImportedQuestion);
   const usedRawIds = new Set<string>();
   const output: CacesQuestion[] = [];
 

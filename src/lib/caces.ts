@@ -56,6 +56,7 @@ const EHEP_BASE_REFERENCES = [
 function normalizeStemSpacing(value: string) {
   return String(value ?? "")
     .replace(/\s*:\s*¿/g, ": ¿")
+    .replace(/\?\./g, "?")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -198,7 +199,8 @@ function sanitizeManualRationale(value: string) {
 
 function sanitizeManualStem(question: CacesQuestion) {
   const raw = normalizeStemSpacing(String(question.question ?? "").trim());
-  const withQuestionMark = raw.endsWith("?") ? raw : `${raw}?`;
+  const base = raw.replace(/[.?!:;]+$/u, "").trim();
+  const withQuestionMark = base ? `${base}?` : raw;
 
   if (question.type === "caso_clinico") {
     const normalized = withQuestionMark
@@ -1936,14 +1938,22 @@ const TARGET_CASES_PER_CATEGORY_DIFFICULTY =
   MIN_REQUIRED_CASES_PER_CATEGORY_DIFFICULTY + TARGET_COVERAGE_BUFFER;
 
 const SUPPLEMENT_DIRECT_STEM_BUILDERS: Array<(seed: CacesQuestion) => string> = [
-  (seed) =>
-    `En ${String(seed.topic).toLowerCase()}, ¿cuál alternativa refleja mejor una decisión segura de enfermería?`,
-  (seed) =>
-    `Respecto a ${String(seed.topic).toLowerCase()}, identifica la intervención más coherente con la valoración clínica integral.`,
-  (seed) =>
-    `¿Qué conducta prioriza seguridad y continuidad del cuidado al abordar ${String(seed.topic).toLowerCase()}?`,
-  (seed) =>
-    `En protocolos de ${String(seed.subcomponent).toLowerCase()}, ¿qué opción es técnicamente más adecuada para ${String(seed.topic).toLowerCase()}?`,
+  (seed) => {
+    const scenario = toSupplementScenario(seed);
+    return `A partir del siguiente contexto clínico: ${scenario}. ¿Cuál es la conducta de enfermería más adecuada?`;
+  },
+  (seed) => {
+    const scenario = toSupplementScenario(seed);
+    return `Con base en ${scenario}, ¿qué intervención debe priorizarse?`;
+  },
+  (seed) => {
+    const scenario = toSupplementScenario(seed);
+    return `Frente a ${scenario}, ¿qué decisión es más segura para el seguimiento clínico?`;
+  },
+  (seed) => {
+    const scenario = toSupplementScenario(seed);
+    return `En este escenario asistencial, ${scenario}. ¿Qué acción mantiene mejor la seguridad del paciente y la continuidad del cuidado?`;
+  },
 ];
 
 const SUPPLEMENT_DIFFICULTY_ORDER: CacesDifficulty[] = ["basica", "intermedia", "alta"];
@@ -2121,66 +2131,46 @@ const AUGMENTATION_CASE_FOCUS = [
 ];
 
 const AUGMENTATION_DIRECT_BUILDERS: Array<
-  (seed: CacesQuestion, focus: string, scenario: string) => string
+  (_seed: CacesQuestion, _focus: string, scenario: string) => string
 > = [
-  (seed, focus) =>
-    `En ${String(seed.topic).toLowerCase()}, ¿qué alternativa refleja mejor ${focus}?`,
-  (seed, focus) =>
-    `Respecto a ${String(seed.topic).toLowerCase()}, identifica la opción más consistente con ${focus}.`,
-  (seed, focus) =>
-    `En ${String(seed.subcomponent).toLowerCase()}, ¿qué decisión se alinea mejor con ${focus} al abordar ${String(seed.topic).toLowerCase()}?`,
-  (seed, focus) =>
-    `Si debes resolver una pregunta sobre ${String(seed.topic).toLowerCase()}, ¿qué respuesta mantiene mejor ${focus}?`,
-  (seed, focus) =>
-    `En el contexto de ${String(seed.component).toLowerCase()}, ¿qué opción resume mejor ${focus} para ${String(seed.topic).toLowerCase()}?`,
-  (seed, focus) =>
-    `¿Cuál alternativa demuestra mejor ${focus} cuando se analiza ${String(seed.topic).toLowerCase()}?`,
-  (seed, focus) =>
-    `En formación CACES sobre ${String(seed.topic).toLowerCase()}, ¿qué respuesta prioriza ${focus}?`,
-  (seed, focus) =>
-    `Al revisar ${String(seed.topic).toLowerCase()}, ¿qué decisión es la más sólida desde ${focus}?`,
-  (seed, focus) =>
-    `¿Qué opción evita errores críticos y mantiene ${focus} en ${String(seed.topic).toLowerCase()}?`,
-  (seed, focus, scenario) =>
-    `Tras analizar el escenario ${scenario.toLowerCase()}, ¿qué alternativa se ajusta mejor a ${focus}?`,
+  (_seed, _focus, scenario) =>
+    `A partir del siguiente contexto clínico: ${scenario}. ¿Cuál es la conducta de enfermería más adecuada?`,
+  (_seed, _focus, scenario) =>
+    `Con base en ${scenario}, ¿qué intervención debe priorizarse?`,
+  (_seed, _focus, scenario) =>
+    `Frente a ${scenario}, ¿qué decisión es más segura para la paciente o el paciente?`,
+  (_seed, _focus, scenario) =>
+    `En este escenario asistencial, ${scenario}. ¿Qué acción mantiene mejor la seguridad clínica y la continuidad del cuidado?`,
+  (_seed, _focus, scenario) =>
+    `Si el objetivo es evitar deterioro u omisiones críticas en ${scenario}, ¿qué conducta es la más adecuada?`,
 ];
 
 const AUGMENTATION_CASE_BUILDERS: Array<
-  (seed: CacesQuestion, focus: string, scenario: string) => string
+  (_seed: CacesQuestion, _focus: string, scenario: string) => string
 > = [
-  (seed, focus, scenario) =>
-    `Caso clínico: ${scenario}. Con énfasis en ${focus}, ¿cuál es la conducta de enfermería más adecuada?`,
-  (seed, focus, scenario) =>
-    `Caso clínico en ${String(seed.component).toLowerCase()}: ${scenario}. ¿Qué decisión inicial mantiene mejor ${focus}?`,
-  (_seed, focus, scenario) =>
-    `Durante la atención del siguiente caso, ${scenario.toLowerCase()}. ¿Qué respuesta prioriza ${focus}?`,
-  (seed, focus, scenario) =>
-    `Paciente en entrenamiento clínico: ${scenario}. Desde ${focus}, ¿cuál alternativa es la más defendible?`,
-  (seed, focus, scenario) =>
-    `Escenario clínico: ${scenario}. ¿Qué acción fortalece ${focus} sin perder coherencia con el cuadro?`,
-  (seed, focus, scenario) =>
-    `Caso clínico de ${String(seed.subcomponent).toLowerCase()}: ${scenario}. ¿Qué opción favorece mejor ${focus}?`,
-  (seed, focus, scenario) =>
-    `En una reevaluación del siguiente caso, ${scenario.toLowerCase()}. ¿Qué conducta conserva mejor ${focus}?`,
-  (_seed, focus, scenario) =>
-    `Con base en la evolución descrita, ${scenario.toLowerCase()}. ¿Qué respuesta es más segura desde ${focus}?`,
-  (seed, focus, scenario) =>
-    `Caso de práctica CACES: ${scenario}. ¿Cuál es la mejor conducta si el objetivo es mantener ${focus}?`,
-  (seed, focus, scenario) =>
-    `Ante el siguiente cuadro, ${scenario.toLowerCase()}. ¿Qué intervención representa mejor ${focus}?`,
+  (_seed, _focus, scenario) =>
+    `Caso clínico: ${scenario}. ¿Cuál es la conducta de enfermería más adecuada?`,
+  (_seed, _focus, scenario) =>
+    `Caso clínico: ${scenario}. ¿Qué decisión inicial debe priorizarse?`,
+  (_seed, _focus, scenario) =>
+    `Durante la atención del siguiente caso, ${scenario}. ¿Qué respuesta es la más segura?`,
+  (_seed, _focus, scenario) =>
+    `Escenario clínico: ${scenario}. ¿Qué acción mantiene mejor la coherencia con el cuadro y la seguridad del paciente?`,
+  (_seed, _focus, scenario) =>
+    `Con base en la evolución descrita, ${scenario}. ¿Qué intervención favorece mejor el seguimiento clínico?`,
 ];
 
 const AUGMENTATION_FALLBACK_CASE_BUILDERS: Array<
-  (seed: CacesQuestion, focus: string, scenario: string) => string
+  (_seed: CacesQuestion, _focus: string, scenario: string) => string
 > = [
-  (_seed, focus, scenario) =>
-    `Caso clínico breve: ${scenario}. ¿Qué alternativa de enfermería mantiene mejor ${focus}?`,
-  (_seed, focus, scenario) =>
-    `Caso de práctica: ${scenario}. Con énfasis en ${focus}, ¿cuál es la decisión más segura?`,
-  (_seed, focus, scenario) =>
-    `A partir del siguiente contexto asistencial, ${scenario.toLowerCase()}. ¿Qué respuesta es la más adecuada desde ${focus}?`,
-  (_seed, focus, scenario) =>
-    `Durante este caso de entrenamiento, ${scenario.toLowerCase()}. ¿Qué conducta prioriza mejor ${focus}?`,
+  (_seed, _focus, scenario) =>
+    `Caso clínico breve: ${scenario}. ¿Cuál es la conducta de enfermería más adecuada?`,
+  (_seed, _focus, scenario) =>
+    `Caso de práctica: ${scenario}. ¿Qué decisión es la más segura?`,
+  (_seed, _focus, scenario) =>
+    `A partir del siguiente contexto asistencial: ${scenario}. ¿Qué respuesta es la más adecuada?`,
+  (_seed, _focus, scenario) =>
+    `Durante este caso de entrenamiento, ${scenario}. ¿Qué conducta debe priorizarse?`,
 ];
 
 function pickSeedsForCategory(category: string, bank: CacesQuestion[]) {

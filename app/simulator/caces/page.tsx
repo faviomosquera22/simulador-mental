@@ -1119,7 +1119,7 @@ export default function SimulatorCacesPage() {
                           type="button"
                           onClick={handleStart}
                           disabled={aiBusy}
-                          className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black disabled:cursor-not-allowed disabled:opacity-55"
+                          className="psyke-primary-button rounded-xl px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed"
                         >
                           {aiBusy
                             ? "Preparando banco..."
@@ -1381,18 +1381,18 @@ export default function SimulatorCacesPage() {
                           )}
                           <button
                             type="button"
-                            onClick={() => {
-                              const isLast = attempt.currentIndex >= attempt.questions.length - 1;
-                              if (isLast) {
-                                finishAttempt(Date.now());
-                              } else {
-                                moveToNextQuestion();
-                              }
-                            }}
-                            className="mt-3 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-black"
-                          >
-                            Siguiente pregunta
-                          </button>
+                          onClick={() => {
+                            const isLast = attempt.currentIndex >= attempt.questions.length - 1;
+                            if (isLast) {
+                              finishAttempt(Date.now());
+                            } else {
+                              moveToNextQuestion();
+                            }
+                          }}
+                          className="psyke-primary-button mt-3 rounded-xl px-3 py-2 text-xs font-semibold"
+                        >
+                          Siguiente pregunta
+                        </button>
                         </div>
                       )}
                     </div>
