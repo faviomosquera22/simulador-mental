@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  buildMonitorInsights,
+  type MonitorClinicalBlock,
+  type MonitorDerivedMetric,
+  type MonitorInsightTone,
+  type MonitorTrendItem,
+  type MonitorVitalsShape,
+} from "@/src/lib/monitorClinical";
 
-export type MonitorVitals = {
-  hr: number;
-  sbp: number;
-  dbp: number;
-  spo2: number;
-  rr: number;
-  temp: number;
-};
+export type MonitorVitals = MonitorVitalsShape;
 
 type MonitorAccent = "cyan" | "fuchsia" | "red";
 
@@ -20,6 +21,7 @@ type MonitorDetailItem = {
 
 type MultiparameterMonitorProps = {
   vitals: MonitorVitals;
+  baselineVitals?: MonitorVitals;
   accent?: MonitorAccent;
   layout?: "default" | "monitor-right" | "visual-only";
   title?: string;
@@ -271,6 +273,12 @@ function deriveAlerts(vitals: MonitorVitals) {
   return alerts;
 }
 
+function insightToneClass(tone: MonitorInsightTone) {
+  if (tone === "critical") return "border-red-400/25 bg-red-400/10 text-red-100";
+  if (tone === "watch") return "border-amber-400/25 bg-amber-400/10 text-amber-100";
+  return "border-emerald-400/25 bg-emerald-400/10 text-emerald-100";
+}
+
 function MetricTile({
   label,
   value,
@@ -278,6 +286,7 @@ function MetricTile({
   tone,
   muted,
   compactValue = false,
+  caption,
 }: {
   label: string;
   value: string;
@@ -285,6 +294,7 @@ function MetricTile({
   tone: "green" | "cyan" | "amber" | "violet" | "orange" | "white";
   muted?: boolean;
   compactValue?: boolean;
+  caption?: string;
 }) {
   const toneClass =
     tone === "green"
@@ -309,6 +319,7 @@ function MetricTile({
         <div className={`font-mono font-semibold leading-none ${compactValue ? "text-2xl" : "text-[30px]"}`}>{value}</div>
         {unit ? <div className="shrink-0 pb-1 text-xs opacity-75">{unit}</div> : null}
       </div>
+      {caption ? <div className="mt-2 text-[11px] leading-5 opacity-70">{caption}</div> : null}
     </div>
   );
 }
@@ -345,9 +356,44 @@ function TrendStrip({
   );
 }
 
+function ClinicalBlockCard({ block }: { block: MonitorClinicalBlock }) {
+  return (
+    <div className={`rounded-2xl border px-3 py-3 ${insightToneClass(block.tone)}`}>
+      <div className="text-[11px] uppercase tracking-[0.16em] opacity-70">{block.label}</div>
+      <div className="mt-2 text-sm font-semibold">{block.status}</div>
+      <div className="mt-1 text-xs leading-5 opacity-80">{block.detail}</div>
+    </div>
+  );
+}
+
+function TrendItemCard({ item }: { item: MonitorTrendItem }) {
+  const directionLabel = item.direction === "up" ? "Sube" : item.direction === "down" ? "Baja" : "Estable";
+
+  return (
+    <div className={`rounded-xl border px-3 py-2 ${insightToneClass(item.tone)}`}>
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[11px] uppercase tracking-[0.16em] opacity-70">{item.label}</span>
+        <span className="text-[11px] opacity-80">{directionLabel}</span>
+      </div>
+      <div className="mt-2 text-sm font-semibold">{item.value}</div>
+      <div className="mt-1 text-[11px] opacity-75">{item.deltaText}</div>
+    </div>
+  );
+}
+
+function DerivedMetricChip({ metric }: { metric: MonitorDerivedMetric }) {
+  return (
+    <div className={`rounded-full border px-3 py-2 text-xs ${insightToneClass(metric.tone)}`}>
+      <span className="mr-2 uppercase tracking-[0.14em] opacity-70">{metric.label}</span>
+      <span className="font-medium">{metric.value}</span>
+    </div>
+  );
+}
+
 export default function MultiparameterMonitor(props: MultiparameterMonitorProps) {
   const {
     vitals,
+    baselineVitals,
     accent = "cyan",
     layout = "default",
     title = "Monitor multiparámetro",
@@ -374,6 +420,15 @@ export default function MultiparameterMonitor(props: MultiparameterMonitorProps)
 
   const pattern = useMemo(() => resolvePattern(vitals, rhythmLabel), [rhythmLabel, vitals]);
   const liveVitals = useMemo(() => getAnimatedVitals(vitals, phaseSeconds, pattern), [pattern, phaseSeconds, vitals]);
+  const insights = useMemo(
+    () =>
+      buildMonitorInsights({
+        vitals,
+        baselineVitals,
+        rhythmLabel,
+      }),
+    [baselineVitals, rhythmLabel, vitals]
+  );
   const style = ACCENT_STYLES[accent];
   const ecgPath = useMemo(
     () => buildPath({ width: 640, height: 140, seconds: phaseSeconds, bpm: liveVitals.hr || 70, pattern }),
@@ -393,19 +448,38 @@ export default function MultiparameterMonitor(props: MultiparameterMonitorProps)
   }, [alerts, vitals]);
 
   const summaryPanel = (
-    <div className={layout === "monitor-right" ? "grid gap-3 md:grid-cols-2" : "grid gap-3 xl:grid-cols-[0.9fr_1.1fr_0.9fr]"}>
+    <div className={layout === "monitor-right" ? "grid gap-3 md:grid-cols-2" : "grid gap-3 xl:grid-cols-2"}>
       <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-        <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">Estado clínico</div>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">Estado clínico</div>
+          <span className={`rounded-full border px-2.5 py-1 text-[11px] ${insightToneClass(insights.severityTone)}`}>
+            {insights.severityLabel}
+          </span>
+        </div>
         <div className="mt-2 text-lg font-semibold text-white">
           {statusLabel ?? (pattern === "asystole" ? "Sin perfusión efectiva" : "Monitorización continua")}
         </div>
         <div className="mt-2 text-sm leading-6 text-white/70">
           {pattern === "asystole"
             ? "Paciente en condición crítica. Verificar respuesta clínica, perfusión y necesidad de soporte vital inmediato."
-            : "Seguimiento en tiempo real del estado hemodinámico y respiratorio según la evolución del caso."}
+            : insights.severitySummary}
         </div>
-        <div className="mt-3 rounded-2xl border border-white/10 bg-black/25 px-3 py-2 text-sm text-white/72">
-          {rhythmLabel ? `Ritmo actual: ${rhythmLabel}` : "Ritmo organizado con tendencias hemodinámicas dinámicas."}
+        <div className="mt-3 grid gap-2 md:grid-cols-2">
+          <div className="rounded-2xl border border-white/10 bg-black/25 px-3 py-2 text-sm text-white/72">
+            {rhythmLabel ? `Ritmo actual: ${rhythmLabel}` : "Ritmo organizado con tendencias hemodinámicas dinámicas."}
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-black/25 px-3 py-2 text-sm text-white/72">
+            {insights.evolutionLabel}
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+        <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">Bloques clínicos</div>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          {insights.clinicalBlocks.map((block) => (
+            <ClinicalBlockCard key={block.id} block={block} />
+          ))}
         </div>
       </div>
 
@@ -451,6 +525,14 @@ export default function MultiparameterMonitor(props: MultiparameterMonitorProps)
         <div className="mt-3 text-sm leading-6 text-white/62">
           Revisa primero los cambios de perfusión, oxigenación, ventilación y temperatura antes de intervenir.
         </div>
+        <div className="mt-4 border-t border-white/10 pt-4">
+          <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">Tendencia frente al basal</div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {insights.trendItems.map((item) => (
+              <TrendItemCard key={item.id} item={item} />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -481,19 +563,54 @@ export default function MultiparameterMonitor(props: MultiparameterMonitorProps)
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-        <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">Signos vitales</div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="text-[11px] uppercase tracking-[0.18em] text-white/45">Signos vitales</div>
+          <div className="flex flex-wrap gap-2">
+            {insights.derivedMetrics.map((metric) => (
+              <DerivedMetricChip key={metric.id} metric={metric} />
+            ))}
+          </div>
+        </div>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          <MetricTile label="FC" value={liveVitals.hr <= 0 ? "--" : String(liveVitals.hr)} unit="lpm" tone="green" muted={liveVitals.hr <= 0} />
-          <MetricTile label="SpO₂" value={liveVitals.spo2 <= 0 ? "--" : String(liveVitals.spo2)} unit="%" tone="cyan" muted={liveVitals.spo2 <= 0} />
+          <MetricTile
+            label="FC"
+            value={liveVitals.hr <= 0 ? "--" : String(liveVitals.hr)}
+            unit="lpm"
+            tone="green"
+            muted={liveVitals.hr <= 0}
+            caption={insights.trendItems.find((item) => item.id === "hr")?.deltaText}
+          />
+          <MetricTile
+            label="SpO₂"
+            value={liveVitals.spo2 <= 0 ? "--" : String(liveVitals.spo2)}
+            unit="%"
+            tone="cyan"
+            muted={liveVitals.spo2 <= 0}
+            caption={insights.clinicalBlocks.find((item) => item.id === "oxygenation")?.status}
+          />
           <MetricTile
             label="PA"
             value={liveVitals.sbp <= 0 || liveVitals.dbp <= 0 ? "--/--" : `${liveVitals.sbp}/${liveVitals.dbp}`}
             unit="mmHg"
             tone="amber"
             muted={liveVitals.sbp <= 0 || liveVitals.dbp <= 0}
+            caption={insights.derivedMetrics.find((item) => item.id === "map")?.value}
           />
-          <MetricTile label="FR" value={liveVitals.rr <= 0 ? "--" : String(liveVitals.rr)} unit="rpm" tone="violet" muted={liveVitals.rr <= 0} />
-          <MetricTile label="Temp" value={liveVitals.temp.toFixed(1)} unit="°C" tone="orange" />
+          <MetricTile
+            label="FR"
+            value={liveVitals.rr <= 0 ? "--" : String(liveVitals.rr)}
+            unit="rpm"
+            tone="violet"
+            muted={liveVitals.rr <= 0}
+            caption={insights.clinicalBlocks.find((item) => item.id === "ventilation")?.status}
+          />
+          <MetricTile
+            label="Temp"
+            value={liveVitals.temp.toFixed(1)}
+            unit="°C"
+            tone="orange"
+            caption={insights.trendItems.find((item) => item.id === "temp")?.deltaText}
+          />
           <MetricTile label="Tiempo" value={timeLabel ?? "Live"} unit="" tone="white" compactValue />
         </div>
       </div>

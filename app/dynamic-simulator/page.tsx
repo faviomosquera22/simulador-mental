@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Sidebar from "@/components/Sidebar";
+import MultiparameterMonitor from "@/components/advanced/MultiparameterMonitor";
 import {
   DYNAMIC_SIMULATION_LIBRARY,
   applyDynamicSimulationVitals,
@@ -16,7 +17,7 @@ import {
   type DynamicSimulationContext,
   type DynamicSimulationScenario,
 } from "@/src/lib/dynamicSimulatorModule";
-import { formatAdvancedPressure, normalizeText, type AdvancedDifficulty, type AdvancedMode } from "@/src/lib/advancedModuleUtils";
+import { normalizeText, type AdvancedDifficulty, type AdvancedMode } from "@/src/lib/advancedModuleUtils";
 
 type SelectionMode = "manual" | "random" | "contextual_random";
 type UsageMode = "integrated_case" | "standalone";
@@ -487,39 +488,43 @@ export default function DynamicSimulatorPage() {
                   </div>
                 </div>
 
-                <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
-                  {[
-                    { label: "FC", value: `${currentVitals.hr} lpm` },
-                    { label: "PA", value: formatAdvancedPressure(currentVitals.sbp, currentVitals.dbp) },
-                    { label: "SpO₂", value: `${currentVitals.spo2}%` },
-                    { label: "FR", value: `${currentVitals.rr} rpm` },
-                    { label: "Temp", value: `${currentVitals.temp.toFixed(1)}°C` },
-                    { label: "Fase", value: `${Math.min(currentStageIndex + 1, scenario.stages.length)}/${scenario.stages.length}` },
-                  ].map((item) => (
-                    <div key={item.label} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                      <div className="text-[11px] uppercase tracking-[0.18em] text-slate-900/42">{item.label}</div>
-                      <div className="mt-2 text-base font-semibold text-slate-900">{item.value}</div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-4 grid gap-3 md:grid-cols-[1.1fr_0.9fr]">
-                  <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4">
-                    <div className="text-xs uppercase tracking-[0.18em] text-cyan-700/72">Estado dinámico</div>
-                    <div className="mt-2 text-xl font-semibold text-slate-900">{currentStatus}</div>
-                    <div className="mt-3 text-sm text-slate-600">{scenario.expectedOutcome}</div>
-                  </div>
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <div className="text-xs uppercase tracking-[0.18em] text-slate-400">Monitor actual</div>
-                    <div className="mt-2 text-lg font-semibold text-slate-900">{currentRhythm}</div>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {scenario.alerts.map((alert) => (
-                        <span key={alert} className="rounded-full border border-red-400/20 bg-red-400/10 px-2.5 py-1 text-[11px] text-red-700">
-                          {alert}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+                <div className="mt-4">
+                  <MultiparameterMonitor
+                    accent="cyan"
+                    title="Monitor multiparámetro dinámico"
+                    subtitle="Seguimiento continuo con bloques clínicos, tendencias y comparación contra el estado basal."
+                    vitals={currentVitals}
+                    baselineVitals={scenario.initialVitals}
+                    statusLabel={currentStatus}
+                    rhythmLabel={currentRhythm}
+                    timeLabel={progressionMode === "realtime" ? formatTimer(timeRemaining) : "Paso guiado"}
+                    stageLabel={`Fase ${Math.min(currentStageIndex + 1, scenario.stages.length)}/${scenario.stages.length}`}
+                    badges={[
+                      dynamicSimulationCategoryLabel(scenario.category),
+                      dynamicSimulationDifficultyLabel(scenario.difficulty),
+                      dynamicSimulationContextLabel(scenario.context),
+                    ]}
+                    alerts={[scenario.progressionLabel, ...scenario.alerts]}
+                    detailItems={[
+                      {
+                        label: "Paciente",
+                        value: `${scenario.patientProfile.name} · ${scenario.patientProfile.age} años`,
+                      },
+                      {
+                        label: "Motivo de consulta",
+                        value: scenario.patientProfile.chiefComplaint,
+                      },
+                      {
+                        label: "Entorno",
+                        value: scenario.patientProfile.setting ?? "No especificado",
+                      },
+                      {
+                        label: "Meta del caso",
+                        value: scenario.expectedOutcome,
+                      },
+                    ]}
+                    footerNote="Las curvas y los bloques fisiológicos reaccionan a cada decisión del escenario para hacer visible la evolución clínica."
+                  />
                 </div>
 
                 {currentStage ? (

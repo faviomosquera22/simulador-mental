@@ -494,6 +494,7 @@ export default function RcpAlgorithmsPage() {
                 title="Monitor de signos"
                 subtitle="Seguimiento visual del caso para contrastar ritmo, perfusión y ventilación durante el algoritmo."
                 vitals={currentVitals}
+                baselineVitals={scenario.initialVitals}
                 rhythmLabel={currentRhythm}
                 statusLabel={currentStatus}
                 timeLabel={mode === "evaluation" ? formatTimer(timeRemaining) : "Libre"}

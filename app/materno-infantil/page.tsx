@@ -574,6 +574,7 @@ export default function MaternoInfantilPage() {
                 title="Monitor de signos"
                 subtitle="Seguimiento visual del caso para reevaluar tendencia hemodinámica y respiratoria."
                 vitals={currentVitals}
+                baselineVitals={scenario.initialVitals}
                 statusLabel={currentStatus}
                 timeLabel={mode === "evaluation" ? formatTimer(timeRemaining) : "Libre"}
                 stageLabel={`Etapa ${Math.min(currentStageIndex + 1, scenario.stages.length)}/${scenario.stages.length}`}

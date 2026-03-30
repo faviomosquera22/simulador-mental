@@ -262,6 +262,7 @@ export default function EmergencySimulatorPage() {
                   title="Monitor multiparámetro"
                   subtitle="Monitor continuo con ECG, curvas y contexto clínico para seguimiento del caso."
                   vitals={currentVitals}
+                  baselineVitals={scenario.initialVitals}
                   statusLabel={lastAction ? "Reevaluación tras intervención" : "Valoración inicial"}
                   timeLabel={mode === "evaluation" ? formatTimer(timeRemaining) : "Libre"}
                   stageLabel={`Paso ${Math.min(currentStageIndex + 1, scenario.stages.length)}/${scenario.stages.length}`}
