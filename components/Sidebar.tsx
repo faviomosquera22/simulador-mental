@@ -158,6 +158,14 @@ const navIcons = {
       <path d="M3 21l5-1 10-10-4-4L4 16l-1 5z" />
     </svg>
   ),
+  wound: (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M6 5h12" />
+      <path d="M8 5v5l-3 5a3 3 0 0 0 2.6 4.5h8.8A3 3 0 0 0 19 15l-3-5V5" />
+      <path d="M10 11h4" />
+      <path d="M9 15h6" />
+    </svg>
+  ),
   notes: (
     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
       <path d="M6 3h9l3 3v15H6z" />
@@ -268,6 +276,7 @@ const NAV_SECTIONS: NavSection[] = [
       { label: "Terminología médica", href: "/medical-terminology", icon: navIcons.terminology },
       { label: "Medicamentos", href: "/medications", icon: navIcons.medications },
       { label: "Procedimientos", href: "/procedures", icon: navIcons.procedures },
+      { label: "Curación de heridas", href: "/simulators/wound-care", icon: navIcons.wound },
       { label: "Notas clínicas", href: "/clinical-notes", icon: navIcons.notes },
       { label: "PAE", href: "/pae", icon: navIcons.pae },
     ],

@@ -20,6 +20,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Local OCR/PDF tooling environment.
     ".venv-pdf/**",
+    // External repos kept in the workspace but not part of the Next.js app.
+    "Repo/**",
   ]),
 ]);
 

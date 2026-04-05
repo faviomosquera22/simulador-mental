@@ -247,6 +247,13 @@ const MODULE_PLAYBOOK: Record<string, ModuleAdvisorMeta> = {
     maxMinutes: 25,
     companionIds: ["calculations", "procedures"],
   },
+  "wound-care": {
+    intents: ["intervencion", "documentacion"],
+    formats: ["guiado", "intensivo"],
+    minMinutes: 15,
+    maxMinutes: 35,
+    companionIds: ["procedures", "notes"],
+  },
   procedures: {
     intents: ["intervencion"],
     formats: ["guiado", "intensivo"],
@@ -476,8 +483,8 @@ function mapSessionRecord(s: SessionRecord): StoredSession {
     reason: s.endReason,
     targetMinutes: s.targetMinutes,
     durationMin: Number.isFinite(s.durationSec) ? clampInt(s.durationSec / 60, 1, 120) : undefined,
-    score: transcript.length ? computeSimpleScoreFromTranscript(transcript) : undefined,
-    riskLevel: deriveRiskLevelFromFlags(s.lastMeta?.flags),
+    score: typeof s.score === "number" ? clampInt(s.score, 0, 100) : transcript.length ? computeSimpleScoreFromTranscript(transcript) : undefined,
+    riskLevel: s.riskLevel ? normalizeRiskLevel(s.riskLevel) : deriveRiskLevelFromFlags(s.lastMeta?.flags),
     transcript,
   };
 }

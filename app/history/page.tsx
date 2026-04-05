@@ -27,7 +27,7 @@ export default function HistoryPage() {
       total === 0
         ? 0
         : Math.round(
-            items.reduce((acc, s) => acc + (Number(s.lastMeta?.rapport ?? 0) || 0), 0) / total
+            items.reduce((acc, s) => acc + (Number(s.score ?? s.lastMeta?.rapport ?? 0) || 0), 0) / total
           );
     return { total, avgRapport };
   }, [items]);
@@ -79,6 +79,9 @@ export default function HistoryPage() {
                         {" • "}
                         Fin: <span className="text-slate-900">{s.endReason}</span>
                       </div>
+                      {s.moduleLabel ? (
+                        <div className="mt-1 text-xs text-slate-500">Módulo: <span className="text-slate-800">{s.moduleLabel}</span></div>
+                      ) : null}
                       <div className="mt-1 text-xs text-slate-400">
                         Inicio: {fmt(s.startedAt)} • Fin: {fmt(s.endedAt)} • Duración: {Math.round(s.durationSec/60)} min
                       </div>
@@ -91,7 +94,7 @@ export default function HistoryPage() {
                           Intensidad: {Math.round(Number(s.lastMeta?.intensity ?? 0))} / 100
                         </span>
                         <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
-                          Rapport: {Math.round(Number(s.lastMeta?.rapport ?? 0))} / 100
+                          Score: {Math.round(Number(s.score ?? s.lastMeta?.rapport ?? 0))} / 100
                         </span>
                       </div>
                     </div>
@@ -99,7 +102,11 @@ export default function HistoryPage() {
                     <div className="flex flex-col gap-2 shrink-0">
                       <button
                         onClick={() => {
-                          // Para "revisar": guarda esta sesión como "activeTranscript" y abre results
+                          if (s.moduleId === "wound-care") {
+                            window.location.href = `/simulators/wound-care/lpp/cases/${s.caseId}/results?mode=${s.mode ?? "tutor"}`;
+                            return;
+                          }
+
                           try {
                             localStorage.setItem("activeTranscript", JSON.stringify(s.transcript ?? []));
                             localStorage.setItem("activeCase", JSON.stringify({ id: s.caseId, meta: { title: s.caseTitle }, patient_profile: { display_name: s.patientName } }));
@@ -113,8 +120,11 @@ export default function HistoryPage() {
 
                       <button
                         onClick={() => {
-                          // Para "repetir": vuelve a cargar el caso como activo y abre simulador
-                          // (Ideal: aquí deberíamos guardar el caseObject real. Si ya lo tienes en biblioteca, lo recuperas por id.)
+                          if (s.moduleId === "wound-care") {
+                            window.location.href = `/simulators/wound-care/lpp/cases/${s.caseId}?mode=${s.mode ?? "tutor"}`;
+                            return;
+                          }
+
                           try {
                             localStorage.setItem("activeCase", JSON.stringify({ id: s.caseId }));
                           } catch {}

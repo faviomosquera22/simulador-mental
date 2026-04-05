@@ -4,6 +4,11 @@ export type SessionRecord = {
   caseId: string;
   caseTitle: string;
   patientName: string;
+  score?: number;
+  moduleId?: string;
+  moduleLabel?: string;
+  mode?: string;
+  riskLevel?: "Bajo" | "Moderado" | "Alto" | "—";
 
   startedAt: string; // ISO
   endedAt: string;   // ISO

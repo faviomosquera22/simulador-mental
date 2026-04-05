@@ -191,6 +191,18 @@ export const DASHBOARD_MODULES: DashboardModuleMeta[] = [
     highlight: true,
   },
   {
+    id: "wound-care",
+    label: "Curación de heridas",
+    href: "/simulators/wound-care",
+    group: "practica",
+    summary: "Entrenamiento interactivo en valoración, clasificación y manejo de LPP con flujo completo de enfermería.",
+    accent: "from-teal-500/18 via-cyan-500/8 to-transparent",
+    count: 5,
+    countLabel: "casos",
+    status: "Nuevo",
+    highlight: true,
+  },
+  {
     id: "notes",
     label: "Notas clínicas",
     href: "/clinical-notes",
