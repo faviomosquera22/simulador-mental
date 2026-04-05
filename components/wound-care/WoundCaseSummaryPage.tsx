@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import WoundCaseSummary from "@/components/wound-care/WoundCaseSummary";
 import WoundPageShell from "@/components/wound-care/WoundPageShell";
@@ -15,7 +16,12 @@ export default function WoundCaseSummaryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode") === "evaluation" ? "evaluation" : "tutor";
+  const [selectedMode, setSelectedMode] = useState<WoundModuleMode>(mode);
   const caseData = getWoundCaseById(params.caseId);
+
+  useEffect(() => {
+    setSelectedMode(mode);
+  }, [mode]);
 
   if (!caseData) {
     return (
@@ -29,24 +35,29 @@ export default function WoundCaseSummaryPage() {
 
   const activeCase = caseData;
 
-  function handleStart(nextMode: WoundModuleMode) {
-    const session = createWoundSession(activeCase.id, nextMode);
+  function handleModeChange(nextMode: WoundModuleMode) {
+    setSelectedMode(nextMode);
+    router.replace(`/simulators/wound-care/lpp/cases/${activeCase.id}?mode=${nextMode}`, { scroll: false });
+  }
+
+  function handleStart() {
+    const session = createWoundSession(activeCase.id, selectedMode);
     if (!session) return;
     saveWoundSession(session);
-    router.push(`${woundStepRoute(activeCase.id, "assessment")}?mode=${nextMode}`);
+    router.push(`${woundStepRoute(activeCase.id, "assessment")}?mode=${selectedMode}`);
   }
 
   return (
     <WoundPageShell
       title={activeCase.name}
-      description="Antes de intervenir, revisa el contexto general, el riesgo basal y el objetivo pedagógico del caso."
+      description="Revisa el resumen, define el modo y entra a la valoración con un único botón principal."
       actions={
         <Link href="/simulators/wound-care/lpp/cases" className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50">
           Volver a casos
         </Link>
       }
     >
-      <WoundCaseSummary caseData={activeCase} mode={mode} onStart={handleStart} />
+      <WoundCaseSummary caseData={activeCase} mode={selectedMode} onModeChange={handleModeChange} onStart={handleStart} />
     </WoundPageShell>
   );
 }

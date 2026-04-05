@@ -13,6 +13,7 @@ type WoundCaseCardProps = {
 
 export default function WoundCaseCard({ caseData, progress, mode = "tutor" }: WoundCaseCardProps) {
   const progressValue = progress?.completed ? progress.bestScore : 0;
+  const progressLabel = progress?.completed ? `${progress.bestScore}/100` : progress?.attempts ? "En progreso" : "Sin iniciar";
 
   return (
     <article className="flex h-full flex-col rounded-[26px] border border-slate-200 bg-white p-5 shadow-[0_16px_42px_rgba(148,163,184,0.12)]">
@@ -35,17 +36,16 @@ export default function WoundCaseCard({ caseData, progress, mode = "tutor" }: Wo
         <div className="mt-2 text-sm text-slate-700">{caseData.learningObjective}</div>
       </div>
 
-      <div className="mt-4 space-y-3 text-sm text-slate-600">
-        <div className="flex items-center justify-between gap-3">
-          <span>Contexto</span>
-          <span className="max-w-[220px] text-right text-slate-900">{caseData.patient.context}</span>
-        </div>
-        <div className="flex items-center justify-between gap-3">
-          <span>Progreso</span>
-          <span className="text-slate-900">
-            {progress?.completed ? `${progress.bestScore}/100` : progress?.attempts ? "En progreso" : "Sin iniciar"}
-          </span>
-        </div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600">
+          {mode === "tutor" ? "Tutor" : "Evaluación"}
+        </span>
+        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600">{progressLabel}</span>
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+        <div className="font-medium text-slate-900">Resumen rápido</div>
+        <div className="mt-2 leading-6">{caseData.patient.context}</div>
       </div>
 
       <div className="mt-4">
@@ -57,9 +57,9 @@ export default function WoundCaseCard({ caseData, progress, mode = "tutor" }: Wo
       <div className="mt-auto pt-5">
         <Link
           href={`/simulators/wound-care/lpp/cases/${caseData.id}?mode=${mode}`}
-          className="inline-flex rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+          className="inline-flex rounded-xl bg-[#183640] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#224652]"
         >
-          Ver caso
+          Iniciar caso
         </Link>
       </div>
     </article>

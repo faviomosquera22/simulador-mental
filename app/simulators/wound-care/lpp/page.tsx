@@ -1,7 +1,15 @@
+import { redirect } from "next/navigation";
+
 export const dynamic = "force-dynamic";
 
-import WoundLppLandingPage from "@/components/wound-care/WoundLppLandingPage";
+type PageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
 
-export default function Page() {
-  return <WoundLppLandingPage />;
+export default async function Page({ searchParams }: PageProps) {
+  const params = searchParams ? await searchParams : {};
+  const rawMode = params.mode;
+  const mode = rawMode === "evaluation" ? "evaluation" : "tutor";
+
+  redirect(`/simulators/wound-care/lpp/cases?mode=${mode}`);
 }

@@ -5,10 +5,11 @@ import type { WoundCaseData, WoundModuleMode } from "@/src/lib/wound-care/types"
 type WoundCaseSummaryProps = {
   caseData: WoundCaseData;
   mode: WoundModuleMode;
-  onStart: (mode: WoundModuleMode) => void;
+  onModeChange: (mode: WoundModuleMode) => void;
+  onStart: () => void;
 };
 
-export default function WoundCaseSummary({ caseData, mode, onStart }: WoundCaseSummaryProps) {
+export default function WoundCaseSummary({ caseData, mode, onModeChange, onStart }: WoundCaseSummaryProps) {
   return (
     <section className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
       <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_18px_50px_rgba(148,163,184,0.12)]">
@@ -37,7 +38,36 @@ export default function WoundCaseSummary({ caseData, mode, onStart }: WoundCaseS
       </div>
 
       <aside className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_18px_50px_rgba(148,163,184,0.12)]">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Antecedentes relevantes</div>
+        <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Antes de empezar</div>
+        <h3 className="mt-2 text-lg font-semibold text-slate-900">Arranque del caso</h3>
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          Mantén el resumen clínico como referencia, elige el modo de trabajo y usa un solo botón para entrar a la valoración.
+        </p>
+
+        <div className="mt-5 inline-flex w-full rounded-2xl border border-slate-200 bg-slate-50 p-1">
+          <button
+            type="button"
+            onClick={() => onModeChange("tutor")}
+            className={`flex-1 rounded-xl px-4 py-2 text-sm font-medium transition ${mode === "tutor" ? "bg-[#183640] text-white" : "text-slate-600 hover:bg-white"}`}
+          >
+            Tutor
+          </button>
+          <button
+            type="button"
+            onClick={() => onModeChange("evaluation")}
+            className={`flex-1 rounded-xl px-4 py-2 text-sm font-medium transition ${mode === "evaluation" ? "bg-[#183640] text-white" : "text-slate-600 hover:bg-white"}`}
+          >
+            Evaluación
+          </button>
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-cyan-200 bg-cyan-50 p-4 text-sm text-cyan-900">
+          {mode === "tutor"
+            ? "Recibirás feedback inmediato, pistas opcionales y corrección guiada."
+            : "No habrá ayudas durante la ejecución; el análisis aparece al final."}
+        </div>
+
+        <div className="mt-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Antecedentes relevantes</div>
         <div className="mt-3 flex flex-wrap gap-2">
           {caseData.patient.relevantHistory.map((item) => (
             <span key={item} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600">
@@ -53,24 +83,13 @@ export default function WoundCaseSummary({ caseData, mode, onStart }: WoundCaseS
           <InfoLine label="Tiempo en cama" value={caseData.patient.timeInBed} />
         </div>
 
-        <div className="mt-6 rounded-2xl border border-cyan-200 bg-cyan-50 p-4 text-sm text-cyan-900">
-          Modo actual: <span className="font-semibold">{mode === "tutor" ? "Tutor" : "Evaluación"}</span>
-        </div>
-
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-6 flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => onStart("tutor")}
+            onClick={onStart}
             className="rounded-xl bg-[#183640] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#224652]"
           >
-            Iniciar valoración
-          </button>
-          <button
-            type="button"
-            onClick={() => onStart("evaluation")}
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50"
-          >
-            Modo evaluación
+            Comenzar caso
           </button>
         </div>
       </aside>
