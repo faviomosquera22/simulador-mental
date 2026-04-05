@@ -39,6 +39,25 @@ export type WoundHotspot = {
   y: number;
 };
 
+export type WoundVisualTone = "risk" | "stage-1" | "stage-2" | "stage-3" | "unstageable";
+
+export type WoundVisualConfig = {
+  imageSrc: string;
+  imageAlt: string;
+  imageSourceLabel: string;
+  objectPosition: string;
+  photoOpacity: number;
+  overlayTone: WoundVisualTone;
+  focus: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    rotation?: number;
+  };
+  notes: string[];
+};
+
 export type WoundCaseData = {
   id: string;
   name: string;
@@ -91,6 +110,7 @@ export type WoundCaseData = {
     stage: WoundStage;
     hotspots: WoundHotspot[];
     differentialNote: string;
+    visual: WoundVisualConfig;
   };
   expected: {
     reviewedDomains: string[];

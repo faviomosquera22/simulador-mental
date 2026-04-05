@@ -15,6 +15,8 @@ export const WOUND_MODULE_COMPETENCIES = Object.entries(WOUND_COMPETENCY_LABELS)
   label,
 }));
 
+const MEDETEC_SOURCE = "Base clínica Medetec · uso educativo con overlay didáctico";
+
 export const WOUND_LPP_CASES: WoundCaseData[] = [
   {
     id: "lpp-risk-high",
@@ -72,6 +74,19 @@ export const WOUND_LPP_CASES: WoundCaseData[] = [
         { id: "skin", label: "Perilesión", description: "Piel húmeda y frágil por exposición repetida a humedad.", x: 34, y: 55 },
       ],
       differentialNote: "Debes diferenciar entre presión temprana y lesión por humedad; el patrón sobre prominencia ósea y el eritema no blanqueable orientan a LPP estadio I.",
+      visual: {
+        imageSrc: "/medical-assets/wound-care/lpp/medetec-pressure-ulcer-sacrum-healing.jpg",
+        imageAlt: "Base clínica de región sacra suavizada para entrenamiento en lesión por presión de riesgo alto.",
+        imageSourceLabel: MEDETEC_SOURCE,
+        objectPosition: "center center",
+        photoOpacity: 0.24,
+        overlayTone: "risk",
+        focus: { x: 49, y: 51, width: 42, height: 30, rotation: -6 },
+        notes: [
+          "Se suaviza la foto real para priorizar valoración del riesgo y eritema temprano.",
+          "El overlay reemplaza profundidad visible por un hallazgo superficial didáctico.",
+        ],
+      },
     },
     expected: {
       reviewedDomains: ["mobility", "nutrition", "hydration", "continence", "perfusion", "timeInBed", "devices", "pain", "braden"],
@@ -166,11 +181,24 @@ export const WOUND_LPP_CASES: WoundCaseData[] = [
       hasNecrosis: false,
       stage: "Estadio I",
       hotspots: [
-        { id: "center", label: "Centro", description: "Área enrojecida persistente sin pérdida de piel.", x: 50, y: 44 },
-        { id: "pressure", label: "Presión", description: "Talón sometido a carga prolongada y fricción con superficie de apoyo.", x: 64, y: 56 },
-        { id: "skin", label: "Perilesión", description: "Piel seca, sin maceración ni exudado.", x: 35, y: 46 },
+        { id: "center", label: "Centro", description: "Área enrojecida persistente sin pérdida de piel.", x: 52, y: 58 },
+        { id: "pressure", label: "Presión", description: "Talón sometido a carga prolongada y fricción con superficie de apoyo.", x: 66, y: 64 },
+        { id: "skin", label: "Perilesión", description: "Piel seca, sin maceración ni exudado.", x: 38, y: 54 },
       ],
       differentialNote: "El talón exige diferenciar isquemia, fricción y presión sostenida; aquí la piel sigue intacta y el hallazgo clave es el eritema no blanqueable.",
+      visual: {
+        imageSrc: "/medical-assets/wound-care/lpp/medetec-pressure-ulcer-heel.jpg",
+        imageAlt: "Base clínica de talón suavizada con overlay para LPP estadio I.",
+        imageSourceLabel: MEDETEC_SOURCE,
+        objectPosition: "center center",
+        photoOpacity: 0.28,
+        overlayTone: "stage-1",
+        focus: { x: 52, y: 59, width: 34, height: 24, rotation: 8 },
+        notes: [
+          "El overlay didáctico oculta la pérdida de continuidad de la foto base para representar estadio I.",
+          "La lectura clínica se centra en eritema no blanqueable y descarga de talón.",
+        ],
+      },
     },
     expected: {
       reviewedDomains: ["mobility", "nutrition", "perfusion", "timeInBed", "devices", "pain", "braden"],
@@ -265,11 +293,24 @@ export const WOUND_LPP_CASES: WoundCaseData[] = [
       hasNecrosis: false,
       stage: "Estadio II",
       hotspots: [
-        { id: "bed", label: "Lecho", description: "Pérdida parcial de piel con lecho rosado y húmedo.", x: 50, y: 44 },
-        { id: "edge", label: "Borde", description: "Maceración leve por humedad cercana.", x: 67, y: 51 },
-        { id: "skin", label: "Perilesión", description: "La piel circundante está húmeda y vulnerable.", x: 35, y: 55 },
+        { id: "bed", label: "Lecho", description: "Pérdida parcial de piel con lecho rosado y húmedo.", x: 50, y: 51 },
+        { id: "edge", label: "Borde", description: "Maceración leve por humedad cercana.", x: 65, y: 48 },
+        { id: "skin", label: "Perilesión", description: "La piel circundante está húmeda y vulnerable.", x: 38, y: 58 },
       ],
       differentialNote: "El estadio II muestra pérdida parcial del espesor con lecho visible, sin esfacelos que oculten profundidad.",
+      visual: {
+        imageSrc: "/medical-assets/wound-care/lpp/medetec-pressure-ulcer-sacrum-healing.jpg",
+        imageAlt: "Base clínica de región sacra suavizada con overlay para LPP estadio II.",
+        imageSourceLabel: MEDETEC_SOURCE,
+        objectPosition: "center center",
+        photoOpacity: 0.34,
+        overlayTone: "stage-2",
+        focus: { x: 49, y: 52, width: 40, height: 30, rotation: -4 },
+        notes: [
+          "La foto clínica aporta textura y contorno anatómico.",
+          "El overlay didáctico reconstruye una pérdida parcial superficial acorde al estadio II.",
+        ],
+      },
     },
     expected: {
       reviewedDomains: ["mobility", "nutrition", "hydration", "continence", "timeInBed", "pain", "braden"],
@@ -364,11 +405,24 @@ export const WOUND_LPP_CASES: WoundCaseData[] = [
       hasNecrosis: false,
       stage: "Estadio III",
       hotspots: [
-        { id: "bed", label: "Lecho", description: "Pérdida total de piel con tejido de granulación y zonas de esfacelo.", x: 49, y: 45 },
-        { id: "depth", label: "Profundidad", description: "Se aprecia cavidad superficial compatible con estadio III.", x: 62, y: 53 },
-        { id: "skin", label: "Perilesión", description: "Piel frágil con riesgo de maceración por exudado.", x: 34, y: 56 },
+        { id: "bed", label: "Lecho", description: "Pérdida total de piel con tejido de granulación y zonas de esfacelo.", x: 51, y: 50 },
+        { id: "depth", label: "Profundidad", description: "Se aprecia cavidad superficial compatible con estadio III.", x: 61, y: 53 },
+        { id: "skin", label: "Perilesión", description: "Piel frágil con riesgo de maceración por exudado.", x: 37, y: 45 },
       ],
       differentialNote: "Hay pérdida total de piel con tejido subcutáneo visible, pero sin exposición de fascia, tendón ni hueso, compatible con estadio III.",
+      visual: {
+        imageSrc: "/medical-assets/wound-care/lpp/medetec-pressure-ulcer-sacrum-deep-sloughy.jpg",
+        imageAlt: "Base clínica de lesión sacra profunda con overlay didáctico para LPP estadio III.",
+        imageSourceLabel: MEDETEC_SOURCE,
+        objectPosition: "center center",
+        photoOpacity: 0.72,
+        overlayTone: "stage-3",
+        focus: { x: 50, y: 49, width: 48, height: 36, rotation: -2 },
+        notes: [
+          "Se mantiene mayor visibilidad de la base clínica por tratarse de una lesión profunda.",
+          "El overlay resalta granulación, exudado moderado y piel perilesional frágil.",
+        ],
+      },
     },
     expected: {
       reviewedDomains: ["mobility", "nutrition", "hydration", "continence", "perfusion", "timeInBed", "devices", "pain", "braden"],
@@ -463,11 +517,24 @@ export const WOUND_LPP_CASES: WoundCaseData[] = [
       hasNecrosis: true,
       stage: "No clasificable",
       hotspots: [
-        { id: "cover", label: "Cobertura", description: "Escara y esfacelos impiden ver la profundidad real del lecho.", x: 50, y: 45 },
-        { id: "edge", label: "Borde", description: "Bordes irregulares con piel frágil alrededor.", x: 66, y: 54 },
-        { id: "perfusion", label: "Perfusión", description: "Talón con perfusión comprometida y alto riesgo de deterioro.", x: 35, y: 48 },
+        { id: "cover", label: "Cobertura", description: "Escara y esfacelos impiden ver la profundidad real del lecho.", x: 52, y: 59 },
+        { id: "edge", label: "Borde", description: "Bordes irregulares con piel frágil alrededor.", x: 66, y: 64 },
+        { id: "perfusion", label: "Perfusión", description: "Talón con perfusión comprometida y alto riesgo de deterioro.", x: 38, y: 53 },
       ],
       differentialNote: "No puedes asignar estadio III o IV si la cobertura tisular impide valorar la verdadera profundidad; primero debes reconocerla como no clasificable.",
+      visual: {
+        imageSrc: "/medical-assets/wound-care/lpp/medetec-pressure-ulcer-heel.jpg",
+        imageAlt: "Base clínica de talón con overlay didáctico para lesión no clasificable.",
+        imageSourceLabel: MEDETEC_SOURCE,
+        objectPosition: "center center",
+        photoOpacity: 0.64,
+        overlayTone: "unstageable",
+        focus: { x: 52, y: 60, width: 36, height: 26, rotation: 8 },
+        notes: [
+          "Se reutiliza base clínica de talón y el overlay añade cobertura necrótica para lectura no clasificable.",
+          "La prioridad visual está en tejido oculto y perfusión comprometida.",
+        ],
+      },
     },
     expected: {
       reviewedDomains: ["mobility", "nutrition", "hydration", "perfusion", "timeInBed", "devices", "pain", "braden"],

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/bootstrap-grid.min.css">
+    <link rel="stylesheet" href="css/control.css">
+    <title>Control Screen - Patient Monitor</title>
+  </head>
+  <body>
+    <noscript>
+      <p>This application requires javascript to run.</p>
+    </noscript>
+    <section id="app">
+      <div class="container ecg">
+        <div class="row title">
+          <div class="col-xs-12">
+            <h2>ECG Display</h2>
+          </div>
+        </div>
+        <div class="row content">
+          <div class="col-xs-12 col-sm-6 col-md-6 col-lg-4" v-for="link in core.emt">
+            <div class="block"><a v-on:click="updateEMT($event)" v-bind:value="link.src" v-bind:type="link.video" v-bind:id="link.id" v-bind:class="{current: link.current}">{{link.name}}</a></div>
+          </div>
+        </div>
+      </div>
+      <div class="container status">
+        <div class="row title">
+          <div class="col-xs-12">
+            <h2>Patient Status</h2>
+          </div>
+        </div>
+        <div class="row content">
+          <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3" v-for="(item, index) in core.input" v-bind:class="item.id == 'yy' ? 'col-md-8' : ''">
+            <div class="block" v-bind:id="index" v-bind:class="'item-' + (index + 1)">
+              <label class="label" v-if="item.id != 'yy'" v-bind:for="item.id">{{item.name}}</label>
+              <input class="label" v-else v-model="item.name">
+              <input class="value" v-model="item.data" v-bind:name="item.id">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section id="bar"><a onclick="app.resetEverything()">Reset everything</a><a class="display" target="_blank" href="display.html">Open display</a><a href="http://github.com/uwlsimulationcentre/project-magna/">GitHub</a></section>
+    <script src="js/jquery-3.1.1.min.js"></script>
+    <script src="js/lodash.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/core.js"></script>
+    <script src="js/control.js"></script>
+  </body>
+</html>

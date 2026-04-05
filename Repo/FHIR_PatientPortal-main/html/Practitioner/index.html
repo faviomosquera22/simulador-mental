@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<!-- SITE CSS -->
+	<link href="../../assets/css/site2.css" rel="stylesheet" type="text/css" media="screen" />
+	<link href="../../assets/css/reset.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="../../assets/css/practitioner.css" rel="stylesheet" type="text/css" media="screen" />
+	<title>FHIR Practitioner</title>
+</head>
+
+<body>
+    <div id="Header">
+		<a href="../Practitioner/index.html"><img src="../../assets/img/home.png" class="topleft"/></a>
+		<button class="topright" onclick="logOut()">Logout</button>
+        <div id="Logo">
+			<font color="red">FHIR</font> Practitioner
+		</div>
+	</div>
+    <div id="Bodyer">
+        <!-- <div id="Head"> -->
+        <!-- </div> -->
+        <div id="Left"></div>
+        <div id="Body">
+            <div id="List">
+                <div class="List-Practitioner">
+                    <div class="Header">
+                        <div class="Title">Practitioner Table</div>
+                        <div class="Tool">
+                            <ul class="L1s">
+                                <li class="L1 i1">
+                                    <div class="Btn Add Practitioner">Add Practitioner</div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="Bodyer">
+                        <ul class="L1s">
+                            <li class="L1 header i0">
+                                <div class="Num">No.</div>
+                                <!-- <div class="PractitionerRoleID">Practitioner Role ID</div> -->
+								<!-- <div class="PractitionerID">Practitioner ID</div> -->
+                                <div class="Name">Name</div>
+                                <div class="Identifier">Identifier</div>
+								<div class="Role">Role</div>
+								<div class="Email">Email</div>
+                                <div class="Tool">
+                                    <div class="Title">Tool</div>
+                                </div>
+                                <div class="Clear"></div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="Footer">
+                        <div class="Tool">
+                            <div id="Page">
+                                <ul class="L1s">
+                                    <li class="L1 i1">
+                                        <div class="Title">1</div>
+                                    </li>
+                                    <li class="L1 i2">
+                                        <div class="Title">2</div>
+                                    </li>
+                                    <li class="L1 i3">
+                                        <div class="Title">3</div>
+                                    </li>
+                                    <li class="L1 i4">
+                                        <div class="Title">4</div>
+                                    </li>
+                                    <li class="L1 i5 Active">
+                                        <div class="Title">5</div>
+                                    </li>
+                                    <li class="L1 i6">
+                                        <div class="Title">6</div>
+                                    </li>
+                                    <li class="L1 i7">
+                                        <div class="Title">7</div>
+                                    </li>
+                                    <li class="L1 i8">
+                                        <div class="Title">8</div>
+                                    </li>
+                                    <li class="L1 i9">
+                                        <div class="Title">9</div>
+                                    </li>
+                                    <li class="L1 i10">
+                                        <div class="Title">10</div>
+                                    </li>
+                                </ul>
+                                <div class="Clear"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="Right"></div>
+        <div id="Foot"></div>
+		<div id="loadingPage" style="display:none;">
+			<div id="overlay" style="display:block;"></div>
+			<div id="loader"></div>
+		</div>
+    </div>
+    <div id="Footer">
+        <div id="CopyRight">
+            Copyright © 2022 Vlix All rights reserved
+        </div>
+    </div>
+</body>
+
+<!-- JQUERY JS -->
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<!-- GLOBAL FUNCTION FOR ALL PAGE JS -->
+<script src="../../assets/js/functions/site.js"></script>
+<!-- SESSION JS -->
+<script src="../../assets/js/functions/session.js"></script>
+<!-- XMLHTTP REQUEST JS -->
+<script src="../../assets/js/functions/HTTPRequest.js"></script>
+<!-- QUERY STRING SETTING JS -->
+<script src="../../assets/js/functions/queryString.js"></script>
+<!-- FHIR SERVER SETTING JS -->
+<script src="../../assets/js/functions/setting.js"></script>
+
+<!-- PRACTITIONER INDEX JS -->
+<script src="../../assets/js/Practitioner/index.js"></script>
+</html>

@@ -1,0 +1,80 @@
+# Flutter build output
+/build/
+**/build/
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+.melos_tool/
+
+# Pub and package cache
+.pub-cache/
+.pub/
+
+# Generated API docs
+doc/api/
+
+*.metadata
+*.netlify
+
+# iOS artifacts
+ios/Flutter/
+ios/Pods/
+ios/.symlinks/
+ios/Runner.xcworkspace/
+**/*.xcuserstate
+**/*.xcworkspace
+**/*.xcodeproj
+**/*.xcuserdata
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Runner/GeneratedPluginRegistrant.*
+
+# Android artifacts
+android/.gradle/
+android/app/debug/
+android/app/profile/
+android/app/release/
+**/*.keystore
+**/local.properties
+
+# Xcode crash logs
+*.xccrashpoint
+
+# macOS build
+macos/Flutter/ephemeral/
+macos/build/
+
+# Windows build
+windows/Flutter/ephemeral/
+windows/build/
+
+# Linux build
+linux/Flutter/ephemeral/
+linux/build/
+
+# Web build
+web/.dart_tool/
+web/build/
+
+# Symbol and map files
+app.*.symbols
+app.*.map.json
+
+# Personal files and system junk
+*.log
+*.lock
+*.swp
+*.tmp
+.DS_Store
+.idea/
+*.iml
+*.ipa
+*.apk
+*.aab
+*.class
+*.pyc
+*.history
+
+# VS Code (optional: uncomment if you don't want to share launch configs)
+#.vscode/

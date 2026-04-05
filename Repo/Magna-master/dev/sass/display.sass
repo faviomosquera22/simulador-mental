@@ -1,0 +1,34 @@
+@import partials/_variables.sass
+@import partials/_core.sass
+
+//  CORE STYLES  ///////////////////////////////////////////////////////////////
+
+img
+    max-width: 100%
+
+#app
+    min-height: 100vh
+    display: flex
+    flex-direction: column
+    justify-content: center
+    padding: $n 0
+
+//  STATUS  ////////////////////////////////////////////////////////////////////
+
+.status
+    font-size: $t / 3 * 4
+    line-height: $n / 3 * 4
+    margin-top: $n
+    text-align: center
+
+    .block
+        opacity: 0
+        margin-top: $n
+
+        &[visible]
+            opacity: 1
+
+    @for $i from 1 through 8
+        .block.item-#{$i}
+            .label
+                color: map-get($hue, $i)

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/bootstrap-grid.min.css">
+    <link rel="stylesheet" href="css/display.css">
+    <title>Patient Monitor</title>
+  </head>
+  <body>
+    <section id="app">
+      <div class="container ecg">
+        <div class="row content">
+          <div class="col col-xs-12"><img v-bind:src="core.emt_current.src"></div>
+        </div>
+      </div>
+      <div class="container status">
+        <div class="row content">
+          <div class="col-xs-12 col-sm-6 col-md-3" v-for="(item, index) in core.input">
+            <div class="block" v-bind:id="index" v-bind:class="['item-' + (index + 1)]" v-bind:visible="item.data ? true : false">
+              <div class="label">{{ item.name }}</div>
+              <div class="value">{{ item.data ? item.data : '&nbsp;' }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <script src="js/jquery-3.1.1.min.js"></script>
+    <script src="js/lodash.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/core.js"></script>
+    <script src="js/display.js"></script>
+  </body>
+</html>

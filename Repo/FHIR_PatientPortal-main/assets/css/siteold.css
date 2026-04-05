@@ -1,0 +1,122 @@
+﻿.Clear{clear:both;width:100%;height:1px;}
+a,a:hover,a:visited{color:#343b4e;text-decoration:none;}
+
+#Header{position:relative;top:0px;left:0px;width:100%;height:30px;background:#222;}
+
+#Bodyer{margin:0;padding:0;width:100%;flex: 1 0 auto;}
+body::-webkit-scrollbar-track{-webkit-box-shadow:inset 0 0 5px rgba(0,0,0,0.3);background-color:rgba(255,255,255,0.5);}
+body::-webkit-scrollbar{width:5px;background-color:rgba(255,255,255,0.5);}
+body::-webkit-scrollbar-thumb{border-radius:30px;background-color:rgba(0,0,0,0.5);}
+
+#Head{position:relative;top:200px;left:0px;width:100%;height:100px;}
+#Logo{margin:0 auto;width:50%;height:100%;text-align:center;font-size:4vw;}
+#Logo img{margin:10px auto;width:100%;}
+
+#Footer{clear:both;padding:15px 0 10px;width:100%;height:35px;background:#ededed;flex-shrink:0;}
+#CopyRight{margin:auto;width:100%;text-align:center;color:#343b4e;font-size:13px;line-height:30px;}
+
+/* button */
+button, input[type=button], input[type=reset], input[type=submit] {
+    font-family: 'Roboto Condensed', sans-serif;
+    text-transform: uppercase;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: black;
+    border: none;
+    color: white;
+    border-radius: 2px;
+    transition: 0.2s ease all;
+}
+/* END button */
+
+/* position */
+.topright{position:absolute;top:0;right:0;padding:5px 10px;}
+.topleft{position:absolute;top:0;left:0;width:25px;height:25x;padding:3px 10px;}
+/* END position */
+
+/* loading loader */
+#loader {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  width: 120px;
+  height: 120px;
+  margin: -76px 0 0 -76px;
+  border: 16px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 16px solid #3498db;
+  -webkit-animation: spin 2s linear infinite;
+  animation: spin 2s linear infinite;
+}
+
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.modal {
+	position: fixed; /* Stay in place */
+	z-index: 3; /* Sit on top */
+	padding-top: 100px; /* Location of the box */
+	left: 0;
+	top: 0;
+	width: 100%; /* Full width */
+	height: 100%; /* Full height */
+	overflow: auto; /* Enable scroll if needed */
+	background-color: rgb(0,0,0); /* Fallback color */
+	background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+
+#overlay {
+  position: fixed; /* Sit on top of the page content */
+  display: none; /* Hidden by default */
+  width: 100%; /* Full width (cover the whole page) */
+  height: 100%; /* Full height (cover the whole page) */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.3); /* Black background with opacity */
+  z-index: 1; /* Specify a stack order in case you're using a different order for other elements */
+  cursor: pointer; /* Add a pointer on hover */
+}
+
+::-webkit-input-placeholder {
+   font-style: italic;
+}
+:-moz-placeholder {
+   font-style: italic;  
+}
+::-moz-placeholder {
+   font-style: italic;  
+}
+:-ms-input-placeholder {  
+   font-style: italic; 
+}
+/* END loader */
+
+/* Pagination */
+.pagination {
+  display: inline-block;
+}
+
+.pagination a {
+  color: black;
+  float: left;
+  padding: 8px 16px;
+  text-decoration: none;
+  border: 1px solid #E8E8E8;
+}
+
+.pagination a.active {
+  background-color: #1c6dd9;
+  color: white;
+}
+/* END Pagination */

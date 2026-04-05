@@ -1,0 +1,16 @@
+[project]
+name = "open-med-calc"
+version = "0.1.0"
+description = "Open source medical calculator API"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "webtypy>=0.1.7",
+    "fastapi",
+    "pydantic",
+]
+
+[dependency-groups]
+dev = [
+    "workers-py",
+]

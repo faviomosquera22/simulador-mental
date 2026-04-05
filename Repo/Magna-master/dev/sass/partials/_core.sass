@@ -1,0 +1,47 @@
+// FONTS ///////////////////////////////////////////////////////////////////////
+
+@font-face
+    font-family: "Merriweather Sans"
+    font-weight: normal
+    src: url("../fonts/MerriweatherSans-Regular.ttf")
+
+@font-face
+    font-family: "Merriweather Sans"
+    font-weight: bold
+    src: url("../fonts/MerriweatherSans-Bold.ttf")
+
+@font-face
+    font-family: "Merriweather Sans"
+    font-style: italic
+    src: url("../fonts/MerriweatherSans-Italic.ttf")
+
+// CORE STYLES /////////////////////////////////////////////////////////////////
+
+*
+    box-sizing: border-box
+    font: inherit
+    margin: 0
+    padding: 0
+    position: relative
+
+body
+    background: $base00
+    color: $base05
+    font-family: "Merriweather Sans", sans-serif
+    font-size: $t
+    line-height: $n
+
+a
+    color: $base0d
+    cursor: pointer
+    text-decoration: none
+
+    &:hover
+        text-decoration: underline
+
+h1, h2, h3
+    font-size: $t / 3 * 4
+    font-weight: bold
+
+label, input
+    display: block

@@ -1,0 +1,92 @@
+//  IMPORTS  ///////////////////////////////////////////////////////////////////
+
+@import partials/_variables.sass
+@import partials/_core.sass
+
+// @import "http://basehold.it/10/255/255/255/0.1"
+
+//  COMMON  ////////////////////////////////////////////////////////////////////
+
+.container
+    margin-top: $n
+    margin-bottom: $n / 3 * 5
+
+.title h2
+    margin-bottom: $n / 3
+
+input
+    border: 0
+    background: $base01
+    color: $base05
+    font: inherit
+    outline: 0
+    width: auto
+
+    &:focus
+        background: $base02
+        color: $base06
+
+//  ECG  ///////////////////////////////////////////////////////////////////////
+
+.ecg
+    a
+        display: block
+        padding: ($n / 6) ($n / 2)
+
+        &#xx
+            color: $base03
+
+        &.current
+            background: $base01
+            color: $base0b
+
+        &:hover
+            background: $base02
+            color: $base06
+            text-decoration: none
+
+//  STATUS  ////////////////////////////////////////////////////////////////////
+
+.status
+    .block
+        display: flex
+        flex-direction: column
+        margin-bottom: $n
+
+    input, label
+        padding: 0 ($n / 2)
+
+    @for $i from 1 through 8
+        .block.item-#{$i}
+            border: ($n / 6) solid mix(map-get($hue, $i), $base00, 25%)
+            padding: $n / 6
+
+            .label
+                color: map-get($hue, $i)
+
+//  BUTTON BAR  ////////////////////////////////////////////////////////////////
+
+#bar
+    background: mix($base00, black, 75%)
+    position: fixed
+    bottom: 0
+    right: 0
+    left: 0
+    opacity: 0.5
+    padding: ($n / 6) ($n / 2)
+    text-align: right
+    display: flex
+
+    &:hover
+        opacity: 1
+
+    a
+        display: block
+        flex: 1
+        padding: ($n / 6) 0
+        text-align: center
+
+        &:hover
+            background: $base00
+            text-decoration: none
+            color: $base06

@@ -1,0 +1,40 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>Login</title>
+		<!-- STYLE CSS -->
+		<link href="../assets/css/reset.css" rel="stylesheet" type="text/css" media="screen" />
+		<link href="../assets/css/style.css" rel="stylesheet" type="text/css" media="screen" />
+	</head>
+	<body>
+		<!-- GLOBAL-LOADER -->	
+			<div id="global-loader">
+				<img src="../assets/img/loader.svg" class="loader-img" alt="Loader">
+			</div>
+		<!-- /GLOBAL-LOADER -->
+		<div class="center">
+			<h1 align="center" id="header"></h1>
+			<form id="form1">
+				<table align="center" style="border: solid 2px gray;" id="mainTable"></table>
+				<input type="hidden" id="SHA256PWD">
+				<div id="cp" align="left" style="margin-top: 30px"></div>
+			</form>
+		</div>
+	</body>
+	
+	<!-- JQUERY JS -->
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+	<!-- SHA256 JS -->
+	<script src="../assets/js/functions/sha256.js"></script>
+	<!-- GLOBAL FUNCTION FOR ALL PAGE JS -->
+	<script src="../assets/js/functions/site.js"></script>
+	<!-- SESSION JS -->
+	<script src="../assets/js/functions/session.js"></script>
+	<!-- XMLHTTP REQUEST JS -->
+	<script src="../assets/js/functions/HTTPRequest.js"></script>
+	<!-- FHIR SERVER SETTING JS -->
+	<script src="../assets/js/functions/setting.js"></script>
+	
+	<!-- LOGIN JS -->
+	<script src="../assets/js/login.js"></script>
+</html>
