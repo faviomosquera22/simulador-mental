@@ -51,6 +51,49 @@ const STAGE_DESCRIPTIONS: Record<string, string> = {
   "Lesión tisular profunda": "Piel intacta o no intacta con tonalidad profunda violácea o ampolla hemática.",
 };
 
+const STEP_GUIDES: Record<Exclude<WoundFlowStep, "summary" | "results">, { title: string; steps: string[] }> = {
+  assessment: {
+    title: "Guía breve de valoración",
+    steps: [
+      "Revisa primero el riesgo general del paciente y los factores predisponentes.",
+      "Observa la lesión central, usa los hotspots y confirma dimensiones básicas.",
+      "Completa la ficha de valoración con bordes, tejido, exudado, piel perilesional y dolor.",
+    ],
+  },
+  classification: {
+    title: "Guía breve de clasificación",
+    steps: [
+      "Clasifica la lesión según el tejido visible y la profundidad apreciable.",
+      "Diferencia estadio, lesión tisular profunda o lesión no clasificable.",
+      "Justifica la decisión con hallazgos concretos, no solo con el nombre del estadio.",
+    ],
+  },
+  procedure: {
+    title: "Guía breve del procedimiento",
+    steps: [
+      "Selecciona materiales acordes al exudado y al estado de la piel perilesional.",
+      "Sigue la secuencia de seguridad desde higiene de manos hasta registro.",
+      "Evita materiales irritantes o claramente inadecuados para el caso.",
+    ],
+  },
+  prevention: {
+    title: "Guía breve de prevención",
+    steps: [
+      "Piensa en medidas de descarga, humedad, nutrición y reevaluación.",
+      "Prioriza las intervenciones que cambian el riesgo de progresión.",
+      "No cierres el caso sin un plan preventivo complementario.",
+    ],
+  },
+  documentation: {
+    title: "Guía breve de registro",
+    steps: [
+      "Documenta localización, clasificación y características del lecho.",
+      "Describe intervención, apósito utilizado y respuesta del paciente.",
+      "Cierra con un plan de seguimiento claro y coherente con el caso.",
+    ],
+  },
+};
+
 export default function WoundCaseFlowPage({ step }: FlowPageProps) {
   const params = useParams<{ caseId: string }>();
   const router = useRouter();
@@ -366,8 +409,24 @@ export default function WoundCaseFlowPage({ step }: FlowPageProps) {
         </div>
       </section>
 
+      {step !== "results" ? (
+        <section className="mb-5 rounded-[24px] border border-slate-200 bg-white p-4">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{STEP_GUIDES[step].title}</div>
+          <div className="mt-3 grid gap-3 xl:grid-cols-3">
+            {STEP_GUIDES[step].steps.map((item, index) => (
+              <div key={item} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-700">
+                <span className="mb-2 inline-flex rounded-full border border-cyan-200 bg-cyan-50 px-2 py-0.5 text-[11px] font-semibold text-cyan-800">
+                  Paso {index + 1}
+                </span>
+                <div>{item}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       {step === "assessment" ? (
-        <div className="grid gap-4 xl:grid-cols-[0.8fr_1.05fr_1.15fr]">
+        <div className="grid gap-4 xl:grid-cols-[0.78fr_1.22fr_1fr]">
           <PatientRiskPanel caseData={caseData} />
           <WoundViewer
             caseData={caseData}

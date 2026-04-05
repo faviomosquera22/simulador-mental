@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import WoundCaseCard from "@/components/wound-care/WoundCaseCard";
 import WoundPageShell from "@/components/wound-care/WoundPageShell";
 import { WOUND_LPP_CASES } from "@/src/lib/wound-care/cases";
 import { readWoundAnalytics } from "@/src/lib/wound-care/storage";
@@ -85,21 +84,37 @@ export default function WoundModuleLandingPage() {
         </div>
       </section>
 
-      <section className="mt-6">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Casos disponibles</div>
-            <h2 className="mt-2 text-xl font-semibold text-slate-900">Selecciona y entra directo al caso</h2>
+      <section className="mt-6 grid gap-5 xl:grid-cols-[1.02fr_0.98fr]">
+        <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_18px_50px_rgba(148,163,184,0.12)]">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Qué encontrarás en la biblioteca</div>
+          <h2 className="mt-2 text-lg font-semibold text-slate-900">Antes de abrir los casos</h2>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <GuideCard title="Casos progresivos" text="La biblioteca LPP reúne 5 escenarios ordenados por complejidad, desde prevención temprana hasta lesión no clasificable." />
+            <GuideCard title="Dos modalidades" text={mode === "tutor" ? "Estás en tutor: recibirás feedback durante el desarrollo del caso." : "Estás en evaluación: resolverás el caso sin ayudas y verás el análisis al final."} />
+            <GuideCard title="Flujo de trabajo" text="Cada caso sigue la misma secuencia: valorar, clasificar, intervenir, prevenir, documentar y revisar evolución." />
+            <GuideCard title="Cómo aprovecharlo" text="Si es tu primera vez, entra por la biblioteca. Si ya empezaste, puedes continuar directo desde el botón principal." />
           </div>
-          <Link href={`/simulators/wound-care/lpp/cases?mode=${mode}`} className="text-sm font-medium text-slate-600 transition hover:text-slate-900">
-            Ver biblioteca completa
-          </Link>
+          <div className="mt-5 rounded-2xl border border-cyan-200 bg-cyan-50 p-4 text-sm leading-6 text-cyan-900">
+            Recomendación: usa <span className="font-semibold">Ver casos LPP</span> para revisar la biblioteca completa y elige <span className="font-semibold">Empezar primer caso</span> si quieres entrar sin decidir manualmente.
+          </div>
         </div>
 
-        <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {WOUND_LPP_CASES.map((caseData) => (
-            <WoundCaseCard key={caseData.id} caseData={caseData} progress={analytics?.moduleProgress[caseData.id]} mode={mode} />
-          ))}
+        <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_18px_50px_rgba(148,163,184,0.12)]">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Secuencia del módulo</div>
+          <h2 className="mt-2 text-lg font-semibold text-slate-900">Ruta breve de entrenamiento</h2>
+          <div className="mt-4 space-y-3">
+            {[
+              "1. Valora el riesgo general del paciente y detecta alertas.",
+              "2. Observa la herida, mide y registra hallazgos clave.",
+              "3. Clasifica la lesión con criterio NPIAP y justificación.",
+              "4. Ejecuta la curación y selecciona medidas preventivas.",
+              "5. Documenta y revisa el resultado final por competencias.",
+            ].map((item) => (
+              <div key={item} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                {item}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -140,6 +155,15 @@ function StatCard({ label, value, helper }: { label: string; value: string; help
       <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">{label}</div>
       <div className="mt-3 text-2xl font-semibold text-slate-900">{value}</div>
       <div className="mt-2 text-sm text-slate-500">{helper}</div>
+    </div>
+  );
+}
+
+function GuideCard({ title, text }: { title: string; text: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <div className="text-sm font-semibold text-slate-900">{title}</div>
+      <div className="mt-2 text-sm leading-6 text-slate-600">{text}</div>
     </div>
   );
 }

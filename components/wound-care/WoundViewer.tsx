@@ -37,6 +37,7 @@ export default function WoundViewer({
   const accent = TONE_ACCENTS[visual.overlayTone];
   const focusStyle = focusBoxStyle(visual.focus);
   const scaledStyle = { transform: `scale(${1 + zoom / 160})`, transformOrigin: "center center" } as CSSProperties;
+  const visiblePhotoOpacity = Math.max(visual.photoOpacity, 0.58);
 
   return (
     <section className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(148,163,184,0.08)]">
@@ -64,21 +65,35 @@ export default function WoundViewer({
       </div>
 
       <div className="mt-4 rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,#eff5f2,#f8fbfa)] p-4">
-        <div className="relative mx-auto aspect-[4/3] max-w-[620px] overflow-hidden rounded-[26px] border border-slate-200 bg-[#dfe8e4]">
+        <div className="mb-3 grid gap-3 lg:grid-cols-[0.78fr_1.22fr]">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Guía rápida</div>
+            <div className="mt-3 space-y-2 text-sm leading-6 text-slate-700">
+              <p>1. Ubica la lesión y revisa los hotspots.</p>
+              <p>2. Activa la regla si necesitas confirmar medidas.</p>
+              <p>3. Usa la lectura guiada para relacionar imagen y hallazgos.</p>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+            <span className="font-semibold text-slate-900">Cómo leer esta vista:</span> la foto real aporta contexto anatómico y textura clínica; el overlay resalta la zona docente para que la lesión se interprete con claridad sin exposición visual innecesaria.
+          </div>
+        </div>
+
+        <div className="relative mx-auto aspect-[4/3] max-w-[720px] overflow-hidden rounded-[26px] border border-slate-200 bg-[#dfe8e4]">
           <div className="absolute inset-0" style={scaledStyle}>
             <Image
               src={visual.imageSrc}
               alt={visual.imageAlt}
               fill
-              sizes="(max-width: 1280px) 90vw, 620px"
-              className="object-cover saturate-[0.72] contrast-[0.92] brightness-[1.03]"
-              style={{ objectPosition: visual.objectPosition, opacity: visual.photoOpacity }}
+              sizes="(max-width: 1280px) 90vw, 720px"
+              className="object-cover saturate-[0.95] contrast-[1.02] brightness-[1.01]"
+              style={{ objectPosition: visual.objectPosition, opacity: visiblePhotoOpacity }}
             />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.55),transparent_38%),linear-gradient(180deg,rgba(244,250,248,0.18),rgba(229,239,235,0.4))]" />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.06),transparent_22%,transparent_72%,rgba(15,23,42,0.08))]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.22),transparent_32%),linear-gradient(180deg,rgba(244,250,248,0.05),rgba(229,239,235,0.14))]" />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.02),transparent_28%,transparent_74%,rgba(15,23,42,0.04))]" />
 
             <div
-              className="absolute rounded-[32px] border bg-white/10 shadow-[0_0_0_1px_rgba(255,255,255,0.22),0_22px_44px_rgba(15,23,42,0.14)] backdrop-blur-[1px]"
+              className="absolute rounded-[32px] border bg-white/5 shadow-[0_0_0_1px_rgba(255,255,255,0.18),0_22px_44px_rgba(15,23,42,0.14)]"
               style={{ ...focusStyle, borderColor: accent.border, boxShadow: `0 0 0 10px ${accent.glow}` }}
             >
               <WoundOverlayArt caseData={caseData} />
@@ -123,14 +138,8 @@ export default function WoundViewer({
             <LegendPill label="Overlay clínico" tone="rgba(24,54,64,0.92)" dark />
           </div>
 
-          <div className="absolute bottom-4 left-4 right-4 flex flex-wrap items-end justify-between gap-3">
-            <div className="max-w-md rounded-2xl bg-[rgba(15,23,42,0.68)] px-4 py-3 text-white shadow-[0_18px_40px_rgba(15,23,42,0.2)] backdrop-blur-md">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/60">{visual.imageSourceLabel}</div>
-              <p className="mt-2 text-sm leading-6 text-white/90">{visual.notes[0]}</p>
-            </div>
-            <div className="rounded-2xl bg-white/88 px-3 py-2 text-xs text-slate-700 shadow-[0_14px_32px_rgba(15,23,42,0.12)] backdrop-blur-md">
+          <div className="absolute bottom-4 right-4 rounded-2xl bg-white/88 px-3 py-2 text-xs text-slate-700 shadow-[0_14px_32px_rgba(15,23,42,0.12)] backdrop-blur-md">
               Zoom {zoom}% · {measurementMode ? "Medición visible" : "Medición oculta"}
-            </div>
           </div>
         </div>
 
@@ -150,7 +159,7 @@ export default function WoundViewer({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3 xl:grid-cols-[0.75fr_1.05fr_0.9fr]">
+      <div className="mt-4 grid gap-3 xl:grid-cols-[0.72fr_1fr_1fr]">
         <div className="flex flex-wrap gap-2">
           {caseData.wound.hotspots.map((hotspot) => (
             <button
@@ -175,6 +184,7 @@ export default function WoundViewer({
 
         <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <div className="text-xs uppercase tracking-[0.16em] text-slate-400">Lectura guiada</div>
+          <div className="mt-2 text-xs text-slate-500">{visual.imageSourceLabel}</div>
           <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-700">
             {visual.notes.map((note) => (
               <li key={note} className="flex gap-2">
