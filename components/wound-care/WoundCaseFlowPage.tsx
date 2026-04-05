@@ -105,6 +105,7 @@ export default function WoundCaseFlowPage({ step }: FlowPageProps) {
   const [zoom, setZoom] = useState(8);
   const [measurementMode, setMeasurementMode] = useState(false);
   const [selectedHotspotId, setSelectedHotspotId] = useState<string | undefined>(caseData?.wound.hotspots[0]?.id);
+  const [isComputingResults, setIsComputingResults] = useState(false);
 
   useEffect(() => {
     if (!caseData) return;
@@ -153,9 +154,23 @@ export default function WoundCaseFlowPage({ step }: FlowPageProps) {
   useEffect(() => {
     if (step !== "results" || !session) return;
     if (session.finalResult) return;
-    finalizeResults();
+
+    setIsComputingResults(true);
+    let timeoutId: number | undefined;
+
+    const frameId = window.requestAnimationFrame(() => {
+      timeoutId = window.setTimeout(() => {
+        finalizeResults();
+        setIsComputingResults(false);
+      }, 0);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      if (typeof timeoutId === "number") window.clearTimeout(timeoutId);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, session?.finalResult]);
+  }, [step, session?.finalResult, session?.sessionId]);
 
   if (!caseData) {
     return (
@@ -329,9 +344,6 @@ export default function WoundCaseFlowPage({ step }: FlowPageProps) {
   function handleContinue() {
     if (step === "results") return;
     const targetStep = nextWoundStep(step);
-    if (targetStep === "results") {
-      finalizeResults();
-    }
     goToFlowStep(targetStep);
   }
 
@@ -608,7 +620,9 @@ export default function WoundCaseFlowPage({ step }: FlowPageProps) {
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-600">Calculando resultados del caso...</div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
+            {isComputingResults ? "Generando resultados del caso..." : "Preparando pantalla de resultados..."}
+          </div>
         )
       ) : null}
     </WoundPageShell>

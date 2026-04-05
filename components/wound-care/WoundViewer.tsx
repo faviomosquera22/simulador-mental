@@ -37,7 +37,6 @@ export default function WoundViewer({
   const accent = TONE_ACCENTS[visual.overlayTone];
   const focusStyle = focusBoxStyle(visual.focus);
   const scaledStyle = { transform: `scale(${1 + zoom / 160})`, transformOrigin: "center center" } as CSSProperties;
-  const visiblePhotoOpacity = Math.max(visual.photoOpacity, 0.58);
 
   return (
     <section className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(148,163,184,0.08)]">
@@ -86,14 +85,12 @@ export default function WoundViewer({
               alt={visual.imageAlt}
               fill
               sizes="(max-width: 1280px) 90vw, 720px"
-              className="object-cover saturate-[0.95] contrast-[1.02] brightness-[1.01]"
-              style={{ objectPosition: visual.objectPosition, opacity: visiblePhotoOpacity }}
+              className="object-cover saturate-[1.02] contrast-[1.03] brightness-[1.01]"
+              style={{ objectPosition: visual.objectPosition }}
             />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.22),transparent_32%),linear-gradient(180deg,rgba(244,250,248,0.05),rgba(229,239,235,0.14))]" />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.02),transparent_28%,transparent_74%,rgba(15,23,42,0.04))]" />
 
             <div
-              className="absolute rounded-[32px] border bg-white/5 shadow-[0_0_0_1px_rgba(255,255,255,0.18),0_22px_44px_rgba(15,23,42,0.14)]"
+              className="absolute rounded-[32px] border shadow-[0_0_0_1px_rgba(255,255,255,0.12),0_18px_36px_rgba(15,23,42,0.1)]"
               style={{ ...focusStyle, borderColor: accent.border, boxShadow: `0 0 0 10px ${accent.glow}` }}
             >
               <WoundOverlayArt caseData={caseData} />
