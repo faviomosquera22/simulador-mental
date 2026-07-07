@@ -436,9 +436,9 @@ export default function PaeAssistantPage() {
   const [evaluationStatus, setEvaluationStatus] = useState<(typeof EVALUATION_PRESETS)[number]["id"]>("pendiente");
   const [evaluationNote, setEvaluationNote] = useState("");
   const [activeStep, setActiveStep] = useState<AssistantStep>("data");
-  const [showAllNandaCatalog, setShowAllNandaCatalog] = useState(false);
-  const [showAllNocCatalog, setShowAllNocCatalog] = useState(false);
-  const [showAllNicCatalog, setShowAllNicCatalog] = useState(false);
+  const [showAllNandaCatalog, setShowAllNandaCatalog] = useState(true);
+  const [showAllNocCatalog, setShowAllNocCatalog] = useState(true);
+  const [showAllNicCatalog, setShowAllNicCatalog] = useState(true);
 
   const deferredMedicalDiagnosis = useDeferredValue(medicalDiagnosis);
   const deferredAssessmentSummary = useDeferredValue(assessmentSummary);
@@ -524,8 +524,6 @@ export default function PaeAssistantPage() {
   );
 
   const filteredNocOptions = useMemo(() => {
-    if (!selectedNanda) return [];
-
     const query = normalizeSearch(deferredNocQuery);
     const base = uniqueById([...suggestedNocOptions, ...NOC_LIBRARY]);
     if (query) {
@@ -537,11 +535,9 @@ export default function PaeAssistantPage() {
     }
 
     return showAllNocCatalog ? base : base.slice(0, 8);
-  }, [deferredNocQuery, selectedNanda, showAllNocCatalog, suggestedNocOptions]);
+  }, [deferredNocQuery, showAllNocCatalog, suggestedNocOptions]);
 
   const filteredNicOptions = useMemo(() => {
-    if (!selectedNanda) return [];
-
     const query = normalizeSearch(deferredNicQuery);
     const base = uniqueById([...suggestedNicOptions, ...NIC_LIBRARY]);
     if (query) {
@@ -553,7 +549,7 @@ export default function PaeAssistantPage() {
     }
 
     return showAllNicCatalog ? base : base.slice(0, 8);
-  }, [deferredNicQuery, selectedNanda, showAllNicCatalog, suggestedNicOptions]);
+  }, [deferredNicQuery, showAllNicCatalog, suggestedNicOptions]);
 
   const selectedNoc = useMemo(
     () => NOC_LIBRARY.find((item) => item.id === selectedNocId) ?? null,
@@ -749,9 +745,9 @@ export default function PaeAssistantPage() {
     setSelectedActivities([]);
     setEvaluationStatus("pendiente");
     setEvaluationNote("");
-    setShowAllNandaCatalog(false);
-    setShowAllNocCatalog(false);
-    setShowAllNicCatalog(false);
+    setShowAllNandaCatalog(true);
+    setShowAllNocCatalog(true);
+    setShowAllNicCatalog(true);
     setActiveStep("data");
   }
 

@@ -39,6 +39,8 @@ type Stage = 1 | 2 | 3 | 4 | 5 | 6;
 type UsageMode = "integrated_case" | "standalone";
 type SelectionMode = "manual" | "random" | "by_category" | "contextual_random";
 type GuidanceMode = "guided" | "autonomous";
+type NandaCatalogScope = "all" | "context";
+type RelatedCatalogScope = "all" | "related";
 type NicScaleValue = 1 | 2 | 3 | 4 | 5;
 
 type NicScaleSelection = {
@@ -133,6 +135,9 @@ export default function PaePage() {
   const [nandaQuery, setNandaQuery] = useState("");
   const [nocQuery, setNocQuery] = useState("");
   const [nicQuery, setNicQuery] = useState("");
+  const [nandaCatalogScope, setNandaCatalogScope] = useState<NandaCatalogScope>("all");
+  const [nocCatalogScope, setNocCatalogScope] = useState<RelatedCatalogScope>("all");
+  const [nicCatalogScope, setNicCatalogScope] = useState<RelatedCatalogScope>("all");
 
   const [rationaleText, setRationaleText] = useState("");
   const [evaluationText, setEvaluationText] = useState("");
@@ -240,9 +245,22 @@ export default function PaePage() {
     [template, selectedDiagnosisIds]
   );
 
-  const nandaPool = useMemo(() => getNandaByContext(caseCategory), [caseCategory]);
-  const nocPool = useMemo(() => getNocByNandaIds(selectedDiagnosisIds), [selectedDiagnosisIds]);
-  const nicPool = useMemo(() => getNicByNandaIds(selectedDiagnosisIds), [selectedDiagnosisIds]);
+  const relatedNandaPool = useMemo(() => getNandaByContext(caseCategory), [caseCategory]);
+  const relatedNocPool = useMemo(() => getNocByNandaIds(selectedDiagnosisIds), [selectedDiagnosisIds]);
+  const relatedNicPool = useMemo(() => getNicByNandaIds(selectedDiagnosisIds), [selectedDiagnosisIds]);
+
+  const nandaPool = useMemo(
+    () => (nandaCatalogScope === "all" ? NANDA_LIBRARY : relatedNandaPool),
+    [nandaCatalogScope, relatedNandaPool]
+  );
+  const nocPool = useMemo(
+    () => (nocCatalogScope === "all" ? NOC_LIBRARY : relatedNocPool),
+    [nocCatalogScope, relatedNocPool]
+  );
+  const nicPool = useMemo(
+    () => (nicCatalogScope === "all" ? NIC_LIBRARY : relatedNicPool),
+    [nicCatalogScope, relatedNicPool]
+  );
 
   const filteredNanda = useMemo(() => {
     const q = nandaQuery.trim().toLowerCase();
@@ -750,6 +768,37 @@ export default function PaePage() {
                     Selecciona manualmente diagnósticos NANDA para practicar razonamiento autónomo.
                   </p>
 
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                    <div className="text-xs text-slate-600">
+                      Mostrando {filteredNanda.length} de {nandaPool.length} NANDA. Catálogo completo:{" "}
+                      {NANDA_LIBRARY.length}.
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setNandaCatalogScope("all")}
+                        className={`rounded-lg border px-3 py-1 text-xs ${
+                          nandaCatalogScope === "all"
+                            ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-700"
+                            : "border-slate-200 bg-white text-slate-600"
+                        }`}
+                      >
+                        Todos
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNandaCatalogScope("context")}
+                        className={`rounded-lg border px-3 py-1 text-xs ${
+                          nandaCatalogScope === "context"
+                            ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-700"
+                            : "border-slate-200 bg-white text-slate-600"
+                        }`}
+                      >
+                        Categoría ({relatedNandaPool.length})
+                      </button>
+                    </div>
+                  </div>
+
                   <input
                     type="text"
                     value={nandaQuery}
@@ -872,6 +921,36 @@ export default function PaePage() {
                     className="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
                   />
 
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                    <div className="text-xs text-slate-600">
+                      Mostrando {filteredNoc.length} de {nocPool.length} NOC. Catálogo completo: {NOC_LIBRARY.length}.
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setNocCatalogScope("all")}
+                        className={`rounded-lg border px-3 py-1 text-xs ${
+                          nocCatalogScope === "all"
+                            ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-700"
+                            : "border-slate-200 bg-white text-slate-600"
+                        }`}
+                      >
+                        Todos
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNocCatalogScope("related")}
+                        className={`rounded-lg border px-3 py-1 text-xs ${
+                          nocCatalogScope === "related"
+                            ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-700"
+                            : "border-slate-200 bg-white text-slate-600"
+                        }`}
+                      >
+                        Relacionados ({relatedNocPool.length})
+                      </button>
+                    </div>
+                  </div>
+
                   <div className="mt-3 space-y-2 max-h-[430px] overflow-auto pr-1">
                     {filteredNoc.map((item) => {
                       const selected = selectedOutcomeIds.includes(item.id);
@@ -982,6 +1061,36 @@ export default function PaePage() {
                     placeholder="Buscar NIC por código, etiqueta o clase"
                     className="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
                   />
+
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                    <div className="text-xs text-slate-600">
+                      Mostrando {filteredNic.length} de {nicPool.length} NIC. Catálogo completo: {NIC_LIBRARY.length}.
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setNicCatalogScope("all")}
+                        className={`rounded-lg border px-3 py-1 text-xs ${
+                          nicCatalogScope === "all"
+                            ? "border-sky-400/40 bg-sky-400/10 text-sky-700"
+                            : "border-slate-200 bg-white text-slate-600"
+                        }`}
+                      >
+                        Todos
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNicCatalogScope("related")}
+                        className={`rounded-lg border px-3 py-1 text-xs ${
+                          nicCatalogScope === "related"
+                            ? "border-sky-400/40 bg-sky-400/10 text-sky-700"
+                            : "border-slate-200 bg-white text-slate-600"
+                        }`}
+                      >
+                        Relacionados ({relatedNicPool.length})
+                      </button>
+                    </div>
+                  </div>
 
                   <div className="mt-3 space-y-2 max-h-[430px] overflow-auto pr-1">
                     {filteredNic.map((item) => {
