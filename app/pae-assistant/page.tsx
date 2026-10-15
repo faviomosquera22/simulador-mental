@@ -2,6 +2,9 @@
 
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import Sidebar from "@/components/Sidebar";
+import { CARE_GUIDES, TEACHING_INDICATORS, TEACHING_ACTIVITIES, matchesCatalogQuery } from "@/src/lib/paeCareSupport";
+import { GYNECOLOGY_CASES } from "@/src/lib/gynecologySimulation";
+import styles from "./assistant.module.css";
 import {
   NANDA_LIBRARY,
   NIC_LIBRARY,
@@ -21,8 +24,8 @@ type ScaleValue = 1 | 2 | 3 | 4 | 5;
 
 type IndicatorPlanRow = {
   label: string;
-  assessment: ScaleValue;
-  goal: ScaleValue;
+  assessment: ScaleValue | "";
+  goal: ScaleValue | "";
   active: boolean;
 };
 
@@ -104,11 +107,11 @@ function printValue(value: string) {
 }
 
 function scaleLabel(value: ScaleValue) {
-  if (value === 1) return "1 · Grave";
-  if (value === 2) return "2 · Bajo";
-  if (value === 3) return "3 · Medio";
-  if (value === 4) return "4 · Bueno";
-  return "5 · Óptimo";
+  if (value === 1) return "1 · Menor logro";
+  if (value === 2) return "2 · Logro limitado";
+  if (value === 3) return "3 · Logro parcial";
+  if (value === 4) return "4 · Logro sustancial";
+  return "5 · Mayor logro";
 }
 
 function formatPreviewList(items: string[], max = 2) {
@@ -123,26 +126,14 @@ function defaultOutcomeIndicators(outcome: NocOutcome | null) {
   if (!outcome) return [];
   if (outcome.indicators.length) return outcome.indicators.slice(0, 5);
 
-  const focus = formatCatalogLabel(outcome.label).toLowerCase();
-  return [
-    `Valoración inicial de ${focus}`,
-    `Respuesta clínica frente a ${focus}`,
-    `Cumplimiento de meta para ${focus}`,
-    "Seguridad del paciente durante el plan",
-  ];
+  return TEACHING_INDICATORS[outcome.code] ?? [];
 }
 
 function defaultNicActivities(intervention: NicIntervention | null) {
   if (!intervention) return [];
   if (intervention.activities.length) return intervention.activities.slice(0, 6);
 
-  const focus = formatCatalogLabel(intervention.label).toLowerCase();
-  return [
-    `Aplicar acciones priorizadas para ${focus}.`,
-    `Vigilar respuesta clínica y tolerancia del paciente.`,
-    "Registrar actividades, hallazgos y respuesta en enfermería.",
-    "Reforzar educación breve al paciente o familia según el caso.",
-  ];
+  return TEACHING_ACTIVITIES[intervention.code] ?? [];
 }
 
 function buildEvaluationText(statusId: string, note: string) {
@@ -209,209 +200,13 @@ function createTaxonomyMeta(
   return { domainCode, domainLabel, classCode, classLabel };
 }
 
+// The import does not contain verified NOC/NIC domain and class mappings.
+// Do not fabricate taxonomy metadata from a label or numeric code range.
 function inferNocTaxonomy(outcome: NocOutcome | null): TaxonomyMeta {
-  if (!outcome) return createTaxonomyMeta("", "", "", "");
-
-  const code = Number(outcome.code);
-  const text = normalizeSearch(outcome.label);
-
-  if (/control del riesgo|prevencion|seguridad|conducta preventiva|riesgo/.test(text)) {
-    return createTaxonomyMeta("IV", "Conocimiento y conducta de salud", "T", "Control del riesgo y seguridad");
-  }
-
-  if (/conocimiento|educacion|aprendizaje/.test(text)) {
-    return createTaxonomyMeta("IV", "Conocimiento y conducta de salud", "R", "Conocimiento sobre la salud");
-  }
-
-  if (/autocontrol|automanejo|conducta|adherencia|cumplimiento/.test(text)) {
-    return createTaxonomyMeta("IV", "Conocimiento y conducta de salud", "Q", "Conducta de salud");
-  }
-
-  if (/sintoma|dolor|nausea|fatiga|malestar/.test(text)) {
-    return createTaxonomyMeta("IV", "Conocimiento y conducta de salud", "S", "Control de síntomas");
-  }
-
-  if (/familia|cuidador|parental|crianza|lactancia/.test(text)) {
-    return createTaxonomyMeta("VI", "Salud familiar", "V", "Estado de salud familiar");
-  }
-
-  if (/comunidad|comunitaria|poblacion|salud publica/.test(text)) {
-    return createTaxonomyMeta("VII", "Salud comunitaria", "Y", "Bienestar comunitario");
-  }
-
-  if (/ansiedad|depres|afrontamiento|duelo|miedo|autoestima|estres|espiritual|soledad/.test(text)) {
-    return createTaxonomyMeta("III", "Salud psicosocial", "O", "Bienestar psicológico");
-  }
-
-  if (/interaccion|rol|apoyo social|relacion|violencia/.test(text)) {
-    return createTaxonomyMeta("III", "Salud psicosocial", "P", "Adaptación psicosocial");
-  }
-
-  if (/satisfaccion|calidad de vida|salud personal|bienestar general/.test(text)) {
-    return createTaxonomyMeta("V", "Salud percibida", "U", "Salud y calidad de vida percibida");
-  }
-
-  if (/movilidad|deambul|transfer|caminar|actividad|ejercicio|marcha/.test(text)) {
-    return createTaxonomyMeta("I", "Salud funcional", "C", "Movilidad");
-  }
-
-  if (/autocuidado|bano|higiene|vestido|alimentacion independiente/.test(text)) {
-    return createTaxonomyMeta("I", "Salud funcional", "D", "Autocuidado");
-  }
-
-  if (/energia|resistencia|sueno|descanso|fatiga/.test(text) || (code >= 1 && code <= 399)) {
-    return createTaxonomyMeta("I", "Salud funcional", "A", "Mantenimiento de la energía");
-  }
-
-  if (/crecimiento|desarrollo/.test(text)) {
-    return createTaxonomyMeta("I", "Salud funcional", "B", "Crecimiento y desarrollo");
-  }
-
-  if (/respir|ventila|gaseoso|oxigen|cardi|hemodin|perfusion|circula/.test(text)) {
-    return createTaxonomyMeta("II", "Salud fisiológica", "E", "Cardiopulmonar");
-  }
-
-  if (/urin|intestinal|elimin|renal|diuresis|continencia/.test(text)) {
-    return createTaxonomyMeta("II", "Salud fisiológica", "F", "Eliminación");
-  }
-
-  if (/liquido|hidrat|electrol|potasio|sodio/.test(text)) {
-    return createTaxonomyMeta("II", "Salud fisiológica", "G", "Líquidos y electrólitos");
-  }
-
-  if (/infecc|inmun|sepsis/.test(text)) {
-    return createTaxonomyMeta("II", "Salud fisiológica", "H", "Respuesta inmune");
-  }
-
-  if (/gluc|metabol|diabet|endocr|peso|nutricion metabolica/.test(text)) {
-    return createTaxonomyMeta("II", "Salud fisiológica", "I", "Regulación metabólica");
-  }
-
-  if (/conciencia|orientacion|memoria|neurol|cogn/.test(text)) {
-    return createTaxonomyMeta("II", "Salud fisiológica", "J", "Neurocognitiva");
-  }
-
-  if (/nutric|deglu|digest|gastro|nausea|vomito|apetito/.test(text)) {
-    return createTaxonomyMeta("II", "Salud fisiológica", "K", "Digestión y nutrición");
-  }
-
-  if (/piel|herida|cicatr|tejid|ulcera|mucosa/.test(text)) {
-    return createTaxonomyMeta("II", "Salud fisiológica", "L", "Integridad tisular");
-  }
-
-  if (/visual|audicion|sensorial/.test(text)) {
-    return createTaxonomyMeta("II", "Salud fisiológica", "M", "Función sensorial");
-  }
-
-  if (/temper|termorreg|fiebre|hiperterm/.test(text)) {
-    return createTaxonomyMeta("II", "Salud fisiológica", "N", "Termorregulación");
-  }
-
-  if (code >= 1601 && code <= 1999) {
-    return createTaxonomyMeta("IV", "Conocimiento y conducta de salud", "Q", "Conducta de salud");
-  }
-
-  if (code >= 1200 && code <= 1599) {
-    return createTaxonomyMeta("III", "Salud psicosocial", "O", "Bienestar psicológico");
-  }
-
-  return createTaxonomyMeta("II", "Salud fisiológica", "I", "Regulación fisiológica");
+  return createTaxonomyMeta("—", outcome && !/^Taxonom/i.test(outcome.domain) ? outcome.domain : "No documentado en el catálogo local", "—", "No documentada en el catálogo local");
 }
-
 function inferNicTaxonomy(intervention: NicIntervention | null): TaxonomyMeta {
-  if (!intervention) return createTaxonomyMeta("", "", "", "");
-
-  const text = normalizeSearch(intervention.label);
-
-  if (/control de infecciones|infecc|aislamiento|precauc|caida|seguridad|proteccion|vigilancia|riesgo/.test(text)) {
-    return createTaxonomyMeta("4", "Seguridad", "V", "Control de riesgos");
-  }
-
-  if (/resucit|reanim|paro|crisis|emergenc|triage|desastre/.test(text)) {
-    return createTaxonomyMeta("4", "Seguridad", "W", "Cuidados en crisis");
-  }
-
-  if (/familia|cuidador|lactancia|parental|crianza|apoyo familiar/.test(text)) {
-    return createTaxonomyMeta("5", "Familia", "X", "Cuidados familiares");
-  }
-
-  if (/comunidad|comunitaria|salud publica|poblacion|vigilancia epidemiologica/.test(text)) {
-    return createTaxonomyMeta("7", "Comunidad", "b", "Salud comunitaria");
-  }
-
-  if (/ensenanza|educacion|asesoramiento|orientacion|informacion/.test(text)) {
-    return createTaxonomyMeta("3", "Conductual", "S", "Educación del paciente");
-  }
-
-  if (/ansiedad|apoyo emocional|afrontamiento|escucha|comunicacion|conducta|terapia/.test(text)) {
-    return createTaxonomyMeta("3", "Conductual", "R", "Facilitación del afrontamiento");
-  }
-
-  if (/movilidad|deambul|posicion|ejercicio|actividad|descanso|sueno/.test(text)) {
-    return createTaxonomyMeta("1", "Fisiológico: básico", "A", "Control de la actividad y el ejercicio");
-  }
-
-  if (/elimin|urin|intestinal|continencia|sonda/.test(text)) {
-    return createTaxonomyMeta("1", "Fisiológico: básico", "B", "Control de la eliminación");
-  }
-
-  if (/inmovilidad|transferencia|yeso|traccion/.test(text)) {
-    return createTaxonomyMeta("1", "Fisiológico: básico", "C", "Control de la inmovilidad");
-  }
-
-  if (/nutric|aliment|deglu|dieta/.test(text)) {
-    return createTaxonomyMeta("1", "Fisiológico: básico", "D", "Apoyo nutricional");
-  }
-
-  if (/confort|dolor|masaje|relajacion/.test(text)) {
-    return createTaxonomyMeta("1", "Fisiológico: básico", "E", "Promoción del confort físico");
-  }
-
-  if (/autocuidado|higiene|bano|vestido|aseo/.test(text)) {
-    return createTaxonomyMeta("1", "Fisiológico: básico", "F", "Facilitación del autocuidado");
-  }
-
-  if (/electrol|acido|base|hidrat|liquido/.test(text)) {
-    return createTaxonomyMeta("2", "Fisiológico: complejo", "G", "Control electrolítico y acidobásico");
-  }
-
-  if (/medic|farmac|sedac|analges|quimio|insulina/.test(text)) {
-    return createTaxonomyMeta("2", "Fisiológico: complejo", "H", "Control farmacológico");
-  }
-
-  if (/neurol|convulsion|conciencia|cogn|presion intracraneal/.test(text)) {
-    return createTaxonomyMeta("2", "Fisiológico: complejo", "I", "Control neurológico");
-  }
-
-  if (/perioperator|quirurg|anestesia/.test(text)) {
-    return createTaxonomyMeta("2", "Fisiológico: complejo", "J", "Cuidados perioperatorios");
-  }
-
-  if (/respir|oxigen|ventil|via aerea|aspiracion/.test(text)) {
-    return createTaxonomyMeta("2", "Fisiológico: complejo", "K", "Control respiratorio");
-  }
-
-  if (/piel|herida|cicatr|ulcera|curacion|drenaje/.test(text)) {
-    return createTaxonomyMeta("2", "Fisiológico: complejo", "L", "Control de la piel y heridas");
-  }
-
-  if (/temper|termorreg|fiebre/.test(text)) {
-    return createTaxonomyMeta("2", "Fisiológico: complejo", "M", "Termorregulación");
-  }
-
-  if (/hemodinam|perfusion|circula|choque|cardiac|hemorrag/.test(text)) {
-    return createTaxonomyMeta("2", "Fisiológico: complejo", "N", "Control de la perfusión tisular");
-  }
-
-  if (/gestion|coordinacion|alta|derivacion|caso|documentacion/.test(text)) {
-    return createTaxonomyMeta("6", "Sistema sanitario", "Z", "Gestión del sistema sanitario");
-  }
-
-  if (/registro|informat|reporte|comunicacion interprofesional/.test(text)) {
-    return createTaxonomyMeta("6", "Sistema sanitario", "a", "Gestión de la información");
-  }
-
-  return createTaxonomyMeta("2", "Fisiológico: complejo", "H", "Intervención fisiológica compleja");
+  return createTaxonomyMeta("—", "No documentado en el catálogo local", "—", intervention && !/^Taxonom/i.test(intervention.classLabel) ? intervention.classLabel : "No documentada en el catálogo local");
 }
 
 export default function PaeAssistantPage() {
@@ -430,15 +225,20 @@ export default function PaeAssistantPage() {
   const [selectedNandaId, setSelectedNandaId] = useState("");
   const [selectedNocId, setSelectedNocId] = useState("");
   const [selectedNicId, setSelectedNicId] = useState("");
-  const [lastNandaSeeded, setLastNandaSeeded] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
+  const [relatedFactorsText, setRelatedFactorsText] = useState("");
+  const [evidenceText, setEvidenceText] = useState("");
+  const [customIndicator, setCustomIndicator] = useState("");
+  const [customActivity, setCustomActivity] = useState("");
+  const [extraActivities, setExtraActivities] = useState<string[]>([]);
   const [indicatorRows, setIndicatorRows] = useState<IndicatorPlanRow[]>([]);
   const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
   const [evaluationStatus, setEvaluationStatus] = useState<(typeof EVALUATION_PRESETS)[number]["id"]>("pendiente");
   const [evaluationNote, setEvaluationNote] = useState("");
   const [activeStep, setActiveStep] = useState<AssistantStep>("data");
-  const [showAllNandaCatalog, setShowAllNandaCatalog] = useState(true);
-  const [showAllNocCatalog, setShowAllNocCatalog] = useState(true);
-  const [showAllNicCatalog, setShowAllNicCatalog] = useState(true);
+  const [showAllNandaCatalog, setShowAllNandaCatalog] = useState(false);
+  const [showAllNocCatalog, setShowAllNocCatalog] = useState(false);
+  const [showAllNicCatalog, setShowAllNicCatalog] = useState(false);
 
   const deferredMedicalDiagnosis = useDeferredValue(medicalDiagnosis);
   const deferredAssessmentSummary = useDeferredValue(assessmentSummary);
@@ -479,11 +279,7 @@ export default function PaeAssistantPage() {
   const filteredNandaOptions = useMemo(() => {
     const query = normalizeSearch(deferredNandaQuery);
     if (query) {
-      return nandaCatalogBase.filter((item) =>
-        [item.code, item.label, item.domain, item.classLabel].some((field) =>
-          normalizeSearch(field).includes(query)
-        )
-      );
+      return nandaCatalogBase.filter(item => matchesCatalogQuery(query, [item.code, item.label, item.domain, item.classLabel]));
     }
 
     if (showAllNandaCatalog) {
@@ -527,28 +323,20 @@ export default function PaeAssistantPage() {
     const query = normalizeSearch(deferredNocQuery);
     const base = uniqueById([...suggestedNocOptions, ...NOC_LIBRARY]);
     if (query) {
-      return base.filter((item) =>
-        [item.code, item.label, item.domain, ...item.indicators].some((field) =>
-          normalizeSearch(field).includes(query)
-        )
-      );
+      return base.filter(item => matchesCatalogQuery(query, [item.code, item.label, item.domain, ...item.indicators]));
     }
 
-    return showAllNocCatalog ? base : base.slice(0, 8);
+    return showAllNocCatalog ? base : suggestedNocOptions;
   }, [deferredNocQuery, showAllNocCatalog, suggestedNocOptions]);
 
   const filteredNicOptions = useMemo(() => {
     const query = normalizeSearch(deferredNicQuery);
     const base = uniqueById([...suggestedNicOptions, ...NIC_LIBRARY]);
     if (query) {
-      return base.filter((item) =>
-        [item.code, item.label, item.classLabel, ...item.activities].some((field) =>
-          normalizeSearch(field).includes(query)
-        )
-      );
+      return base.filter(item => matchesCatalogQuery(query, [item.code, item.label, item.classLabel, ...item.activities]));
     }
 
-    return showAllNicCatalog ? base : base.slice(0, 8);
+    return showAllNicCatalog ? base : suggestedNicOptions;
   }, [deferredNicQuery, showAllNicCatalog, suggestedNicOptions]);
 
   const selectedNoc = useMemo(
@@ -577,8 +365,8 @@ export default function PaeAssistantPage() {
   );
 
   const availableActivities = useMemo(
-    () => defaultNicActivities(selectedNic),
-    [selectedNic]
+    () => [...new Set([...defaultNicActivities(selectedNic), ...extraActivities])],
+    [selectedNic, extraActivities]
   );
 
   const activeSuggestion = useMemo(
@@ -607,25 +395,14 @@ export default function PaeAssistantPage() {
   );
 
   useEffect(() => {
-    if (!selectedNandaId && taxonomySuggestions[0]) {
-      setSelectedNandaId(taxonomySuggestions[0].nanda.id);
-    }
-  }, [selectedNandaId, taxonomySuggestions]);
-
-  useEffect(() => {
-    if (!selectedNanda) {
-      setSelectedNocId("");
-      setSelectedNicId("");
-      setLastNandaSeeded("");
-      return;
-    }
-
-    if (selectedNanda.id === lastNandaSeeded) return;
-
-    setSelectedNocId(suggestedNocOptions[0]?.id ?? "");
-    setSelectedNicId(suggestedNicOptions[0]?.id ?? "");
-    setLastNandaSeeded(selectedNanda.id);
-  }, [lastNandaSeeded, selectedNanda, suggestedNicOptions, suggestedNocOptions]);
+    const scenarioId = new URLSearchParams(window.location.search).get("scenario");
+    const scenario = GYNECOLOGY_CASES.find(item => item.id === scenarioId);
+    if (!scenario) return;
+    setPatientName(scenario.name);
+    setPatientAge(String(scenario.age));
+    setMedicalDiagnosis(scenario.diagnosis);
+    setAssessmentSummary(`${scenario.handover} FC ${scenario.initial.hr} lpm; PA ${scenario.initial.sbp}/${scenario.initial.dbp} mmHg; SpO₂ ${scenario.initial.spo2}%. Caso ficticio para práctica.`);
+  }, []);
 
   useEffect(() => {
     if (!availableIndicators.length) {
@@ -640,8 +417,8 @@ export default function PaeAssistantPage() {
 
         return {
           label,
-          assessment: index === 0 ? 2 : 3,
-          goal: 4,
+          assessment: "" as const,
+          goal: "" as const,
           active: index < 4,
         };
       })
@@ -660,8 +437,8 @@ export default function PaeAssistantPage() {
     });
   }, [availableActivities]);
 
-  const selectedIndicatorRows = indicatorRows.filter((item) => item.active).slice(0, 5);
-  const selectedActivityRows = selectedActivities.slice(0, 6);
+  const selectedIndicatorRows = useMemo(() => indicatorRows.filter((item) => item.active).slice(0, 5), [indicatorRows]);
+  const selectedActivityRows = useMemo(() => selectedActivities.slice(0, 6), [selectedActivities]);
   const activeStepIndex = ASSISTANT_STEPS.findIndex((item) => item.id === activeStep);
   const activeStepMeta = ASSISTANT_STEPS[activeStepIndex] ?? ASSISTANT_STEPS[0];
   const canGoBack = activeStepIndex > 0;
@@ -685,7 +462,7 @@ export default function PaeAssistantPage() {
         summary: selectedNanda ? `${selectedNanda.code} ${formatCatalogLabel(selectedNanda.label)}` : "Sin NANDA",
       },
       noc: {
-        complete: Boolean(selectedNoc && selectedIndicatorRows.length),
+        complete: Boolean(selectedNoc && selectedIndicatorRows.length && selectedIndicatorRows.every(row => row.assessment !== "" && row.goal !== "")),
         summary: selectedNoc ? `${selectedNoc.code} ${formatCatalogLabel(selectedNoc.label)}` : "Sin NOC",
       },
       nic: {
@@ -693,22 +470,50 @@ export default function PaeAssistantPage() {
         summary: selectedNic ? `${selectedNic.code} ${formatCatalogLabel(selectedNic.label)}` : "Sin NIC",
       },
       evaluation: {
-        complete: Boolean(evaluationText.trim()),
+        complete: Boolean(evaluationStatus !== "pendiente" || evaluationNote.trim()),
         summary: evaluationText.trim() || "Pendiente de evaluación",
       },
     }),
     [
       evaluationText,
+      evaluationStatus,
+      evaluationNote,
       medicalDiagnosis,
       patientName,
       selectedActivityRows.length,
-      selectedIndicatorRows.length,
+      selectedIndicatorRows,
       selectedNic,
       selectedNanda,
       selectedNoc,
       taxonomySuggestions,
     ]
   );
+
+  function chooseNanda(id: string) {
+    if (id === selectedNandaId) return;
+    setSelectedNandaId(id); setSelectedNocId(""); setSelectedNicId("");
+    setIndicatorRows([]); setSelectedActivities([]); setExtraActivities([]);
+    setRelatedFactorsText(""); setEvidenceText("");
+    setNocQuery(""); setNicQuery(""); setCustomIndicator(""); setCustomActivity("");
+  }
+  function chooseNoc(id: string) {
+    if (id === selectedNocId) return;
+    setIndicatorRows([]); setSelectedNocId(id); setCustomIndicator("");
+  }
+  function chooseNic(id: string) {
+    if (id === selectedNicId) return;
+    setSelectedActivities([]); setExtraActivities([]); setSelectedNicId(id); setCustomActivity("");
+  }
+  function addIndicator() {
+    const label = customIndicator.trim();
+    if (!label || indicatorRows.some(row => row.label === label)) return;
+    setIndicatorRows(rows => [...rows, { label, assessment: 2, goal: "" as const, active: true }]); setCustomIndicator("");
+  }
+  function addActivity() {
+    const label = customActivity.trim();
+    if (!label || availableActivities.includes(label) || selectedActivities.length >= 6) return;
+    setExtraActivities(current => [...current, label]); setSelectedActivities(current => [...current, label]); setCustomActivity("");
+  }
 
   function goToStep(step: AssistantStep) {
     setActiveStep(step);
@@ -740,26 +545,31 @@ export default function PaeAssistantPage() {
     setSelectedNandaId("");
     setSelectedNocId("");
     setSelectedNicId("");
-    setLastNandaSeeded("");
+    setExtraActivities([]);
+    setCustomIndicator("");
+    setCustomActivity("");
     setIndicatorRows([]);
     setSelectedActivities([]);
+    setRelatedFactorsText(""); setEvidenceText("");
     setEvaluationStatus("pendiente");
     setEvaluationNote("");
-    setShowAllNandaCatalog(true);
-    setShowAllNocCatalog(true);
-    setShowAllNicCatalog(true);
+    setShowAllNandaCatalog(false);
+    setShowAllNocCatalog(false);
+    setShowAllNicCatalog(false);
     setActiveStep("data");
   }
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#f6fbf9_0%,#eef5f2_48%,#e6efeb_100%)] text-slate-900">
-      <div className="flex">
+    <div className={styles.page}>
+      <div className={styles.shell}>
         <Sidebar />
 
-        <main className="flex-1 px-4 py-5 sm:px-6 lg:px-8">
+        <main className={styles.main}>
+          <header className={`${styles.header} no-print`}><div><span className={styles.eyebrow}>PSYKE / PLANIFICACIÓN DEL CUIDADO</span><h1>PAE asistido.<br/><em>Del razonamiento al cuidado.</em></h1><p>Conecta la valoración, el diagnóstico y las acciones de enfermería, paso a paso.</p></div><button onClick={() => setShowPreview(value => !value)} className={styles.previewButton}>{showPreview ? "Volver al editor" : "Vista del formato ↗"}</button></header>
+          <div className={`${styles.taxonomyPath} no-print`}><span><b>NANDA</b> Qué necesita la persona</span><i>→</i><span><b>NOC</b> Qué queremos alcanzar</span><i>→</i><span><b>NIC</b> Cómo vamos a actuar</span></div>
           <div className="mx-auto max-w-[1640px]">
-            <div className="grid gap-6 xl:grid-cols-[430px_minmax(0,1fr)]">
-              <aside className="no-print space-y-5 xl:sticky xl:top-5 xl:max-h-[calc(100vh-2.5rem)] xl:overflow-y-auto xl:pr-1">
+            <div className={showPreview ? styles.previewLayout : styles.editorLayout}>
+              <aside className={`${styles.editor} no-print ${showPreview ? styles.editorHidden : ""}`}>
                 <section className={SECTION_CARD}>
                   <div className="flex items-center justify-between gap-3">
                     <div>
@@ -783,7 +593,7 @@ export default function PaeAssistantPage() {
                     />
                   </div>
 
-                  <div className="mt-4 grid grid-cols-2 gap-2">
+                  <div className={styles.steps}>
                     {ASSISTANT_STEPS.map((step, index) => {
                       const active = step.id === activeStep;
                       const complete = stepState[step.id].complete;
@@ -792,6 +602,7 @@ export default function PaeAssistantPage() {
                         <button
                           key={step.id}
                           type="button"
+                          aria-current={active ? "step" : undefined}
                           onClick={() => goToStep(step.id)}
                           className={`rounded-2xl border px-3 py-3 text-left transition ${
                             active
@@ -824,7 +635,7 @@ export default function PaeAssistantPage() {
                       <div>
                         <h2 className="text-base font-semibold text-slate-900">1. Datos y motivo clínico</h2>
                         <p className="mt-1 text-xs text-slate-500">
-                          Completa la base del caso y el PDF se actualizará a la derecha.
+                          Registra la valoración. El resumen del plan se actualizará con tus elecciones.
                         </p>
                       </div>
                       <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-slate-400">
@@ -939,7 +750,7 @@ export default function PaeAssistantPage() {
                       </div>
                     </div>
 
-                    <div className="mt-4 space-y-3">
+                    <div className={styles.suggestions}>
                       {taxonomySuggestions.map((item) => {
                         const selected = item.nanda.id === selectedNandaId;
                         return (
@@ -947,9 +758,7 @@ export default function PaeAssistantPage() {
                             key={item.nanda.id}
                             type="button"
                             onClick={() => {
-                              setSelectedNandaId(item.nanda.id);
-                              setSelectedNocId(item.nocOptions[0]?.id ?? "");
-                              setSelectedNicId(item.nicOptions[0]?.id ?? "");
+                              chooseNanda(item.nanda.id);
                               goToStep("nanda");
                             }}
                             className={`w-full rounded-[24px] border p-4 text-left transition ${
@@ -970,7 +779,7 @@ export default function PaeAssistantPage() {
                               <span
                                 className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${scoreTone(item.score)}`}
                               >
-                                {item.score} pts
+                                Coincidencia textual
                               </span>
                             </div>
 
@@ -1046,13 +855,14 @@ export default function PaeAssistantPage() {
                     </div>
 
                     <div className="mt-3 max-h-[360px] space-y-2 overflow-y-auto pr-1">
+                      {!filteredNandaOptions.length && <p className={styles.empty}>No hay coincidencias para esta búsqueda. Prueba otra palabra o código, o abre el catálogo completo.</p>}
                       {filteredNandaOptions.map((item) => {
                         const active = item.id === selectedNandaId;
                         return (
                           <button
                             key={item.id}
                             type="button"
-                            onClick={() => setSelectedNandaId(item.id)}
+                            onClick={() => chooseNanda(item.id)}
                             className={`w-full rounded-2xl border px-3 py-3 text-left transition ${
                               active
                                 ? "border-cyan-400/55 bg-cyan-400/12"
@@ -1081,6 +891,10 @@ export default function PaeAssistantPage() {
                         <div className="mt-3 rounded-2xl border border-cyan-400/15 bg-cyan-400/8 px-3 py-3 text-sm leading-6 text-slate-600">
                           {selectedNandaDescription}
                         </div>
+                        {CARE_GUIDES[selectedNanda.code] && <div className={styles.teachingNote}><strong>Aspectos para valorar, no hallazgos confirmados:</strong><ul>{CARE_GUIDES[selectedNanda.code].observations.map(observation => <li key={observation}>• {observation}</li>)}</ul></div>}
+                        <label className={styles.diagnosticInput}>{/^riesgo/i.test(selectedNanda.label) ? "Factores de riesgo identificados" : "Factores contribuyentes identificados"}<textarea value={relatedFactorsText} onChange={e => setRelatedFactorsText(e.target.value)} placeholder="Registra solo factores respaldados por la valoración…" rows={2}/></label>
+                        {!/^riesgo/i.test(selectedNanda.label) && <label className={styles.diagnosticInput}>Signos y síntomas que sustentan el diagnóstico<textarea value={evidenceText} onChange={e => setEvidenceText(e.target.value)} placeholder="Describe los hallazgos observados en esta persona…" rows={2}/></label>}
+
 
                         <div className="mt-3 flex flex-wrap gap-2">
                           {(activeSuggestion?.supportingSigns.length
@@ -1125,13 +939,14 @@ export default function PaeAssistantPage() {
                     </div>
 
                     <div className="mt-3 max-h-[320px] space-y-2 overflow-y-auto pr-1">
+                      {!filteredNocOptions.length && <p className={styles.empty}>No hay coincidencias. Selecciona primero un NANDA, prueba otra búsqueda o abre el catálogo completo.</p>}
                       {filteredNocOptions.map((item) => {
                         const active = item.id === selectedNocId;
                         return (
                           <button
                             key={item.id}
                             type="button"
-                            onClick={() => setSelectedNocId(item.id)}
+                            onClick={() => chooseNoc(item.id)}
                             className={`w-full rounded-2xl border px-3 py-3 text-left transition ${
                               active
                                 ? "border-emerald-400/55 bg-emerald-400/12"
@@ -1142,7 +957,7 @@ export default function PaeAssistantPage() {
                               {item.code} · {formatCatalogLabel(item.label)}
                             </div>
                             <div className="mt-1 text-xs text-slate-400">
-                              {formatCatalogLabel(item.domain)} · Clase {inferNocTaxonomy(item).classCode}
+                              {formatCatalogLabel(item.domain)} · Clasificación pendiente de verificar
                             </div>
                           </button>
                         );
@@ -1163,9 +978,11 @@ export default function PaeAssistantPage() {
                       </div>
                     )}
 
-                    {!!availableIndicators.length && (
+                    {selectedNoc && (
                       <div className="mt-4 rounded-2xl border border-slate-200 bg-white/82 p-4">
-                        <div className="text-sm font-semibold text-slate-900">Indicadores</div>
+                        <div className="text-sm font-semibold text-slate-900">Indicadores del plan</div>
+                        <p className={styles.teachingNote}>{selectedNoc?.indicators.length ? "Indicadores incluidos en el catálogo local." : "Propuestas educativas editables; no son los indicadores oficiales de NOC. Escala local de logro de 1 a 5, que debes adaptar al caso."}</p>
+                        <div className={styles.customRow}><input aria-label="Nuevo indicador personalizado" value={customIndicator} onChange={e => setCustomIndicator(e.target.value)} placeholder="Escribe un indicador observable…"/><button type="button" onClick={addIndicator} disabled={!customIndicator.trim()}>Añadir</button></div>
                         <div className="mt-3 space-y-3">
                           {indicatorRows.map((row) => (
                             <div key={row.label} className="rounded-2xl border border-slate-200 bg-white/80 p-3">
@@ -1173,6 +990,7 @@ export default function PaeAssistantPage() {
                                 <input
                                   type="checkbox"
                                   checked={row.active}
+                                  disabled={!row.active && selectedIndicatorRows.length >= 5}
                                   onChange={() =>
                                     setIndicatorRows((current) =>
                                       current.map((item) =>
@@ -1195,7 +1013,7 @@ export default function PaeAssistantPage() {
                                               item.label === row.label
                                                 ? {
                                                     ...item,
-                                                    assessment: Number(event.target.value) as ScaleValue,
+                                                    assessment: event.target.value ? Number(event.target.value) as ScaleValue : "",
                                                   }
                                                 : item
                                             )
@@ -1203,6 +1021,7 @@ export default function PaeAssistantPage() {
                                         }
                                         className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none"
                                       >
+                                        <option value="">Sin valorar</option>
                                         {SCALE_OPTIONS.map((value) => (
                                           <option key={value} value={value}>
                                             {scaleLabel(value)}
@@ -1220,7 +1039,7 @@ export default function PaeAssistantPage() {
                                               item.label === row.label
                                                 ? {
                                                     ...item,
-                                                    goal: Number(event.target.value) as ScaleValue,
+                                                    goal: event.target.value ? Number(event.target.value) as ScaleValue : "",
                                                   }
                                                 : item
                                             )
@@ -1228,6 +1047,7 @@ export default function PaeAssistantPage() {
                                         }
                                         className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none"
                                       >
+                                        <option value="">Sin valorar</option>
                                         {SCALE_OPTIONS.map((value) => (
                                           <option key={value} value={value}>
                                             {scaleLabel(value)}
@@ -1271,13 +1091,14 @@ export default function PaeAssistantPage() {
                     </div>
 
                     <div className="mt-3 max-h-[320px] space-y-2 overflow-y-auto pr-1">
+                      {!filteredNicOptions.length && <p className={styles.empty}>No hay coincidencias. Selecciona primero un NANDA, prueba otra búsqueda o abre el catálogo completo.</p>}
                       {filteredNicOptions.map((item) => {
                         const active = item.id === selectedNicId;
                         return (
                           <button
                             key={item.id}
                             type="button"
-                            onClick={() => setSelectedNicId(item.id)}
+                            onClick={() => chooseNic(item.id)}
                             className={`w-full rounded-2xl border px-3 py-3 text-left transition ${
                               active
                                 ? "border-fuchsia-400/55 bg-fuchsia-400/12"
@@ -1288,7 +1109,7 @@ export default function PaeAssistantPage() {
                               {item.code} · {formatCatalogLabel(item.label)}
                             </div>
                             <div className="mt-1 text-xs text-slate-400">
-                              Campo {inferNicTaxonomy(item).domainCode} · Clase {inferNicTaxonomy(item).classCode}
+                              Intervención del catálogo local
                             </div>
                           </button>
                         );
@@ -1309,9 +1130,11 @@ export default function PaeAssistantPage() {
                       </div>
                     )}
 
-                    {!!availableActivities.length && (
+                    {selectedNic && (
                       <div className="mt-4 rounded-2xl border border-slate-200 bg-white/82 p-4">
-                        <div className="text-sm font-semibold text-slate-900">Actividades</div>
+                        <div className="text-sm font-semibold text-slate-900">Actividades del plan</div>
+                        <p className={styles.teachingNote}>{selectedNic?.activities.length ? "Actividades incluidas en el catálogo local." : "Propuestas educativas para adaptar al contexto y al rol profesional; no reproducen el listado oficial de NIC."}</p>
+                        <div className={styles.customRow}><input aria-label="Nueva actividad personalizada" value={customActivity} onChange={e => setCustomActivity(e.target.value)} placeholder="Añade una actividad específica…"/><button type="button" onClick={addActivity} disabled={!customActivity.trim() || selectedActivities.length >= 6}>Añadir</button></div>
                         <div className="mt-3 flex flex-wrap gap-2">
                           {availableActivities.map((activity) => {
                             const active = selectedActivities.includes(activity);
@@ -1319,6 +1142,7 @@ export default function PaeAssistantPage() {
                               <button
                                 key={activity}
                                 type="button"
+                                disabled={!active && selectedActivities.length >= 6}
                                 onClick={() =>
                                   setSelectedActivities((current) =>
                                     current.includes(activity)
@@ -1435,7 +1259,14 @@ export default function PaeAssistantPage() {
                 </section>
               </aside>
 
-              <section className="overflow-x-auto rounded-[30px] border border-slate-200 bg-white/92 p-3 sm:p-5 xl:sticky xl:top-5 xl:self-start">
+              <section className={`${styles.summary} no-print ${showPreview ? styles.editorHidden : ""}`} aria-label="Resumen del plan">
+                <span className={styles.eyebrow}>TU PLAN / EN CONSTRUCCIÓN</span><h2>{patientName || "Paciente por definir"}</h2><p>{medicalDiagnosis || "Empieza por los datos y la valoración clínica."}</p>
+                <div className={styles.summaryChain}>{[{ tag: "NANDA", item: selectedNanda, step: "nanda" }, { tag: "NOC", item: selectedNoc, step: "noc" }, { tag: "NIC", item: selectedNic, step: "nic" }].map(({ tag, item, step }) => <button key={tag} onClick={() => goToStep(step as AssistantStep)}><span>{tag}</span><strong>{item ? formatCatalogLabel(item.label) : "Pendiente de seleccionar"}</strong><small>{item ? item.code : "Seleccionar →"}</small></button>)}</div>
+                <div className={styles.summaryCounts}><div><b>{selectedIndicatorRows.length}</b><span>Indicadores</span></div><div><b>{selectedActivityRows.length}</b><span>Actividades</span></div></div>
+                <div className={styles.teachingNote}>Las sugerencias se basan en coincidencias y guías educativas locales. Confirma cada elección con la valoración. La importación no incluye las definiciones completas ni vínculos oficiales NNN. El formato admite hasta 5 indicadores y 6 actividades.</div>
+                <a href="https://nursing.uiowa.edu/center-for-nursing-classification-and-clinical-effectiveness" target="_blank" rel="noreferrer" className={styles.sourceLink}>Acerca de NIC y NOC ↗</a>
+              </section>
+              <section className={`${styles.preview} ${showPreview ? styles.previewOpen : ""}`}>
                 <div className="no-print mb-4 flex items-center justify-between gap-3 px-2">
                   <div>
                     <h2 className="text-base font-semibold text-slate-900">Vista final del formato</h2>
@@ -1500,6 +1331,7 @@ export default function PaeAssistantPage() {
                   <div className="mt-3 text-center text-[14px] font-bold uppercase underline">
                     Formato de Plan de Atención de Enfermería
                   </div>
+                  <p className="mt-2 text-[10px] text-slate-500">Borrador educativo. Indicadores, actividades y asociaciones locales deben revisarse; la clasificación oficial incompleta no se infiere.</p>
 
                   <div className="mt-4 grid grid-cols-[1.05fr_1.28fr_1.28fr_1.1fr] border border-black text-[11px] leading-[1.25]">
                     <div className="flex min-h-[470px] flex-col border-r border-black">
@@ -1525,7 +1357,7 @@ export default function PaeAssistantPage() {
                         </div>
                       </div>
                       <div className="flex-1 px-2 py-3">
-                        <div className="space-y-2">
+                        <div className="space-y-2"><p><strong>{/^riesgo/i.test(selectedNanda?.label ?? "") ? "Factores de riesgo:" : "Factores contribuyentes:"}</strong> {relatedFactorsText || "Pendiente de registrar"}</p>{!/^riesgo/i.test(selectedNanda?.label ?? "") && <p><strong>Hallazgos:</strong> {evidenceText || "Pendiente de registrar"}</p>}
                           {(activeSuggestion?.supportingSigns.length
                             ? activeSuggestion.supportingSigns
                             : selectedNanda?.definingCharacteristics.slice(0, 5) ?? []
@@ -1568,7 +1400,7 @@ export default function PaeAssistantPage() {
                       </div>
                       <div className="border-b border-black px-2 py-2">
                         <div className="font-bold uppercase">Escala:</div>
-                        <div className="mt-1 min-h-[24px]">1 a 5</div>
+                        <div className="mt-1 min-h-[24px]">Escala educativa de logro: 1 a 5 (adaptar al caso)</div>
                       </div>
                       <div className="flex-1">
                         <table className="h-full w-full border-collapse">
@@ -1678,6 +1510,10 @@ export default function PaeAssistantPage() {
         }
 
         @media print {
+          html:has(#pae-print-sheet), body:has(#pae-print-sheet), body:has(#pae-print-sheet) #app, body:has(#pae-print-sheet) #app > div {
+            height: auto !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important;
+          }
+          body:has(#pae-print-sheet)::before, body:has(#pae-print-sheet)::after { display: none !important; }
           body {
             background: #ffffff !important;
           }

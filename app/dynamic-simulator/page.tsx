@@ -128,8 +128,7 @@ export default function DynamicSimulatorPage() {
   }, [effectiveContext, filteredPool]);
 
   const resetRun = useCallback(
-    (nextScenario?: DynamicSimulationScenario) => {
-      const activeScenario = nextScenario ?? scenario;
+    (activeScenario: DynamicSimulationScenario) => {
       setSelectedActionIds([]);
       setRevealedStudyIds([]);
       setCurrentStageIndex(0);
@@ -148,7 +147,7 @@ export default function DynamicSimulatorPage() {
         },
       ]);
     },
-    [scenario]
+    []
   );
 
   const pickNextScenario = useCallback(

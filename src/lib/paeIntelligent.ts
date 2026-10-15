@@ -1,3 +1,4 @@
+import { CARE_GUIDES, cleanTaxonomyLabel, matchesCatalogQuery } from "./paeCareSupport";
 import nandaCatalogData from "./data/nandaCatalog.json";
 import nocCatalogData from "./data/nocCatalog.json";
 import nicCatalogData from "./data/nicCatalog.json";
@@ -249,87 +250,32 @@ function inferPaeContextFromNormalizedText(text: string): PaeClinicalContext {
   return "general";
 }
 
-function getContextHintTerms(context: PaeClinicalContext) {
-  if (context === "respiratory") return ["respir", "ventil", "gase", "oxigen", "pulmon"];
-  if (context === "infection") return ["infecc", "fiebre", "sepsis", "herida", "aislamiento"];
-  if (context === "metabolic") return ["gluc", "insulin", "metabol", "cet", "nutric"];
-  if (context === "renal") return ["renal", "diures", "potasio", "creatin", "liquido"];
-  if (context === "postoperative") return ["postoperator", "quirurg", "incision", "dolor", "recuper"];
-  return ["seguridad", "confort", "movilidad", "dolor"];
+function rankNocOptions(args: { nanda: NandaDiagnosis; diagnosisText?: string; limit: number }) {
+  const links = CARE_GUIDES[args.nanda.code]?.noc ?? [];
+  const terms = extractMeaningfulTerms([args.nanda.label, args.diagnosisText ?? ""].join(" "));
+  return NOC_LIBRARY.map(item => {
+    const direct = item.linkedNandaIds.includes(args.nanda.id);
+    const teachingIndex = links.indexOf(item.code);
+    const lexical = collectMatchedTerms(terms, [...[item.label, item.domain], ...item.indicators]).length;
+    const score = (direct ? 2000 : 0) + (teachingIndex >= 0 ? 1000 - teachingIndex * 20 : 0) + lexical * 5;
+    return { item, score };
+  }).filter(entry => links.length ? entry.score >= 1000 - links.length * 20 : entry.score > 0)
+    .sort((a, b) => b.score - a.score || a.item.code.localeCompare(b.item.code))
+    .slice(0, args.limit).map(entry => entry.item);
 }
 
-function rankNocOptions(args: {
-  nanda: NandaDiagnosis;
-  diagnosisText?: string;
-  limit: number;
-}) {
-  const { nanda, diagnosisText, limit } = args;
-  const terms = Array.from(
-    new Set([
-      ...extractMeaningfulTerms(diagnosisText),
-      ...extractMeaningfulTerms(nanda.label),
-      ...extractMeaningfulTerms(nanda.domain),
-      ...extractMeaningfulTerms(nanda.classLabel),
-      ...extractMeaningfulTerms(nanda.definingCharacteristics.join(" ")),
-      ...extractMeaningfulTerms(nanda.relatedFactors.join(" ")),
-      ...getContextHintTerms(nanda.contexts[0] ?? "general"),
-    ])
-  );
-
-  const ranked = NOC_LIBRARY.map((item) => {
-    const labelMatches = collectMatchedTerms(terms, [item.label, item.domain]);
-    const indicatorMatches = collectMatchedTerms(terms, item.indicators);
-    const score =
-      labelMatches.length * 7 +
-      indicatorMatches.length * 5 +
-      (includesLooseText(item.label, nanda.label) ? 12 : 0) +
-      (item.indicators.length ? 4 : 0);
-
+function rankNicOptions(args: { nanda: NandaDiagnosis; diagnosisText?: string; limit: number }) {
+  const links = CARE_GUIDES[args.nanda.code]?.nic ?? [];
+  const terms = extractMeaningfulTerms([args.nanda.label, args.diagnosisText ?? ""].join(" "));
+  return NIC_LIBRARY.map(item => {
+    const direct = item.linkedNandaIds.includes(args.nanda.id);
+    const teachingIndex = links.indexOf(item.code);
+    const lexical = collectMatchedTerms(terms, [...[item.label, item.classLabel], ...item.activities]).length;
+    const score = (direct ? 2000 : 0) + (teachingIndex >= 0 ? 1000 - teachingIndex * 20 : 0) + lexical * 5;
     return { item, score };
-  })
-    .filter(({ score }) => score > 0)
-    .sort((a, b) => b.score - a.score || a.item.code.localeCompare(b.item.code));
-
-  if (ranked.length) return ranked.slice(0, limit).map(({ item }) => item);
-
-  return NOC_LIBRARY.slice(0, limit);
-}
-
-function rankNicOptions(args: {
-  nanda: NandaDiagnosis;
-  diagnosisText?: string;
-  limit: number;
-}) {
-  const { nanda, diagnosisText, limit } = args;
-  const terms = Array.from(
-    new Set([
-      ...extractMeaningfulTerms(diagnosisText),
-      ...extractMeaningfulTerms(nanda.label),
-      ...extractMeaningfulTerms(nanda.domain),
-      ...extractMeaningfulTerms(nanda.classLabel),
-      ...extractMeaningfulTerms(nanda.definingCharacteristics.join(" ")),
-      ...extractMeaningfulTerms(nanda.relatedFactors.join(" ")),
-      ...getContextHintTerms(nanda.contexts[0] ?? "general"),
-    ])
-  );
-
-  const ranked = NIC_LIBRARY.map((item) => {
-    const labelMatches = collectMatchedTerms(terms, [item.label, item.classLabel]);
-    const activityMatches = collectMatchedTerms(terms, item.activities);
-    const score =
-      labelMatches.length * 7 +
-      activityMatches.length * 5 +
-      (includesLooseText(item.label, nanda.label) ? 10 : 0) +
-      (item.activities.length ? 4 : 0);
-
-    return { item, score };
-  })
-    .filter(({ score }) => score > 0)
-    .sort((a, b) => b.score - a.score || a.item.code.localeCompare(b.item.code));
-
-  if (ranked.length) return ranked.slice(0, limit).map(({ item }) => item);
-
-  return NIC_LIBRARY.slice(0, limit);
+  }).filter(entry => links.length ? entry.score >= 1000 - links.length * 20 : entry.score > 0)
+    .sort((a, b) => b.score - a.score || a.item.code.localeCompare(b.item.code))
+    .slice(0, args.limit).map(entry => entry.item);
 }
 
 export const PAE_TEMPLATE_LIBRARY: PaeTemplate[] = [
@@ -850,7 +796,7 @@ function sanitizeNandaRow(row: Partial<NandaDiagnosis>): NandaDiagnosis | null {
   return {
     id,
     code,
-    label,
+    label: cleanTaxonomyLabel("nanda", code, label),
     domain: String(row.domain ?? "Dominio no especificado").trim(),
     classLabel: String(row.classLabel ?? "Clase no especificada").trim(),
     contexts: contexts.length ? contexts : ["general"],
@@ -870,7 +816,7 @@ function sanitizeNocRow(row: Partial<NocOutcome>): NocOutcome | null {
   return {
     id,
     code,
-    label,
+    label: cleanTaxonomyLabel("noc", code, label),
     domain: String(row.domain ?? "Taxonomia NOC").trim(),
     linkedNandaIds: Array.isArray(row.linkedNandaIds) ? row.linkedNandaIds.filter(Boolean) : [],
     indicators: Array.isArray(row.indicators) ? row.indicators.filter(Boolean) : [],
@@ -886,7 +832,7 @@ function sanitizeNicRow(row: Partial<NicIntervention>): NicIntervention | null {
   return {
     id,
     code,
-    label,
+    label: cleanTaxonomyLabel("nic", code, label),
     classLabel: String(row.classLabel ?? "Taxonomia NIC").trim(),
     linkedNandaIds: Array.isArray(row.linkedNandaIds) ? row.linkedNandaIds.filter(Boolean) : [],
     activities: Array.isArray(row.activities) ? row.activities.filter(Boolean) : [],
@@ -951,84 +897,31 @@ export function getSuggestedNicOptions(args: {
 }
 
 export function suggestPaeTaxonomyBundles(args: {
-  diagnosisText: string;
-  context?: PaeTemplateContextFilter;
-  limit?: number;
+  diagnosisText: string; context?: PaeTemplateContextFilter; limit?: number;
 }): PaeTaxonomySuggestion[] {
-  const diagnosisText = String(args.diagnosisText ?? "");
-  const limit = Math.max(1, args.limit ?? 6);
-  const detectedContext =
-    args.context && args.context !== "all" ? args.context : inferPaeContextFromText(diagnosisText);
-  const queryTerms = extractMeaningfulTerms(diagnosisText);
-  const templateHints = PAE_TEMPLATE_LIBRARY.filter((template) => {
-    if (detectedContext !== "general" && template.context !== detectedContext) return false;
-    return collectMatchedTerms(queryTerms, [
-      template.name,
-      template.patient.chiefComplaint,
-      template.patient.medicalDiagnosis,
-      ...template.diagnoses.map((diagnosis) => diagnosis.diagnosticLabel),
-    ]).length > 0;
-  });
-
-  const pool = args.context && args.context !== "all" ? getNandaByContext(args.context) : getNandaByContext(detectedContext);
-
-  const ranked = pool
-    .map((item) => {
-      const labelMatches = collectMatchedTerms(queryTerms, [item.label, item.domain, item.classLabel]);
-      const characteristicMatches = collectMatchedTerms(queryTerms, item.definingCharacteristics);
-      const factorMatches = collectMatchedTerms(queryTerms, item.relatedFactors);
-      const templateBonus = templateHints.some((template) =>
-        template.diagnoses.some(
-          (diagnosis) =>
-            includesLooseText(diagnosis.diagnosticLabel, item.label) ||
-            includesLooseText(item.label, diagnosis.diagnosticLabel)
-        )
-      )
-        ? 12
-        : 0;
-      const contextBonus = item.contexts.includes(detectedContext) ? 18 : 0;
-      const score =
-        contextBonus +
-        templateBonus +
-        labelMatches.length * 10 +
-        characteristicMatches.length * 7 +
-        factorMatches.length * 5;
-
-      return {
-        nanda: item,
-        score,
-        matchedTerms: Array.from(new Set([...labelMatches, ...characteristicMatches, ...factorMatches])).slice(0, 6),
-        supportingSigns: uniqueById(
-          [...item.definingCharacteristics, ...item.relatedFactors]
-            .filter((entry) => collectMatchedTerms(queryTerms, [entry]).length > 0)
-            .map((entry, index) => ({ id: `${item.id}_${index}_${entry}`, label: entry }))
-        )
-          .map((entry) => entry.label)
-          .slice(0, 4),
-      };
-    })
-    .sort((a, b) => b.score - a.score || a.nanda.code.localeCompare(b.nanda.code));
-
-  const filteredRanked = ranked.filter((item, index) => item.score > 0 || index < limit);
-
-  return filteredRanked.slice(0, limit).map((item) => ({
-    nanda: item.nanda,
-    score: item.score,
-    matchedTerms: item.matchedTerms,
-    supportingSigns: item.supportingSigns.length
-      ? item.supportingSigns
-      : item.nanda.definingCharacteristics.slice(0, 3),
-    nocOptions: getSuggestedNocOptions({
-      nanda: item.nanda,
-      diagnosisText,
-      limit: 4,
-    }),
-    nicOptions: getSuggestedNicOptions({
-      nanda: item.nanda,
-      diagnosisText,
-      limit: 4,
-    }),
-  }));
+  const text = String(args.diagnosisText ?? "").trim();
+  if (!text) return [];
+  // Do not turn explicitly denied findings into positive matching cues.
+  const positiveText = normalizeText(text).replace(/\b(?:sin|niega|no presenta)\s+(?:dolor|fiebre|disnea|sangrado|ansiedad|edema)\b/g, " ");
+  const terms = extractMeaningfulTerms(positiveText).filter(term => !["paciente", "presenta", "refiere", "anos", "valoracion", "diagnostico", "clinico"].includes(term));
+  const context = args.context && args.context !== "all" ? args.context : inferPaeContextFromText(text);
+  const pool = NANDA_LIBRARY;
+  return pool.map(nanda => {
+    const guide = CARE_GUIDES[nanda.code];
+    const labelMatches = collectMatchedTerms(terms, [nanda.code, nanda.label]);
+    const guideMatches = (guide?.terms ?? []).filter(term => matchesCatalogQuery(term, [positiveText]));
+    const characteristicMatches = collectMatchedTerms(terms, nanda.definingCharacteristics);
+    const factorMatches = collectMatchedTerms(terms, nanda.relatedFactors);
+    const matchedTerms = [...new Set([...guideMatches, ...labelMatches, ...characteristicMatches, ...factorMatches])];
+    const score = guideMatches.length * 25 + labelMatches.length * 10 + characteristicMatches.length * 7 + factorMatches.length * 5 + (matchedTerms.length && nanda.contexts.includes(context) ? 2 : 0);
+    return { nanda, score, matchedTerms, supportingSigns: nanda.definingCharacteristics.filter(entry => collectMatchedTerms(terms, [entry]).length > 0) };
+  }).filter(item => item.matchedTerms.length > 0)
+    .sort((a, b) => b.score - a.score || a.nanda.code.localeCompare(b.nanda.code))
+    .slice(0, Math.max(1, args.limit ?? 6))
+    .map(item => ({ ...item,
+      nocOptions: getSuggestedNocOptions({ nanda: item.nanda, diagnosisText: text, limit: 4 }),
+      nicOptions: getSuggestedNicOptions({ nanda: item.nanda, diagnosisText: text, limit: 4 }),
+    }));
 }
 
 export function validateTaxonomySelection(args: {

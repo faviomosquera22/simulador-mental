@@ -239,8 +239,8 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: "Simulador de patologías", href: "/medical-cases", icon: navIcons.pathologies },
       { label: "Simulador de trastornos mentales", href: "/cases", icon: navIcons.mental },
-      { label: "Urgencias", href: "/emergency-simulator", icon: navIcons.urgency },
-      { label: "Triage por carrera", href: "/triage-simulator", icon: navIcons.triage },
+      { label: "Sala clínica interactiva", href: "/clinical-room", icon: navIcons.maternal },
+      { label: "Escenarios y urgencias", href: "/simulation-hub", icon: navIcons.dynamic },
     ],
   },
   {
@@ -250,15 +250,7 @@ const NAV_SECTIONS: NavSection[] = [
       { label: "Simulador de ecografía", href: "/ultrasound-simulator", icon: navIcons.ultrasound },
       { label: "Laboratorio", href: "/laboratory", icon: navIcons.lab },
       { label: "Gasometría", href: "/gasometry", icon: navIcons.gasometry },
-    ],
-  },
-  {
-    title: "Avanzado",
-    items: [
       { label: "Imágenes clínicas", href: "/clinical-images", icon: navIcons.images },
-      { label: "RCP y algoritmos", href: "/rcp-algorithms", icon: navIcons.rcp },
-      { label: "Simulador dinámico", href: "/dynamic-simulator", icon: navIcons.dynamic },
-      { label: "Materno-infantil", href: "/materno-infantil", icon: navIcons.maternal },
     ],
   },
   {
@@ -382,18 +374,23 @@ export default function Sidebar() {
 
     void refreshProfile();
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {
-      void refreshProfile();
-    });
+    // Keep the navigation usable in local previews without Supabase environment variables.
+    let unsubscribe: (() => void) | undefined;
+    try {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+        void refreshProfile();
+      });
+      unsubscribe = () => subscription.unsubscribe();
+    } catch {
+      // Auth configuration is reported by the client; the stored profile can still render.
+    }
 
     window.addEventListener("storage", handleProfileEvent);
     window.addEventListener(PROFILE_UPDATED_EVENT, handleProfileEvent);
 
     return () => {
       active = false;
-      subscription.unsubscribe();
+      unsubscribe?.();
       window.removeEventListener("storage", handleProfileEvent);
       window.removeEventListener(PROFILE_UPDATED_EVENT, handleProfileEvent);
     };

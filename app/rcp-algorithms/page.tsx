@@ -94,8 +94,7 @@ export default function RcpAlgorithmsPage() {
     return contextual.length ? contextual : filteredPool;
   }, [effectiveContext, filteredPool]);
 
-  const resetRun = useCallback((nextScenario?: ResuscitationScenario) => {
-    const activeScenario = nextScenario ?? scenario;
+  const resetRun = useCallback((activeScenario: ResuscitationScenario) => {
     setSelectedActionIds([]);
     setCurrentStageIndex(0);
     setCurrentVitals(activeScenario.initialVitals);
@@ -104,7 +103,7 @@ export default function RcpAlgorithmsPage() {
     setLastFeedback("");
     setTimedOut(false);
     setTimeRemaining(activeScenario.timeLimitSec);
-  }, [scenario]);
+  }, []);
 
   const pickNextScenario = useCallback(
     (excludeId?: string) => {

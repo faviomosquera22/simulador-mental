@@ -15,6 +15,18 @@ export type DashboardModuleMeta = {
 
 export const DASHBOARD_MODULES: DashboardModuleMeta[] = [
   {
+    id: "clinical-room",
+    label: "Sala clínica interactiva",
+    href: "/clinical-room",
+    group: "simulacion",
+    summary: "Explora a la paciente, solicita estudios y toma decisiones en urgencias ginecológicas y obstétricas con evolución y evaluación.",
+    accent: "from-emerald-500/18 via-teal-500/8 to-transparent",
+    count: 3,
+    countLabel: "casos interactivos",
+    status: "Nuevo · Ginecología y obstetricia",
+    highlight: true,
+  },
+  {
     id: "mental-sim",
     label: "Trastornos mentales",
     href: "/cases",

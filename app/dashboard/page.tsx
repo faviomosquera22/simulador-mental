@@ -149,6 +149,13 @@ const TIME_OPTIONS: Array<{ id: AdvisorTime; label: string; helper: string }> = 
 ];
 
 const MODULE_PLAYBOOK: Record<string, ModuleAdvisorMeta> = {
+  "clinical-room": {
+    intents: ["intervencion", "diagnostico", "avanzado"],
+    formats: ["visual", "intensivo", "guiado"],
+    minMinutes: 10,
+    maxMinutes: 20,
+    companionIds: ["materno-infantil", "ultrasound", "laboratory"],
+  },
   "mental-sim": {
     intents: ["continuidad", "documentacion"],
     formats: ["guiado", "intensivo"],

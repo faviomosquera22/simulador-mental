@@ -335,6 +335,8 @@ export type CacesQuestionOption = {
 };
 
 export type CacesQuestion = {
+  source?: { bank: string; id: string; file: string; label?: string };
+  image?: { url: string; alt: string; width: number; height: number };
   id: string;
   component: string;
   subcomponent: string;

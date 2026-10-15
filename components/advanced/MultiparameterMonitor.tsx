@@ -23,7 +23,8 @@ type MultiparameterMonitorProps = {
   vitals: MonitorVitals;
   baselineVitals?: MonitorVitals;
   accent?: MonitorAccent;
-  layout?: "default" | "monitor-right" | "visual-only";
+  layout?: "default" | "monitor-right" | "visual-only" | "bedside" | "station";
+  paused?: boolean;
   title?: string;
   subtitle?: string;
   statusLabel?: string;
@@ -396,6 +397,7 @@ export default function MultiparameterMonitor(props: MultiparameterMonitorProps)
     baselineVitals,
     accent = "cyan",
     layout = "default",
+    paused = false,
     title = "Monitor multiparámetro",
     subtitle = "Tendencias dinámicas basadas en el caso actual.",
     statusLabel,
@@ -411,12 +413,13 @@ export default function MultiparameterMonitor(props: MultiparameterMonitorProps)
   const [phaseSeconds, setPhaseSeconds] = useState(0);
 
   useEffect(() => {
+    if (paused) return;
     const id = window.setInterval(() => {
       setPhaseSeconds((previous) => previous + 0.12);
     }, 120);
 
     return () => window.clearInterval(id);
-  }, []);
+  }, [paused]);
 
   const pattern = useMemo(() => resolvePattern(vitals, rhythmLabel), [rhythmLabel, vitals]);
   const liveVitals = useMemo(() => getAnimatedVitals(vitals, phaseSeconds, pattern), [pattern, phaseSeconds, vitals]);
@@ -616,6 +619,33 @@ export default function MultiparameterMonitor(props: MultiparameterMonitorProps)
       </div>
     </div>
   );
+
+  if (layout === "station") {
+    return <section aria-label={title} className="overflow-hidden rounded-xl bg-[#091b22] p-4 text-white">
+      <div className="flex items-center justify-between text-[9px] uppercase tracking-[.15em] text-slate-400"><span>ECG · DII</span><span>{paused ? "En pausa" : "Señal simulada"}</span></div>
+      <svg viewBox="0 0 640 140" className="my-1 h-[58px] w-full" aria-hidden="true"><path d={ecgPath} fill="none" stroke="#89d5bd" strokeWidth="2.5"/></svg>
+      <div className="grid grid-cols-3 gap-3 border-t border-white/10 pt-3">
+        <div className="text-[#89d5bd]"><div className="text-[9px] tracking-wide opacity-75">FC / lpm</div><div className="mt-1 font-mono text-[29px] leading-tight">{liveVitals.hr}</div></div>
+        <div className="text-[#98cfe1]"><div className="text-[9px] tracking-wide opacity-75">SpO₂ / %</div><div className="mt-1 font-mono text-[29px] leading-tight">{liveVitals.spo2}</div></div>
+        <div className="text-[#e6b68a]"><div className="text-[9px] tracking-wide opacity-75">PA / mmHg</div><div className="mt-2 font-mono text-xl leading-tight">{liveVitals.sbp}/{liveVitals.dbp}</div></div>
+      </div>
+      <div className="mt-4 flex items-center justify-between gap-2 border-t border-white/10 pt-3 text-[10px] text-slate-400"><span>FR <b className="font-mono font-normal text-slate-200">{liveVitals.rr} rpm</b></span><span>Temp. <b className="font-mono font-normal text-slate-200">{liveVitals.temp.toFixed(1)} °C</b></span><span>{timeLabel}</span></div>
+    </section>;
+  }
+
+  if (layout === "bedside") {
+    return <section aria-label={title} className={`relative overflow-hidden rounded-2xl border p-3 ${style.shell}`}>
+      <div className="mb-4 flex items-center justify-between gap-2 border-b border-white/10 pb-3 text-[9px] uppercase tracking-widest text-slate-400"><span>{title}</span><span>{paused ? "Pausa" : "En vivo"}</span></div>
+      <div className="grid grid-cols-[minmax(0,1fr)_85px] items-center gap-2 border-b border-white/10 pb-3">
+        <div className="min-w-0"><span className="text-[9px] uppercase tracking-wider text-emerald-300/70">ECG · DII</span><svg viewBox="0 0 640 140" className="h-[92px] w-full" aria-hidden="true"><path d={ecgPath} fill="none" stroke="#7bff9a" strokeWidth="3" /></svg></div>
+        <div className="text-right text-[#7bff9a]"><div className="text-[9px]">FC · lpm</div><div className="font-mono text-[38px] leading-tight">{liveVitals.hr}</div></div>
+      </div>
+      <div className="grid grid-cols-[minmax(0,1fr)_85px] items-center gap-2 border-b border-white/10 py-3"><TrendStrip label="Pleth" path={plethPath} color="#7edcff" active={liveVitals.spo2 > 0}/><div className="text-right text-[#7edcff]"><div className="text-[9px]">SpO₂ · %</div><div className="font-mono text-[38px] leading-tight">{liveVitals.spo2}</div></div></div>
+      <div className="grid grid-cols-[minmax(0,1fr)_85px] items-center gap-2 border-b border-white/10 py-3"><TrendStrip label="Respiración" path={respPath} color="#c8b7ff" active={liveVitals.rr > 0}/><div className="text-right text-[#c8b7ff]"><div className="text-[9px]">FR · rpm</div><div className="font-mono text-[38px] leading-tight">{liveVitals.rr}</div></div></div>
+      <div className="grid grid-cols-[1.4fr_1fr] gap-2 py-4"><div className="text-amber-200"><div className="text-[9px] uppercase tracking-wide">Presión · mmHg</div><div className="mt-2 font-mono text-[28px] leading-none">{liveVitals.sbp}/{liveVitals.dbp}</div></div><div className="border-l border-white/10 pl-3 text-orange-200"><div className="text-[9px] uppercase tracking-wide">Temp · °C</div><div className="mt-2 font-mono text-[28px] leading-none">{liveVitals.temp.toFixed(1)}</div></div></div>
+      <div className="border-t border-white/10 pt-3 text-[9px] leading-5 text-slate-400">{rhythmLabel} · ondas simuladas<br/>{statusLabel}</div>
+    </section>;
+  }
 
   return (
     <section className={`relative overflow-hidden rounded-[28px] border p-4 ${style.shell} ${style.glow}`}>

@@ -64,8 +64,7 @@ export default function EmergencySimulatorPage() {
     };
   }, [difficultyFilter, manualScenarioId, scenarioPool, selectionMode]);
 
-  const resetRun = useCallback((nextScenario?: EmergencyScenario) => {
-    const activeScenario = nextScenario ?? scenario;
+  const resetRun = useCallback((activeScenario: EmergencyScenario) => {
     setSelectedActionIds([]);
     setRevealedStudyIds([]);
     setCurrentStageIndex(0);
@@ -73,7 +72,7 @@ export default function EmergencySimulatorPage() {
     setLastAction(null);
     setTimedOut(false);
     setTimeRemaining(activeScenario.timeLimitSec);
-  }, [scenario]);
+  }, []);
 
   useEffect(() => {
     const next = pickNextScenario();

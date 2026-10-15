@@ -1,0 +1,837 @@
+{
+  "sourceProject": "CACESECOTEC-main",
+  "files": {
+    "enfermeriaQuestions.json": 3252,
+    "enfermeriaOctubreDocumentoQuestions.json": 38,
+    "enfermeriaFundamentosDocumentoQuestions.json": 31
+  },
+  "imported": 3163,
+  "perComponent": [
+    {
+      "component": 1,
+      "label": "Enfermería - Cuidado y Procedimientos Clínicos de Enfermería",
+      "count": 1214
+    },
+    {
+      "component": 2,
+      "label": "Enfermería - Cuidados de la Mujer, Recién Nacido, Niño y Adolescente",
+      "count": 1129
+    },
+    {
+      "component": 3,
+      "label": "Enfermería - Cuidados del Adulto y Adulto Mayor",
+      "count": 215
+    },
+    {
+      "component": 4,
+      "label": "Enfermería - Cuidado Familiar, Comunitario e Intercultural",
+      "count": 271
+    },
+    {
+      "component": 5,
+      "label": "Enfermería - Bases Educativas, Administrativas, Investigativas y Epidemiológicas",
+      "count": 334
+    }
+  ],
+  "duplicateCount": 99,
+  "excludedCount": 59,
+  "excluded": [
+    {
+      "id": "local-enfermeria-inmunizaciones-2026-dfbef33613a9",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-inmunizaciones-2026-09782c49e4fa",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-inmunizaciones-2026-8c76a6b81ac5",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-inmunizaciones-2026-e801680f6531",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-inmunizaciones-2026-8f1342db9522",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-inmunizaciones-2026-f56332e660bd",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-inmunizaciones-2026-78573cbfb16a",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-inmunizaciones-2026-dbd90934310b",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-inmunizaciones-2026-78b88a512040",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-inmunizaciones-2026-93744dd05dc2",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-inmunizaciones-2026-1fd318c2d13a",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-inmunizaciones-2026-29c8aefdb5d7",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-mais-fci-e1e13a47a74c",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-mais-fci-6f937d7780f1",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-mais-fci-5b4c3289053e",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-mais-fci-3f26870deb5f",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-mais-fci-cc31ec5f6562",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-mais-fci-89348f819ab2",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-mais-fci-7784f2b1dd24",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-mais-fci-ffd01457268b",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-mais-fci-2fc0b17c91cb",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-transfusion-sangre-fe6b652881ca",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-transfusion-sangre-0fdc064b4135",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-transfusion-sangre-efb03266d157",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-transfusion-sangre-7581ec296d0b",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-transfusion-sangre-3308fe29f7bd",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-transfusion-sangre-46b07abf3e36",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-transfusion-sangre-efa62ce007ac",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-transfusion-sangre-30f586476d3b",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-transfusion-sangre-755327555bb8",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-transfusion-sangre-b7ccf2320f01",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-aiepi-docente-100-7b2b2db17f1a",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-aiepi-docente-100-58056d8d2df5",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-aiepi-docente-100-b06c0d53e672",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-aiepi-docente-100-e2eefe175844",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-aiepi-docente-100-25c51d9a72b8",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-aiepi-docente-100-f9187813fb14",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-aiepi-docente-100-eb280edc95d1",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-aiepi-docente-100-b73da2fd53a7",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-aiepi-docente-100-159ff62d0041",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-aiepi-docente-100-ad85eb17d22a",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-aiepi-docente-100-7106e41ff3bd",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-aiepi-docente-100-734d7e1bf8aa",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-aiepi-docente-100-c440ee99e7ae",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-aiepi-docente-100-badda8a9733c",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-aiepi-docente-100-b06b7f4dfc05",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-aiepi-docente-100-22873d3ede0b",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-aiepi-docente-100-53841de2cfb7",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-aiepi-docente-100-035b95cce099",
+      "file": "enfermeriaQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-octubre-documento-009",
+      "file": "enfermeriaOctubreDocumentoQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-octubre-documento-026",
+      "file": "enfermeriaOctubreDocumentoQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-octubre-documento-029",
+      "file": "enfermeriaOctubreDocumentoQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-octubre-documento-037",
+      "file": "enfermeriaOctubreDocumentoQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-fundamentos-documento-005",
+      "file": "enfermeriaFundamentosDocumentoQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-fundamentos-documento-014",
+      "file": "enfermeriaFundamentosDocumentoQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-fundamentos-documento-015",
+      "file": "enfermeriaFundamentosDocumentoQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-fundamentos-documento-022",
+      "file": "enfermeriaFundamentosDocumentoQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-fundamentos-documento-026",
+      "file": "enfermeriaFundamentosDocumentoQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    },
+    {
+      "id": "local-enfermeria-fundamentos-documento-036",
+      "file": "enfermeriaFundamentosDocumentoQuestions.json",
+      "reason": "No cumple el formato de cuatro alternativas completas con clave o carece de contexto/imagen"
+    }
+  ],
+  "duplicates": [
+    {
+      "id": "local-enfermeria-1002-bacfd7b08a40",
+      "duplicateOf": "local-enfermeria-0496-d328b2af89f5",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1006-a9b6882e8c9a",
+      "duplicateOf": "local-enfermeria-0824-44d1b9b8ce10",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1083-47c30c217058",
+      "duplicateOf": "local-enfermeria-0825-700b9f6cf4f3",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1163-f8421c68f704",
+      "duplicateOf": "local-enfermeria-0519-14814d49a7ae",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1182-0d3e790514c8",
+      "duplicateOf": "local-enfermeria-0454-5cecbc8b6cdf",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1236-83e1ae4792d6",
+      "duplicateOf": "local-enfermeria-0807-3ed7896f5a45",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1274-adaeea9af3bd",
+      "duplicateOf": "local-enfermeria-0534-59de0e09617c",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1289-40bf060819e6",
+      "duplicateOf": "local-enfermeria-0513-1f7aabfc2d52",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1306-19fc9e5d4ca0",
+      "duplicateOf": "local-enfermeria-0271-12a0612705c7",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1339-6958095a202f",
+      "duplicateOf": "local-enfermeria-0629-2f0d041ce896",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1357-feb60efe3d8d",
+      "duplicateOf": "local-enfermeria-0571-d773e047e6dc",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1360-2d905a49defd",
+      "duplicateOf": "local-enfermeria-0591-24b263cb8675",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1361-9a1ac29b526e",
+      "duplicateOf": "local-enfermeria-0386-b92490c855de",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1378-4e752391c93a",
+      "duplicateOf": "local-enfermeria-0621-40f6a54f3d33",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1394-c88157d2c5e0",
+      "duplicateOf": "local-enfermeria-0366-cda3be8f622c",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1440-6fea2bbf1bfd",
+      "duplicateOf": "local-enfermeria-0905-e6c3c4e5abce",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1442-4ad01a61d70b",
+      "duplicateOf": "local-enfermeria-0813-619ceaf1f5bb",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1448-895bd4649a9e",
+      "duplicateOf": "local-enfermeria-0408-521aa5c51aba",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1451-cb92d36d6afd",
+      "duplicateOf": "local-enfermeria-0965-ccf5e1f5090d",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1489-e4d731c9d70d",
+      "duplicateOf": "local-enfermeria-0823-855fd9819b24",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1515-54f569613228",
+      "duplicateOf": "local-enfermeria-0925-3197bb7dc232",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1574-7e9bc333e8b2",
+      "duplicateOf": "local-enfermeria-0615-030582e6bc72",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1584-57d8e585706f",
+      "duplicateOf": "local-enfermeria-0514-9318f0547f13",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1591-24ffb23c1c0a",
+      "duplicateOf": "local-enfermeria-0832-4b543f07b207",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1592-1ce657d5b560",
+      "duplicateOf": "local-enfermeria-0650-693551564a57",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1605-e8023c6f1236",
+      "duplicateOf": "local-enfermeria-0945-f05644de78ac",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1606-0a81fafcb953",
+      "duplicateOf": "local-enfermeria-0880-3a4a05e825e5",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1609-395389ea04e6",
+      "duplicateOf": "local-enfermeria-0361-2708563be3d9",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1612-114116dd340c",
+      "duplicateOf": "local-enfermeria-0649-f83968bd9326",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1614-6e75fab45f57",
+      "duplicateOf": "local-enfermeria-0854-a07065f440f5",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1620-3e28edb56a07",
+      "duplicateOf": "local-enfermeria-0904-8247d99f2932",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1621-0c8a5ddbe4aa",
+      "duplicateOf": "local-enfermeria-0163-b58593521db2",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1622-0e0207d1e976",
+      "duplicateOf": "local-enfermeria-0819-176751d09226",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1626-199ee9bcdd7e",
+      "duplicateOf": "local-enfermeria-0152-5b879c23a0b4",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1627-9230499b9a5e",
+      "duplicateOf": "local-enfermeria-0055-eded78176465",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1638-a4c95d1e783a",
+      "duplicateOf": "local-enfermeria-0121-2590fd36a880",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1646-6fd28182152b",
+      "duplicateOf": "local-enfermeria-0718-ee2cf2db210c",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1647-b052ec862582",
+      "duplicateOf": "local-enfermeria-0446-8d5e11eae807",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1656-0388a81ff76d",
+      "duplicateOf": "local-enfermeria-0173-4cd89f81baec",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1657-4d61da9aa77d",
+      "duplicateOf": "local-enfermeria-0905-e6c3c4e5abce",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1663-8c4bd4dd9e75",
+      "duplicateOf": "local-enfermeria-0852-bb1462ce16f2",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1665-13b123e64f12",
+      "duplicateOf": "local-enfermeria-0579-ae820d0dd053",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1667-9fa7197d5b57",
+      "duplicateOf": "local-enfermeria-0443-434140fe8a90",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1668-fd3345b68cd2",
+      "duplicateOf": "local-enfermeria-0900-ea02b40d9419",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1669-efcdc4e7fbbb",
+      "duplicateOf": "local-enfermeria-0440-feed27f7cf1d",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1675-633df5329180",
+      "duplicateOf": "local-enfermeria-0608-3a299d9729e4",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1680-23ca19e3bbca",
+      "duplicateOf": "local-enfermeria-0578-ba94e392e00a",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1681-c8922bc4cf4b",
+      "duplicateOf": "local-enfermeria-0113-3262d90a344d",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1692-e30e1c9672b5",
+      "duplicateOf": "local-enfermeria-0673-65ec7ad1c472",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1695-8b7e5a81caca",
+      "duplicateOf": "local-enfermeria-0398-4625a6b91288",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1704-5457fcdc578b",
+      "duplicateOf": "local-enfermeria-0250-f7521597ae8c",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1710-1ae16082f10c",
+      "duplicateOf": "local-enfermeria-0044-64f55fee1551",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1716-f5bf91640f54",
+      "duplicateOf": "local-enfermeria-0496-d328b2af89f5",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1717-57b7991a6f85",
+      "duplicateOf": "local-enfermeria-0941-5e494c91b897",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1718-f80e0f0dec94",
+      "duplicateOf": "local-enfermeria-0838-ebcc073ed5e3",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1722-57d0620abc93",
+      "duplicateOf": "local-enfermeria-0625-38eeee64ecd8",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1728-c8ec78ce0c19",
+      "duplicateOf": "local-enfermeria-0217-8ccb4b343fd4",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1733-16eed541f3c2",
+      "duplicateOf": "local-enfermeria-0485-aabbe8b4ff67",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1734-1fb9ff7ee27c",
+      "duplicateOf": "local-enfermeria-0603-7d0afa931471",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1748-e1fd12099c00",
+      "duplicateOf": "local-enfermeria-0657-dc18431b6a70",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1750-1ccf45cc8158",
+      "duplicateOf": "local-enfermeria-0717-50059b6c2081",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1762-d3637ac32327",
+      "duplicateOf": "local-enfermeria-0877-9b003da62f21",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1767-158352d1ea33",
+      "duplicateOf": "local-enfermeria-0548-bd06fe41394a",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1782-ab249e0fa93e",
+      "duplicateOf": "local-enfermeria-0411-b25e1046a47c",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1783-78cca31437b9",
+      "duplicateOf": "local-enfermeria-0495-057941edda82",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1792-a272af78cd67",
+      "duplicateOf": "local-enfermeria-0097-fe68a12b7e7b",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1793-c529a86f202f",
+      "duplicateOf": "local-enfermeria-0374-2537909ad566",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1794-0007157fe907",
+      "duplicateOf": "local-enfermeria-0889-a486e4651a2c",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1795-50924648997b",
+      "duplicateOf": "local-enfermeria-0817-e7c46b219564",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1798-48dfc87f9ebb",
+      "duplicateOf": "local-enfermeria-0862-438ec3488608",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1817-300373637bd6",
+      "duplicateOf": "local-enfermeria-0723-72a0b0fd3f3c",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1819-b6cbe70c4c05",
+      "duplicateOf": "local-enfermeria-0094-44fe468cedd2",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1826-a4c4641f4069",
+      "duplicateOf": "local-enfermeria-0965-ccf5e1f5090d",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1828-3509a22fb3bf",
+      "duplicateOf": "local-enfermeria-0516-5d2ae0e2f865",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1830-ff8d4524c55c",
+      "duplicateOf": "local-enfermeria-0404-9bd4bb610251",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1833-639368915c5c",
+      "duplicateOf": "local-enfermeria-0704-bf297dd4991b",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1836-6c68bd8543bd",
+      "duplicateOf": "local-enfermeria-0845-f63d3d096a17",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1842-baa61b443813",
+      "duplicateOf": "local-enfermeria-0596-60a439b1e37b",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1844-afdd73285348",
+      "duplicateOf": "local-enfermeria-0237-1ee453d1437a",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1853-f94ccc52d1d1",
+      "duplicateOf": "local-enfermeria-0670-5ce3f3f69a85",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1861-2cfc35d9252a",
+      "duplicateOf": "local-enfermeria-0937-f3a45f765bfd",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1866-e9ded330eaf5",
+      "duplicateOf": "local-enfermeria-0970-ac86e8363f38",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1870-d597ee36d2a5",
+      "duplicateOf": "local-enfermeria-0337-302d77d279b0",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1871-c88834899070",
+      "duplicateOf": "local-enfermeria-0541-a5bd1fcf3dc1",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1873-4a7657238119",
+      "duplicateOf": "local-enfermeria-0953-dfaa7f32a147",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1878-bd3b3172ef21",
+      "duplicateOf": "local-enfermeria-0047-284bced23a84",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1882-14efac46d942",
+      "duplicateOf": "local-enfermeria-0498-276d49ce035b",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1901-2327f3e87114",
+      "duplicateOf": "local-enfermeria-0808-ef78d1063238",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1902-b77884a55518",
+      "duplicateOf": "local-enfermeria-0696-c54cf9f71513",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1907-1c4a0e782316",
+      "duplicateOf": "local-enfermeria-0697-6d82c033075d",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1909-45880b69e2fa",
+      "duplicateOf": "local-enfermeria-0476-dd7cd952f431",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1910-b6923ef7c315",
+      "duplicateOf": "local-enfermeria-0647-7a64d2614424",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1914-18b380564527",
+      "duplicateOf": "local-enfermeria-0040-695849ec109b",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1916-3aff942739d5",
+      "duplicateOf": "local-enfermeria-0535-c36aaa984563",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-1918-f6d200edbcd1",
+      "duplicateOf": "local-enfermeria-0322-5782539e839b",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-2051-3af080fbe7d3",
+      "duplicateOf": "local-enfermeria-1749-49daf2884485",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-2085-3386cca8fb70",
+      "duplicateOf": "local-enfermeria-1908-9e64cc3b59b8",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-2086-9fe9439fa315",
+      "duplicateOf": "local-enfermeria-2020-df69242cfb7d",
+      "file": "enfermeriaQuestions.json"
+    },
+    {
+      "id": "local-enfermeria-2131-f2d5429be17d",
+      "duplicateOf": "local-enfermeria-0629-2f0d041ce896",
+      "file": "enfermeriaQuestions.json"
+    }
+  ],
+  "notes": [
+    "Se aplican las reparaciones y validaciones locales del proyecto de origen.",
+    "Se conservan opciones y claves explícitas; no se generan alternativas ni respuestas.",
+    "Las colecciones etiquetadas Componente Integral no se asignan automáticamente a los cinco componentes."
+  ]
+}

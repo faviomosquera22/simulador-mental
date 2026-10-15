@@ -1,21 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
+import { CACES_ECOTEC_QUESTION_BANK as CACES_QUESTION_BANK, CACES_ECOTEC_CATEGORIES as CACES_CATEGORIES, CACES_STUDY_COMPONENTS, mergeEcotecQuestionBank } from "@/src/lib/cacesEcotec";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import Sidebar from "@/components/Sidebar";
 import {
-  CACES_QUESTION_BANK,
-  CACES_CATEGORIES,
   buildCacesProgressKey,
   buildCacesQuestionKey,
   dedupeCacesQuestions,
   deriveQuestionCountByMode,
   evaluateCacesAttempt,
   filterCacesQuestionBank,
-  listCacesComponents,
-  listCacesSubcomponents,
-  listCacesTopics,
   sampleCacesQuestionsBalancedByCategory,
   sampleCacesQuestionsPrioritizingUnseen,
 } from "@/src/lib/caces";
@@ -103,9 +100,6 @@ export default function SimulatorCacesPage() {
   const [history, setHistory] = useState<CacesHistoryEntry[]>([]);
 
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedComponent, setSelectedComponent] = useState<string>("");
-  const [selectedSubcomponent, setSelectedSubcomponent] = useState<string>("");
-  const [selectedTopic, setSelectedTopic] = useState<string>("");
   const [selectedDifficulty, setSelectedDifficulty] = useState<CacesDifficulty | "all">("all");
   const [selectedType, setSelectedType] = useState<CacesQuestionType | "all">("all");
 
@@ -114,7 +108,7 @@ export default function SimulatorCacesPage() {
   const [timerEnabled, setTimerEnabled] = useState(true);
   const [minutesPerQuestion, setMinutesPerQuestion] = useState<1 | 2>(2);
   const [saveResult, setSaveResult] = useState(true);
-  const [enableAIDynamicBank, setEnableAIDynamicBank] = useState(true);
+  const [enableAIDynamicBank, setEnableAIDynamicBank] = useState(false);
   const [generatedQuestions, setGeneratedQuestions] = useState<CacesQuestion[]>([]);
   const [seenQuestionKeys, setSeenQuestionKeys] = useState<Set<string>>(new Set());
   const [aiBusy, setAiBusy] = useState(false);
@@ -156,21 +150,6 @@ export default function SimulatorCacesPage() {
   const effectiveCategory = effectiveCategories.length === 1 ? effectiveCategories[0] : undefined;
 
   useEffect(() => {
-    setSelectedComponent("");
-    setSelectedSubcomponent("");
-    setSelectedTopic("");
-  }, [selectedCategories]);
-
-  useEffect(() => {
-    setSelectedSubcomponent("");
-    setSelectedTopic("");
-  }, [selectedComponent]);
-
-  useEffect(() => {
-    setSelectedTopic("");
-  }, [selectedSubcomponent]);
-
-  useEffect(() => {
     if (!attempt || attempt.result) return;
     if (!attempt.endsAtMs) return;
 
@@ -182,51 +161,14 @@ export default function SimulatorCacesPage() {
   }, [attempt]);
 
   const combinedQuestionBank = useMemo(
-    () => dedupeCacesQuestions([...CACES_QUESTION_BANK, ...generatedQuestions]),
-    [generatedQuestions]
-  );
-
-  const componentOptions = useMemo(
-    () => listCacesComponents(effectiveCategory, combinedQuestionBank, effectiveCategories),
-    [effectiveCategory, effectiveCategories, combinedQuestionBank]
-  );
-
-  const subcomponentOptions = useMemo(
-    () =>
-      listCacesSubcomponents(
-        selectedComponent || undefined,
-        effectiveCategory,
-        combinedQuestionBank,
-        effectiveCategories
-      ),
-    [selectedComponent, effectiveCategory, effectiveCategories, combinedQuestionBank]
-  );
-
-  const topicOptions = useMemo(
-    () =>
-      listCacesTopics(
-        selectedComponent || undefined,
-        selectedSubcomponent || undefined,
-        effectiveCategory,
-        combinedQuestionBank,
-        effectiveCategories
-      ),
-    [
-      selectedComponent,
-      selectedSubcomponent,
-      effectiveCategory,
-      effectiveCategories,
-      combinedQuestionBank,
-    ]
+    () => mergeEcotecQuestionBank(enableAIDynamicBank ? generatedQuestions : []),
+    [generatedQuestions, enableAIDynamicBank]
   );
 
   const activeFilterPayload = useMemo(
     () => ({
       category: effectiveCategory,
       categories: effectiveCategories.length > 0 ? effectiveCategories : undefined,
-      component: selectedComponent || undefined,
-      subcomponent: selectedSubcomponent || undefined,
-      topic: selectedTopic || undefined,
       difficulty: selectedDifficulty === "all" ? undefined : selectedDifficulty,
       type: selectedType === "all" ? undefined : selectedType,
       mix_categories: effectiveMixCategories,
@@ -234,9 +176,6 @@ export default function SimulatorCacesPage() {
     [
       effectiveCategory,
       effectiveCategories,
-      selectedComponent,
-      selectedSubcomponent,
-      selectedTopic,
       selectedDifficulty,
       selectedType,
       effectiveMixCategories,
@@ -320,9 +259,6 @@ export default function SimulatorCacesPage() {
     () => ({
       category: effectiveCategory,
       categories: effectiveCategories.length > 0 ? effectiveCategories : undefined,
-      component: selectedComponent || undefined,
-      subcomponent: selectedSubcomponent || undefined,
-      topic: selectedTopic || undefined,
       difficulty: selectedDifficulty === "all" ? undefined : selectedDifficulty,
       type: selectedType === "all" ? undefined : selectedType,
       mode,
@@ -337,9 +273,6 @@ export default function SimulatorCacesPage() {
     [
       effectiveCategory,
       effectiveCategories,
-      selectedComponent,
-      selectedSubcomponent,
-      selectedTopic,
       selectedDifficulty,
       selectedType,
       mode,
@@ -475,7 +408,7 @@ export default function SimulatorCacesPage() {
     setAiError(null);
 
     if (effectiveCategories.length === 0) {
-      setConfigError("Selecciona al menos una categoría para comenzar.");
+      setConfigError("Selecciona al menos un componente para comenzar.");
       return;
     }
 
@@ -496,10 +429,7 @@ export default function SimulatorCacesPage() {
       generationRounds += 1;
       if (generated <= 0) break;
 
-      const refreshedBank = dedupeCacesQuestions([
-        ...CACES_QUESTION_BANK,
-        ...getGeneratedCacesBank(),
-      ]);
+      const refreshedBank = mergeEcotecQuestionBank(getGeneratedCacesBank());
       candidatePool = filterCacesQuestionBank(activeFilterPayload, refreshedBank);
     }
 
@@ -775,17 +705,17 @@ export default function SimulatorCacesPage() {
     if (categoryCount <= 1) return null;
     const base = Math.floor(plannedQuestionCount / categoryCount);
     const remainder = plannedQuestionCount % categoryCount;
-    return `${categoryCount} categorías · ${base}-${base + (remainder > 0 ? 1 : 0)} preguntas por categoría (meta equitativa)`;
+    return `${categoryCount} componentes · ${base}-${base + (remainder > 0 ? 1 : 0)} preguntas por componente (meta equitativa)`;
   }, [effectiveCategories, plannedQuestionCount]);
 
   const describeAttemptCategories = useCallback((config: CacesAttemptConfig) => {
     const categories = Array.isArray(config.categories)
       ? config.categories.map((c) => String(c ?? "").trim()).filter(Boolean)
       : [];
-    if (categories.length === 0) return config.category ? config.category : "Sin categoría";
+    if (categories.length === 0) return config.category ? config.category : "Sin componente";
     if (categories.length === 1) return categories[0];
-    if (categories.length === CACES_CATEGORIES.length) return "Todas las categorías";
-    return `${categories.length} categorías mixtas`;
+    if (categories.length === CACES_CATEGORIES.length) return "Todos los componentes";
+    return `${categories.length} componentes mixtos`;
   }, []);
 
   const getOptionLabel = useCallback((question: CacesQuestion | undefined, optionId: CacesOptionId | null) => {
@@ -804,9 +734,9 @@ export default function SimulatorCacesPage() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h1 className="text-2xl font-semibold text-slate-900">Preguntas CACES</h1>
-                <p className="mt-1 text-sm text-slate-500">Práctica académica con preguntas tipo examen</p>
+                <p className="mt-1 text-sm text-slate-500">Cinco componentes de Enfermería · Banco CACES Ecotec</p>
                 <p className="mt-1 text-xs text-slate-400">
-                  Preguntas originales inspiradas en estructura temática académica. Uso educativo. No corresponde a reactivos oficiales.
+                  Banco local importado de CACES Ecotec. Se conservan las opciones y las claves del origen; su incorporación no implica validación oficial.
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -824,9 +754,10 @@ export default function SimulatorCacesPage() {
               <>
                 {!attempt || attempt.result ? (
                   <>
+                    <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50/70 px-5 py-4 text-sm text-emerald-900"><strong>{CACES_QUESTION_BANK.length.toLocaleString("es-EC")} preguntas de CACES Ecotec</strong><p className="mt-1 text-xs leading-6 text-emerald-700">Organizadas en los cinco componentes. Selecciona uno para practicar un área o combina varios para un simulacro.</p></div>
                     <section className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-[#f4faf8] to-[#edf4f1] p-5">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="text-sm font-semibold text-slate-900">Categorías (selección múltiple)</div>
+                        <div className="text-sm font-semibold text-slate-900">Elige tus componentes</div>
                         <div className="flex flex-wrap gap-2">
                           <button
                             type="button"
@@ -846,20 +777,26 @@ export default function SimulatorCacesPage() {
                       </div>
 
                       <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-                        {CACES_CATEGORIES.map((cat) => {
+                        {CACES_STUDY_COMPONENTS.map((component) => {
+                          const cat = component.label;
+                          const count = CACES_QUESTION_BANK.filter(question => question.category === cat).length;
                           const active = selectedCategories.includes(cat);
                           return (
                             <button
                               key={cat}
                               type="button"
                               onClick={() => toggleCategory(cat)}
+                              aria-pressed={active}
                               className={`rounded-2xl border px-3 py-3 text-left text-sm transition ${
                                 active
                                   ? "border-cyan-300/35 bg-cyan-300/10 text-cyan-700"
                                   : "border-slate-200 bg-white text-slate-600 hover:bg-white"
                               }`}
                             >
-                              {cat}
+                              <span className="mb-2 block font-mono text-xs text-emerald-700">COMPONENTE {component.id}</span>
+                              <strong className="block text-sm font-medium leading-6">{cat}</strong>
+                              <span className="mt-2 block text-xs leading-6 text-slate-400">{component.summary}</span>
+                              <span className="mt-3 block text-xs font-semibold text-emerald-700">{count.toLocaleString("es-EC")} preguntas Ecotec</span>
                             </button>
                           );
                         })}
@@ -867,11 +804,11 @@ export default function SimulatorCacesPage() {
 
                       <div className="mt-3 flex flex-wrap gap-2 text-xs">
                         <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-600">
-                          Seleccionadas: {selectedCategories.length}
+                          Componentes seleccionados: {selectedCategories.length}
                         </span>
                         {allCategoriesSelected && (
                           <span className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-cyan-700">
-                            Todas las categorías activas
+                            Los cinco componentes activos
                           </span>
                         )}
                         {effectiveMixCategories && (
@@ -891,71 +828,7 @@ export default function SimulatorCacesPage() {
                     <section className="mt-4 rounded-3xl border border-slate-200 bg-white/80 p-5">
                       <div className="text-sm font-semibold text-slate-900">Configuración previa del intento</div>
 
-                      <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-3">
-                        <div>
-                          <label className="text-xs text-slate-500">Componente</label>
-                          <select
-                            value={selectedComponent}
-                            onChange={(e) => setSelectedComponent(e.target.value)}
-                            className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none"
-                          >
-                            <option value="">Todos</option>
-                            {componentOptions.map((value) => (
-                              <option key={value} value={value}>
-                                {value}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="text-xs text-slate-500">Subcomponente</label>
-                          <select
-                            value={selectedSubcomponent}
-                            onChange={(e) => setSelectedSubcomponent(e.target.value)}
-                            className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none"
-                          >
-                            <option value="">Todos</option>
-                            {subcomponentOptions.map((value) => (
-                              <option key={value} value={value}>
-                                {value}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="text-xs text-slate-500">Tema</label>
-                          <select
-                            value={selectedTopic}
-                            onChange={(e) => setSelectedTopic(e.target.value)}
-                            className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none"
-                          >
-                            <option value="">Todos</option>
-                            {topicOptions.map((value) => (
-                              <option key={value} value={value}>
-                                {value}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
                       <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-4">
-                        <div>
-                          <label className="text-xs text-slate-500">Dificultad</label>
-                          <select
-                            value={selectedDifficulty}
-                            onChange={(e) => setSelectedDifficulty(e.target.value as CacesDifficulty | "all")}
-                            className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none"
-                          >
-                            <option value="all">Todas</option>
-                            <option value="basica">Básica</option>
-                            <option value="intermedia">Intermedia</option>
-                            <option value="alta">Alta</option>
-                          </select>
-                        </div>
-
                         <div>
                           <label className="text-xs text-slate-500">Cantidad de preguntas</label>
                           <select
@@ -1056,13 +929,13 @@ export default function SimulatorCacesPage() {
                                 checked={enableAIDynamicBank}
                                 onChange={(e) => setEnableAIDynamicBank(e.target.checked)}
                               />
-                              IA bajo demanda para ampliar banco
+                              Añadir práctica IA (opcional)
                             </label>
                             <div className="rounded-xl border border-slate-200 bg-white/78 px-3 py-2 text-xs text-slate-500">
                               Banco total CACES: <span className="font-semibold text-slate-900">{CACES_QUESTION_BANK.length}</span>
                             </div>
                             <div className="rounded-xl border border-slate-200 bg-white/78 px-3 py-2 text-xs text-slate-500">
-                              Banco IA acumulado: <span className="font-semibold text-slate-900">{generatedQuestions.length}</span>
+                              Banco IA acumulado: <span className="font-semibold text-slate-900">{mergeEcotecQuestionBank(generatedQuestions).length - CACES_QUESTION_BANK.length}</span>
                             </div>
                             <div className="rounded-xl border border-slate-200 bg-white/78 px-3 py-2 text-xs text-slate-500">
                               Banco disponible para este filtro: <span className="font-semibold text-slate-900">{filteredQuestions.length}</span>
@@ -1098,7 +971,7 @@ export default function SimulatorCacesPage() {
 
                       {effectiveCategories.length === 0 && (
                         <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/10 p-3 text-sm text-amber-700">
-                          Selecciona al menos una categoría para comenzar.
+                          Selecciona al menos un componente para comenzar.
                         </div>
                       )}
 
@@ -1137,9 +1010,6 @@ export default function SimulatorCacesPage() {
                           type="button"
                           onClick={() => {
                             setSelectedCategories([]);
-                            setSelectedComponent("");
-                            setSelectedSubcomponent("");
-                            setSelectedTopic("");
                             setSelectedDifficulty("all");
                             setSelectedType("all");
                             setMode("quiz_5");
@@ -1147,7 +1017,7 @@ export default function SimulatorCacesPage() {
                             setTimerEnabled(true);
                             setMinutesPerQuestion(2);
                             setSaveResult(true);
-                            setEnableAIDynamicBank(true);
+                            setEnableAIDynamicBank(false);
                             setConfigError(null);
                             setAiError(null);
                             setAiInfo(null);
@@ -1244,7 +1114,7 @@ export default function SimulatorCacesPage() {
                       </div>
                       <div className="flex flex-wrap items-center gap-2 text-xs">
                         <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
-                          Dificultad: {currentQuestion?.difficulty}
+                          {currentQuestion?.tags.includes("dificultad_no_clasificada") ? "Banco Ecotec · clave de origen" : `Dificultad: ${currentQuestion?.difficulty}`}
                         </span>
                         <span className={`rounded-full border px-3 py-1 ${getPriorityClass(currentQuestion?.difficulty === "alta" ? "Alta" : currentQuestion?.difficulty === "intermedia" ? "Media" : "Baja")}`}>
                           {currentQuestion?.type === "caso_clinico" ? "Caso clínico" : "Directa"}
@@ -1273,6 +1143,7 @@ export default function SimulatorCacesPage() {
 
                     <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
                       <div className="whitespace-pre-line text-sm font-medium text-slate-900">{currentQuestion?.question}</div>
+                      {currentQuestion?.image && <Image src={currentQuestion.image.url} alt={currentQuestion.image.alt} width={currentQuestion.image.width} height={currentQuestion.image.height} className="mx-auto mt-5 h-auto max-h-[420px] max-w-full rounded-lg border border-slate-200 object-contain"/>}
 
                       <div className="mt-3 space-y-2">
                         {currentQuestion?.options.map((opt) => {
@@ -1496,7 +1367,7 @@ export default function SimulatorCacesPage() {
 
             <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
               <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
-                <div className="text-sm font-semibold text-slate-900">Desempeño por categoría</div>
+                <div className="text-sm font-semibold text-slate-900">Desempeño por componente</div>
                 <div className="mt-2 space-y-2 text-sm">
                   {attempt.result.by_category.map((row) => (
                     <div key={row.category} className="rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
@@ -1564,6 +1435,7 @@ export default function SimulatorCacesPage() {
                         <div key={r.question_id} className="rounded-2xl border border-slate-200 bg-white p-3 text-sm shadow-sm">
                           <div className="text-xs text-slate-500">{q.category} · {q.topic}</div>
                           <div className="mt-1 whitespace-pre-line font-medium text-slate-900">{q.question}</div>
+                          {q.image && <Image src={q.image.url} alt={q.image.alt} width={q.image.width} height={q.image.height} className="mx-auto my-4 h-auto max-h-[360px] max-w-full rounded-lg object-contain"/>}
                           <div className="mt-2 text-slate-600">
                             Tu respuesta: {getOptionLabel(q, r.selected)}
                           </div>

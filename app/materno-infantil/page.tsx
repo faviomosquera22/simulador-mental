@@ -113,8 +113,7 @@ export default function MaternoInfantilPage() {
   }, [effectiveContext, filteredPool]);
 
   const resetRun = useCallback(
-    (nextScenario?: MaternoInfantScenario) => {
-      const activeScenario = nextScenario ?? scenario;
+    (activeScenario: MaternoInfantScenario) => {
       setSelectedActionIds([]);
       setCurrentStageIndex(0);
       setCurrentVitals(activeScenario.initialVitals);
@@ -131,7 +130,7 @@ export default function MaternoInfantilPage() {
         },
       ]);
     },
-    [scenario]
+    []
   );
 
   const pickNextScenario = useCallback(

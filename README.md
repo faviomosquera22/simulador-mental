@@ -34,3 +34,9 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Sala clínica interactiva
+
+El nuevo módulo de ginecología y obstetricia está en `/clinical-room`; los escenarios relacionados se agrupan en `/simulation-hub`. Consulta [la guía del módulo](docs/sala-clinica.md) para su funcionamiento, alcance y verificación.
+
+El PAE asistido dispone de búsqueda y selección explícita NANDA–NOC–NIC, resumen editable y formato imprimible. Consulta [el alcance del catálogo y sus propuestas educativas](docs/pae-asistido.md).
