@@ -16,7 +16,7 @@ const groups: { id: ActionGroup; label: string; icon: string }[] = [
   { id: "equipo", label: "Equipo y destino", icon: "↗" },
 ];
 const time = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
-type Finding = { title: string; body: string };
+type Finding = { title: string; body: string; needsConsent?: boolean };
 export default function ClinicalRoom() {
   const [run, setRun] = useState<SimulationRun>(() => createRun(GYNECOLOGY_CASES[0].id));
   const [mode, setMode] = useState<"practice" | "evaluation">("practice");
@@ -25,6 +25,7 @@ export default function ClinicalRoom() {
   const [examinedZones, setExaminedZones] = useState<string[]>([]);
   const [finding, setFinding] = useState<Finding | null>(null);
   const [notice, setNotice] = useState("");
+  const [lastDecision, setLastDecision] = useState<{ at: number; label: string; vitals: ReturnType<typeof getPhysiology>["vitals"] } | null>(null);
   const [focusMode, setFocusMode] = useState(false);
   const [sound, setSound] = useState(false);
   const [switchCase, setSwitchCase] = useState(false);
@@ -50,6 +51,15 @@ export default function ClinicalRoom() {
     { label: "Estudios", detail: studies.length ? `${readyStudies.length} de ${studies.length} disponibles` : "Sin solicitudes", done: studies.length > 0 },
     { label: "Coordinación", detail: selected("call") ? "Equipo avisado" : "Sin activación", done: selected("call") },
   ];
+  const nextCritical = (() => {
+    const needed = c.actions.filter(action => action.critical && !selected(action.id));
+    for (const action of needed) {
+      const required = (action.requires ?? []).find(id => !selected(id));
+      if (required) return c.actions.find(a => a.id === required) ?? action;
+      return action;
+    }
+    return null;
+  })();
   function openActionGroup(next: ActionGroup) {
     setGroup(next); setPanel("actions");
     decisionRef.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "nearest" });
@@ -100,18 +110,20 @@ export default function ClinicalRoom() {
   function closeDialog() { setFinding(null); setSwitchCase(false); setConfirmEnd(false); }
   function reset(caseId: string) {
     wasRunning.current = false;
+    setLastDecision(null);
     setRun(createRun(caseId)); setExaminedZones([]); setPendingCase(caseId); setGroup("valoracion"); setPanel("actions"); setNotice(""); closeDialog();
   }
   function act(id: string) {
     const action = c.actions.find(a => a.id === id)!;
     const next = performAction(c, run, id);
     if (next === run) return;
+    setLastDecision({ at: run.elapsed, label: action.label, vitals: { ...physiology.vitals } });
     setRun(next);
     setNotice(mode === "practice" ? action.group === "estudios" ? `Solicitud registrada. El resultado estará disponible en Estudios después de ${(action.minutes ?? 0) * 60} segundos simulados. ${action.rationale}` : `${action.result} ${action.rationale}` : `Acción registrada: ${action.label}. La retroalimentación se mostrará al finalizar.`);
     if (id === "history") setFinding({ title: "Entrevista con la paciente", body: c.history });
   }
   function explore(zone: keyof typeof c.findings) {
-    if (zone === "pelvis" && !selected("consent")) { setNotice("Antes de una exploración íntima, explica el procedimiento, solicita consentimiento y ofrece acompañante clínico."); return; }
+    if (zone === "pelvis" && !selected("consent")) { setFinding({ title: "El punto 04 necesita consentimiento", body: "Este punto sí funciona: antes de una exploración íntima necesitas explicar el procedimiento, solicitar consentimiento y ofrecer acompañante clínico. Pulsa el botón inferior para ir a esa acción; después vuelve al punto 04.", needsConsent: true }); return; }
     setExaminedZones(previous => previous.includes(zone) ? previous : [...previous, zone]);
     const labels = { head: "Estado general", chest: "Respiración y perfusión", abdomen: "Exploración abdominal", pelvis: "Exploración pélvica" };
     setFinding({ title: labels[zone], body: c.findings[zone] });
@@ -148,22 +160,27 @@ export default function ClinicalRoom() {
       <div className={styles.caseControl}><span className={styles.caseNumber}>{String(GYNECOLOGY_CASES.findIndex(item => item.id === c.id) + 1).padStart(2, "0")}</span><div><small>{c.specialty.toUpperCase()} · {c.difficulty}</small><strong>{c.title}</strong></div><button onClick={() => { setPendingCase(c.id); setSwitchCase(true); }} className={styles.subtleButton}>Cambiar caso ↗</button></div>
       <div className={styles.sessionControls}><span className={styles.clock} aria-label="Tiempo simulado">T+ {time(run.elapsed)}</span><button className={styles.subtleButton} onClick={advance} disabled={!running}>+30 s</button><button className={styles.startButton} disabled={finished} onClick={() => setRun(previous => ({ ...previous, status: previous.status === "running" ? "paused" : "running" }))}>{run.status === "ready" ? "Iniciar simulación ▷" : running ? "Pausar Ⅱ" : finished ? "Finalizada" : "Continuar ▷"}</button>{run.status !== "ready" && !finished && <button className={styles.subtleButton} onClick={() => setConfirmEnd(true)}>Finalizar</button>}</div>
     </section>
-    {run.status === "ready" && <div className={styles.intro}><div><strong>Tu guardia comienza aquí.</strong><p>Recibe a la paciente, explora los puntos de la camilla y decide qué hacer. Los estudios tardan en llegar y el estado cambia con el tiempo.</p></div><label>Modalidad<select value={mode} onChange={e => setMode(e.target.value as typeof mode)}><option value="practice">Práctica con orientación</option><option value="evaluation">Evaluación sin pistas</option></select></label></div>}
+    {run.status === "ready" && <div className={styles.intro}><div><strong>Tu guardia comienza aquí.</strong><p>Recibe a la paciente, explora los puntos de la camilla para leer hallazgos. Luego elige Valoración, Intervenciones o Equipo y pulsa una acción para realizarla. Pedir un estudio toma una muestra; lee su resultado cuando llegue. Compara los signos antes y después de intervenir.</p></div><label>Modalidad<select value={mode} onChange={e => setMode(e.target.value as typeof mode)}><option value="practice">Práctica con orientación</option><option value="evaluation">Evaluación sin pistas</option></select></label></div>}
     {run.status === "paused" && <div className={styles.pauseBanner}>Simulación en pausa · el tiempo y la evolución están detenidos.{!modalOpen && <button onClick={() => setRun(previous => ({ ...previous, status: "running" }))}>Continuar →</button>}</div>}
     <div className={styles.carePath} aria-label="Actividad de la sesión">
       <div className={styles.pathHeading}><span>RECORRIDO CLÍNICO</span><small>Tu actividad, sin una secuencia obligatoria</small></div>
-      <ol>{careSteps.map((step, index) => <li key={step.label} className={step.done ? styles.pathRecorded : ""}><span>{step.done ? "✓" : `0${index + 1}`}</span><div><strong>{step.label}</strong><small>{step.detail}</small></div></li>)}</ol>
+      <ol>{careSteps.map((step, index) => <li key={step.label} className={step.done ? styles.pathRecorded : ""}><button type="button" onClick={() => {
+        if (index === 1) document.getElementById("room-patient")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
+        else if (index === 2 && readyStudies.length) { setPanel("results"); decisionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }
+        else openActionGroup(index === 0 ? "valoracion" : index === 2 ? "estudios" : "equipo");
+      }} aria-label={`Abrir ${step.label}`}><span>{step.done ? "✓" : `0${index + 1}`}</span><div><strong>{step.label} ↗</strong><small>{step.detail}</small></div></button></li>)}</ol>
     </div>
+    {mode === "practice" && !finished && <section className={styles.guideCard} aria-label="Guía de la sala clínica"><span>¿QUÉ HAGO AHORA?</span><h2>{run.status === "ready" ? "Lee la entrega y comienza la atención" : nextCritical ? nextCritical.label : "Compara la respuesta y registra tu hipótesis"}</h2><p>{run.status === "ready" ? "Pulsa Iniciar simulación. Los puntos de la imagen abren hallazgos; los cuidados se realizan desde el panel de decisiones. El punto 04 requiere consentimiento previo." : nextCritical ? nextCritical.rationale : "Revisa las tendencias, lee los resultados disponibles y comprueba qué cuidados faltan antes de finalizar."}</p><button className={styles.startButton} disabled={!running} onClick={() => openActionGroup(nextCritical?.group ?? "valoracion")}>{nextCritical ? `Ir a ${groups.find(item => item.id === nextCritical.group)?.label.toLowerCase()} →` : "Volver a decisiones →"}</button><small>Orientación de práctica; puedes atender varias necesidades sin seguir una secuencia rígida.</small></section>}
     <div className={styles.mobileVitals} aria-label="Signos vitales resumidos"><span>FC<strong>{physiology.vitals.hr}<small> lpm</small></strong></span><span>SpO₂<strong>{physiology.vitals.spo2}<small> %</small></strong></span><span>Presión<strong>{physiology.vitals.sbp}/{physiology.vitals.dbp}</strong></span></div>
     <div className={styles.workspace}>
-      <section className={styles.monitorColumn} aria-label="Monitor y estado de la paciente">
+      <details className={styles.monitorColumn} aria-label="Monitor y estado de la paciente"><summary className={styles.monitorSummary}>Abrir monitor completo y tendencias<span>Los signos resumidos permanecen visibles mientras atiendes.</span></summary>
         <div className={styles.sectionLabel}><span>FISIOLOGÍA EN VIVO</span><span className={styles.liveDot} /></div>
         <MultiparameterMonitor vitals={physiology.vitals} baselineVitals={c.initial} title="Monitor de cabecera" subtitle="Señales educativas simuladas" accent="cyan" layout="station" paused={!running} statusLabel={physiology.critical ? "Requiere atención inmediata" : "Vigilancia clínica"} rhythmLabel="Taquicardia sinusal" timeLabel={time(run.elapsed)} />
         <div className={styles.metricGrid}><div><small>Índice de choque</small><strong className={physiology.shockIndex >= 1 ? styles.danger : ""}>{physiology.shockIndex.toFixed(2)}</strong><span>FC / presión sistólica</span></div><div><small>Sangrado visible</small><strong>{physiology.bleeding}<em> mL</em></strong><span>Estimación del escenario</span></div></div>
         <div className={styles.stateCard}><span className={physiology.critical ? styles.alertDot : styles.liveDot} /><div><strong>{physiology.escalated ? "Atención especializada coordinada" : physiology.critical ? "Compromiso fisiológico" : "Necesita reevaluación"}</strong><p>{physiology.escalated ? "Mantén el soporte. Coordinar atención no equivale a resolver la causa." : "La evolución depende del tiempo y de tus decisiones."}</p></div></div>
         <VitalsTrend scenario={c} run={run}/>
-      </section>
-      <section className={styles.patientColumn} aria-label="Paciente y exploración">
+      </details>
+      <section id="room-patient" className={styles.patientColumn} aria-label="Paciente y exploración">
         <div className={styles.patientHeader}><div><strong>{c.name}</strong><span>{c.age} años · {c.background}</span></div><span className={styles.syntheticBadge}>Caso ficticio</span></div>
         <PatientScene key={c.id} oxygen={selected("oxygen")} iv={selected("iv")} fluids={selected("fluids")} active={running} examined={examinedZones} onExplore={explore}/>
         <div className={styles.quote}><span>“</span><p>{selected("fluids") && physiology.escalated ? "¿Van a quedarse conmigo? Díganme qué está pasando, por favor." : c.complaint}</p></div>
@@ -172,15 +189,16 @@ export default function ClinicalRoom() {
       </section>
       <section ref={decisionRef} className={styles.decisionColumn} aria-label="Decisiones y resultados">
         <div className={styles.tabs} role="tablist" aria-label="Área de trabajo">{([{ id: "actions", label: "Decisiones" }, { id: "results", label: `Estudios (${readyStudies.length})` }, { id: "log", label: "Registro" }] as const).map(tab => <button key={tab.id} id={`tab-${tab.id}`} aria-controls="workspace-panel" role="tab" aria-selected={panel === tab.id} onClick={() => setPanel(tab.id)}>{tab.label}</button>)}</div>
+        {notice && <div className={styles.feedback} role="status"><span>{mode === "practice" ? "QUÉ ACABAS DE HACER" : "REGISTRO"}</span><p>{notice}</p></div>}
+        {lastDecision && mode === "practice" && <section className={styles.responseCard} aria-label="Respuesta observada en la sala"><strong>Después de: {lastDecision.label}</strong><p>Signos al decidir ({time(lastDecision.at)}) → signos actuales. También influyen el tiempo y los demás cuidados.</p><div><span>FC <b>{lastDecision.vitals.hr} → {physiology.vitals.hr}</b></span><span>SpO₂ <b>{lastDecision.vitals.spo2} → {physiology.vitals.spo2}%</b></span><span>Sistólica <b>{lastDecision.vitals.sbp} → {physiology.vitals.sbp}</b></span></div></section>}
         <div role="tabpanel" id="workspace-panel" aria-labelledby={`tab-${panel}`}>
-          {panel === "actions" && <><div className={styles.actionHeading}><span>{groups.find(item => item.id === group)?.icon}</span><div><h2>{groups.find(item => item.id === group)?.label}</h2><p>Selecciona una acción para registrarla.</p></div></div><div className={styles.actionList}>{c.actions.filter(a => a.group === group).map(action => {
+          {panel === "actions" && <><div className={styles.actionHeading}><span>{groups.find(item => item.id === group)?.icon}</span><div><h2>{groups.find(item => item.id === group)?.label}</h2><p>Lee el propósito y pulsa el cuidado para realizarlo una vez. Los bloqueos indican qué falta.</p></div></div><div className={styles.actionList}>{c.actions.filter(a => a.group === group).map(action => {
             const done = selected(action.id); const available = actionAvailable(action, run);
-            return <button key={action.id} className={`${styles.action} ${done ? styles.actionDone : ""}`} onClick={() => act(action.id)} disabled={!running || done || !available}><span className={styles.actionCheck}>{done ? "✓" : "+"}</span><span><strong>{action.label}</strong><small>{done ? action.group === "estudios" && !resultReady(action, run) ? "En proceso · revisa Estudios" : "Registrado" : !available ? `Antes: ${(action.requires ?? []).filter(id => !selected(id)).map(id => c.actions.find(a => a.id === id)?.label).join(" · ")}` : action.minutes ? `Resultado en ${action.minutes * 60} s simulados` : "Acción clínica"}</small></span></button>;
+            return <button key={action.id} className={`${styles.action} ${done ? styles.actionDone : ""}`} onClick={() => act(action.id)} disabled={!running || done || !available}><span className={styles.actionCheck}>{done ? "✓" : "+"}</span><span><strong>{action.label}</strong><small>{done ? action.group === "estudios" && !resultReady(action, run) ? "En proceso · revisa Estudios" : "Registrado" : !available ? `Antes: ${(action.requires ?? []).filter(id => !selected(id)).map(id => c.actions.find(a => a.id === id)?.label).join(" · ")}` : action.minutes ? `Resultado en ${action.minutes * 60} s simulados` : "Pulsa para realizar este cuidado"}</small>{mode === "practice" && !done && <small className={styles.actionPurpose}>{action.rationale}</small>}</span></button>;
           })}</div></>}
           {panel === "results" && <div className={styles.resultList}>{!studies.length && <div className={styles.empty}><span>⌕</span><h3>Aún no hay estudios</h3><p>Solicita las pruebas que consideres necesarias. Los resultados aparecerán aquí cuando estén disponibles.</p></div>}{studies.map(action => <article key={action.id} className={styles.study}><small>{resultReady(action, run) ? "RESULTADO DISPONIBLE" : "EN PROCESO"}</small><h3>{action.label}</h3>{!resultReady(action, run) && <progress aria-label={`Progreso de ${action.label}`} max={(action.minutes ?? 0) * 60} value={Math.max(0, run.elapsed - (run.decisions.find(decision => decision.id === action.id)?.at ?? run.elapsed))}/>}<p>{resultReady(action, run) ? action.result : `Disponible en ${Math.max(0, Math.ceil((run.decisions.find(d => d.id === action.id)?.at ?? 0) + (action.minutes ?? 0) * 60 - run.elapsed))} s simulados.`}</p></article>)}</div>}
           {panel === "log" && <ol className={styles.timeline}>{!run.decisions.length && <li>El registro comienza con tu primera decisión.</li>}{[...run.decisions].reverse().map(decision => <li key={decision.id}><time>{time(decision.at)}</time><div><strong>{c.actions.find(a => a.id === decision.id)?.label}</strong>{(mode === "practice" || finished) && <p>{c.actions.find(a => a.id === decision.id)?.rationale}</p>}</div></li>)}</ol>}
         </div>
-        {notice && <div className={styles.feedback} role="status"><span>{mode === "practice" ? "ORIENTACIÓN CLÍNICA" : "REGISTRO"}</span><p>{notice}</p></div>}
         <label className={styles.diagnosis}>Hipótesis diagnóstica<select disabled={!running} value={run.diagnosis} onChange={e => setRun(previous => ({ ...previous, diagnosis: e.target.value }))}><option value="">Selecciona tu hipótesis…</option>{[...new Set(GYNECOLOGY_CASES.flatMap(item => [item.diagnosis, ...item.differentials]))].sort().map(d => <option key={d}>{d}</option>)}</select></label>
         <div className={styles.decisionFooter}><span>{run.decisions.length} acciones registradas</span><span>{mode === "practice" ? "Práctica guiada" : "Evaluación"}</span></div>
       </section>
@@ -189,7 +207,7 @@ export default function ClinicalRoom() {
     <footer className={styles.footer}><p>Simulación educativa · evolución simplificada · {time(RUN_LIMIT)} por sesión · las decisiones deben adaptarse al rol y protocolo institucional.</p><a href={c.source.url} target="_blank" rel="noreferrer">Referencia: {c.source.label} ↗</a></footer>
     <dialog ref={dialogRef} className={styles.dialog} onCancel={event => { event.preventDefault(); closeDialog(); }} aria-labelledby="room-dialog-title">
       <button className={styles.close} onClick={closeDialog} aria-label="Cerrar diálogo">×</button>
-      {finding && <><span className={styles.eyebrow}>EXPLORACIÓN CLÍNICA</span><h2 id="room-dialog-title">{finding.title}</h2><p>{finding.body}</p><button className={styles.startButton} onClick={closeDialog}>Volver a la paciente →</button></>}
+      {finding && <><span className={styles.eyebrow}>EXPLORACIÓN CLÍNICA</span><h2 id="room-dialog-title">{finding.title}</h2><p>{finding.body}</p>{finding.needsConsent ? <button className={styles.startButton} onClick={() => { closeDialog(); openActionGroup("valoracion"); }}>Ir a explicar y solicitar consentimiento →</button> : <button className={styles.startButton} onClick={closeDialog}>Volver a la paciente →</button>}</>}
       {switchCase && <><span className={styles.eyebrow}>TU PRÓXIMA GUARDIA</span><h2 id="room-dialog-title">Elige un escenario</h2><p>Cada caso tiene hallazgos y prioridades diferentes. Cambiar de caso reinicia la sesión actual.</p><div className={styles.caseOptions}>{GYNECOLOGY_CASES.map(item => <button key={item.id} aria-pressed={pendingCase === item.id} onClick={() => setPendingCase(item.id)}><small>{item.specialty} · {item.difficulty}</small><strong>{item.title}</strong><span>{item.age} años · {item.name}</span></button>)}</div><button className={styles.startButton} onClick={() => reset(pendingCase)}>Preparar escenario →</button></>}
       {confirmEnd && <><span className={styles.eyebrow}>CIERRE DE SESIÓN</span><h2 id="room-dialog-title">¿Finalizar y revisar?</h2><p>Se evaluarán las decisiones tomadas, la hipótesis diagnóstica y las prioridades que quedaron pendientes.</p><button className={styles.startButton} onClick={() => { wasRunning.current = false; setRun(previous => ({ ...previous, status: "finished" })); closeDialog(); }}>Finalizar y ver evaluación →</button><button className={styles.subtleButton} onClick={closeDialog}>Seguir atendiendo</button></>}
     </dialog>

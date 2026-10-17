@@ -65,13 +65,13 @@ export const garmentSteps = [
 ];
 export type SimulationState = {
   scenario: ScenarioId; status: "ready" | "running" | "paused" | "finished"; elapsed: number; vitals: Vitals;
-  assessed: number[]; actions: string[]; studies: StudyRequest[]; medications: MedicationDose[]; complications: Complication[]; garment: number; ventilator: Ventilator;
+  assessed: number[]; actions: string[]; studies: StudyRequest[]; medications: MedicationDose[]; complications: Complication[]; reassessments: { at: number; vitals: Vitals }[]; garment: number; ventilator: Ventilator;
   log: { at: number; text: string }[]; feedback: string; history: { at: number; hr: number; sbp: number; spo2: number }[];
 };
-export type SimulationEvent = { type: "start" | "pause" | "finish" | "tick" } | { type: "reset"; scenario: ScenarioId } | { type: "assess"; zone: number } | { type: "action"; id: string } | { type: "study"; id: string } | { type: "garment"; step: number } | { type: "ventilator"; settings: Ventilator } | { type: "medication"; id: string } | { type: "stop-medication"; id: string } | { type: "acknowledge"; id: string };
+export type SimulationEvent = { type: "start" | "pause" | "finish" | "tick" | "reassess" } | { type: "reset"; scenario: ScenarioId } | { type: "assess"; zone: number } | { type: "action"; id: string } | { type: "study"; id: string } | { type: "garment"; step: number } | { type: "ventilator"; settings: Ventilator } | { type: "medication"; id: string } | { type: "stop-medication"; id: string } | { type: "acknowledge"; id: string };
 export function createSimulation(scenario: ScenarioId): SimulationState {
   const vitals = { ...scenarios[scenario].baseline };
-  return { scenario, status: "ready", elapsed: 0, vitals, assessed: [], actions: [], studies: [], medications: [], complications: [], garment: 0, ventilator: { fio2: 30, peep: 3, rate: 10, volume: 350 }, log: [], feedback: "Lee la presentación e inicia la práctica para valorar al paciente.", history: [{ at: 0, hr: vitals.hr, sbp: vitals.sbp, spo2: vitals.spo2 }] };
+  return { scenario, status: "ready", elapsed: 0, vitals, assessed: [], actions: [], studies: [], medications: [], complications: [], reassessments: [], garment: 0, ventilator: { fio2: 30, peep: 3, rate: 10, volume: 350 }, log: [], feedback: "Lee la presentación e inicia la práctica para valorar al paciente.", history: [{ at: 0, hr: vitals.hr, sbp: vitals.sbp, spo2: vitals.spo2 }] };
 }
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 function record(s: SimulationState, text: string): SimulationState { return { ...s, feedback: text, log: [...s.log, { at: s.elapsed, text }] }; }
@@ -82,6 +82,9 @@ export function simulationReducer(s: SimulationState, event: SimulationEvent): S
   if (event.type === "finish" && (s.status === "running" || s.status === "paused")) return record({ ...s, status: "finished" }, "Práctica finalizada. Revisa tus decisiones y los pendientes.");
   if (s.status !== "running") return s;
   const scenario = scenarios[s.scenario];
+  if (event.type === "reassess") {
+    return record({ ...s, reassessments: [...s.reassessments, { at: s.elapsed, vitals: { ...s.vitals } }] }, `Reevaluación registrada: FC ${Math.round(s.vitals.hr)} lpm, SpO₂ ${Math.round(s.vitals.spo2)}%, PA ${Math.round(s.vitals.sbp)}/${Math.round(s.vitals.dbp)} mmHg, FR ${Math.round(s.vitals.rr)} rpm. Leer y registrar los signos no modifica la fisiología.`);
+  }
   if (event.type === "assess") {
     const zone = scenario.zones[event.zone];
     if (!zone) return s;

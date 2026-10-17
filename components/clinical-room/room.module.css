@@ -344,3 +344,17 @@
   .mobileVitals small { font-size: 9px; color: #a8be98; }
   .actionGroups button strong { font-size: 11px; }
 }
+/* Keep controls discoverable and explain the effect of each decision. */
+.guideCard { padding: 19px; margin: 0 0 18px; border: 1px solid #87b79a55; border-radius: 10px; background: #c4ddba0d; }
+.guideCard>span { color: #a9c998; letter-spacing: 1.4px; font-size: 10px; }
+.guideCard h2 { font-size: 19px; font-weight: 500; line-height: 1.5; margin: 9px 0; color: #dfeddb; }
+.guideCard p { font-size: 13px; line-height: 1.9; color: #b5c8ad; margin-bottom: 13px; }
+.guideCard>small { display: block; font-size: 10px; line-height: 1.7; color: #97b08d; margin-top: 11px; }
+.guideCard .startButton { font-size: 12px; white-space: normal; }
+.workspace { grid-template-areas: "patient decisions" "monitor decisions"; }
+.monitorSummary { padding: 17px; cursor: pointer; font-size: 13px; color: #c8ddba; }
+.monitorSummary span { display: block; font-size: 10px; line-height: 1.8; color: #91ad86; margin-top: 7px; }
+.mobileVitals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; position: sticky; top: 10px; z-index: 8; padding: 12px 15px; margin-bottom: 16px; border: 1px solid #b6cda72b; border-radius: 8px; background: #0e2528f2; backdrop-filter: blur(10px); }
+.mobileVitals span { font-size: 10px; color: #a0b991; }.mobileVitals strong { display: block; margin-top: 4px; font: 20px var(--font-mono); color: #d1e3bf; }.mobileVitals small { font-size: 10px; }.decisionColumn { scroll-margin-top: 110px; }.actionHeading p { font-size: 12px; line-height: 1.8; }.action strong { font-size: 13px; }.action small.actionPurpose { font-size: 11px; line-height: 1.8; color: #718261; margin-top: 8px; }.feedback p { font-size: 12px; line-height: 1.9; }.responseCard { margin: 14px 16px; padding: 14px; background: #e7efda; border: 1px solid #c4d4b0; border-radius: 8px; color: #4e6d3e; }.responseCard>strong { font-size: 12px; font-weight: 600; }.responseCard p { font-size: 11px; line-height: 1.8; margin: 8px 0 12px; color: #71845f; }.responseCard>div { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }.responseCard span { font-size: 10px; }.responseCard b { display: block; margin-top: 5px; font: 13px var(--font-mono); color: #4e7342; }
+@media(max-width:800px){.workspace{grid-template-areas:"patient" "decisions" "monitor";}.mobileVitals{top:56px;}.decisionColumn{scroll-margin-top:145px;}.guideCard h2{font-size:18px;}.guideCard p{font-size:12px;}}
+.carePath li>button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:1px solid #9dbd8d22;border-radius:8px;background:#afcc9d06;padding:10px 8px;color:inherit;}.carePath li>button:hover{border-color:#a5c79366;background:#b5dba114;}.carePath li>button>span{display:flex;align-items:center;justify-content:center;width:26px;height:26px;flex-shrink:0;border:1px solid #c6d8b833;border-radius:50%;font:9px var(--font-mono);color:#a4bb90;}.carePath .pathRecorded>button>span{color:#d6e7c9;border-color:#b9c99c60;background:#c7d6a214;}#room-patient{scroll-margin-top:110px;}@media(max-width:800px){#room-patient{scroll-margin-top:145px;}}

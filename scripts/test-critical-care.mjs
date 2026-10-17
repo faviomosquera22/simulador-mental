@@ -101,3 +101,54 @@ test("reset clears every drug, complication, sample and clock", () => {
   const s=reduce(ticks(drug(start("asthma"),"salbutamol"),80),{type:"reset",scenario:"sepsis"});
   assert.equal(s.medications.length+s.complications.length+s.studies.length+s.elapsed,0);assert.equal(s.status,"ready");
 });
+
+const { nextGuidedTask, decisionSnapshot, sampleKey } = load(path.resolve("src/lib/criticalCareGuidance.ts"));
+test("the guide first explains exploration without requiring all zones before urgent care", () => {
+  let s=start("anaphylaxis");
+  assert.equal(nextGuidedTask(s,[]).target.zone,0);
+  s=reduce(s,{type:"assess",zone:0});
+  assert.equal(nextGuidedTask(s,[]).target.id,"help");
+  s=action(s,"help");
+  assert.equal(nextGuidedTask(s,[]).target.id,"adrenaline");
+  assert.equal(s.assessed.length,1);
+});
+test("guidance resolves medication prerequisites and distinguishes requesting from reading", () => {
+  let s=reduce(start("hypoglycemia"),{type:"assess",zone:0});
+  assert.equal(nextGuidedTask(s,[]).target.id,"glucose");
+  s=study(s,"glucose");
+  assert.notEqual(nextGuidedTask(s,[]).target.id,"dextrose","do not suggest blocked administration");
+  s=ticks(s,3);
+  s=reduce(s,{type:"acknowledge",id:"neuroglycopenia"});
+  assert.equal(nextGuidedTask(s,[]).target.read,true);
+  const read=[sampleKey("glucose",0)];
+  s=action(s,"airway");
+  const next=nextGuidedTask(s,read);
+  assert.equal(next.target.id,"iv");assert.equal(next.target.panel,"interventions");
+});
+test("reevaluation records an immutable snapshot and never changes physiology", () => {
+  let s=ticks(drug(start("asthma"),"salbutamol"),30);
+  const before=s.vitals;
+  s=reduce(s,{type:"reassess"});
+  assert.equal(s.reassessments.length,1);assert.equal(s.vitals,before);
+  assert.deepEqual(s.reassessments[0].vitals,before);
+  const recorded=s.reassessments[0].vitals.spo2;
+  s=ticks(s,20);assert.equal(s.reassessments[0].vitals.spo2,recorded);
+  assert.match(s.log.find(e=>e.text.startsWith("Reevaluación registrada")).text,/no modifica/);
+});
+test("pausing or finishing cannot register another reevaluation", () => {
+  for(const status of ["pause","finish"]){const s=reduce(start("sepsis"),{type:status});assert.equal(reduce(s,{type:"reassess"}),s);}
+});
+test("decision comparison stores the actual values before treatment and does not mutate them", () => {
+  const s=start("asthma");const snapshot=decisionSnapshot(s,"medication","salbutamol");
+  assert.equal(snapshot.title,"Salbutamol");assert.equal(snapshot.before.spo2,88);assert.ok(snapshot.observeAfter>6);
+  const treated=ticks(drug(s,"salbutamol"),30);assert.ok(treated.vitals.spo2>snapshot.before.spo2);
+  assert.equal(snapshot.before.spo2,88);
+});
+
+test("an unread active complication takes precedence over the next suggested task", () => {
+  let s=drug(start("asthma"),"salbutamol");s=drug(ticks(s,25),"salbutamol");s=ticks(s,25);
+  assert.equal(nextGuidedTask(s,[]).target.id,"alert:beta-tachycardia");
+  s=reduce(s,{type:"acknowledge",id:"beta-tachycardia"});
+  assert.notEqual(nextGuidedTask(s,[]).target.id,"alert:beta-tachycardia");
+  assert.ok(s.complications.some(c=>c.resolvedAt===undefined),"reading the alert does not cure it");
+});
