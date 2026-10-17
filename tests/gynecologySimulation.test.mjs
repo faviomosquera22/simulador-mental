@@ -73,3 +73,50 @@ test("unsafe actions and delayed critical decisions reduce the score", () => {
   assert.equal(after.harmful.length, 1);
   assert.ok(after.late.length > 0);
 });
+
+test("obstetric keys match each scenario and incorrect activation is penalized", () => {
+  for (const c of GYNECOLOGY_CASES.filter(c => c.obstetricKey)) {
+    let run = { ...createRun(c.id), status: "running" };
+    const wrong = c.actions.find(a => a.id.startsWith("key-") && a.harmful);
+    run = performAction(c, run, wrong.id);
+    assert.ok(evaluateRun(c, run).harmful.some(a => a.id === wrong.id));
+    assert.ok(evaluateRun(c, run).omitted.some(a => a.id === `key-${c.obstetricKey}`));
+  }
+});
+test("TANN requires assessment and red activation and provides temporary support", () => {
+  const c = GYNECOLOGY_CASES.find(c => c.id === "obs-01");
+  let run = { ...createRun(c.id), status: "running", elapsed: 120 };
+  assert.equal(performAction(c, run, "tann"), run);
+  run = performAction(c, run, "key-roja");
+  assert.equal(performAction(c, run, "tann"), run);
+  run = performAction(c, run, "tann-assess");
+  const before = getPhysiology(c, run);
+  const treated = performAction(c, run, "tann");
+  assert.deepEqual(getPhysiology(c, treated), before);
+  assert.ok(getPhysiology(c, { ...treated, elapsed: 180 }).vitals.sbp > getPhysiology(c, { ...run, elapsed: 180 }).vitals.sbp);
+  assert.ok(getPhysiology(c, { ...treated, elapsed: 180 }).bleeding >= before.bleeding);
+  assert.equal(getPhysiology(c, treated).escalated, false);
+  assert.ok(!GYNECOLOGY_CASES.find(c => c.id === "obs-02").actions.some(a => a.id === "tann"));
+});
+test("hypertension worsens without care and responds gradually to blood-pressure treatment", () => {
+  const c = GYNECOLOGY_CASES.find(c => c.id === "obs-02");
+  let run = { ...createRun(c.id), status: "running", elapsed: 120 };
+  assert.ok(getPhysiology(c, run).vitals.sbp > c.initial.sbp);
+  assert.equal(getPhysiology(c, run).critical, true);
+  run = performAction(c, run, "iv");
+  run = performAction(c, run, "call");
+  const before = getPhysiology(c, run);
+  const treated = performAction(c, run, "antihypertensive");
+  assert.equal(getPhysiology(c, treated).vitals.sbp, before.vitals.sbp);
+  assert.ok(getPhysiology(c, { ...treated, elapsed: 180 }).vitals.sbp < before.vitals.sbp);
+});
+test("fluids improve perfusion without directly stopping hemorrhage", () => {
+  const c = GYNECOLOGY_CASES.find(c => c.id === "obs-01");
+  let run = { ...createRun(c.id), status: "running", elapsed: 120 };
+  run = performAction(c, run, "iv");
+  const treated = performAction(c, run, "fluids");
+  const later = getPhysiology(c, { ...treated, elapsed: 180 });
+  const untreated = getPhysiology(c, { ...run, elapsed: 180 });
+  assert.equal(later.bleeding, untreated.bleeding);
+  assert.ok(later.vitals.sbp > untreated.vitals.sbp);
+});

@@ -4,7 +4,7 @@ Ruta: `/clinical-room`. Catálogo de escenarios relacionados: `/simulation-hub`.
 
 ## Alcance
 
-Tres casos ficticios: dolor pélvico con sospecha de embarazo ectópico complicado, enfermedad inflamatoria pélvica grave y hemorragia posparto con sospecha de atonía. Las fichas incluyen referencias de NICE, CDC y OMS. El contenido y los criterios de evaluación requieren revisión docente antes de utilizarse como evaluación institucional.
+Cinco casos ficticios, incluidos preeclampsia grave y sepsis puerperal, además de dolor pélvico con sospecha de embarazo ectópico complicado, enfermedad inflamatoria pélvica grave y hemorragia posparto con sospecha de atonía. Las fichas incluyen referencias de NICE, CDC y OMS. El contenido y los criterios de evaluación requieren revisión docente antes de utilizarse como evaluación institucional.
 
 La sala funciona sin llamadas a IA: utiliza un motor determinista, un monitor animado y imágenes fotorrealistas sintéticas con puntos de exploración interactivos. El acceso venoso y el oxígeno aparecen en la escena al registrarse esas intervenciones. La exploración pélvica y la ecografía requieren consentimiento previo.
 
@@ -16,7 +16,7 @@ La sala funciona sin llamadas a IA: utiliza un motor determinista, un monitor an
 4. Registrar la hipótesis y finalizar para revisar aciertos, omisiones, acciones inseguras y tardías.
 5. Descargar la evaluación en JSON o repetir el caso.
 
-Las sesiones duran hasta 12 minutos simulados. `+30 s` adelanta el tiempo; Pausar detiene la evolución y el monitor. Consultar un diálogo pausa la sesión y cerrarlo restaura el estado anterior. Cambiar a otra pestaña del navegador pausa la simulación. El sonido es opcional.
+Las sesiones duran hasta 12 minutos simulados. `+30 s` adelanta el tiempo; Pausar detiene la evolución y el monitor. Los diálogos de cambio de caso y cierre pausan la sesión; los hallazgos se muestran dentro del panel sin pausarla. Cambiar a otra pestaña del navegador pausa la simulación. El sonido es opcional.
 
 La sesión vive en memoria y se reinicia al recargar o cambiar de caso. La descarga es local: no se integra todavía con el historial ni se sincroniza con Supabase. Los resultados de laboratorio y la evolución fisiológica son representaciones educativas simplificadas; los intervalos de respuesta no representan tiempos asistenciales reales. Coordinar atención definitiva ralentiza el deterioro y no equivale a curación. El sangrado acumulado no disminuye retroactivamente al tratar.
 
@@ -56,6 +56,18 @@ La experiencia tiene una composición propia: paciente en un escenario amplio a 
 - El recorrido clínico muestra actividad registrada en valoración, exploración, estudios y coordinación. No es una puntuación ni exige un orden de decisiones.
 - Los estudios pendientes muestran su tiempo de procesamiento y una barra de progreso. El resultado solo aparece cuando termina el tiempo simulado.
 - El gráfico de evolución reconstruye FC y presión sistólica con el mismo motor del escenario y las decisiones registradas hasta cada instante. No añade una segunda fórmula de evolución ni anticipa decisiones futuras. Los valores del gráfico corresponden al motor; el monitor conserva sus pequeñas oscilaciones visuales simuladas.
-- En móvil, un resumen de signos vitales permanece visible al desplazarse y las decisiones aparecen inmediatamente después del área de paciente. El monitor detallado sigue disponible más abajo.
+- En móvil, el monitor compacto queda sobre el área de atención; paciente y decisiones permanecen uno junto al otro, con desplazamiento propio para los paneles.
 
-No se cambiaron los casos, criterios de evaluación ni relaciones del PAE durante este rediseño. Se reutilizan las imágenes sintéticas documentadas en `public/clinical-room/README.md`.
+Se reutilizan las imágenes sintéticas documentadas en `public/clinical-room/README.md`.
+
+## Atención persistente y claves obstétricas
+
+La sala mantiene al paciente, al monitor y a las categorías de acciones dentro de la altura disponible de la ventana. Las decisiones, los estudios y el registro tienen desplazamiento propio. En pantallas pequeñas se muestra un monitor compacto con FC, SpO₂, PA, FR, temperatura y ECG; la paciente y las decisiones comparten el espacio inferior. Los hallazgos se consultan dentro del panel de decisiones y ya no abren un diálogo ni pausan la evolución. Solo cambiar de caso o confirmar el cierre abre un diálogo y pausa.
+
+Urgencias, Simulador dinámico, Materno-infantil y RCP incorporan una cabecera persistente con los datos del paciente, monitor y las acciones ejecutables de la fase actual. Utiliza el estado y los controladores de cada simulador; la evolución sigue sus decisiones por etapas. Las oscilaciones de señal son ilustrativas y no constituyen un segundo motor fisiológico.
+
+La sala añade dos casos ficticios (preeclampsia con signos de severidad y sepsis materna con choque), para practicar las claves azul y amarilla, además de la roja en hemorragia posparto. Cada caso obstétrico permite elegir entre las tres claves: la pertinente es una prioridad evaluable y las incorrectas reciben retroalimentación y penalización. La EIP no se trata como sepsis obstétrica.
+
+En hemorragia posparto se puede valorar y colocar el traje antichoque no neumático (TANN), con representación gráfica esquemática sobre la paciente. Requiere valoración previa y activación de clave roja. Su efecto es temporal y no resuelve la causa; el retiro durante el choque se evalúa como inseguro. Esta representación no es un tutorial de colocación. El contenido se referencia al [Protocolo MSP Ecuador 2025](https://intranet.hospitalguayaquil.gob.ec/storage/manuales/GUIAS%20PRACTICAS%20CLINICAS/2025%20-%20Protocolo%20Score%20MAMA%CC%81%20y%20Claves%20Obste%CC%81tricas%202025.pdf), apartados de claves y anexo 8.
+
+El motor de la sala aplica respuestas graduales durante 45 segundos simulados para ilustrar la reevaluación tras tratamiento; ese intervalo es didáctico. La hipertensión empeora hacia presiones mayores y responde al antihipertensivo. El soporte con líquidos afecta la perfusión sin detener directamente el sangrado; el sangrado previo permanece acumulado. La activación de una clave organiza la respuesta y no produce por sí sola una mejoría fisiológica.

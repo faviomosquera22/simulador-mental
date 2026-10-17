@@ -23,7 +23,7 @@ type MultiparameterMonitorProps = {
   vitals: MonitorVitals;
   baselineVitals?: MonitorVitals;
   accent?: MonitorAccent;
-  layout?: "default" | "monitor-right" | "visual-only" | "bedside" | "station";
+  layout?: "default" | "monitor-right" | "visual-only" | "bedside" | "station" | "ribbon";
   paused?: boolean;
   title?: string;
   subtitle?: string;
@@ -619,6 +619,22 @@ export default function MultiparameterMonitor(props: MultiparameterMonitorProps)
       </div>
     </div>
   );
+
+  if (layout === "ribbon") {
+    return <section aria-label={title} className="rounded-xl bg-[#091b22] px-3 py-2 text-white">
+      <div className="flex items-center justify-between gap-2 text-[10px] text-slate-400"><span>{paused ? "En pausa" : "Monitor en vivo"} · {timeLabel}</span><span>{statusLabel}</span></div>
+      <div className="mt-1 grid grid-cols-[1fr_1fr_1.5fr_.85fr_1fr] gap-2 font-mono">
+        {[
+          { label: "FC", value: liveVitals.hr, unit: "lpm", color: "text-emerald-200" },
+          { label: "SpO₂", value: liveVitals.spo2, unit: "%", color: "text-cyan-200" },
+          { label: "PA", value: `${liveVitals.sbp}/${liveVitals.dbp}`, unit: "mmHg", color: "text-amber-200" },
+          { label: "FR", value: liveVitals.rr, unit: "rpm", color: "text-violet-200" },
+          { label: "T°", value: liveVitals.temp.toFixed(1), unit: "°C", color: "text-orange-200" },
+        ].map(item => <div key={item.label} className={item.color}><span className="text-[10px]">{item.label}</span><strong className="block text-xs leading-6 sm:text-xl">{item.value}</strong><small className="text-[9px] opacity-70">{item.unit}</small></div>)}
+      </div>
+      <svg viewBox="0 0 640 140" className="h-5 w-full" preserveAspectRatio="none" aria-hidden="true"><path d={ecgPath} fill="none" stroke="#89d5bd" strokeWidth="2.5"/></svg>
+    </section>;
+  }
 
   if (layout === "station") {
     return <section aria-label={title} className="overflow-hidden rounded-xl bg-[#091b22] p-4 text-white">

@@ -344,17 +344,128 @@
   .mobileVitals small { font-size: 9px; color: #a8be98; }
   .actionGroups button strong { font-size: 11px; }
 }
-/* Keep controls discoverable and explain the effect of each decision. */
+
+/* The care area owns the viewport; each record scrolls without losing the patient. */
+.room { height: calc(100dvh - 48px); display: flex; flex-direction: column; overflow: hidden; padding: 16px; }
+.header { padding-bottom: 10px; flex-shrink: 0; }
+.header h1 { margin: 8px 0 0; font-size: 25px; }
+.header h1 span, .header p, .carePath { display: none; }
+.headerActions { max-width: none; }
+.focusToggle { width: auto; }
+.toolbar { padding: 10px 0; flex-shrink: 0; }
+.intro { margin-top: 8px; padding: 8px 12px; flex-shrink: 0; }
+.pauseBanner { margin-top: 8px; padding: 7px 12px; flex-shrink: 0; }
+.workspace { flex: 1; min-height: 0; margin-top: 10px; grid-template-columns: minmax(170px, 1fr) minmax(220px, .9fr) minmax(260px, 1.1fr); grid-template-areas: "patient monitor decisions"; align-items: stretch; gap: 10px; }
+.patientColumn { display: flex; flex-direction: column; min-height: 0; }
+.patientHeader { padding: 10px; flex-shrink: 0; }
+.patientHeader strong { font-size: 14px; }
+.scene { flex: 1; display: flex; flex-direction: column; min-height: 120px; }
+.photoStage, .focusShell .photoStage { flex: 1; min-height: 0; height: auto; aspect-ratio: auto; }
+.portraitFrame { height: 100%; width: auto; aspect-ratio: 2 / 3; }
+.sceneLabel, .sceneBottom, .explorationStatus { display: none; }
+.sceneTop { padding: 6px; flex-wrap: wrap; }
+.patientEquipment { bottom: 6px; left: 6px; right: 6px; }
+.patientEquipment>span { padding: 4px; }
+.quote { padding: 8px 10px; max-height: 70px; overflow: auto; flex-shrink: 0; }
+.quote p { font-size: 10px; }
+.actionDock { padding: 9px; flex-shrink: 0; }
+.dockHeading { margin-bottom: 6px; }
+.dockHeading>span:last-child, .actionGroups button small { display: none; }
+.actionGroups { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.actionGroups button { padding: 8px; gap: 5px; }
+.actionGroups button>span { font-size: 15px; }
+.caseDetails { flex-shrink: 0; max-height: 100px; overflow: auto; padding-inline: 10px; }
+.caseDetails summary { padding: 10px 0; }
+.monitorColumn, .decisionColumn { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.monitorColumn>section { position: sticky; top: 0; z-index: 2; }
+.decisionColumn .tabs { position: sticky; top: 0; z-index: 3; }
+.actionList, .resultList, .timeline { max-height: none; grid-template-columns: 1fr; }
+.decisionGroups { display: flex; flex-wrap: wrap; gap: 5px; padding: 10px; background: #e6ebdf; position: sticky; top: 45px; z-index: 2; }
+.decisionGroups button { padding: 7px; border: 1px solid #b6c7a8; border-radius: 6px; font-size: 10px; }
+.decisionGroups button[aria-pressed=true] { background: #577348; color: white; }
+.obstetricGuide { padding: 8px 13px; font-size: 10px; line-height: 1.7; background: #f7f8ee; }
+.obstetricGuide a { text-decoration: underline; }
+.tannOverlay { position: absolute; inset: 0; height: 100%; width: 100%; z-index: 2; pointer-events: none; }
+.bedsideRibbon { display: none; }
+.footer { flex-shrink: 0; margin-top: 8px; padding-top: 6px; font-size: 9px; }
+.report { flex-shrink: 0; max-height: 45dvh; overflow: auto; padding: 16px; margin-top: 10px; }
+@media (max-width: 1350px) {
+  .toolbar { flex-direction: row; align-items: center; flex-wrap: wrap; gap: 6px; }
+  .headerActions { max-width: none; }
+  .workspace { grid-template-columns: minmax(180px, .8fr) minmax(270px, 1.2fr); grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "ribbon ribbon" "patient decisions"; }
+  .bedsideRibbon { display: block; grid-area: ribbon; }
+  .monitorColumn { display: none; }
+}
+@media (max-width: 767px) {
+  .room { height: calc(100dvh - 102px); margin-top: 35px; padding: 8px; border-radius: 12px; }
+  .header { padding-bottom: 6px; align-items: center; }
+  .header h1 { font-size: 18px; margin: 0; }
+  .header .eyebrow, .headerActions .focusToggle, .headerActions .link { display: none; }
+  .headerActions { flex-direction: row; max-width: none; gap: 4px; }
+  .toolbar { padding: 6px 0; gap: 5px; }
+  .caseControl { gap: 5px; width: 100%; }
+  .caseControl small, .caseNumber { display: none; }
+  .caseControl strong { font-size: 11px; }
+  .sessionControls { gap: 4px; }
+  .startButton, .subtleButton { padding: 7px; }
+  .intro { display: none; }
+  .workspace { margin-top: 6px; gap: 6px; grid-template-columns: minmax(105px, .7fr) minmax(0, 1.3fr); }
+  .patientHeader { padding: 7px; }
+  .patientHeader strong { font-size: 11px; }
+  .patientHeader div>span { font-size: 9px; }
+  .syntheticBadge, .cameraControls, .quote, .caseDetails, .dockHeading, .patientEquipment { display: none; }
+  .sceneTop { font-size: 8px; letter-spacing: 0; }
+  .portraitFrame { max-width: none; width: auto; height: 100%; }
+  .actionDock { padding: 5px; }
+  .actionGroups { grid-template-columns: 1fr; gap: 4px; }
+  .actionGroups button { flex-direction: row; align-items: center; padding: 7px 4px; gap: 4px; min-height: 30px; }
+  .actionGroups button strong { font-size: 9px; }
+  .tabs { gap: 4px; padding: 0 5px; }
+  .tabs button { font-size: 9px; padding-block: 10px; }
+  .decisionGroups { top: 36px; padding: 6px; gap: 4px; }
+  .decisionGroups button { font-size: 9px; padding: 5px; }
+  .actionHeading { padding: 10px; gap: 5px; }
+  .actionHeading h2 { font-size: 13px; }
+  .actionHeading p { display: none; }
+  .actionList { padding: 0 7px 8px; }
+  .action { padding: 8px 6px; gap: 5px; }
+  .action strong { font-size: 11px; }
+  .actionCheck { width: 15px; height: 15px; }
+  .footer { display: none; }
+}
+@media (max-height: 600px) {
+  .header, .intro, .quote { display: none; }
+  .room { min-height: 320px; }
+}
+@media (max-width: 767px) {
+  .photoStage { align-items: center; }
+  .portraitFrame { width: 100%; height: auto; aspect-ratio: 2 / 3; max-height: 100%; }
+  .dialog { max-height: calc(100dvh - 32px); overflow-y: auto; }
+}
+@media (min-width: 768px) and (max-width: 1120px) {
+  .workspace { grid-template-columns: minmax(110px, .75fr) minmax(0, 1.25fr); }
+  .intro { flex-direction: row; align-items: center; }
+  .intro p { display: none; }
+  .intro label { width: auto; }
+}
+@media (max-width: 767px) {
+  .intro { display: block; padding: 5px 8px; margin-top: 6px; }
+  .intro>div { display: none; }
+  .intro label { display: flex; align-items: center; gap: 8px; }
+  .intro select { width: auto; flex: 1; min-width: 0; margin: 0; padding: 5px; font-size: 10px; }
+}
+
 .guideCard { padding: 19px; margin: 0 0 18px; border: 1px solid #87b79a55; border-radius: 10px; background: #c4ddba0d; }
 .guideCard>span { color: #a9c998; letter-spacing: 1.4px; font-size: 10px; }
 .guideCard h2 { font-size: 19px; font-weight: 500; line-height: 1.5; margin: 9px 0; color: #dfeddb; }
 .guideCard p { font-size: 13px; line-height: 1.9; color: #b5c8ad; margin-bottom: 13px; }
 .guideCard>small { display: block; font-size: 10px; line-height: 1.7; color: #97b08d; margin-top: 11px; }
-.guideCard .startButton { font-size: 12px; white-space: normal; }
-.workspace { grid-template-areas: "patient decisions" "monitor decisions"; }
-.monitorSummary { padding: 17px; cursor: pointer; font-size: 13px; color: #c8ddba; }
-.monitorSummary span { display: block; font-size: 10px; line-height: 1.8; color: #91ad86; margin-top: 7px; }
-.mobileVitals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; position: sticky; top: 10px; z-index: 8; padding: 12px 15px; margin-bottom: 16px; border: 1px solid #b6cda72b; border-radius: 8px; background: #0e2528f2; backdrop-filter: blur(10px); }
-.mobileVitals span { font-size: 10px; color: #a0b991; }.mobileVitals strong { display: block; margin-top: 4px; font: 20px var(--font-mono); color: #d1e3bf; }.mobileVitals small { font-size: 10px; }.decisionColumn { scroll-margin-top: 110px; }.actionHeading p { font-size: 12px; line-height: 1.8; }.action strong { font-size: 13px; }.action small.actionPurpose { font-size: 11px; line-height: 1.8; color: #718261; margin-top: 8px; }.feedback p { font-size: 12px; line-height: 1.9; }.responseCard { margin: 14px 16px; padding: 14px; background: #e7efda; border: 1px solid #c4d4b0; border-radius: 8px; color: #4e6d3e; }.responseCard>strong { font-size: 12px; font-weight: 600; }.responseCard p { font-size: 11px; line-height: 1.8; margin: 8px 0 12px; color: #71845f; }.responseCard>div { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }.responseCard span { font-size: 10px; }.responseCard b { display: block; margin-top: 5px; font: 13px var(--font-mono); color: #4e7342; }
-@media(max-width:800px){.workspace{grid-template-areas:"patient" "decisions" "monitor";}.mobileVitals{top:56px;}.decisionColumn{scroll-margin-top:145px;}.guideCard h2{font-size:18px;}.guideCard p{font-size:12px;}}
-.carePath li>button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:1px solid #9dbd8d22;border-radius:8px;background:#afcc9d06;padding:10px 8px;color:inherit;}.carePath li>button:hover{border-color:#a5c79366;background:#b5dba114;}.carePath li>button>span{display:flex;align-items:center;justify-content:center;width:26px;height:26px;flex-shrink:0;border:1px solid #c6d8b833;border-radius:50%;font:9px var(--font-mono);color:#a4bb90;}.carePath .pathRecorded>button>span{color:#d6e7c9;border-color:#b9c99c60;background:#c7d6a214;}#room-patient{scroll-margin-top:110px;}@media(max-width:800px){#room-patient{scroll-margin-top:145px;}}
+.guideCard { margin: 10px; padding: 10px; background: #e6eddb; color: #4e6d3e; }
+.guideCard summary { font-size: 11px; cursor: pointer; }
+.guideCard h2 { font-size: 13px; color: #4e6d3e; }
+.guideCard p, .guideCard>small { color: #71845f; font-size: 11px; }
+.actionPurpose { color: #718261; }
+.responseCard { margin: 10px; padding: 10px; border: 1px solid #c4d4b0; border-radius: 8px; background: #e7efda; font-size: 11px; }
+.responseCard p { margin-block: 8px; }
+.responseCard>div { display: grid; gap: 6px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.responseCard b { display: block; font-family: var(--font-mono); }

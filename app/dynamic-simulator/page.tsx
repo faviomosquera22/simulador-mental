@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Sidebar from "@/components/Sidebar";
+import SimulationBedside from "@/components/advanced/SimulationBedside";
 import MultiparameterMonitor from "@/components/advanced/MultiparameterMonitor";
 import {
   DYNAMIC_SIMULATION_LIBRARY,
@@ -241,7 +242,7 @@ export default function DynamicSimulatorPage() {
       <div className="mx-auto flex max-w-[1640px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
         <Sidebar />
 
-        <main className="flex-1 rounded-2xl border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] p-5 shadow-[0_24px_70px_rgba(99,126,118,0.16)] backdrop-blur-xl">
+        <main className="min-w-0 flex-1 rounded-2xl border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] p-5 shadow-[0_24px_70px_rgba(99,126,118,0.16)] backdrop-blur-xl">
           <header className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold">Simulador dinámico</h1>
@@ -261,6 +262,8 @@ export default function DynamicSimulatorPage() {
               </span>
             </div>
           </header>
+          <SimulationBedside patient={`${scenario.patientProfile.name} · ${scenario.patientProfile.age} años`} complaint={scenario.patientProfile.chiefComplaint} vitals={currentVitals} rhythm={currentRhythm} finished={!!result} prompt={currentStage?.prompt} actions={currentStage?.actions ?? []} onAction={chooseAction}/>
+
 
           <section className="mt-4 rounded-2xl border border-emerald-400/15 bg-emerald-400/10 p-4">
             <div className="text-xs uppercase tracking-[0.16em] text-emerald-700/70">Cómo usar este módulo</div>
@@ -493,6 +496,7 @@ export default function DynamicSimulatorPage() {
                     title="Monitor multiparámetro dinámico"
                     subtitle="Seguimiento continuo con bloques clínicos, tendencias y comparación contra el estado basal."
                     vitals={currentVitals}
+                  paused={!!result}
                     baselineVitals={scenario.initialVitals}
                     statusLabel={currentStatus}
                     rhythmLabel={currentRhythm}
