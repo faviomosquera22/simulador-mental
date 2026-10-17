@@ -14,6 +14,7 @@ export type DashboardModuleMeta = {
 };
 
 export const DASHBOARD_MODULES: DashboardModuleMeta[] = [
+  { id: "critical-care", label: "Cuidados críticos", href: "/critical-care", group: "simulacion", summary: "Paciente realista, ventilación, ACV, asma, sepsis, anafilaxia e hipoglucemia. Pruebas y medicación con evolución y complicaciones.", accent: "from-teal-500/18 via-cyan-500/8 to-transparent", count: 6, countLabel: "casos en vivo", status: "Nuevo · medicación y complicaciones", highlight: true },
   {
     id: "clinical-room",
     label: "Sala clínica interactiva",

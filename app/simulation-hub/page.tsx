@@ -4,7 +4,7 @@ import { DASHBOARD_MODULES } from "@/src/lib/dashboardCatalog";
 import type { Metadata } from "next";
 export const metadata: Metadata = { title: "Escenarios y urgencias" };
 const tracks = [
-  { title: "Atención inmersiva", description: "Explora una paciente, solicita estudios y coordina la atención en un entorno visual.", ids: ["clinical-room", "dynamic-simulator"] },
+  { title: "Atención inmersiva", description: "Explora una paciente, solicita estudios y coordina la atención en un entorno visual.", ids: ["clinical-room", "critical-care", "dynamic-simulator"] },
   { title: "Respuesta inicial y soporte vital", description: "Practica decisiones breves, priorización por carrera y algoritmos de reanimación.", ids: ["urgencies", "triage", "rcp-algorithms"] },
   { title: "Salud materna e infantil", description: "Completa la práctica con escenarios obstétricos, neonatales y pediátricos.", ids: ["materno-infantil"] },
 ];
