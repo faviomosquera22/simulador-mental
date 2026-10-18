@@ -469,3 +469,97 @@
 .responseCard p { margin-block: 8px; }
 .responseCard>div { display: grid; gap: 6px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .responseCard b { display: block; font-family: var(--font-mono); }
+.catalogSearch{display:block;font-size:10px;color:#8d9f78;margin:0 13px 10px}
+.catalogSearch input{display:block;width:100%;padding:9px;border:1px solid #cbdab9;border-radius:6px;color:#65814f;background:#fffef8;margin-top:5px;font-size:11px}
+.actionList>article{min-width:0}
+.actionList>article .action{width:100%}
+.actionList>article>label{margin-top:5px;padding-inline:3px}
+.decisionColumn :global(.case-question){margin:10px}
+.decisionColumn :global(.drug-categories){padding-inline:12px}
+
+/* Immersive gynecology room: independent bedside monitor, patient and tools. */
+.shell{min-height:0;gap:12px}
+.room{height:calc(100dvh - 48px);padding:14px;min-height:500px}
+.header{align-items:center;gap:10px}
+.header h1{font-size:23px;margin:0;letter-spacing:-.6px}
+.header .eyebrow{font-size:8px;margin-bottom:7px}
+.headerActions{gap:6px;flex-direction:row}
+.headerActions .focusToggle{display:none}
+.toolbar{flex-direction:row;align-items:center;gap:8px;flex-wrap:wrap}
+.workspace{grid-template-columns:280px minmax(0,1fr) 360px;grid-template-rows:minmax(0,1fr);grid-template-areas:"monitor patient decisions";gap:12px;margin-top:0}
+.room[data-tools=false] .workspace{grid-template-columns:280px minmax(0,1fr);grid-template-areas:"monitor patient"}
+.room[data-tools=false] .decisionColumn{display:none}
+.monitorColumn{display:block;padding:10px;background:#11282b;overflow:auto}
+.monitorColumn>section{position:static}
+.monitorColumn>.sectionLabel{display:none}
+.monitorColumn :global(.bedside-device){box-shadow:none;padding:12px}
+.monitorColumn :global(.device-values strong){font-size:32px;min-height:42px}
+.monitorColumn :global(.device-values)>div:nth-child(3) strong{font-size:27px}
+.monitorColumn .metricGrid{padding:12px 0;gap:12px}
+.monitorColumn .metricGrid strong{font-size:26px}
+.monitorColumn .stateCard{padding:10px 0}
+.monitorColumn .vitalTrend{padding:8px 0}
+.patientColumn{border:0;background:radial-gradient(ellipse,#456c65,#193b39);border-radius:12px}
+.patientHeader{padding:9px 14px}
+.patientHeader strong{font-size:16px}.patientHeader div>span{font-size:10px}
+.scene{min-height:0;flex:1}
+.photoStage,.focusShell .photoStage{height:auto;flex:1;min-height:0;aspect-ratio:auto}
+.portraitFrame{height:100%;width:auto;max-width:100%;aspect-ratio:2/3}
+.sceneTop{flex-wrap:nowrap;padding:8px;gap:5px}
+.sceneTop>span{font-size:8px;white-space:nowrap}
+.cameraControls{display:flex}.cameraControls button{font-size:8px;padding:5px}
+.sceneVignette{background:linear-gradient(180deg,transparent 80%,#0d242955)}
+.patientPhoto{animation:none;object-fit:contain;filter:saturate(.85)}
+.breathLayer{position:absolute;inset:0;pointer-events:none;mask-image:radial-gradient(ellipse 25% 18% at 50% 33%,#000 45%,transparent 100%);transform-origin:50% 33%;animation:gynecologyBreathing var(--patient-breath-duration,3s) ease-in-out infinite;animation-play-state:paused}
+.scene[data-breathing=true] .breathLayer{animation-play-state:running}
+@keyframes gynecologyBreathing{50%{transform:scale(1.025,1.018)}}
+.quote{display:block;padding:7px 14px;max-height:48px}.quote p{font-size:10px}
+.actionDock{margin-top:10px;padding:8px 0 0;border:0;background:transparent}
+.dockHeading{display:none}
+.actionGroups{display:flex;justify-content:center;gap:8px;overflow-x:auto;padding-bottom:2px}
+.actionGroups button{min-width:105px;min-height:52px;flex-direction:column;justify-content:center;padding:8px 12px;background:#e8f1e2;color:#52714b;border:1px solid #c2d5b5;border-radius:9px}
+.actionGroups button[aria-pressed=true]{background:#bcd4ad;color:#24442c;border-color:#d4e4c9}
+.actionGroups button>span{font-size:18px}.actionGroups button strong{font-size:11px}.actionGroups button small{display:none}
+.decisionColumn{overflow:auto;scrollbar-width:thin}.tabs{display:flex;flex-wrap:wrap;padding:0 8px;gap:6px}.tabs button{font-size:11px;padding:11px 4px;flex:1}
+.decisionGroups{position:static}
+.caseInformation,.monitoringControls{padding:18px;line-height:1.8;color:#506d49}
+.caseInformation h2,.monitoringControls h2{font-size:20px;color:#315c44;font-weight:600}
+.caseInformation p,.monitoringControls p{font-size:12px;margin:12px 0}
+.caseInformation label{display:block;font-size:12px}.caseInformation select{display:block;width:100%;padding:10px;border:1px solid #c5d4bb;border-radius:7px;margin:7px 0;background:#fffef8}
+.caseInformation ol{font-size:11px;margin:12px 0}.caseInformation .caseDetails{display:block;max-height:none;padding:0}
+.monitoringControls>label{display:flex;gap:12px;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #cedbc4}
+.monitoringControls strong{font-size:13px;display:block}.monitoringControls small{font-size:11px;display:block;color:#738b65}
+.monitoringControls input{width:20px;height:20px;accent-color:#588460;flex-shrink:0}
+.report{max-height:none;overflow:visible;flex-shrink:1;margin:8px;padding:14px}.reportGrid{grid-template-columns:1fr}.reportHeading{flex-wrap:wrap}.report h2{font-size:22px}
+.footer{font-size:8px;gap:10px;margin-top:4px}.footer p{max-width:60%}
+@media(max-width:1150px) and (min-width:768px){.workspace{grid-template-columns:240px minmax(0,1fr) 320px;gap:8px}.room[data-tools=false] .workspace{grid-template-columns:240px minmax(0,1fr)}.room{padding:10px}.header h1{font-size:20px}.headerActions .link,.headerActions .iconButton:nth-last-child(2){display:none}.patientHeader div>span{font-size:9px}.sceneTop>span{display:none}.sceneTop{justify-content:center}.quote{display:none}.actionGroups button{min-width:90px;padding:7px}.monitorColumn{padding:6px}}
+@media(max-width:850px) and (min-width:768px){.workspace{grid-template-columns:210px minmax(0,1fr) 280px;gap:6px}.monitorColumn :global(.device-values strong){font-size:26px}.monitorColumn :global(.device-values)>div:nth-child(3) strong{font-size:22px}.headerActions .link{display:none}}
+@media(max-width:767px){
+ .navigationPane{display:none}.room{height:calc(100dvh - 32px);min-height:520px;margin-top:0;padding:8px;border-radius:12px}
+ .header{display:flex;padding-bottom:6px}.header h1{font-size:16px;max-width:210px}.header .eyebrow{display:none}.headerActions .link,.headerActions .iconButton:not(:first-child){display:none}
+ .headerActions{max-width:none}.headerActions .iconButton{font-size:9px;padding:7px;white-space:normal;max-width:90px}
+ .toolbar{padding:5px 0;gap:5px}.caseControl{width:100%;justify-content:space-between}.caseControl strong{font-size:11px}.sessionControls{flex-wrap:nowrap;justify-content:flex-start;gap:5px}.sessionControls button{font-size:9px;padding:6px}.clock{font-size:14px}
+ .workspace{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(150px,.9fr) minmax(160px,1fr);grid-template-areas:"monitor" "patient" "decisions";gap:6px;margin-top:4px}
+ .room[data-tools=false] .workspace{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);grid-template-areas:"monitor" "patient"}
+ .monitorColumn{display:block;padding:0;overflow:visible;border:0}.monitorColumn>.metricGrid,.monitorColumn>.stateCard,.monitorColumn>.vitalTrend{display:none}
+ .monitorColumn :global(.bedside-device){padding:6px}.monitorColumn :global(.device-values){grid-template-columns:1fr 1fr 1.5fr 1fr 1fr;gap:4px}.monitorColumn :global(.device-values strong){font-size:22px;min-height:28px}.monitorColumn :global(.device-values)>div:nth-child(3) strong{font-size:22px}
+ .monitorColumn :global(.device-values small){font-size:7px}.monitorColumn :global(.device-values)>div>span{font-size:9px}.monitorColumn :global(.device-alarm){font-size:8px}
+ .patientHeader{padding:5px 9px}.patientHeader strong{font-size:12px}.patientHeader div>span,.sceneTop,.quote{display:none}
+ .portraitFrame{height:100%;width:auto;aspect-ratio:2/3;max-width:100%}.patientEquipment{display:flex;bottom:3px;right:auto;flex-direction:column;max-width:110px}.patientEquipment>span{font-size:7px;padding:3px}
+ .decisionColumn{min-height:0}.tabs button{font-size:10px;padding:8px 2px}.tabs{gap:4px}.guideCard{display:none}.caseInformation,.monitoringControls{padding:12px}.caseInformation h2,.monitoringControls h2{font-size:16px}
+ .actionDock{padding-top:5px;margin-top:0}.actionGroups{justify-content:flex-start;gap:5px}.actionGroups button{min-width:80px;min-height:44px;padding:5px;flex-direction:column}.actionGroups button>span{font-size:15px}.actionGroups button strong{font-size:9px}.footer{display:none}.caseInformation .caseDetails{display:block}
+}
+@media(prefers-reduced-motion:reduce){.breathLayer{animation:none}}
+
+.exitLink{display:flex;align-items:center;justify-content:center;min-width:85px;padding:8px;color:#c4dacb;font-size:11px;border:1px solid #b1cdb54d;border-radius:9px;text-decoration:none}
+.caseFilters{display:flex;flex-wrap:wrap;gap:7px;margin:16px 0}
+.caseFilters button{padding:8px 11px;border:1px solid #c3d5b7;border-radius:7px;background:#f3f7ed;color:#527246;font-size:12px}
+.caseFilters button[aria-pressed=true]{background:#53794d;color:white}
+.caseOptions p{font-size:11px;line-height:1.7;color:#718567;margin:8px 0 0}
+.caseOptions small[data-key=roja]{color:#b45c54}.caseOptions small[data-key=azul]{color:#477baf}.caseOptions small[data-key=amarilla]{color:#987416}
+
+.tannProcedure{margin:12px;padding:15px;border:1px solid #c4d3b9;border-radius:10px;background:#f7f9f0;color:#48653f}
+.tannProcedure h2{font-size:18px;color:#315d45;font-weight:600}.tannProcedure p{font-size:11px;line-height:1.8;margin:8px 0}.tannProcedure>progress{width:100%;height:7px;accent-color:#587f51;margin:8px 0 14px}
+.tannProcedure button{display:block;width:100%;padding:12px;border:1px solid #b4c9aa;border-radius:7px;background:#e8f0df;text-align:left;color:#416239;margin:7px 0;font-size:12px}
+.tannProcedure button:disabled{opacity:.48}.tannProcedure button[aria-pressed=true]{opacity:1;background:#d8e9cf;border-color:#89af7b}.tannProcedure button strong{font-size:12px;font-weight:600}.tannProcedure button small{display:block;font-size:10px;margin-top:5px;line-height:1.6}
+.tannProcedure ol{list-style:none;margin:8px 0;padding:0}.tannProcedure li{display:flex;gap:9px;padding:7px 0;border-top:1px solid #d8e1cb}.tannProcedure li>span{height:25px;width:25px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:50%;border:1px solid #a8c39a;margin-top:10px;font-size:11px}.tannProcedure li[data-complete=true]>span{background:#5c8352;color:white}.tannProcedure li>div{min-width:0;flex:1}.tannProcedure a{font-size:11px;text-decoration:underline}.tannProcedure summary{font-size:12px;cursor:pointer;padding:10px 0}.tannProgress{font-size:12px;font-weight:600;color:#3a6b43}

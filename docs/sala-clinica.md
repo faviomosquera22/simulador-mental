@@ -71,3 +71,11 @@ La sala añade dos casos ficticios (preeclampsia con signos de severidad y sepsi
 En hemorragia posparto se puede valorar y colocar el traje antichoque no neumático (TANN), con representación gráfica esquemática sobre la paciente. Requiere valoración previa y activación de clave roja. Su efecto es temporal y no resuelve la causa; el retiro durante el choque se evalúa como inseguro. Esta representación no es un tutorial de colocación. El contenido se referencia al [Protocolo MSP Ecuador 2025](https://intranet.hospitalguayaquil.gob.ec/storage/manuales/GUIAS%20PRACTICAS%20CLINICAS/2025%20-%20Protocolo%20Score%20MAMA%CC%81%20y%20Claves%20Obste%CC%81tricas%202025.pdf), apartados de claves y anexo 8.
 
 El motor de la sala aplica respuestas graduales durante 45 segundos simulados para ilustrar la reevaluación tras tratamiento; ese intervalo es didáctico. La hipertensión empeora hacia presiones mayores y responde al antihipertensivo. El soporte con líquidos afecta la perfusión sin detener directamente el sangrado; el sangrado previo permanece acumulado. La activación de una clave organiza la respuesta y no produce por sí sola una mejoría fisiológica.
+
+## Catálogo y preguntas
+
+La actualización de octubre de 2026 añade medicación por familias, presentaciones, alternativas con prioridades equivalentes, registro de errores, preguntas durante la atención y dos preguntas finales por caso. Consulte [clinical-education.md](clinical-education.md) para fuentes MSP, limitaciones, recursos gráficos y validación.
+
+La sala se denomina ahora **Sala interactiva ginecológica**, con distribución de cabecera equivalente a cuidados críticos y cinco canales de monitorización a demanda. Las preguntas son ventanas obligatorias y contribuyen a la nota final. El detalle actualizado está en [clinical-education.md](clinical-education.md).
+
+El catálogo se amplió a 11 casos: dos ginecológicos y tres por cada clave obstétrica (roja, azul y amarilla). Los seis escenarios nuevos y sus diferencias de manejo se detallan en [clinical-education.md](clinical-education.md). El selector permite filtrar y leer una breve entrega antes de preparar cada caso.

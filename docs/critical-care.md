@@ -61,3 +61,23 @@ La medicación tiene preparación, cancelación y confirmación explícitas. Pre
 Pruebas rápidas, laboratorio e imagen están en una sola pestaña, con agrupación y estados Sin solicitar / En proceso / Resultado disponible. Leer resultado es una acción independiente y está disponible en pausa. Las muestras antiguas permanecen fijas. Hay aviso de resultados sin leer y enlaces directos a los requisitos bloqueados.
 
 Los controles se presentan junto al paciente; el monitor completo se despliega a demanda. La franja de signos incluye accesos a paciente y herramientas, y las pestañas admiten flechas, Inicio y Fin por teclado. La sala obstétrica conserva su motor y su imagen; añade orientación, comparaciones antes/ahora y explicación con acceso a consentimiento cuando se pulsa el punto 04 sin haberlo solicitado. Sus cuatro etapas de recorrido abren el panel correspondiente.
+
+## Sala inmersiva, preparación y mediciones
+
+La ruta `/critical-care` comienza en una biblioteca de seis tarjetas con resumen. Al seleccionar un caso se abre una ficha con edad, peso, talla, IMC calculado, contexto, objetivo y duración de 10, 20 o 30 minutos. Los datos antropométricos son ficticios y no determinan dosis; el peso predicho ventilatorio continúa definido por el caso.
+
+Al iniciar se oculta la navegación general y la sala ocupa la ventana: monitor a la izquierda, paciente central y panel de herramientas a la derecha, con desplazamiento interno. La barra inferior abre Diálogos, Examen físico, Monitorizar, Pruebas, Llamar, Intervención, Medicación, Historia clínica y Registro; Ventilador aparece en el caso correspondiente. La búsqueda filtra opciones existentes, sin generar tratamientos ni resultados.
+
+El equipo está siempre visible y comienza con lecturas en blanco. Cada canal (ECG/FC, PA, SpO₂, FR, temperatura y EtCO₂) se conecta desde Monitorizar. `state.monitoring` guarda el instante de conexión y se borra al desconectar o reiniciar. Los valores proceden directamente del motor existente: activar un sensor no mejora la fisiología, desconectarlo no detiene la evolución, y al reconectar se muestra el estado actual. Las ondas son ilustrativas, con ritmo ligado al mismo estado fisiológico.
+
+Las comparaciones antes/después no muestran valores previos si ese sensor no estaba conectado cuando se registró la decisión. Glucemia y otros análisis siguen siendo resultados de muestras con tiempo de espera; no se presentan como canales continuos. Pausar detiene fisiología, medicación, muestras y animación; cambiar de panel no pausa. El botón de audio es una prueba puntual, no una alarma cardíaca continua.
+
+`PatientStage.tsx` contiene una ilustración SVG original con respiración según FR, parpadeo y movimientos leves; la conciencia modifica la apertura ocular y el compromiso circulatorio modifica el tono ilustrativo. Los electrodos y los equipos aparecen al conectarse o intervenir. Permite cambiar a la fotografía sintética existente, acercar la vista y ocultar puntos. No es un modelo 3D ni una representación validada de signos clínicos. La preferencia de movimiento reducido detiene las animaciones.
+
+Se revisó [MPFB/MakeHuman](https://github.com/makehumancommunity/mpfb2) como opción para personajes 3D. Sus [recursos gráficos principales son CC0](https://github.com/makehumancommunity/mpfb2/blob/master/LICENSE.md); el código del generador es GPLv3. No se incorporó código ni modelos externos. Una integración futura requeriría exportar un personaje vestido y con rig, preparar postura supina y animaciones respiratorias, reducir polígonos/texturas y verificar el rendimiento web. Los recursos de terceros o paquetes comunitarios deben revisarse por separado.
+
+## Ampliación educativa de octubre de 2026
+
+La vista predeterminada usa ahora `patient-realistic-v2.jpg`; la ilustración sigue disponible. El catálogo ampliado, las presentaciones, las preguntas durante y al finalizar el caso, las referencias MSP y sus límites se describen en [clinical-education.md](clinical-education.md). Esta actualización también incluye la sala ginecológica y una imagen sintética nueva para la paciente.
+
+El cierre abre ahora un resumen emergente con resultado, registro y navegación para repetir o elegir otro caso. La preparación ofrece niveles Guiada, Autónoma y Desafío, con puntos de exploración configurables también en la fotografía. Véase [clinical-education.md](clinical-education.md).

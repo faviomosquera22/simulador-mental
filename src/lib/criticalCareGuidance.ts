@@ -4,12 +4,13 @@ import {
   scenarios,
   type SimulationState,
   type Vitals,
+  type MonitoringKey,
 } from "./criticalCareSimulation";
 
-export type CarePanel = "assessment" | "interventions" | "medications" | "tests" | "ventilator" | "record";
+export type CarePanel = "assessment" | "interventions" | "medications" | "tests" | "ventilator" | "record" | "dialogue" | "monitoring" | "calls" | "history" | "position";
 export type CareTarget = { panel: CarePanel; id?: string; zone?: number; read?: boolean };
 export type GuidedTask = { title: string; why: string; cta: string; target: CareTarget; waiting?: boolean };
-export type DecisionSnapshot = { at: number; title: string; explanation: string; before: Vitals; observeAfter: number };
+export type DecisionSnapshot = { at: number; title: string; explanation: string; before: Vitals; monitoring?: Partial<Record<MonitoringKey, number>>; observeAfter: number };
 
 export const caseObjectives: Record<SimulationState["scenario"], string> = {
   ventilation: "Comprueba el tubo y el circuito, ajusta el soporte y compara oxigenación, ventilación y presión arterial.",
@@ -82,5 +83,5 @@ export function nextGuidedTask(s: SimulationState, readSamples: string[]): Guide
 export function decisionSnapshot(s: SimulationState, type: "action" | "medication" | "stop-medication" | "ventilator", id?: string): DecisionSnapshot {
   const medication = medicationsFor(s.scenario).find(m => m.id === id);
   const action = scenarios[s.scenario].actions.find(a => a.id === id);
-  return { at: s.elapsed, before: { ...s.vitals }, title: type === "ventilator" ? "Ajustes del ventilador aplicados" : type === "stop-medication" ? `Infusión detenida: ${medication?.name}` : medication?.name ?? action?.label ?? "Intervención registrada", explanation: type === "ventilator" ? "Observa SpO₂, EtCO₂ y presión arterial; los cambios de ventilación y circulación pueden ir en direcciones distintas." : type === "stop-medication" ? "Se detuvo el aporte. El efecto que ya está presente cede gradualmente." : medication?.purpose ?? action?.feedback ?? "Observa la tendencia y reevalúa.", observeAfter: type === "medication" ? (medication?.onset ?? 0) + 12 : 15 };
+  return { at: s.elapsed, before: { ...s.vitals }, monitoring: { ...s.monitoring }, title: type === "ventilator" ? "Ajustes del ventilador aplicados" : type === "stop-medication" ? `Infusión detenida: ${medication?.name}` : medication?.name ?? action?.label ?? "Intervención registrada", explanation: type === "ventilator" ? "Observa SpO₂, EtCO₂ y presión arterial; los cambios de ventilación y circulación pueden ir en direcciones distintas." : type === "stop-medication" ? "Se detuvo el aporte. El efecto que ya está presente cede gradualmente." : medication?.purpose ?? action?.feedback ?? "Observa la tendencia y reevalúa.", observeAfter: type === "medication" ? (medication?.onset ?? 0) + 12 : 15 };
 }

@@ -1,33 +1,42 @@
 "use client";
-import { Activity } from "./icons";
-import { clinicalAlerts, formatClinicalTime, type SimulationState } from "@/src/lib/criticalCareSimulation";
+import { formatClinicalTime, type SimulationState, type MonitoringKey, type Vitals } from "@/src/lib/criticalCareSimulation";
+import { observedVital, sensorConnected } from "@/src/lib/criticalCareObservation";
 
-export function ClinicalMonitor({ state }: { state: SimulationState }) {
-  const { vitals: v } = state;
+export type BedsideMonitorState = Pick<SimulationState, "status" | "elapsed" | "monitoring"> & { vitals: Pick<Vitals, "hr" | "sbp" | "dbp" | "spo2" | "rr" | "temperature"> & Partial<Vitals> };
+export function ClinicalMonitor({ state, onConnect, channels }: { state: BedsideMonitorState; onConnect?: () => void; channels?: MonitoringKey[] }) {
   const running = state.status === "running";
-  const alerts = clinicalAlerts(state);
+  const v = state.vitals;
+  const ecg = sensorConnected(state, "ecg");
   const metrics = [
-    { label: "FC", unit: "lpm", value: Math.round(v.hr), color: "mint", danger: v.hr > 120 },
-    { label: "SpO₂", unit: "%", value: Math.round(v.spo2), color: "cyan", danger: v.spo2 < 92 },
-    { label: "PA", unit: "mmHg", value: `${Math.round(v.sbp)}/${Math.round(v.dbp)}`, color: "peach", danger: v.sbp < 90 },
-    { label: "FR", unit: "rpm", value: Math.round(v.rr), color: "cream", danger: v.rr > 30 },
+    { label: "FC", unit: "lpm", key: "hr" as const, color: "#8de6ae", danger: v.hr > 120 || v.hr < 50 },
+    { label: "SpO₂", unit: "%", key: "spo2" as const, color: "#79d8ef", danger: v.spo2 < 92 },
+    { label: "PA", unit: "mmHg", key: "sbp" as const, color: "#efb1ce", danger: v.sbp < 90 || v.sbp > 180 },
+    { label: "FR", unit: "rpm", key: "rr" as const, color: "#f2d484", danger: v.rr > 30 || v.rr < 8 },
+    { label: "EtCO₂", unit: "mmHg", key: "etco2" as const, color: "#c7b3ed", danger: false },
+    { label: "T°", unit: "°C", key: "temperature" as const, color: "#f2bc8a", danger: v.temperature > 38.5 },
   ];
-  const chart = (key: "hr" | "sbp" | "spo2") => state.history.map((p, i) => `${8 + i / Math.max(1, state.history.length - 1) * 324},${100 - (p[key] - 40) / 160 * 90}`).join(" ");
-  return (
-    <section className="clinical-monitor" aria-label="Monitor de signos vitales">
-      <header><span><Activity size={16}/> FISIOLOGÍA EN VIVO</span><span className={running ? "live-status" : ""}>{running ? "EN CURSO" : state.status === "finished" ? "FINALIZADA" : "EN PAUSA"}</span></header>
-      <div className="monitor-content">
-        <div className="wave-label"><span>ECG · DII · TRAZADO ILUSTRATIVO</span><span>{formatClinicalTime(state.elapsed)}</span></div>
-        <div className="ecg-window" aria-hidden="true"><svg viewBox="0 0 600 60" preserveAspectRatio="none" className={running ? "ecg-trace moving" : "ecg-trace"} style={{ animationDuration: `${60 / v.hr * 8}s` }}><path d={Array.from({ length: 12 }, (_, i) => { const x = i * 50; return `M${x} 35 l9 0 3 -3 4 6 4 -3 3 0 2 -23 3 38 3 -15 5 0 4 -4 4 4 6 0`; }).join(" ")} fill="none" stroke="currentColor" strokeWidth="1.6"/></svg></div>
-        <div className="vital-grid">{metrics.map(m => <div key={m.label} className={`vital ${m.color} ${m.danger ? "vital-alert" : ""}`}><span>{m.label} <small>/ {m.unit}</small></span><strong data-vital={m.label}>{m.value}</strong></div>)}</div>
-        <div className="monitor-secondary"><span>Temperatura <b>{v.temperature.toFixed(1)} °C</b></span><span>EtCO₂ <b>{Math.round(v.etco2)} mmHg</b></span></div>
-        {state.scenario !== "obstetric" && <div className="monitor-extra"><span>Glucemia <b data-vital="glucose">{Math.round(v.glucose)} mg/dL</b></span><span>Glasgow <b>{Math.round(v.gcs)}/15</b></span><span>PAM <b>{Math.round((v.sbp + v.dbp * 2) / 3)} mmHg</b></span></div>}
-        {state.scenario === "obstetric" && <div className="obstetric-metrics"><div><span>Índice de choque</span><strong>{(v.hr / v.sbp).toFixed(2)}</strong><small>FC / presión sistólica</small></div><div><span>Pérdida acumulada</span><strong>{Math.round(v.bloodLoss)} <small>mL</small></strong><small>Estimación del escenario</small></div></div>}
-        <div className="monitor-alerts" aria-label="Alertas actuales">{alerts.length ? alerts.map(a => <p key={a}><span/> {a}</p>) : <p className="stable"><span/> Sin alertas de signos en este momento. Continúa la reevaluación.</p>}</div>
-        <div className="trend-heading"><span>EVOLUCIÓN DEL ESCENARIO</span><span>{formatClinicalTime(state.elapsed)}</span></div>
-        <svg viewBox="0 0 340 110" className="trend-chart" role="img" aria-label="Tendencia de frecuencia cardíaca, presión sistólica y saturación"><path d="M8 25H332M8 55H332M8 85H332" stroke="#385453" strokeDasharray="3 5"/>{(["hr", "sbp", "spo2"] as const).map((key, i) => <polyline key={key} points={chart(key)} fill="none" stroke={["#97d9bc", "#e9b68e", "#96d8e9"][i]} strokeWidth="2"/>)}</svg>
-        <div className="trend-legend"><span>● FC</span><span>● Sistólica</span><span>● SpO₂</span><small>40–200 · últimos 6 min</small></div>
-      </div>
-    </section>
-  );
+  const abnormal = metrics.filter(m => observedVital(state, m.key) !== null && m.danger);
+  const waves: { key: MonitoringKey; label: string; color: string; path: string; seconds: number }[] = [
+    { key: "ecg", label: "ECG · DII", color: "#8de6ae", seconds: 60 / Math.max(20, v.hr) * 6, path: Array.from({length:12}, (_, i) => `M${i*50} 30 l8 0 3 -3 4 6 4 -3 3 0 2 -22 3 38 3 -16 5 0 4 -5 4 5 7 0`).join(" ") },
+    { key: "spo2", label: "PLETISMOGRAFÍA", color: "#79d8ef", seconds: 60 / Math.max(20, v.hr) * 6, path: Array.from({length:12},(_,i)=>`M${i*50} 43 Q${i*50+9} 42 ${i*50+13} 15 Q${i*50+16} 3 ${i*50+21} 25 L${i*50+27} 30 L${i*50+30} 25 Q${i*50+40} 43 ${i*50+50} 43`).join(" ") },
+    { key: "rr", label: "RESPIRACIÓN", color: "#f2d484", seconds: 60 / Math.max(6, v.rr) * 4, path: Array.from({length:6},(_,i)=>`M${i*100} 40 C${i*100+20} 40 ${i*100+20} 12 ${i*100+40} 12 S${i*100+70} 40 ${i*100+100} 40`).join(" ") },
+  ];
+  // One-shot equipment sound check; never presented as an active cardiac alarm.
+  async function beep() {
+    if (!running || !ecg) return;
+    try {
+      const context = new AudioContext();
+      const oscillator = context.createOscillator(); const gain = context.createGain();
+      oscillator.frequency.value = 880; gain.gain.setValueAtTime(.025, context.currentTime); gain.gain.exponentialRampToValueAtTime(.001, context.currentTime+.08);
+      oscillator.connect(gain); gain.connect(context.destination); oscillator.start(); oscillator.stop(context.currentTime+.09); oscillator.onended=()=>void context.close();
+    } catch { /* Visual monitoring remains available if audio is unavailable. */ }
+  }
+  return <section className="bedside-device" aria-label="Monitor de signos vitales">
+    <header><span><i className={running ? "device-led live" : "device-led"}/> PSYKE <small>MONITOR</small></span><time>{formatClinicalTime(state.elapsed)}</time></header>
+    <div className="device-status">{running ? "MONITORIZACIÓN EN CURSO" : state.status === "finished" ? "SESIÓN FINALIZADA" : "SIMULACIÓN EN PAUSA"}</div>
+    <div className="device-waves">{waves.map(w => <div key={w.key} className="device-wave" style={{color:w.color}}><span>{w.label}</span><div>{sensorConnected(state,w.key) ? <svg viewBox="0 0 600 60" preserveAspectRatio="none" aria-hidden="true" className="device-signal" style={{animationDuration:`${w.seconds}s`,animationPlayState:running?"running":"paused"}}><path d={w.path} fill="none" stroke="currentColor" strokeWidth="1.8"/></svg> : <p>Sin sensor conectado</p>}</div></div>)}</div>
+    <div className="device-values">{metrics.filter(m=>!channels||channels.includes(m.key==="hr"?"ecg":m.key==="sbp"?"bp":m.key)).map(m => {const value=observedVital(state,m.key); return <div key={m.key} className={value!==null && m.danger ? "device-warning" : ""} style={{color:m.color}}><span>{m.label}<small>{m.unit}</small></span><strong data-vital={m.label} aria-label={`${m.label}: ${value===null?"sin medir":m.key==="sbp"?`${Math.round(v.sbp)}/${Math.round(v.dbp)}`:Math.round(value)}`}>{value===null?"—":m.key==="sbp"?`${Math.round(v.sbp)}/${Math.round(v.dbp)}`:m.key==="temperature"?value.toFixed(1):Math.round(value)}</strong></div>;})}</div>
+    <div className="device-alarm" role="status">{abnormal.length ? `⚠ Revisar ${abnormal.map(m=>m.label).join(" · ")}` : !Object.keys(state.monitoring).length ? "Selecciona Monitorizar para conectar los sensores." : "Sensores conectados · mantén la reevaluación"}</div>
+    <footer><button type="button" onClick={onConnect}>⌁ Conectar sensores</button><button type="button" onClick={()=>void beep()} disabled={!running || !ecg} title="Prueba de sonido del monitor">♫ Probar sonido</button></footer>
+  </section>;
 }

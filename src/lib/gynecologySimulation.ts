@@ -1,13 +1,22 @@
+import { TANN_SEGMENTS } from "./tannPlacement";
+import { additionalObstetricCases } from "./obstetricCaseVariants";
+import { expandGynecologyCase } from "./gynecologyChoices";
+import type { DecisionJudgment, SourceId } from "./clinicalEducation";
+import type { MonitoringKey } from "./criticalCareSimulation";
 import type { MonitorVitalsShape } from "./monitorClinical";
 
-export type ActionGroup = "valoracion" | "estudios" | "intervencion" | "equipo" | "obstetricia";
+export type ActionGroup = "valoracion" | "estudios" | "intervencion" | "equipo" | "obstetricia" | "medicacion";
 export type SimulationAction = {
+  category?: string; presentations?: string[]; judgment?: DecisionJudgment; source?: SourceId; fulfills?: string;
   id: string; label: string; group: ActionGroup; minutes?: number;
   requires?: string[]; result: string; rationale: string;
   critical?: boolean; deadline?: number; harmful?: boolean;
   effect?: "support" | "definitive" | "oxygen" | "iv" | "compression" | "antihypertensive";
 };
 export type GynecologyCase = {
+  uterotonicIndicated?: boolean;
+  oralRouteUnsafe?: boolean;
+  supplementalSource?: {label:string;url:string};
   id: string; title: string; specialty: string; difficulty: string;
   obstetricKey?: "roja" | "azul" | "amarilla";
   name: string; age: number; background: string; complaint: string;
@@ -46,8 +55,10 @@ function obstetricActions(key: "roja" | "azul" | "amarilla"): SimulationAction[]
   }));
 }
 const tannActions: SimulationAction[] = [
-  { id: "tann-assess", label: "Valorar indicación y contraindicaciones del TANN", group: "obstetricia", result: "Hemorragia posparto con choque. Se verifican contraindicaciones, disponibilidad y personal entrenado antes de colocarlo.", rationale: "El traje es una medida temporal de estabilización y traslado. Debe acompañarse del control de la hemorragia y la reanimación." },
-  { id: "tann", label: "Colocar traje antichoque no neumático (TANN)", group: "obstetricia", requires: ["tann-assess", "key-roja"], effect: "compression", result: "El equipo entrenado coloca el traje según protocolo. Se mantiene vigilancia de perfusión, respiración y sangrado durante el control definitivo o traslado.", rationale: "La contrapresión puede mejorar la perfusión temporalmente; no reemplaza sangre, uterotónicos ni control de la causa." },
+  { id: "tann-assess", label: "Valorar indicación y contraindicaciones del TANN", group: "obstetricia", requires:["consent"], result: "Hemorragia posparto con choque. Se revisan indicación, contraindicaciones, disponibilidad y personal entrenado.", rationale: "La valoración y el consentimiento preceden a la colocación. El traje es apoyo temporal, no control definitivo de la causa." },
+  { id:"tann-prepare",label:"Preparar TANN y colocar a la paciente en posición supina",group:"obstetricia",requires:["tann-assess","key-roja"],result:"Paciente en decúbito supino. El equipo prepara el traje abierto y comprueba su posición antes de cerrar los componentes.",rationale:"La secuencia comienza en los componentes distales y continúa hacia la pelvis y el abdomen." },
+  ...TANN_SEGMENTS.map((segment,index):SimulationAction=>({id:segment.id,label:`Colocar segmento ${segment.number} · ${segment.label}`,group:"obstetricia",requires:[index===0?"tann-prepare":TANN_SEGMENTS[index-1].id],result:`Segmento ${segment.number}: ${segment.instruction} La colocación todavía requiere verificación final.`,rationale:"MSP 2025, anexo 8: cierre ascendente por componentes. Un segmento aislado no equivale al traje completo ni sustituye la reanimación."})),
+  { id: "tann", label: "Verificar colocación completa y reevaluar a la paciente", group: "obstetricia", requires: ["tann-6"], effect: "compression", result: "Se verifican los seis componentes, cierres, posición de la esfera y tolerancia. El equipo mantiene vigilancia de perfusión, respiración y sangrado durante el control definitivo o traslado.", rationale: "Solo tras completar y verificar se registra el soporte del TANN en el modelo. No reemplaza sangre ni control de la causa." },
   { id: "tann-remove", label: "Retirar el TANN durante el choque", group: "obstetricia", requires: ["tann"], harmful: true, result: "El retiro prematuro compromete el soporte circulatorio de la paciente.", rationale: "El retiro requiere estabilidad sostenida, tratamiento definitivo disponible y supervisión del equipo conforme al protocolo." },
 ];
 
@@ -133,17 +144,26 @@ export const GYNECOLOGY_CASES: GynecologyCase[] = [
   },
 ];
 
-export type Decision = { id: string; at: number };
-export type SimulationRun = { caseId: string; elapsed: number; decisions: Decision[]; diagnosis: string; status: "ready" | "running" | "paused" | "finished" };
+GYNECOLOGY_CASES.push(...additionalObstetricCases(GYNECOLOGY_CASES));
+
+for (let i=0;i<GYNECOLOGY_CASES.length;i++) GYNECOLOGY_CASES[i]=expandGynecologyCase(GYNECOLOGY_CASES[i]);
+
+export type Decision = { id: string; at: number; presentation?: string };
+export type GynecologyMonitoringKey = Exclude<MonitoringKey, "etco2">;
+export const GYNECOLOGY_MONITOR_CHANNELS: GynecologyMonitoringKey[] = ["ecg", "bp", "spo2", "rr", "temperature"];
+export type SimulationRun = { monitoring: Partial<Record<GynecologyMonitoringKey, number>>; caseId: string; elapsed: number; decisions: Decision[]; diagnosis: string; status: "ready" | "running" | "paused" | "finished" };
 export const RUN_LIMIT = 12 * 60;
-export function createRun(caseId: string): SimulationRun { return { caseId, elapsed: 0, decisions: [], diagnosis: "", status: "ready" }; }
-export function actionAvailable(action: SimulationAction, run: SimulationRun) {
-  return (action.requires ?? []).every(id => run.decisions.some(d => d.id === id));
+export function createRun(caseId: string): SimulationRun { return { monitoring: {}, caseId, elapsed: 0, decisions: [], diagnosis: "", status: "ready" }; }
+export function decisionFor(c: GynecologyCase, run: SimulationRun, id: string) { return run.decisions.find(d => d.id === id || c.actions.find(a=>a.id===d.id)?.fulfills === id); }
+export function hasDecision(c: GynecologyCase, run: SimulationRun, id: string) { return !!decisionFor(c,run,id); }
+export function actionAvailable(action: SimulationAction, run: SimulationRun, c?: GynecologyCase) {
+  return (action.requires ?? []).every(id => c ? hasDecision(c,run,id) : run.decisions.some(d => d.id === id));
 }
-export function performAction(c: GynecologyCase, run: SimulationRun, id: string): SimulationRun {
+export function performAction(c: GynecologyCase, run: SimulationRun, id: string, presentation?: string): SimulationRun {
   const action = c.actions.find(a => a.id === id);
-  if (run.status !== "running" || !action || !actionAvailable(action, run) || run.decisions.some(d => d.id === id)) return run;
-  return { ...run, decisions: [...run.decisions, { id, at: run.elapsed }] };
+  if (run.status !== "running" || !action || !actionAvailable(action, run, c) || hasDecision(c, run, action.fulfills ?? id)) return run;
+  if (presentation && !action.presentations?.includes(presentation)) return run;
+  return { ...run, decisions: [...run.decisions, { id, at: run.elapsed, presentation: presentation ?? action.presentations?.[0] }] };
 }
 export function resultReady(action: SimulationAction, run: SimulationRun) {
   const decision = run.decisions.find(d => d.id === action.id);
@@ -151,16 +171,16 @@ export function resultReady(action: SimulationAction, run: SimulationRun) {
 }
 export function getPhysiology(c: GynecologyCase, run: SimulationRun) {
   const minutes = run.elapsed / 60;
-  const used = (id: string) => run.decisions.some(d => d.id === id);
+  const used = (id: string) => hasDecision(c,run,id);
   const definitiveId = c.id === "gyn-02" ? "antibiotics" : "definitive";
-  const escalation = run.decisions.find(d => d.id === definitiveId);
+  const escalation = decisionFor(c,run,definitiveId);
   // Escalation slows deterioration; arranging care does not instantly cure the patient.
   const exposure = escalation ? Math.min(minutes, escalation.at / 60) + Math.max(0, minutes - escalation.at / 60) * 0.15 : minutes;
   const response = (id: string) => {
-    const decision = run.decisions.find(item => item.id === id);
+    const decision = decisionFor(c,run,id);
     return decision ? Math.min(1, Math.max(0, run.elapsed - decision.at) / 45) : 0;
   };
-  const support = Math.min(3, c.actions.filter(a => a.effect === "support").reduce((sum, a) => sum + response(a.id), 0));
+  const support = Math.min(3, c.actions.filter(a => a.effect === "support" && run.decisions.some(d=>d.id===a.id)).reduce((sum, a) => sum + response(a.id), 0));
   const compression = used("tann-remove") ? 0 : response("tann");
   const harm = c.actions.filter(a => a.harmful).reduce((sum, a) => sum + response(a.id), 0);
   const d = exposure * c.deterioration - support * 1.5 - compression * 2 + harm * 2;
@@ -171,15 +191,15 @@ export function getPhysiology(c: GynecologyCase, run: SimulationRun) {
   const checkpoints = [...new Set([0, ...run.decisions.map(item => item.at), run.elapsed])].sort((a, b) => a - b);
   for (let i = 1; i < checkpoints.length; i++) {
     const from = checkpoints[i - 1];
-    const supportAtTime = c.actions.filter(a => (a.id === "massage" || a.id === "uterotonic" || (a.id === "tann" && !run.decisions.some(d => d.id === "tann-remove" && d.at <= from))) && run.decisions.some(item => item.id === a.id && item.at <= from)).length;
+    const supportAtTime = c.actions.filter(a => a.judgment !== "unnecessary" && !a.harmful && (a.id === "massage" || a.id === "uterotonic" || a.fulfills === "uterotonic" || (a.id === "tann" && !run.decisions.some(d => d.id === "tann-remove" && d.at <= from))) && run.decisions.some(item => item.id === a.id && item.at <= from)).length;
     const escalationFactor = escalation && escalation.at <= from ? 0.15 : 1;
     bloodLoss += c.bleedingRate * (checkpoints[i] - from) / 60 * escalationFactor / (1 + supportAtTime * 0.35);
   }
   const bleeding = Math.round(bloodLoss);
   const vitals = { ...c.initial,
     hr: Math.max(65, Math.min(160, Math.round(c.initial.hr + d * 2))),
-    sbp: Math.max(hypertensive ? 125 : 60, Math.min(hypertensive ? 210 : 130, Math.round(c.initial.sbp + (hypertensive ? exposure * 2 - bpTreatment : -d * 2)))),
-    dbp: Math.max(hypertensive ? 80 : 35, Math.min(hypertensive ? 135 : 85, Math.round(c.initial.dbp + (hypertensive ? exposure - bpTreatment * 0.6 : -d)))),
+    sbp: Math.max(hypertensive ? 125 : 60, Math.min(hypertensive ? 210 : 130, Math.round(c.initial.sbp + (hypertensive ? exposure * 2 + harm * 5 - bpTreatment : -d * 2)))),
+    dbp: Math.max(hypertensive ? 80 : 35, Math.min(hypertensive ? 135 : 85, Math.round(c.initial.dbp + (hypertensive ? exposure + harm * 3 - bpTreatment * 0.6 : -d)))),
     rr: Math.max(12, Math.min(36, Math.round(c.initial.rr + d * 0.5))),
     spo2: Math.max(80, Math.min(99, Math.round(c.initial.spo2 + response("oxygen") * 5 - Math.max(0, d) * 0.25))),
   };
@@ -187,12 +207,20 @@ export function getPhysiology(c: GynecologyCase, run: SimulationRun) {
 }
 export function evaluateRun(c: GynecologyCase, run: SimulationRun) {
   const expected = c.actions.filter(a => a.critical);
-  const omitted = expected.filter(a => !run.decisions.some(d => d.id === a.id));
-  const late = expected.filter(a => a.deadline !== undefined && run.decisions.some(d => d.id === a.id && d.at > a.deadline!));
+  const omitted = expected.filter(a => !hasDecision(c,run,a.id));
+  const late = expected.filter(a => a.deadline !== undefined && (decisionFor(c,run,a.id)?.at ?? -1) > a.deadline!);
   const harmful = c.actions.filter(a => a.harmful && run.decisions.some(d => d.id === a.id));
   const correctDiagnosis = run.diagnosis === c.diagnosis;
   const raw = Math.round((expected.length - omitted.length) / expected.length * 75 + (correctDiagnosis ? 25 : 0) - harmful.length * 15 - late.length * 5);
   // A strong total cannot hide an omitted critical action.
   const score = Math.max(0, Math.min(omitted.length ? 69 : 100, raw));
   return { score, omitted, late, harmful, correctDiagnosis, safe: !omitted.length && !harmful.length && correctDiagnosis };
+}
+
+export function setGynecologyMonitoring(run: SimulationRun, key: GynecologyMonitoringKey, enabled: boolean): SimulationRun {
+ if(run.status!=="running" || !GYNECOLOGY_MONITOR_CHANNELS.includes(key))return run;
+ const monitoring={...run.monitoring};
+ if(enabled){if(monitoring[key]!==undefined)return run;monitoring[key]=run.elapsed;}
+ else {if(monitoring[key]===undefined)return run;delete monitoring[key];}
+ return {...run,monitoring};
 }

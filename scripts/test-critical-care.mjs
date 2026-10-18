@@ -152,3 +152,53 @@ test("an unread active complication takes precedence over the next suggested tas
   assert.notEqual(nextGuidedTask(s,[]).target.id,"alert:beta-tachycardia");
   assert.ok(s.complications.some(c=>c.resolvedAt===undefined),"reading the alert does not cure it");
 });
+
+const { observedVital, sensorConnected } = load(path.resolve("src/lib/criticalCareObservation.ts"));
+test("all cases begin with every monitor channel unmeasured", () => {
+  for (const id of criticalCareCaseIds) {
+    const s = reduce(createSimulation(id), { type: "start" });
+    for (const key of ["hr", "spo2", "sbp", "dbp", "rr", "temperature", "etco2"]) assert.equal(observedVital(s, key), null);
+  }
+});
+test("sensor connection is valid at zero, independent per channel and never treats physiology", () => {
+  const s = reduce(createSimulation("asthma"), { type: "start" });
+  const connected = reduce(s, { type: "monitor", key: "ecg", enabled: true });
+  assert.equal(connected.monitoring.ecg, 0);
+  assert.equal(sensorConnected(connected, "ecg"), true);
+  assert.equal(observedVital(connected, "hr"), s.vitals.hr);
+  assert.equal(observedVital(connected, "spo2"), null);
+  assert.deepEqual(connected.vitals, s.vitals);
+  assert.equal(reduce(connected, { type: "monitor", key: "ecg", enabled: true }), connected);
+});
+test("disconnected sensors do not freeze treatment effects; reconnection shows the current patient", () => {
+  let hidden = reduce(createSimulation("asthma"), { type: "start" });
+  hidden = reduce(hidden, { type: "medication", id: "salbutamol" });
+  let observed = reduce(hidden, { type: "monitor", key: "spo2", enabled: true });
+  for (let i = 0; i < 30; i++) { hidden = reduce(hidden, { type: "tick" }); observed = reduce(observed, { type: "tick" }); }
+  assert.deepEqual(observed.vitals, hidden.vitals);
+  assert.equal(observedVital(hidden, "spo2"), null);
+  assert.equal(observedVital(observed, "spo2"), hidden.vitals.spo2);
+  const connected = reduce(hidden, { type: "monitor", key: "spo2", enabled: true });
+  assert.equal(observedVital(connected, "spo2"), hidden.vitals.spo2);
+  assert.equal(connected.monitoring.spo2, hidden.elapsed);
+});
+test("disconnect, pause, finish and reset honor measurement lifecycle", () => {
+  const start = reduce(createSimulation("sepsis"), { type: "start" });
+  const connected = reduce(start, { type: "monitor", key: "bp", enabled: true });
+  const off = reduce(connected, { type: "monitor", key: "bp", enabled: false });
+  assert.equal(observedVital(off, "sbp"), null);
+  assert.deepEqual(off.vitals, connected.vitals);
+  for (const state of [createSimulation("sepsis"), reduce(connected, {type:"pause"}), reduce(connected, {type:"finish"})]) assert.equal(reduce(state, { type: "monitor", key: "ecg", enabled: true }), state);
+  const reset = reduce(connected, {type:"reset",scenario:"asthma"});
+  assert.deepEqual(reset.monitoring, {});
+});
+test("decision snapshots retain which sensors were connected before an intervention", () => {
+  const { decisionSnapshot } = load(path.resolve("src/lib/criticalCareGuidance.ts"));
+  const s = reduce(reduce(createSimulation("asthma"), {type:"start"}), {type:"monitor",key:"ecg",enabled:true});
+  const snapshot = decisionSnapshot(s, "medication", "salbutamol");
+  const next = reduce(s, {type:"monitor",key:"spo2",enabled:true});
+  assert.equal(snapshot.monitoring.ecg, 0);
+  assert.equal(snapshot.monitoring.spo2, undefined);
+  assert.equal(next.monitoring.spo2, 0);
+  assert.notEqual(snapshot.monitoring, s.monitoring);
+});

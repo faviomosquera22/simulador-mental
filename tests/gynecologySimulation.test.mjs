@@ -1,11 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { GYNECOLOGY_CASES, createRun, performAction, resultReady, getPhysiology, evaluateRun } from "../src/lib/gynecologySimulation.ts";
+import { loadTypeScript } from "./helpers/load-ts.cjs";
+const { GYNECOLOGY_CASES, createRun, performAction, resultReady, getPhysiology, evaluateRun } = loadTypeScript("src/lib/gynecologySimulation.ts");
 
 for (const c of GYNECOLOGY_CASES) {
   test(`${c.id}: action dependencies are reachable and a complete run meets critical priorities`, () => {
     let run = { ...createRun(c.id), status: "running", diagnosis: c.diagnosis };
-    let actions = c.actions.filter(a => !a.harmful);
+    let actions = c.actions.filter(a => !a.harmful && !a.fulfills && a.judgment !== "unnecessary");
     while (actions.length) {
       const before = actions.length;
       actions = actions.filter(a => {
@@ -65,7 +66,7 @@ test("postpartum treatment cannot undo blood already lost", () => {
 });
 test("unsafe actions and delayed critical decisions reduce the score", () => {
   let run = { ...createRun(c.id), status: "running", elapsed: 300, diagnosis: c.diagnosis };
-  for (const action of c.actions.filter(a => !a.harmful)) run = performAction(c, run, action.id);
+  for (const action of c.actions.filter(a => !a.harmful && !a.fulfills && a.judgment !== "unnecessary")) run = performAction(c, run, action.id);
   const before = evaluateRun(c, run);
   run = performAction(c, run, "discharge");
   const after = evaluateRun(c, run);
@@ -89,7 +90,7 @@ test("TANN requires assessment and red activation and provides temporary support
   assert.equal(performAction(c, run, "tann"), run);
   run = performAction(c, run, "key-roja");
   assert.equal(performAction(c, run, "tann"), run);
-  run = performAction(c, run, "tann-assess");
+  for (const id of ["consent","tann-assess","tann-prepare","tann-1","tann-2","tann-3","tann-4","tann-5","tann-6"]) run = performAction(c, run, id);
   const before = getPhysiology(c, run);
   const treated = performAction(c, run, "tann");
   assert.deepEqual(getPhysiology(c, treated), before);

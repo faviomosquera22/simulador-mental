@@ -1,0 +1,16 @@
+.patient-motion-layer{position:absolute;inset:0;pointer-events:none;transform-origin:50% 33%;will-change:transform,opacity}
+.patient-motion-layer img{object-fit:contain!important;width:100%;height:100%}
+.patient-motion-chest{mask-image:radial-gradient(ellipse 27% 19% at 50% 33%,#000 40%,transparent 100%);animation:patient-visible-breath var(--motion-breath-duration,3s) ease-in-out infinite}
+.patient-motion-eyes{mask-image:radial-gradient(ellipse 8% 2.5% at 50% 10.8%,#000 55%,transparent 100%);opacity:0;animation:patient-natural-blink 6.7s linear infinite}
+.patient-motion-mouth{mask-image:radial-gradient(ellipse 7% 3.1% at 50% 14.2%,#000 40%,transparent 100%);opacity:0;animation:patient-small-grimace 13s ease-in-out infinite}
+.patient-motion-layer[data-active=false]{animation-play-state:paused}
+@keyframes patient-visible-breath{0%,100%{transform:scale(1,1)}48%{transform:scale(1.045,1.025) translateY(-1.5px)}}
+@keyframes patient-natural-blink{0%,38%,43%,77%,82%,100%{opacity:0}39.5%,41.5%,78.5%,80.5%{opacity:1}}
+@keyframes patient-small-grimace{0%,42%,73%,100%{opacity:0}50%,63%{opacity:.92}}
+.tann-segment-overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;filter:drop-shadow(0 3px 3px #10253666)}
+.tann-segment-overlay text{stroke:none;fill:#eef6f6;font:27px Arial,sans-serif;text-anchor:middle;dominant-baseline:middle}
+.tann-segment-overlay .tann-velcro{fill:none;stroke:#a5b5c2;stroke-width:14;stroke-dasharray:8 2}
+.tann-visual-part{animation:tann-segment-appear .5s ease-out;transform-box:fill-box;transform-origin:center}
+.tann-segment-overlay[data-active=false] .tann-visual-part{animation-play-state:paused}
+@keyframes tann-segment-appear{from{opacity:0;transform:scaleX(.85)}to{opacity:1;transform:scaleX(1)}}
+@media(prefers-reduced-motion:reduce){.patient-motion-layer,.tann-visual-part{animation:none!important}.patient-motion-eyes,.patient-motion-mouth{opacity:0}}

@@ -1,25 +1,45 @@
 "use client";
 
+import { answerQuestion, scoreWithQuestions, CLINICAL_SOURCES, finalQuestions, triggeredQuestion, type QuestionAnswer, type CaseQuestion } from "@/src/lib/clinicalEducation";
+import { QuestionCard, DecisionReview, QuestionHistory, MandatoryQuestion, QuestionScore } from "@/components/education/CaseQuestions";
 import { useEffect, useReducer, useRef, useState } from "react";
 import Link from "next/link";
-import { Activity, ArrowRight, Check, CheckCircle2, ClipboardList, HeartPulse, Pause, Play, RotateCcw, ShieldCheck, Stethoscope, Wind } from "./icons";
+import { Activity, ArrowRight, Check, ClipboardList, HeartPulse, Pause, Play, ShieldCheck, Stethoscope, Wind } from "./icons";
 import { assessmentFinding, createSimulation, criticalCareCaseIds, formatClinicalTime, hasStudyResult, scenarios, simulationReducer, type ScenarioId, type SimulationEvent, type Ventilator } from "@/src/lib/criticalCareSimulation";
-import { caseObjectives, decisionSnapshot, priorityComplete, sampleKey, type CarePanel, type CareTarget, type DecisionSnapshot } from "@/src/lib/criticalCareGuidance";
-import { PatientView } from "./PatientView";
+import { caseObjectives, nextGuidedTask, decisionSnapshot, priorityComplete, sampleKey, type CarePanel, type CareTarget, type DecisionSnapshot } from "@/src/lib/criticalCareGuidance";
+import { PatientStage as PatientView } from "./PatientStage";
+import { MONITORING_OPTIONS, patientProfiles, sensorConnected, observedVital } from "@/src/lib/criticalCareObservation";
 import { ComplicationPanel, MedicationPanel, StudiesPanel } from "./CarePanels";
 import { DecisionResponse, NextStep } from "./GuidedCare";
+import { SessionResults } from "./SessionResults";
 import { ClinicalMonitor } from "./ClinicalMonitor";
 import { medicationsFor } from "@/src/lib/criticalCareSimulation";
 import "./clinical.css";
+import "./immersive.css";
 
 const panelLabels: Record<CarePanel, string> = {
-  assessment: "Explorar paciente", interventions: "Cuidados y soporte", medications: "Medicación",
-  tests: "Pruebas y resultados", ventilator: "Ventilador", record: "Registro",
+  assessment: "Examen físico", interventions: "Intervención", medications: "Medicación",
+  tests: "Pruebas", ventilator: "Ventilador", record: "Registro", dialogue: "Diálogos", monitoring: "Monitorizar", calls: "Llamar", history: "Historia clínica", position: "Vista del paciente",
 };
 const initialVentilator: Ventilator = { fio2: 30, peep: 3, rate: 10, volume: 350 };
 
 export function ClinicalSimulation() {
   const [state, dispatch] = useReducer(simulationReducer, "ventilation", createSimulation);
+  const [answers,setAnswers]=useState<QuestionAnswer[]>([]);
+  const [caseQuestion,setCaseQuestion]=useState<CaseQuestion|null>(null);
+  const [closingIndex,setClosingIndex]=useState(0);
+  const [resultOpen,setResultOpen]=useState(false);
+  const [askedQuestions,setAskedQuestions]=useState<CaseQuestion[]>([]);
+  const [screen, setScreen] = useState<"library" | "briefing" | "room">("library");
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [view, setView] = useState<"animated" | "photo">("photo");
+  const [showPoints, setShowPoints] = useState(true);
+  const [zoom, setZoom] = useState(false);
+  const [search, setSearch] = useState("");
+  const [dialogue, setDialogue] = useState<string | null>(null);
+  const [duration, setDuration] = useState(20);
+  const [finishConfirm, setFinishConfirm] = useState(false);
+  const modalRef = useRef<HTMLDialogElement>(null);
   const [tab, setTab] = useState<CarePanel>("assessment");
   const [zone, setZone] = useState<number | null>(null);
   const [draft, setDraft] = useState<Ventilator>(initialVentilator);
@@ -31,36 +51,55 @@ export function ClinicalSimulation() {
   const [snapshot, setSnapshot] = useState<DecisionSnapshot | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const scenario = scenarios[state.scenario];
+  const profile = patientProfiles[state.scenario];
   const running = state.status === "running";
   const finished = state.status === "finished";
-  const panels: CarePanel[] = ["assessment", "interventions", "medications", "tests", ...(state.scenario === "ventilation" ? ["ventilator" as const] : []), "record"];
+  const panels: CarePanel[] = ["dialogue", "assessment", "monitoring", "tests", "calls", "interventions", "medications", ...(state.scenario === "ventilation" ? ["ventilator" as const] : []), "history", "record"];
   const completed = scenario.priorities.filter(id => priorityComplete(state, id));
   const pending = scenario.priorities.filter(id => !priorityComplete(state, id));
+  const closingQuestions = finalQuestions(state.scenario);
+  const activeQuestion = caseQuestion ?? (finished ? closingQuestions[closingIndex] ?? null : null);
+  const questionsComplete = finished && closingIndex >= closingQuestions.length;
+  const clinicalScore = Math.max(0, Math.round(100 * completed.length / scenario.priorities.length) - state.decisions.filter(d=>d.judgment==="harmful").length * 5);
+  const score = scoreWithQuestions(state.scenario, clinicalScore, answers, pending.length ? 69 : 100);
+  const helpTask = guided && running ? nextGuidedTask(state, readSamples) : null;
+  const difficulty = guided ? (showPoints ? "guided" : "custom") : showPoints ? "independent" : "challenge";
   const readyResults = state.studies.filter(s => s.readyAt <= state.elapsed);
   const unread = readyResults.filter(s => !readSamples.includes(sampleKey(s.id, s.requestedAt)));
   const activeComplications = state.complications.filter(c => c.resolvedAt === undefined);
+  const matchingOptions = tab === "medications" ? medicationsFor(state.scenario).filter(m => `${m.name} ${m.purpose} ${m.route}`.toLowerCase().includes(search.toLowerCase())).length : tab === "tests" ? scenario.studies.filter(a => a.label.toLowerCase().includes(search.toLowerCase())).length : scenario.actions.filter(a => a.id !== "help" && `${a.label} ${a.description}`.toLowerCase().includes(search.toLowerCase())).length;
   const actionLabel = (id: string) => id.startsWith("med:") ? medicationsFor(state.scenario).find(m => m.id === id.slice(4))?.name : id === "ventilator" ? "Ajustar soporte y reevaluar respuesta" : id.startsWith("study:") ? scenario.studies.find(a => a.id === id.slice(6))?.label : scenario.actions.find(a => a.id === id)?.label;
 
   useEffect(() => {
     if (!running) return;
-    const interval = window.setInterval(() => dispatch({ type: "tick" }), 1000);
+    const interval = window.setInterval(() => dispatch(state.elapsed >= duration * 60 ? { type: "finish" } : { type: "tick" }), 1000);
     return () => window.clearInterval(interval);
-  }, [running]);
+  }, [running, state.elapsed, duration]);
 
+  useEffect(() => {
+    const modal = modalRef.current;
+    if (!modal) return;
+    if ((libraryOpen || confirmReset || finishConfirm) && !modal.open) modal.showModal();
+    else if (!libraryOpen && !confirmReset && !finishConfirm && modal.open) modal.close();
+  }, [libraryOpen, confirmReset, finishConfirm]);
   function reveal(id: string) {
     requestAnimationFrame(() => {
-      const element = document.getElementById(id) ?? panelRef.current;
-      element?.focus({ preventScroll: true });
-      element?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
+      const element = document.getElementById(id);
+      if (!element || !panelRef.current?.contains(element)) return;
+      element.focus({ preventScroll: true });
+      const container = panelRef.current;
+      container.scrollTo({ top: Math.max(0, element.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop - 12), behavior: "instant" });
     });
   }
   function readResult(id: string, at: number) {
     setReadSamples(previous => [...new Set([...previous, sampleKey(id, at)])]);
   }
   function go(target: CareTarget) {
-    if (target.id?.startsWith("alert:")) { reveal(`care-alert-${target.id.slice(6)}`); return; }
-    if (target.id === "response") { if (!snapshot) setTab("record"); reveal("care-response"); return; }
-    setTab(target.panel);
+    setPanelOpen(true); setSearch("");
+    if (target.id?.startsWith("alert:")) { setTab("record"); reveal(`care-alert-${target.id.slice(6)}`); return; }
+    if (target.id === "response") { setTab("record"); reveal("care-response"); return; }
+    const destination = target.panel === "interventions" && target.id === "help" ? "calls" : target.panel;
+    setTab(destination);
     setHighlighted(target.id);
     if (target.read && target.id) {
       const samples = readyResults.filter(s => s.id === target.id);
@@ -71,9 +110,10 @@ export function ClinicalSimulation() {
       setZone(target.zone);
       dispatch({ type: "assess", zone: target.zone });
       reveal("care-current-finding");
-    } else reveal(target.id ? `care-${target.panel}-${target.id}` : "care-work-panel");
+    } else reveal(target.id ? `care-${destination}-${target.id}` : "care-work-panel");
   }
   function perform(event: SimulationEvent) {
+    if(activeQuestion)return;
     const next = simulationReducer(state, event);
     const tookAction = event.type === "action" && next.actions.length > state.actions.length;
     const gaveMedication = event.type === "medication" && next.medications.length > state.medications.length;
@@ -81,17 +121,29 @@ export function ClinicalSimulation() {
     if (tookAction || gaveMedication || changedSupport) {
       if (event.type === "action" || event.type === "medication" || event.type === "stop-medication" || event.type === "ventilator") {
         setSnapshot(decisionSnapshot(state, event.type, "id" in event ? event.id : undefined));
-        reveal("care-response");
+
       }
     }
+    let requiredQuestion: CaseQuestion | null = null;
+    if ((next.decisions.length > state.decisions.length || (event.type==="ventilator" && next!==state)) && ["medication","action","study","ventilator"].includes(event.type)) {
+      const trigger=event.type==="ventilator"?"ventilator:settings":`${event.type}:${"id" in event?event.id:""}`;
+      const question=triggeredQuestion(state.scenario,trigger,answers);
+      requiredQuestion=question;
+      if(question){setAskedQuestions(previous=>previous.some(q=>q.id===question.id)?previous:[...previous,question]);setCaseQuestion(question);setPanelOpen(true);panelRef.current?.scrollTo({top:0});}
+    }
     dispatch(event);
+    if(requiredQuestion)dispatch({type:"pause"});
   }
-  function startOrPause() {
-    dispatch({ type: running ? "pause" : "start" });
-    if (!running) reveal(window.matchMedia("(max-width: 760px)").matches ? "care-tools" : "care-workspace");
+  function setDifficulty(value:string){
+    setGuided(value==="guided");setShowPoints(value!=="challenge");
   }
+  function startOrPause() { dispatch({ type: running ? "pause" : "start" }); }
+  function enterRoom() { setScreen("room"); setTab("monitoring"); setPanelOpen(true); dispatch({ type: "start" }); }
+  function openPanel(panel: CarePanel) { setTab(panel); setPanelOpen(true); setSearch(""); setHighlighted(undefined); panelRef.current?.scrollTo({top:0}); }
   function reset(id: ScenarioId) {
     dispatch({ type: "reset", scenario: id });
+    setAnswers([]);setCaseQuestion(null);setAskedQuestions([]);setClosingIndex(0);setResultOpen(false);
+    setScreen("briefing"); setPanelOpen(false); setDialogue(null); setSearch(""); setFinishConfirm(false);
     setTab("assessment"); setZone(null); setDraft(initialVentilator); setConfirmReset(null);
     setReadSamples([]); setSnapshot(null); setHighlighted(undefined); setLibraryOpen(false);
   }
@@ -99,11 +151,18 @@ export function ClinicalSimulation() {
     if (state.status === "ready" || finished) reset(id);
     else { dispatch({ type: "pause" }); setConfirmReset(id); }
   }
+  function continueQuestion() {
+    if(!activeQuestion || !answers.some(a=>a.questionId===activeQuestion.id))return;
+    if(caseQuestion){setCaseQuestion(null);if(!document.hidden)dispatch({type:"start"});}
+    else {setClosingIndex(index=>index+1);if(closingIndex===closingQuestions.length-1){openPanel("record");setResultOpen(true);}}
+  }
   function exportRecord() {
+    if(finished && !questionsComplete)return;
     const content = [
       `PRÁCTICA EDUCATIVA PSYKE — ${scenario.title}`, `Duración: ${formatClinicalTime(state.elapsed)}`,
+      `Nivel: ${difficulty} · orientación: ${guided} · puntos: ${showPoints}`, `Puntuación: ${JSON.stringify(score)}`, `Decisiones: ${JSON.stringify(state.decisions)}`, `Preguntas: ${JSON.stringify(answers)}`,
       ...state.log.map(e => `${formatClinicalTime(e.at)} ${e.text}`), "",
-      `Signos finales: FC ${Math.round(state.vitals.hr)} · PA ${Math.round(state.vitals.sbp)}/${Math.round(state.vitals.dbp)} · SpO₂ ${Math.round(state.vitals.spo2)}%`,
+      `Mediciones al exportar: FC ${observedVital(state,"hr") === null ? "sin medir" : Math.round(state.vitals.hr)} · PA ${observedVital(state,"sbp") === null ? "sin medir" : `${Math.round(state.vitals.sbp)}/${Math.round(state.vitals.dbp)}`} · SpO₂ ${observedVital(state,"spo2") === null ? "sin medir" : `${Math.round(state.vitals.spo2)}%`}`,
       `Reevaluaciones: ${state.reassessments.length}`, `Pendientes: ${pending.map(actionLabel).join(", ") || "Ninguna prioridad del ejercicio"}`,
     ].join("\n");
     const url = URL.createObjectURL(new Blob([content], { type: "text/plain;charset=utf-8" }));
@@ -111,57 +170,35 @@ export function ClinicalSimulation() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  return <div className="clinical-app guided-clinical-app">
-    <div className="clinical-breadcrumb"><Link href="/dashboard">Mi aprendizaje</Link><span>/</span><span>Cuidados críticos</span></div>
-    <header className="clinical-heading"><div><p className="clinical-eyebrow">PSYKE · PRÁCTICA CON PACIENTE SIMULADO</p><h1>Cuidados críticos</h1><p>Observa al paciente, elige un cuidado y comprueba su respuesta.</p></div><Link className="clinical-module-link" href="/clinical-room"><HeartPulse size={18}/> Sala obstétrica <ArrowRight size={16}/></Link></header>
+  const gallery = <div className="immersive-case-grid">{criticalCareCaseIds.map((id, index) => <button key={id} className="immersive-case-tile" onClick={() => requestReset(id)}><span className={`case-portrait case-${id}`}>{scenarios[id].patient.split(" ").map(p=>p[0]).slice(0,2).join("")}</span><span className="case-tile-content"><small>{patientProfiles[id].difficulty} · CASO {String(index+1).padStart(2,"0")}</small><strong>{scenarios[id].title}</strong><b>{scenarios[id].patient} · {patientProfiles[id].age} años</b><span>{scenarios[id].presentation}</span></span><ArrowRight size={20}/></button>)}</div>;
+  const closeModal = () => { setLibraryOpen(false); setConfirmReset(null); setFinishConfirm(false); };
+  const modal = <dialog ref={modalRef} className="immersive-modal" onCancel={e=>{e.preventDefault();closeModal();}} aria-labelledby="immersive-modal-title"><button className="immersive-modal-close" onClick={closeModal} aria-label="Cerrar diálogo">×</button><h2 id="immersive-modal-title">{confirmReset ? "¿Preparar una nueva sesión?" : finishConfirm ? "¿Finalizar la atención?" : "Seleccionar caso"}</h2>{confirmReset ? <><p>La práctica está en pausa. Preparar este caso reinicia el tiempo, las mediciones y los tratamientos.</p><button className="clinical-next" onClick={()=>reset(confirmReset)}>Confirmar y preparar caso</button><button className="clinical-next" onClick={closeModal}>Conservar la sesión en pausa</button></> : finishConfirm ? <><p>Se conservará el registro y podrás revisar las decisiones y los resultados.</p><button className="clinical-next" onClick={()=>{dispatch({type:"finish"});closeModal();openPanel("record");}}>Finalizar y revisar</button><button className="clinical-next" onClick={closeModal}>Volver a la atención en pausa</button></> : gallery}</dialog>;
 
-    <section className="care-case-header" aria-label="Caso seleccionado">
-      <div><span className="clinical-case-tag">CASO {String(criticalCareCaseIds.indexOf(state.scenario) + 1).padStart(2, "0")} · FICTICIO</span><h2>{scenario.title}</h2><p>{caseObjectives[state.scenario]}</p></div>
-      <button type="button" className="care-secondary" aria-expanded={libraryOpen} aria-controls="care-case-library" onClick={() => setLibraryOpen(value => !value)}>{libraryOpen ? "Ocultar casos" : "Cambiar caso"}</button>
-    </section>
-    {libraryOpen && <section className="case-library" id="care-case-library" aria-label="Biblioteca de cuidados críticos"><h3>Elige qué quieres practicar</h3><div className="clinical-case-picker">{criticalCareCaseIds.map((id, index) => <button type="button" key={id} aria-pressed={state.scenario === id} onClick={() => state.scenario === id ? setLibraryOpen(false) : requestReset(id)}>{id === "ventilation" || id === "asthma" ? <Wind size={18}/> : <Activity size={18}/>}<span className="case-button-label">{scenarios[id].title}</span><span>{String(index + 1).padStart(2, "0")}</span></button>)}</div></section>}
-    {confirmReset && <section className="clinical-confirm" role="alert"><h3>Tu práctica quedó en pausa</h3><p>Cambiar o reiniciar el caso borra esta sesión. Puedes conservarla y descargar el registro antes de salir.</p><div><button type="button" onClick={() => reset(confirmReset)}>Confirmar y comenzar de nuevo</button><button type="button" onClick={() => setConfirmReset(null)}>Conservar práctica en pausa</button></div></section>}
+  if (screen === "library") return <div className="clinical-app immersive-library"><div className="clinical-breadcrumb"><Link href="/simulation-hub">Escenarios y urgencias</Link><span>/</span>Cuidados críticos</div><header className="immersive-library-heading"><span className="clinical-eyebrow">PSYKE / SIMULACIÓN CLÍNICA</span><h1>Tu próxima guardia.</h1><p>Elige un caso. Conoce al paciente, conecta los sensores y decide cómo atenderlo.</p></header>{gallery}<p className="immersive-library-note">6 casos ficticios · evolución continua · decisiones libres · registro de la práctica</p>{modal}</div>;
+  if (screen === "briefing") return <div className="clinical-app immersive-briefing"><button className="briefing-back" onClick={()=>setScreen("library")}>← Todos los casos</button><div className="briefing-layout"><div className="briefing-art"><PatientView scenario={state.scenario} garment={0} selectedZone={null} assessed={[]} running={false} oxygen={false} onAssess={()=>{}} breathingRate={state.vitals.rr} view="photo" showPoints={false}/><span>Paciente ficticio · ilustración</span></div><section className="briefing-details"><span className="clinical-eyebrow">{profile.difficulty.toUpperCase()} · {profile.setting}</span><h1>{scenario.patient}</h1><h2>{scenario.title}</h2><div className="briefing-parameters">{[{value:profile.age,unit:"años"},{value:profile.weight,unit:"kg"},{value:profile.height,unit:"cm"},{value:(profile.weight/((profile.height/100)**2)).toFixed(1),unit:"IMC"}].map(item=><div key={item.unit}><strong>{item.value}</strong><small>{item.unit}</small></div>)}</div><p className="briefing-story">{scenario.presentation}</p><div className="briefing-objective"><strong>Tu misión</strong><p>{caseObjectives[state.scenario]}</p></div><label className="briefing-duration">Duración de la práctica<select value={duration} onChange={e=>setDuration(Number(e.target.value))}><option value={10}>10 minutos</option><option value={20}>20 minutos</option><option value={30}>30 minutos</option></select></label><label className="briefing-difficulty">Nivel de ayuda<select aria-label="Nivel de ayuda" value={difficulty} onChange={event=>setDifficulty(event.target.value)}><option value="guided">Guiada · mensajes y puntos visibles</option><option value="independent">Autónoma · sin mensajes, con puntos</option><option value="challenge">Desafío · sin ayuda ni puntos</option>{difficulty==="custom"&&<option value="custom">Personalizada</option>}</select></label><label className="care-guide-toggle"><input type="checkbox" checked={showPoints} onChange={e=>setShowPoints(e.target.checked)}/>Mostrar puntos de exploración 01–04</label><label className="care-guide-toggle"><input type="checkbox" checked={guided} onChange={e=>setGuided(e.target.checked)}/>Mostrar orientación durante la práctica</label><button className="briefing-start" onClick={enterRoom}><Play size={18}/> Iniciar simulación <ArrowRight size={18}/></button><small className="briefing-note">Puedes explorar desde Examen físico aunque ocultes los puntos. El reloj comienza al entrar. Las lecturas aparecen al conectar cada sensor desde Monitorizar. Parámetros ficticios del caso.</small></section></div>{modal}</div>;
 
-    {state.status === "ready" && <section className="care-onboarding" aria-label="Cómo usar el simulador"><div><p className="clinical-eyebrow">ANTES DE EMPEZAR</p><h2>Tu primera atención, en cuatro movimientos</h2><p>El reloj está detenido. Lee el caso y pulsa «Iniciar práctica» cuando estés listo.</p></div><ol><li><b>1. Explora</b><span>Toca un punto del paciente o un botón con nombre para leer el hallazgo.</span></li><li><b>2. Decide</b><span>Abre Cuidados, Medicación o Pruebas. Cada botón indica lo que hará.</span></li><li><b>3. Observa</b><span>Compara los signos antes y después. Los tratamientos tardan en actuar.</span></li><li><b>4. Reevalúa</b><span>Registra la respuesta, revisa las alertas y pide otra muestra si hace falta.</span></li></ol></section>}
-
-    <section className="care-session-bar" aria-label="Controles de la práctica"><label className="care-guide-toggle"><input type="checkbox" checked={guided} onChange={e => setGuided(e.target.checked)}/><span>Mostrar guía de siguiente paso</span></label><div className="clinical-controls"><time className="clinical-clock">{formatClinicalTime(state.elapsed)}</time>{!finished && <button type="button" className="clinical-start" disabled={Boolean(confirmReset)} onClick={startOrPause}>{running ? <Pause size={16}/> : <Play size={16}/>} {running ? "Pausar" : state.status === "ready" ? "Iniciar práctica" : "Continuar práctica"}</button>}<button type="button" className="clinical-reset" onClick={() => requestReset(state.scenario)}><RotateCcw size={15}/> Reiniciar</button></div></section>
-    {state.status === "paused" && <div className="care-pause-notice" role="status">Estás en pausa: el paciente, los fármacos y las pruebas no avanzan. Puedes leer resultados; pulsa «Continuar práctica» para intervenir.</div>}
-
-    <div className="clinical-live-strip" aria-label="Signos vitales continuos"><span className="strip-label"><span className={running ? "status-dot active" : "status-dot"}/>{running ? "EN VIVO" : finished ? "FINALIZADA" : "EN PAUSA"}</span><span>FC <b>{Math.round(state.vitals.hr)}</b><small>lpm</small></span><span>SpO₂ <b>{Math.round(state.vitals.spo2)}</b><small>%</small></span><span>PA <b>{Math.round(state.vitals.sbp)}/{Math.round(state.vitals.dbp)}</b></span><span>FR <b>{Math.round(state.vitals.rr)}</b><small>rpm</small></span><button type="button" className="care-jump-patient" onClick={() => reveal("care-patient")}>Ver paciente</button><button type="button" className="care-jump-tools" onClick={() => reveal("care-work-panel")}>Atender →</button><button type="button" className="care-jump-monitor" onClick={() => { document.getElementById("care-monitor-details")?.setAttribute("open", ""); reveal("care-monitor-details"); }}>Ampliar monitor</button></div>
-    <div className="clinical-workspace care-workspace" id="care-workspace" tabIndex={-1}>
-      <div className="care-patient-column" id="care-patient" tabIndex={-1}>
-        <section className="clinical-patient-card"><header><div><p className="clinical-eyebrow">TU PACIENTE</p><h2>{scenario.patient}</h2><p>{scenario.subtitle}</p></div><span className="clinical-case-tag">{running ? "En atención" : finished ? "Finalizada" : "En pausa"}</span></header><p className="care-presentation">{scenario.presentation}</p><div className="patient-caption"><span>EXPLORA UNA ZONA PARA CONOCER EL HALLAZGO</span></div>
-          <PatientView scenario={state.scenario} garment={0} selectedZone={zone} assessed={state.assessed} running={running} oxygen={state.actions.includes("oxygen")} onAssess={i => go({ panel: "assessment", zone: i })} breathingRate={state.vitals.rr} vitals={state.vitals} iv={state.actions.includes("iv")} fluids={state.actions.includes("fluids")}/>
-          <div className="patient-zone-buttons">{scenario.zones.map((z, i) => <button type="button" key={z.label} disabled={!running} onClick={() => go({ panel: "assessment", zone: i })} aria-pressed={zone === i}><span>{state.assessed.includes(i) ? <CheckCircle2 size={17}/> : `0${i + 1}`}</span>{z.label}</button>)}</div><div className="patient-status"><span><ShieldCheck size={14}/> Tocar una zona solo explora</span><span>{state.assessed.length}/4 revisadas</span></div>
-        </section>
-        <details id="care-monitor-details" className="care-monitor-details"><summary>Monitor completo y tendencias <span>FC: pulso · SpO₂: saturación · PA: presión · FR: respiración</span></summary><ClinicalMonitor state={state}/></details>
-      </div>
-      <div className="care-decision-column" id="care-tools" tabIndex={-1}>
-        {guided && running && <NextStep state={state} readSamples={readSamples} onGo={go}/>}
-        <ComplicationPanel state={state} dispatch={perform} onGo={go}/>
-        {(snapshot || tab === "record") && <DecisionResponse state={state} snapshot={snapshot} onReassess={() => { perform({ type: "reassess" }); reveal("care-response"); }}/> }
-        <section className="clinical-decision-card"><nav className="clinical-tabs" role="tablist" aria-label="Herramientas para atender al paciente">{panels.map((panel, index) => <button type="button" role="tab" key={panel} id={`tab-${panel}`} aria-selected={tab === panel} tabIndex={tab === panel ? 0 : -1} aria-controls="care-work-panel" onClick={() => { setTab(panel); setHighlighted(undefined); }} onKeyDown={e => {
-          let next: CarePanel | undefined;
-          if (e.key === "ArrowRight") next = panels[(index + 1) % panels.length];
-          if (e.key === "ArrowLeft") next = panels[(index - 1 + panels.length) % panels.length];
-          if (e.key === "Home") next = panels[0]; if (e.key === "End") next = panels[panels.length - 1];
-          if (next) { e.preventDefault(); setTab(next); document.getElementById(`tab-${next}`)?.focus(); }
-        }}>{panelLabels[panel]}{panel === "tests" && unread.length > 0 && <small aria-label={`${unread.length} resultados sin leer`}>{unread.length}</small>}</button>)}</nav>
-          <div role="tabpanel" id="care-work-panel" ref={panelRef} tabIndex={-1} aria-labelledby={`tab-${tab}`} className="clinical-panel">
+  return <div className={`clinical-app guided-clinical-app immersive-critical ${panelOpen ? "drawer-open" : ""}`}>
+    <header className="immersive-room-header"><Link href="/simulation-hub" className="room-brand">P<span>PSYKE <small>SALA DE SIMULACIÓN</small></span></Link><div className="room-patient-identity"><strong>{scenario.patient}</strong><span>{profile.age} años · {scenario.title}</span></div><div className="room-session-controls"><time>{formatClinicalTime(state.elapsed)}<small> / {duration}:00</small></time>{!finished && <button onClick={startOrPause} aria-label={running?"Pausar simulación":"Continuar simulación"}>{running?<Pause size={16}/>:<Play size={16}/>}<span>{running?"Pausar":"Continuar"}</span></button>}{finished&&questionsComplete&&<button onClick={()=>setResultOpen(true)}>Ver resultado</button>}<button onClick={()=>{if(running)dispatch({type:"pause"});setLibraryOpen(true);}}>Casos</button><button onClick={()=>{dispatch({type:"pause"});setFinishConfirm(true);}} disabled={finished}>Finalizar</button></div></header>
+    <div className="immersive-room-body">
+      <aside className="room-monitor-column"><ClinicalMonitor state={state} onConnect={()=>openPanel("monitoring")}/><div className="room-monitor-note"><span>INFORMACIÓN DEL PACIENTE</span><p>{scenario.subtitle}</p><small>Las señales y la respiración responden al mismo estado de simulación.</small></div></aside>
+      <section className="room-patient-stage" aria-label="Paciente en atención"><div className="stage-topline"><span><i className={running?"device-led live":"device-led"}/>{running?"EN ATENCIÓN":finished?"PRÁCTICA FINALIZADA":"ATENCIÓN EN PAUSA"}</span><button onClick={()=>openPanel("position")}>◉ Vista</button></div><PatientView scenario={state.scenario} garment={0} selectedZone={zone} assessed={state.assessed} running={running} oxygen={state.actions.includes("oxygen")} onAssess={i=>go({panel:"assessment",zone:i})} breathingRate={state.vitals.rr} vitals={state.vitals} iv={state.actions.includes("iv")} fluids={state.actions.includes("fluids")} monitoring={sensorConnected(state,"ecg")} view={view} showPoints={showPoints} zoom={zoom}/><div className="stage-bottomline"><span>{state.scenario==="ventilation"?"Ventilación invasiva":state.actions.includes("oxygen")?"Oxígeno conectado":"Respiración espontánea"}</span>{state.actions.includes("iv")&&<span>Vía IV</span>}{state.actions.includes("fluids")&&<span>Cristaloides</span>}<small>Paciente ficticio · {view==="animated"?"ilustración animada":"imagen sintética"}</small></div></section>
+      {panelOpen && <aside className="room-action-drawer" aria-label={panelLabels[tab]}><header><div><small>ATENCIÓN DEL PACIENTE</small><h2>{panelLabels[tab]}</h2></div><button onClick={()=>setPanelOpen(false)} aria-label="Cerrar panel de acciones">×</button></header>{["interventions","tests","medications"].includes(tab)&&<label className="drawer-search"><span>⌕</span><input aria-label={`Buscar en ${panelLabels[tab]}`} placeholder="Buscar una opción…" value={search} onChange={e=>setSearch(e.target.value)}/>{search&&<button onClick={()=>setSearch("")} aria-label="Limpiar búsqueda">×</button>}</label>}
+        <div className="room-drawer-content" id="care-work-panel" ref={panelRef} tabIndex={-1}>
+            {search && !matchingOptions && <div className="clinical-hint" role="status"><p>No hay opciones que coincidan con «{search}».</p><button onClick={()=>setSearch("")}>Mostrar todas</button></div>}
             {unread.length > 0 && tab !== "tests" && <button type="button" className="care-results-notice" onClick={() => go({ panel: "tests", id: unread[0].id, read: true })}>{unread.length} resultado{unread.length > 1 ? "s" : ""} disponible{unread.length > 1 ? "s" : ""} sin leer · Abrir →</button>}
             {!running && !finished && <div className="clinical-hint"><p>{state.status === "ready" ? "Primero pulsa «Iniciar práctica». Después podrás explorar e intervenir; preparar una medicación no la administra todavía." : "La atención está en pausa. Puedes consultar los resultados y el registro. Continúa para realizar un cuidado o administrar."}</p></div>}
             {tab === "assessment" && <><PanelTitle icon={<Stethoscope size={20}/>} title="Explorar no es tratar" subtitle="Toca una zona de la imagen o uno de estos botones. Lee el hallazgo y decide qué cuidado necesitas."/>
               <div className="assessment-list">{scenario.zones.map((z, i) => <button type="button" key={z.label} disabled={!running} className={zone === i ? "selected" : ""} onClick={() => go({ panel: "assessment", zone: i })}><span className="assessment-number">{state.assessed.includes(i) ? <Check size={16}/> : `0${i + 1}`}</span><div><b>Explorar {z.label}</b><small>{state.assessed.includes(i) ? "Hallazgo revisado · puedes volver a explorar" : "Abre el hallazgo de esta zona"}</small></div><ArrowRight size={16}/></button>)}</div>
               {zone !== null && state.assessed.includes(zone) && <div className="patient-finding" id="care-current-finding" tabIndex={-1} role="status"><b>Hallazgo de zona {zone + 1} · {scenario.zones[zone].label}</b><p>{assessmentFinding(state, zone)}</p><button type="button" className="clinical-next" onClick={() => go({ panel: "interventions" })}>Elegir un cuidado para este paciente <ArrowRight size={16}/></button></div>}
             </>}
-            {tab === "interventions" && <><PanelTitle icon={<HeartPulse size={20}/>} title="Realizar cuidados y soporte" subtitle="Lee el propósito y pulsa el nombre del cuidado para realizarlo una vez. Si falta un requisito, usa su enlace."/><div className="care-actions">{scenario.actions.map(action => {
+            {tab === "interventions" && <><PanelTitle icon={<HeartPulse size={20}/>} title="Realizar cuidados y soporte" subtitle="Lee el propósito y pulsa el nombre del cuidado para realizarlo una vez. Si falta un requisito, usa su enlace."/><div className="care-actions">{scenario.actions.filter(action => action.id !== "help" && `${action.label} ${action.description}`.toLowerCase().includes(search.toLowerCase())).map(action => {
               const done = state.actions.includes(action.id);
               const missing = action.requires?.filter(id => !state.actions.includes(id)) ?? [];
               const missingStudy = action.requiresStudy && !hasStudyResult(state, action.requiresStudy) ? action.requiresStudy : undefined;
               return <article key={action.id} id={`care-interventions-${action.id}`} tabIndex={-1} className={`${done ? "care-action-done" : ""} ${highlighted === action.id ? "care-highlight" : ""}`}><h4>{action.label}</h4><p>{action.description}</p>{missing.length > 0 && <div className="care-blocker"><p>Para habilitar este cuidado:</p>{missing.map(id => <button type="button" key={id} onClick={() => go({ panel: "interventions", id })}>Completar {actionLabel(id)} →</button>)}</div>}{missingStudy && <div className="care-blocker"><button type="button" onClick={() => go({ panel: "tests", id: missingStudy })}>Obtener resultado de {scenario.studies.find(s => s.id === missingStudy)?.label} →</button></div>}<button type="button" className="care-action-button" disabled={!running || done || missing.length > 0 || Boolean(missingStudy)} onClick={() => perform({ type: "action", id: action.id })}>{done ? "✓ Cuidado registrado" : action.label}</button></article>;
             })}</div><button type="button" className="clinical-next" onClick={() => go({ panel: "medications" })}>Revisar opciones de medicación <ArrowRight size={16}/></button></>}
-            {tab === "medications" && <MedicationPanel key={state.scenario} state={state} dispatch={perform} onGo={go} highlightedId={highlighted}/>}
-            {tab === "tests" && <StudiesPanel state={state} dispatch={perform} highlightedId={highlighted} readSamples={readSamples} onRead={readResult}/>}
+            {tab === "medications" && <MedicationPanel key={state.scenario} state={state} dispatch={perform} onGo={go} highlightedId={highlighted} query={search}/>}
+            {tab === "tests" && <StudiesPanel state={state} dispatch={perform} highlightedId={highlighted} readSamples={readSamples} onRead={readResult} query={search}/>}
             {tab === "ventilator" && <><PanelTitle icon={<Wind size={20}/>} title="Preparar ajustes del ventilador" subtitle="Mover un control solo propone un ajuste. Pulsa «Aplicar ajustes» para que cambie el soporte del paciente."/>
               {!state.actions.includes("circuit") && <div className="care-blocker"><p>Antes de aplicar cambios, comprueba el tubo y el circuito.</p><button type="button" onClick={() => go({ panel: "interventions", id: "circuit" })}>Ir a comprobar tubo y circuito →</button></div>}
               <form onSubmit={e => { e.preventDefault(); perform({ type: "ventilator", settings: draft }); }}><div className="ventilator-controls">{([
@@ -172,12 +209,23 @@ export function ClinicalSimulation() {
               ] as const).map(control => <label key={control.key} htmlFor={`vent-${control.key}`}><span>{control.label}<small>{control.unit} · actual: {state.ventilator[control.key]}</small></span><input id={`vent-${control.key}`} type="range" min={control.min} max={control.max} step={control.step} value={draft[control.key]} disabled={!running} onChange={e => setDraft({ ...draft, [control.key]: Number(e.target.value) })}/><output htmlFor={`vent-${control.key}`}>{draft[control.key]}</output></label>)}</div><div className="ventilator-summary"><span>Propuesta de VT / peso <b>{(draft.volume / 65).toFixed(1)} mL/kg</b></span><span>Ventilación minuto propuesta <b>{(draft.rate * draft.volume / 1000).toFixed(1)} L/min</b></span></div><p className="clinical-footnote">Paciente ya intubado · peso predicho del caso: 65 kg. Tras aplicar, compara SpO₂, EtCO₂ y presión arterial.</p><button type="submit" className="clinical-next" disabled={!running || !state.actions.includes("circuit")}>Aplicar ajustes <ArrowRight size={16}/></button></form>
             </>}
             {tab === "record" && <><PanelTitle icon={<ClipboardList size={20}/>} title="Qué hiciste y qué ocurrió" subtitle="Revisa los hallazgos, los tratamientos y las reevaluaciones en orden de tiempo."/>{state.log.length ? <ol className="clinical-log">{state.log.map((entry, i) => <li key={i}><time>{formatClinicalTime(entry.at)}</time><p>{entry.text}</p></li>)}</ol> : <p>Aún no hay actividad. Inicia la práctica para comenzar.</p>}<button type="button" className="clinical-next" disabled={!state.log.length} onClick={exportRecord}>Descargar registro <ArrowRight size={16}/></button></>}
-          </div>
-        </section>
-      </div>
+            {tab === "monitoring" && <><PanelTitle icon={<Activity size={20}/>} title="Conectar y medir" subtitle="Activa cada sensor para ver su lectura. La fisiología sigue evolucionando aunque el sensor esté desconectado."/><div className="monitoring-switches">{MONITORING_OPTIONS.map(option=><label key={option.key}><span><strong>{option.label}</strong><small>{option.detail}</small></span><input type="checkbox" role="switch" aria-label={option.label} checked={sensorConnected(state,option.key)} disabled={!running} onChange={e=>perform({type:"monitor",key:option.key,enabled:e.target.checked})}/><b>{sensorConnected(state,option.key)?"ON":"OFF"}</b></label>)}</div><button className="clinical-next" onClick={()=>go({panel:"tests",id:"glucose"})}>Glucemia y otras pruebas de cabecera →</button></>}
+            {tab === "dialogue" && <><PanelTitle icon={<Stethoscope size={20}/>} title="Escuchar al paciente" subtitle="Revisa la información disponible del caso y explica la atención."/>{[{title:"Saludo e introducción",body:"Te presentas, explicas tu función y comunicas al paciente qué vas a valorar."},{title:"Motivo de consulta e historia",body:scenario.presentation},{title:"Antecedentes disponibles",body:scenario.subtitle+". Los antecedentes no descritos, alergias y tratamientos habituales deben verificarse; no se asumen ausentes."}].map(item=><button className="dialogue-choice" key={item.title} onClick={()=>setDialogue(item.body)}>{item.title}<ArrowRight size={15}/></button>)}{dialogue&&<div className="patient-finding" role="status"><p>{dialogue}</p></div>}</>}
+            {tab === "calls" && <><PanelTitle icon={<HeartPulse size={20}/>} title="Solicitar ayuda" subtitle="Comunica situación, antecedentes, valoración y recomendación al equipo del caso."/>{scenario.actions.filter(a=>a.id==="help"||a.id==="blood"||a.id==="definitive").map(a=><article className="call-choice" id={`care-calls-${a.id}`} tabIndex={-1} key={a.id}><h3>{a.label}</h3><p>{a.description}</p><button className="clinical-next" disabled={!running || state.actions.includes(a.id) || (a.requires??[]).some(id=>!state.actions.includes(id)) || Boolean(a.requiresStudy && !hasStudyResult(state,a.requiresStudy))} onClick={()=>perform({type:"action",id:a.id})}>{state.actions.includes(a.id)?"✓ Equipo avisado":a.label}</button></article>)}</>}
+            {tab === "history" && <><PanelTitle icon={<ClipboardList size={20}/>} title="Ficha clínica" subtitle="Datos ficticios disponibles al ingreso."/><div className="room-history"><h3>{scenario.patient}</h3><p>{scenario.subtitle}</p><p>{scenario.presentation}</p><dl><dt>Edad</dt><dd>{profile.age} años</dd><dt>Peso del caso</dt><dd>{profile.weight} kg</dd><dt>Talla</dt><dd>{profile.height} cm</dd><dt>Entorno</dt><dd>{profile.setting}</dd></dl><p>Consulta Pruebas para revisar resultados de cada muestra.</p><details><summary>Referencias MSP y alcance</summary>{Object.values(CLINICAL_SOURCES).filter(source=>state.scenario==="anaphylaxis"?source.id==="msp-allergy":state.scenario==="hypoglycemia"?source.id==="msp-diabetes":state.scenario==="ventilation"?source.id==="msp-ventilation":source.id==="msp-emergency").map(source=><article key={source.id}><p><a href={source.url} target="_blank" rel="noreferrer">{source.title} · {source.year} ↗</a></p><p>{source.section}. {source.scope}</p></article>)}{(state.scenario==="sepsis"||state.scenario==="stroke")&&<p>Se mantiene la necesidad de protocolo institucional y valoración especializada. No se atribuye a estas fuentes un esquema antimicrobiano adulto ni una pauta de reperfusión no verificados.</p>}</details></div></>}
+            {tab === "position" && <><PanelTitle icon={<Activity size={20}/>} title="Vista y nivel de ayuda" subtitle="Configura los puntos y la orientación. Los cuidados se realizan desde Intervención."/><div className="stage-view-options"><button aria-pressed={guided} onClick={()=>setGuided(value=>!value)}>{guided?"Desactivar ayuda interactiva":"Activar ayuda interactiva"}</button><button aria-pressed={view==="animated"} onClick={()=>setView("animated")}>Paciente ilustrado animado</button><button aria-pressed={view==="photo"} onClick={()=>setView("photo")}>Paciente fotográfico</button><button aria-pressed={showPoints} onClick={()=>setShowPoints(!showPoints)}>{showPoints?"Ocultar":"Mostrar"} puntos de exploración</button><button aria-pressed={zoom} onClick={()=>setZoom(!zoom)}>{zoom?"Vista general":"Acercar paciente"}</button></div>{scenario.actions.some(a=>a.id==="head")&&<button className="clinical-next" onClick={()=>go({panel:"interventions",id:"head"})}>Revisar cabecera y fijación →</button>}</>}
+
+            {tab === "record" && <><QuestionHistory questions={askedQuestions} answers={answers} onAnswer={(id,option)=>setAnswers(previous=>answerQuestion(previous,id,option,state.elapsed))}/><ComplicationPanel state={state} dispatch={perform} onGo={go}/><DecisionResponse state={state} snapshot={snapshot} onReassess={()=>perform({type:"reassess"})}/>{finished&&<><QuestionScore score={score} complete={questionsComplete}/><p>Base clínica: proporción de prioridades registradas, menos 5 puntos por decisión perjudicial. Las prioridades pendientes limitan la nota a 69.</p><DecisionReview decisions={state.decisions}/><div className="final-case-questions"><h3>Dos preguntas de cierre</h3><p>Respuestas confirmadas durante el cierre obligatorio.</p>{finalQuestions(state.scenario).map(q=><QuestionCard key={q.id} question={q} answer={answers.find(a=>a.questionId===q.id)} onAnswer={option=>setAnswers(previous=>answerQuestion(previous,q.id,option,state.elapsed))}/>)}</div><div className="room-summary"><h3>Resumen de tu práctica</h3><p>{completed.length}/{scenario.priorities.length} prioridades registradas · {state.reassessments.length} reevaluaciones.</p><h4>Pendientes</h4>{pending.length?pending.map(id=><p key={id}>• {actionLabel(id)}</p>):<p>Revisa tu razonamiento y la evolución con tu docente.</p>}</div></>}</>}
+            {guided && running && tab === "record" && <NextStep state={state} readSamples={readSamples} onGo={go}/>}
+        </div>
+      </aside>}
     </div>
-    {finished ? <section className="clinical-debrief"><PanelTitle icon={<CheckCircle2 size={22}/>} title="Resumen de tu práctica" subtitle={`${formatClinicalTime(state.elapsed)} · ${completed.length}/${scenario.priorities.length} prioridades registradas · ${state.reassessments.length} reevaluaciones`}/><div><article><h3>Lo que registraste</h3>{completed.length ? <ul>{completed.map(id => <li key={id}><Check size={15}/>{actionLabel(id)}</li>)}</ul> : <p>No registraste prioridades de atención.</p>}</article><article><h3>Lo que debes revisar</h3>{pending.length ? <ul>{pending.map(id => <li key={id}>{actionLabel(id)}</li>)}</ul> : <p>Revisa la tendencia, los resultados y tu razonamiento con tu docente.</p>}{unread.length > 0 && <button type="button" className="clinical-next" onClick={() => go({ panel: "tests", id: unread[0].id, read: true })}>Leer {unread.length} resultado{unread.length > 1 ? "s" : ""} pendiente{unread.length > 1 ? "s" : ""} →</button>}<p>{activeComplications.length} complicaciones siguen activas al cierre.</p></article></div><p className="clinical-footnote">Registrar todas las acciones no garantiza recuperación ni acredita competencia. La sesión se conserva mientras esta página esté abierta.</p><button type="button" className="clinical-next" onClick={exportRecord}>Descargar registro de esta práctica <ArrowRight size={16}/></button></section> : <div className="clinical-session-footer"><p>Al finalizar verás qué registraste, qué omitiste y si reevaluaste al paciente.</p><button type="button" disabled={state.status === "ready"} onClick={() => { dispatch({ type: "finish" }); setTab("record"); reveal("care-work-panel"); }}>Finalizar y revisar práctica <ArrowRight size={16}/></button></div>}
-    <details className="care-help"><summary>Volver a leer cómo funciona y consultar referencias</summary><p><b>Explorar:</b> abre un hallazgo. <b>Cuidar o administrar:</b> puede cambiar la evolución. <b>Solicitar una prueba:</b> toma una muestra y necesita tiempo. <b>Reevaluar:</b> registra lo que observas; no administra tratamiento. Puedes pausar en cualquier momento.</p><p>Simulación educativa con respuestas aproximadas y tiempos acelerados. Imagen sintética compartida entre casos ficticios. No es una herramienta asistencial.</p><p>Referencias: <a href="https://ginasthma.org/reports/" target="_blank" rel="noreferrer">GINA</a> · <a href="https://sccm.org/survivingsepsiscampaign/guidelines-and-resources/surviving-sepsis-campaign-adult-guidelines" target="_blank" rel="noreferrer">SCCM</a> · <a href="https://www.resus.org.uk/library/additional-guidance/guidance-anaphylaxis/emergency-treatment-anaphylactic-reactions" target="_blank" rel="noreferrer">RCUK</a> · <a href="https://diabetes.org/living-with-diabetes/hypoglycemia-low-blood-glucose" target="_blank" rel="noreferrer">ADA</a> · <a href="https://www.stroke.org/en/about-stroke/stroke-symptoms" target="_blank" rel="noreferrer">American Stroke Association</a></p></details>
+    {helpTask&&<details className="room-help-message" aria-label="Ayuda interactiva"><summary>Guía · {helpTask.title}</summary><p>{helpTask.why}</p><button onClick={()=>go(helpTask.target)}>{helpTask.cta}</button></details>}
+    <div className="room-feedback" role="status"><span>{state.feedback}</span>{guided&&<button onClick={()=>openPanel("record")}>Guía</button>}{activeComplications.length>0&&<button onClick={()=>openPanel("record")}>⚠ {activeComplications.length} alerta{activeComplications.length>1?"s":""}</button>}{unread.length>0&&<button onClick={()=>openPanel("tests")}>● {unread.length} resultado{unread.length>1?"s":""}</button>}</div>
+    <nav className="room-action-bar" aria-label="Herramientas para atender al paciente">{panels.map(panel=><button key={panel} onClick={()=>openPanel(panel)} aria-pressed={panelOpen&&tab===panel}><span aria-hidden="true">{panel==="assessment"?<Stethoscope size={21}/>:panel==="monitoring"?<Activity size={21}/>:panel==="interventions"?<HeartPulse size={21}/>:panel==="ventilator"?<Wind size={21}/>:panel==="record"||panel==="history"?<ClipboardList size={21}/>:panel==="tests"?<ShieldCheck size={21}/>:panel==="calls"?"☎":panel==="dialogue"?"☏":"✚"}</span><strong>{panelLabels[panel]}</strong>{panel==="tests"&&unread.length>0&&<small>{unread.length}</small>}</button>)}</nav>
+    {modal}
+    {resultOpen&&questionsComplete&&<SessionResults state={state} title={scenario.title} score={score} pending={pending.map(id=>actionLabel(id)??id)} questions={[...askedQuestions,...closingQuestions]} answers={answers} onClose={()=>setResultOpen(false)} onRepeat={()=>reset(state.scenario)} onChoose={()=>{setResultOpen(false);setScreen("library");setLibraryOpen(false);}} onExport={exportRecord}/>}
+    {activeQuestion&&<MandatoryQuestion key={activeQuestion.id} question={activeQuestion} answer={answers.find(a=>a.questionId===activeQuestion.id)} onAnswer={option=>setAnswers(previous=>answerQuestion(previous,activeQuestion.id,option,state.elapsed))} onContinue={continueQuestion} progress={activeQuestion.stage==="final"?`Pregunta ${closingIndex+1} de ${closingQuestions.length}`:undefined}/>}
   </div>;
 }
 

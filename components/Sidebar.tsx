@@ -239,7 +239,7 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: "Simulador de patologías", href: "/medical-cases", icon: navIcons.pathologies },
       { label: "Simulador de trastornos mentales", href: "/cases", icon: navIcons.mental },
-      { label: "Sala clínica interactiva", href: "/clinical-room", icon: navIcons.maternal },
+      { label: "Sala interactiva ginecológica", href: "/clinical-room", icon: navIcons.maternal },
       { label: "Cuidados críticos", href: "/critical-care", icon: navIcons.dynamic },
       { label: "Escenarios y urgencias", href: "/simulation-hub", icon: navIcons.dynamic },
     ],

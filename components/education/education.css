@@ -1,0 +1,53 @@
+.case-question{background:#faf8ee;border:1px solid #d8d8b9;border-left:3px solid #8ca980;border-radius:10px;padding:15px;color:#48634d;margin-bottom:16px;overflow-wrap:anywhere}
+.question-kicker{font-size:8px;letter-spacing:1px;color:#839576;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.question-kicker>span{letter-spacing:0;font-size:8px}
+.case-question h3{font-size:14px!important;line-height:1.7!important;color:#4c6a4e!important;font-weight:600!important;margin:11px 0!important}
+.case-question fieldset{border:0;padding:0;margin:0;display:grid;gap:7px}
+.case-question fieldset label{display:flex;gap:8px;align-items:flex-start;padding:10px;border:1px solid #e0e4d2;border-radius:7px;background:#fffef8;cursor:pointer;font-size:11px;line-height:1.7;color:#7e9073}
+.case-question fieldset label>input{accent-color:#708f60;flex-shrink:0;margin-top:4px;width:12px;height:12px}
+.case-question fieldset label>span{font:10px var(--font-mono),monospace;border:1px solid #d4dec5;padding:1px 5px;border-radius:4px;color:#83996d;flex-shrink:0;margin-top:1px}
+.case-question label.answer-selected{border-color:#94b382;background:#f0f5e6}
+.case-question label.answer-correct{border-color:#8bb78f;background:#eaf3e4;color:#4b7950}
+.case-question label.answer-incorrect{border-color:#d2a28b;background:#f9eee3;color:#a07151}
+.question-confirm{display:block;width:100%;margin-top:12px;padding:11px;border-radius:7px;background:#6e9064;color:white;font-size:11px}
+.question-confirm:disabled{opacity:.4}
+.question-dismiss{display:block;font-size:10px;color:#8a9c7c;text-decoration:underline;margin:12px 0 0;padding:4px 0}
+.question-explanation{margin-top:12px;padding-top:12px;border-top:1px solid #dce2ca}
+.question-explanation>strong{font-size:12px;color:#68845a}
+.question-explanation p{font-size:11px!important;line-height:1.9!important;color:#829374!important;margin:8px 0!important}
+.question-explanation a,.decision-review a{font-size:9px;color:#789564;text-decoration:underline;line-height:1.8}
+.question-explanation small{display:block;font-size:8px;color:#9aac88;margin-top:5px}
+.final-case-questions{margin-top:20px}
+.final-case-questions>h3,.decision-review>h3{font-size:16px;color:#51754f;margin:12px 0}
+.final-case-questions>p,.decision-review>p{font-size:11px;line-height:1.8;color:#849b78;margin-bottom:12px}
+.decision-review{margin-top:20px;padding:14px;border:1px solid #d5dfc9;background:#f2f6eb;border-radius:9px}
+.decision-review article{border-top:1px solid #dce5cf;padding:12px 0}
+.decision-review strong{font-size:11px;color:#86714e;line-height:1.8;display:block}
+.decision-review article p{font-size:11px;color:#8a9676;line-height:1.9;margin:5px 0}
+.decision-review small{font-size:9px;color:#a1ac8d}
+.drug-categories{display:flex;gap:5px;flex-wrap:wrap;margin:12px 0 16px}
+.drug-categories button{padding:6px 8px!important;border:1px solid #ccdcc0!important;background:#f4f8ee!important;border-radius:6px;font-size:9px!important;color:#8ba078!important}
+.drug-categories button[aria-pressed=true]{background:#6f8e60!important;color:#fff!important;border-color:#6f8e60!important}
+.drug-presentation{display:block!important;font-size:10px!important;color:#90a27d!important;margin:12px 0}
+.drug-presentation select{display:block;width:100%;background:#fffef7;border:1px solid #cbdcb9;border-radius:6px;padding:9px 7px;margin-top:5px;color:#65824f;font-size:11px;min-width:0}
+.drug-category-label{font-size:8px;letter-spacing:.8px;text-transform:uppercase;color:#9aab8a;margin-bottom:7px}
+@media(max-width:760px){.case-question{padding:10px}.case-question h3{font-size:12px!important}.case-question fieldset label{font-size:10px;padding:8px;gap:5px}.case-question fieldset label>span{display:none}}
+.mandatory-question-modal{position:fixed;inset:0;width:min(620px,calc(100vw - 24px));max-height:calc(100dvh - 32px);margin:auto;padding:24px;border:1px solid #c1d5c6;border-radius:18px;background:#f8faf4;color:#254b42;overflow:auto;overscroll-behavior:contain;box-shadow:0 24px 100px #061e3080;font-family:var(--font-sans),Arial,sans-serif}
+.mandatory-question-modal::backdrop{background:#061c26aa;backdrop-filter:blur(5px)}
+.mandatory-question-modal>header>span{font-size:10px;letter-spacing:1.5px;color:#55786a}
+.mandatory-question-modal h2{font-size:22px;margin:8px 0;color:#254b42;font-weight:600}
+.mandatory-question-modal>header p{font-size:12px;color:#577b69;margin-bottom:14px}
+.mandatory-question-modal .case-question{margin:16px 0 0;padding:18px}
+.mandatory-question-modal .case-question h3{font-size:17px!important;line-height:1.5!important}
+.mandatory-question-modal .case-question fieldset{gap:9px}
+.mandatory-question-modal .case-question fieldset label{font-size:14px;padding:12px;color:#3c5a47;line-height:1.5}
+.mandatory-question-modal .case-question input{width:16px;height:16px;margin-top:2px}
+.mandatory-question-modal .question-rule{font-size:12px;line-height:1.7;color:#5a715f;margin:10px 0 14px}
+.mandatory-question-modal .question-confirm{font-size:14px;min-height:44px;background:#315d50;cursor:pointer}
+.mandatory-question-modal .question-explanation p{font-size:13px!important;color:#4b6854!important}
+.mandatory-question-modal .question-explanation a{font-size:12px;color:#315d50}
+.mandatory-question-modal .question-explanation small{font-size:11px}
+.question-points{font-size:13px;color:#315d50;margin-top:14px;line-height:1.6}
+.question-score{border:1px solid #c5d9c0;border-radius:12px;padding:16px;background:#f0f6e9;color:#315940;margin:14px 0}
+.question-score h3{font-size:16px}.question-score>strong{display:block;font:36px var(--font-mono),monospace;margin:10px 0}.question-score small{font-size:14px}.question-score p{font-size:12px!important;line-height:1.8;color:#52724e!important;margin-top:6px}
+@media(max-width:600px){.mandatory-question-modal{padding:16px}.mandatory-question-modal .case-question{padding:12px}.mandatory-question-modal .case-question h3{font-size:16px!important}.mandatory-question-modal .case-question fieldset label{font-size:13px}}
