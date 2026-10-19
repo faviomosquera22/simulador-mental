@@ -1,4 +1,5 @@
 "use client";
+import { ClinicalDialog } from "@/components/education/ClinicalDialog";
 
 import { answerQuestion, scoreWithQuestions, CLINICAL_SOURCES, finalQuestions, triggeredQuestion, type QuestionAnswer, type CaseQuestion } from "@/src/lib/clinicalEducation";
 import { QuestionCard, DecisionReview, QuestionHistory, MandatoryQuestion, QuestionScore } from "@/components/education/CaseQuestions";
@@ -40,6 +41,7 @@ export function ClinicalSimulation() {
   const [duration, setDuration] = useState(20);
   const [finishConfirm, setFinishConfirm] = useState(false);
   const modalRef = useRef<HTMLDialogElement>(null);
+  const [examFinding,setExamFinding]=useState<{title:string;body:string}|null>(null);
   const [tab, setTab] = useState<CarePanel>("assessment");
   const [zone, setZone] = useState<number | null>(null);
   const [draft, setDraft] = useState<Ventilator>(initialVentilator);
@@ -144,7 +146,7 @@ export function ClinicalSimulation() {
     dispatch({ type: "reset", scenario: id });
     setAnswers([]);setCaseQuestion(null);setAskedQuestions([]);setClosingIndex(0);setResultOpen(false);
     setScreen("briefing"); setPanelOpen(false); setDialogue(null); setSearch(""); setFinishConfirm(false);
-    setTab("assessment"); setZone(null); setDraft(initialVentilator); setConfirmReset(null);
+    setExamFinding(null);setTab("assessment"); setZone(null); setDraft(initialVentilator); setConfirmReset(null);
     setReadSamples([]); setSnapshot(null); setHighlighted(undefined); setLibraryOpen(false);
   }
   function requestReset(id: ScenarioId) {
@@ -189,6 +191,14 @@ export function ClinicalSimulation() {
             {!running && !finished && <div className="clinical-hint"><p>{state.status === "ready" ? "Primero pulsa «Iniciar práctica». Después podrás explorar e intervenir; preparar una medicación no la administra todavía." : "La atención está en pausa. Puedes consultar los resultados y el registro. Continúa para realizar un cuidado o administrar."}</p></div>}
             {tab === "assessment" && <><PanelTitle icon={<Stethoscope size={20}/>} title="Explorar no es tratar" subtitle="Toca una zona de la imagen o uno de estos botones. Lee el hallazgo y decide qué cuidado necesitas."/>
               <div className="assessment-list">{scenario.zones.map((z, i) => <button type="button" key={z.label} disabled={!running} className={zone === i ? "selected" : ""} onClick={() => go({ panel: "assessment", zone: i })}><span className="assessment-number">{state.assessed.includes(i) ? <Check size={16}/> : `0${i + 1}`}</span><div><b>Explorar {z.label}</b><small>{state.assessed.includes(i) ? "Hallazgo revisado · puedes volver a explorar" : "Abre el hallazgo de esta zona"}</small></div><ArrowRight size={16}/></button>)}</div>
+              <h3>Exploración dirigida</h3><div className="directed-examinations">{[
+                {title:"Inspeccionar vía aérea y permeabilidad",zone:0},
+                {title:"Inspeccionar expansión y esfuerzo respiratorio",zone:1},
+                {title:"Auscultar campos pulmonares",zone:1},
+                {title:"Palpar pulsos y valorar perfusión",zone:2},
+                {title:"Valorar conciencia, lenguaje y respuesta motora",zone:3},
+                {title:"Inspeccionar piel y puntos de presión",zone:3},
+              ].filter(method=>method.title.toLowerCase().includes(search.toLowerCase())).map(method=><button key={method.title} disabled={!running} onClick={()=>{setZone(method.zone);dispatch({type:"assess",zone:method.zone});dispatch({type:"pause"});setExamFinding({title:method.title,body:assessmentFinding(state,method.zone)});}}>{method.title} →</button>)}</div>
               {zone !== null && state.assessed.includes(zone) && <div className="patient-finding" id="care-current-finding" tabIndex={-1} role="status"><b>Hallazgo de zona {zone + 1} · {scenario.zones[zone].label}</b><p>{assessmentFinding(state, zone)}</p><button type="button" className="clinical-next" onClick={() => go({ panel: "interventions" })}>Elegir un cuidado para este paciente <ArrowRight size={16}/></button></div>}
             </>}
             {tab === "interventions" && <><PanelTitle icon={<HeartPulse size={20}/>} title="Realizar cuidados y soporte" subtitle="Lee el propósito y pulsa el nombre del cuidado para realizarlo una vez. Si falta un requisito, usa su enlace."/><div className="care-actions">{scenario.actions.filter(action => action.id !== "help" && `${action.label} ${action.description}`.toLowerCase().includes(search.toLowerCase())).map(action => {
@@ -224,6 +234,7 @@ export function ClinicalSimulation() {
     <div className="room-feedback" role="status"><span>{state.feedback}</span>{guided&&<button onClick={()=>openPanel("record")}>Guía</button>}{activeComplications.length>0&&<button onClick={()=>openPanel("record")}>⚠ {activeComplications.length} alerta{activeComplications.length>1?"s":""}</button>}{unread.length>0&&<button onClick={()=>openPanel("tests")}>● {unread.length} resultado{unread.length>1?"s":""}</button>}</div>
     <nav className="room-action-bar" aria-label="Herramientas para atender al paciente">{panels.map(panel=><button key={panel} onClick={()=>openPanel(panel)} aria-pressed={panelOpen&&tab===panel}><span aria-hidden="true">{panel==="assessment"?<Stethoscope size={21}/>:panel==="monitoring"?<Activity size={21}/>:panel==="interventions"?<HeartPulse size={21}/>:panel==="ventilator"?<Wind size={21}/>:panel==="record"||panel==="history"?<ClipboardList size={21}/>:panel==="tests"?<ShieldCheck size={21}/>:panel==="calls"?"☎":panel==="dialogue"?"☏":"✚"}</span><strong>{panelLabels[panel]}</strong>{panel==="tests"&&unread.length>0&&<small>{unread.length}</small>}</button>)}</nav>
     {modal}
+    {examFinding&&!activeQuestion&&<ClinicalDialog title={examFinding.title} onClose={()=>{setExamFinding(null);if(!document.hidden)dispatch({type:"start"});}}><p>{examFinding.body}</p><p>Hallazgos disponibles de la región explorada. Los detalles no descritos no se asumen normales. El caso está en pausa durante la revisión.</p><button className="clinical-next" onClick={()=>{setExamFinding(null);if(!document.hidden)dispatch({type:"start"});}}>Volver a la atención</button></ClinicalDialog>}
     {resultOpen&&questionsComplete&&<SessionResults state={state} title={scenario.title} score={score} pending={pending.map(id=>actionLabel(id)??id)} questions={[...askedQuestions,...closingQuestions]} answers={answers} onClose={()=>setResultOpen(false)} onRepeat={()=>reset(state.scenario)} onChoose={()=>{setResultOpen(false);setScreen("library");setLibraryOpen(false);}} onExport={exportRecord}/>}
     {activeQuestion&&<MandatoryQuestion key={activeQuestion.id} question={activeQuestion} answer={answers.find(a=>a.questionId===activeQuestion.id)} onAnswer={option=>setAnswers(previous=>answerQuestion(previous,activeQuestion.id,option,state.elapsed))} onContinue={continueQuestion} progress={activeQuestion.stage==="final"?`Pregunta ${closingIndex+1} de ${closingQuestions.length}`:undefined}/>}
   </div>;

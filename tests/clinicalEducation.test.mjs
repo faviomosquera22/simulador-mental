@@ -157,3 +157,36 @@ test('new maternal plans distinguish pregnancy from puerperium and tissue or sur
  assert.match(find('obs-09').actions.find(a=>a.id==='definitive').label,/herida/);
  assert.equal(find('obs-08').actions.find(a=>a.id==='med-ceftriaxone-metronidazole').fulfills,'antibiotics');
 });
+
+test('gynecology prompts are reached by clinical progress and cannot repeat after answering',()=>{
+ for(const c of gyn.GYNECOLOGY_CASES){
+  assert.equal(education.gynecologyQuestionAfterDecision(c.id,'action:consent',2,[]),null);
+  const q=education.gynecologyQuestionAfterDecision(c.id,'action:consent',3,[]);assert.ok(q,c.id);
+  const answers=education.answerQuestion([],q.id,q.correct,10);
+  assert.equal(education.gynecologyQuestionAfterDecision(c.id,'action:consent',4,answers),null);
+ }
+});
+test('direct examination actions require consent for intimate findings and do not treat physiology',()=>{
+ for(const c of gyn.GYNECOLOGY_CASES){
+  const exams=c.actions.filter(a=>a.examZone);assert.ok(exams.length>=7);
+  let run={...gyn.createRun(c.id),status:'running'};
+  assert.equal(gyn.performAction(c,run,'exam-bleeding'),run,'consent required');
+  run=gyn.performAction(c,run,'consent');
+  for(const exam of exams){
+   const next=gyn.performAction(c,run,exam.id);assert.notEqual(next,run);
+   assert.deepEqual(gyn.getPhysiology(c,{...next,elapsed:60}),gyn.getPhysiology(c,{...run,elapsed:60}));
+   assert.equal(exam.result,c.findings[exam.examZone]);
+   assert.equal(gyn.performAction(c,next,exam.id),next,'repeated clicks do not count as new decisions');
+  }
+ }
+});
+test('expanded gynecology catalogue preserves fluid aliases and indication-specific antibiotics',()=>{
+ for(const c of gyn.GYNECOLOGY_CASES)assert.ok(c.actions.filter(a=>a.group==='medicacion').length>=17,c.id);
+ const c=gyn.GYNECOLOGY_CASES.find(c=>c.id==='obs-01');let run={...gyn.createRun(c.id),status:'running'};
+ run=gyn.performAction(c,run,'iv');run=gyn.performAction(c,run,'med-ringer','Bolsa para perfusión IV');
+ assert.ok(gyn.hasDecision(c,run,'fluids'));assert.equal(gyn.performAction(c,run,'med-saline'),run);
+ const urinary=gyn.GYNECOLOGY_CASES.find(c=>c.id==='obs-08');
+ assert.equal(urinary.actions.find(a=>a.id==='med-ceftriaxone').fulfills,'antibiotics');
+ assert.equal(c.actions.find(a=>a.id==='med-ceftriaxone').fulfills,undefined);
+ assert.equal(c.actions.find(a=>a.id==='med-calcium').effect,undefined,'antidote without toxicity cannot treat the current cause');
+});

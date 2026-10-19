@@ -48,6 +48,13 @@ export const CASE_QUESTIONS: CaseQuestion[] = [...additionalObstetricQuestions()
  return [question(id,"closing-priority","final",prompt,options,correct,explanation,sourceFor(id)),question(id,"closing-safety","final","¿Cómo debes interpretar las decisiones y cifras de esta práctica?",["Todas las opciones disponibles eran adecuadas","La presentación más concentrada siempre es la correcta","Un resultado previo describe siempre el estado actual","Hay que integrar indicación, vía, fuente, momento de medición y respuesta clínica"],3,"La variedad permite comparar decisiones. Los tiempos y efectos fisiológicos son aproximaciones educativas; cada fuente tiene un alcance y una fecha.",sourceFor(id))];
 })];
 export function triggeredQuestion(caseId: string, trigger: string, answers: QuestionAnswer[]) { return CASE_QUESTIONS.find(q=>q.caseId===caseId && q.stage==="during" && q.triggers.includes(trigger) && !answers.some(a=>a.questionId===q.id)) ?? null; }
+// Called only after performAction accepts a new decision; sensor switches and repeated clicks do not advance it.
+export function gynecologyQuestionAfterDecision(caseId: string, trigger: string, decisionCount: number, answers: QuestionAnswer[]) {
+ const direct=triggeredQuestion(caseId,trigger,answers);
+ if(direct)return direct;
+ if(decisionCount<3)return null;
+ return CASE_QUESTIONS.find(q=>q.caseId===caseId&&q.stage==="during"&&!answers.some(a=>a.questionId===q.id))??null;
+}
 export function finalQuestions(caseId: string) { return CASE_QUESTIONS.filter(q=>q.caseId===caseId && q.stage==="final"); }
 export function answerQuestion(answers: QuestionAnswer[], questionId: string, optionId: string, at: number): QuestionAnswer[] {
  const q=CASE_QUESTIONS.find(q=>q.id===questionId);

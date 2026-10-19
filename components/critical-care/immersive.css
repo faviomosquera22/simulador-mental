@@ -289,3 +289,11 @@
 .session-result-actions{display:flex;gap:8px;flex-wrap:wrap;position:sticky;top:-24px;background:#f7faf3;padding:14px 0;z-index:2;border-bottom:1px solid #d1dfca;margin-top:10px}.session-result-actions button{padding:10px 13px;background:#315e47;border:1px solid #315e47;color:#fff;border-radius:7px;font-size:12px;cursor:pointer}.session-result-actions button:nth-child(n+3){background:#edf3e7;color:#456d44;border-color:#c8d9bd}
 .session-results-modal section>h3{font-size:18px;margin:16px 0 8px}.session-results-modal section>p,.session-results-modal li,.session-result-note{font-size:12px;line-height:1.8}.session-results-modal ul{list-style:disc;padding-left:20px}.session-results-modal .question-history{margin:18px 0}.session-results-modal .question-history summary{cursor:pointer;font-size:13px;margin:12px 0}.session-result-log li{display:grid;grid-template-columns:50px 1fr;gap:12px;padding:10px 0;border-bottom:1px solid #d5e1cb}.session-result-log time{font:11px var(--font-mono),monospace;color:#859773;padding-top:3px}.session-result-note{color:#6c8462;margin-top:20px}
 @media(max-width:760px){.room-help-message{padding:6px 10px;max-height:100px}.room-help-message summary{font-size:10px}.session-results-modal{padding:16px}.session-results-modal h2{font-size:21px}.session-result-actions{top:-16px;gap:5px}.session-result-actions button{font-size:11px;flex:1 0 40%;padding:9px}.session-result-log li{grid-template-columns:40px 1fr;gap:7px}}
+
+.clinical-interaction-dialog{width:min(620px,calc(100vw - 24px))}
+.clinical-interaction-dialog>p{font-size:15px;line-height:1.8;margin:18px 0;white-space:pre-line}
+.clinical-interaction-dialog>button{margin:12px 10px 0 0;padding:12px 18px;border:1px solid #9fb99c;border-radius:10px;cursor:pointer}
+.directed-examinations{display:grid;gap:8px;margin:14px 0 20px}
+.directed-examinations button{text-align:left;padding:14px;border:1px solid #ccddc4;border-radius:10px;background:#f7faf3;color:#31563f;cursor:pointer;font-size:13px}
+.directed-examinations button:disabled{opacity:.5;cursor:default}
+.session-results-modal article p{font-size:14px;line-height:1.7}

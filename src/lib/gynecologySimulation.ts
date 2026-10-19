@@ -7,6 +7,7 @@ import type { MonitorVitalsShape } from "./monitorClinical";
 
 export type ActionGroup = "valoracion" | "estudios" | "intervencion" | "equipo" | "obstetricia" | "medicacion";
 export type SimulationAction = {
+  examZone?: "head" | "chest" | "abdomen" | "pelvis";
   category?: string; presentations?: string[]; judgment?: DecisionJudgment; source?: SourceId; fulfills?: string;
   id: string; label: string; group: ActionGroup; minutes?: number;
   requires?: string[]; result: string; rationale: string;

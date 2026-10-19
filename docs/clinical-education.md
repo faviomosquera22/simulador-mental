@@ -4,9 +4,9 @@ Actualización local: 18 de octubre de 2026. Rutas: `/critical-care` y `/clinica
 
 ## Opciones y funcionamiento
 
-Cuidados críticos ofrece de 11 a 14 medicamentos por caso, organizados por familias: broncodilatadores, corticoides, antimicrobianos, vasoactivos, sedantes, analgésicos, metabólicos, diuréticos, antiagregantes, betabloqueantes y cristaloides. La presentación se selecciona antes de preparar y confirmar; no se simulan dosis reales ni equivalencia de concentraciones. Cambiar de presentación o de corticoide equivalente no elimina el tiempo de espera ni el límite de exposiciones.
+Cuidados críticos ofrece al menos 13 medicamentos por caso, organizados por familias: broncodilatadores, corticoides, antimicrobianos, vasoactivos, sedantes, analgésicos, metabólicos, diuréticos, antiagregantes, betabloqueantes y cristaloides. La presentación se selecciona antes de preparar y confirmar; no se simulan dosis reales ni equivalencia de concentraciones. Cambiar de presentación o de corticoide equivalente no elimina el tiempo de espera ni el límite de exposiciones.
 
-La sala ginecológica añade al menos diez medicamentos por caso y selección de presentación; incluye alternativas uterotónicas, antihipertensivas y esquemas maternos según el caso. Una alternativa apropiada satisface la prioridad correspondiente sin permitir duplicar crédito o soporte cambiando de nombre. Se amplían pruebas e intervenciones, incluyendo opciones sin indicación y decisiones inseguras. La pertinencia depende del caso; los errores quedan registrados y algunos modifican el modelo fisiológico, con respuesta gradual. Las cifras y tiempos son aproximaciones educativas, no una predicción clínica validada.
+La sala ginecológica añade al menos diecisiete medicamentos por caso y selección de presentación; incluye alternativas uterotónicas, antihipertensivas y esquemas maternos según el caso. Una alternativa apropiada satisface la prioridad correspondiente sin permitir duplicar crédito o soporte cambiando de nombre. Se amplían pruebas e intervenciones, incluyendo opciones sin indicación y decisiones inseguras. La pertinencia depende del caso; los errores quedan registrados y algunos modifican el modelo fisiológico, con respuesta gradual. Las cifras y tiempos son aproximaciones educativas, no una predicción clínica validada.
 
 En hipoglucemia, la vía oral requiere conciencia recuperada y una muestra favorable del cribado simulado de deglución. Un cribado antiguo no favorable no se convierte en favorable por cambiar la conciencia; se debe repetir. Si vuelve la alteración de conciencia, la vía oral vuelve a ser insegura.
 
@@ -109,3 +109,15 @@ node --test tests/tannPlacement.test.mjs tests/clinicalEducation.test.mjs tests/
 ```
 
 77 pruebas: secuencia y dependencias en los tres casos rojos, bloqueo de saltos y duplicados, verificación antes del soporte, pérdidas históricas, retiro prematuro, pausa y reinicio. Chrome comprueba las tres capas de movimiento en ambos módulos, congelación y movimiento reducido, seis componentes visibles, verificación, exportación ordenada y reinicio; también se revisó la vista móvil.
+
+## Exploración y cierre en ventanas (18 de octubre de 2026)
+
+La sala ginecológica ofrece siete métodos de exploración dirigida por caso; la exploración íntima exige consentimiento. Cada método abre un hallazgo regional en un diálogo que pausa el caso; no se inventan detalles no incluidos en la ficha ni se aplica tratamiento al explorar. Cuidados críticos añade seis accesos de exploración dirigida, también con diálogo y pausa.
+
+Las preguntas ginecológicas conservan los disparadores específicos y se activan, como máximo, tras la tercera decisión clínica aceptada. Los sensores, cancelaciones y acciones repetidas no cuentan. Si coinciden pregunta y hallazgo, se responde primero la pregunta y después se revisa el hallazgo, antes de reanudar.
+
+La medicación ginecológica se prepara con selección de presentación y requiere confirmación para administrarse. Cancelar no añade decisiones. Se añaden cristaloides equivalentes, gluconato de calcio, betametasona y antimicrobianos para comparar pertinencia. Ceftriaxona aislada solo recibe crédito de alternativa en el caso de foco urinario seleccionado, condicionado a riesgo de resistencia y evaluación del equipo. El antídoto sin toxicidad y el corticoide antenatal sin indicación establecida no corrigen el problema principal. Referencia: MSP 2025, clave azul, kits y anexo 17. La dexmedetomidina se ofrece como alternativa individualizada en el paciente ventilado, según el lineamiento MSP 2020; no resuelve la causa respiratoria.
+
+Después de las dos preguntas de cierre ginecológico aparece un diálogo amplio con nota, desglose, omisiones, decisiones, respuestas y registro cronológico. Incluye volver/reabrir, repetir, elegir otro caso y exportar.
+
+Validación: 80 pruebas del motor, TypeScript, ESLint y compilación de producción. Chrome verifica preguntas por avance, bloqueo de Escape, pausa de hallazgos, preparación/cancelación/confirmación, cierre, reapertura y reinicio.
