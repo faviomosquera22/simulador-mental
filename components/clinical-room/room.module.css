@@ -478,7 +478,7 @@
 .decisionColumn :global(.drug-categories){padding-inline:12px}
 
 /* Immersive gynecology room: independent bedside monitor, patient and tools. */
-.shell{min-height:0;gap:12px}
+.shell{min-height:0;gap:20px}
 .room{height:calc(100dvh - 48px);padding:14px;min-height:500px}
 .header{align-items:center;gap:10px}
 .header h1{font-size:23px;margin:0;letter-spacing:-.6px}
@@ -535,7 +535,7 @@
 @media(max-width:1150px) and (min-width:768px){.workspace{grid-template-columns:240px minmax(0,1fr) 320px;gap:8px}.room[data-tools=false] .workspace{grid-template-columns:240px minmax(0,1fr)}.room{padding:10px}.header h1{font-size:20px}.headerActions .link,.headerActions .iconButton:nth-last-child(2){display:none}.patientHeader div>span{font-size:9px}.sceneTop>span{display:none}.sceneTop{justify-content:center}.quote{display:none}.actionGroups button{min-width:90px;padding:7px}.monitorColumn{padding:6px}}
 @media(max-width:850px) and (min-width:768px){.workspace{grid-template-columns:210px minmax(0,1fr) 280px;gap:6px}.monitorColumn :global(.device-values strong){font-size:26px}.monitorColumn :global(.device-values)>div:nth-child(3) strong{font-size:22px}.headerActions .link{display:none}}
 @media(max-width:767px){
- .navigationPane{display:none}.room{height:calc(100dvh - 32px);min-height:520px;margin-top:0;padding:8px;border-radius:12px}
+ .navigationPane{display:contents}.room{height:calc(100dvh - 32px);min-height:520px;margin-top:0;padding:8px;border-radius:12px}
  .header{display:flex;padding-bottom:6px}.header h1{font-size:16px;max-width:210px}.header .eyebrow{display:none}.headerActions .link,.headerActions .iconButton:not(:first-child){display:none}
  .headerActions{max-width:none}.headerActions .iconButton{font-size:9px;padding:7px;white-space:normal;max-width:90px}
  .toolbar{padding:5px 0;gap:5px}.caseControl{width:100%;justify-content:space-between}.caseControl strong{font-size:11px}.sessionControls{flex-wrap:nowrap;justify-content:flex-start;gap:5px}.sessionControls button{font-size:9px;padding:6px}.clock{font-size:14px}

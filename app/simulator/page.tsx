@@ -2098,7 +2098,7 @@ export default function SimulatorPage() {
   if (!caseObject) {
     return (
       <div className="min-h-screen bg-[linear-gradient(180deg,#f6fbf9_0%,#eef5f2_48%,#e6efeb_100%)]">
-        <div className="mx-auto flex max-w-[1480px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
+        <div className="psyke-workspace">
           <Sidebar />
           <main className="flex-1 rounded-2xl border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] p-4 backdrop-blur-xl sm:p-6 shadow-[0_24px_70px_rgba(99,126,118,0.16)] flex items-center justify-center">
             <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white/80 p-6">
@@ -2122,7 +2122,7 @@ export default function SimulatorPage() {
   // --- New Claude-style UI Layout ---
   return (
     <div className="h-dvh overflow-hidden bg-[linear-gradient(180deg,#f6fbf9_0%,#eef5f2_48%,#e6efeb_100%)]">
-      <div className="mx-auto flex h-full max-w-[1480px] gap-3 px-3 pb-3 pt-14 sm:gap-6 sm:px-4 sm:py-4 md:pt-4">
+      <div className="psyke-workspace h-full">
         <Sidebar />
 
         <main className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] backdrop-blur-xl shadow-[0_24px_70px_rgba(99,126,118,0.16)]">

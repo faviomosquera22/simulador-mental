@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Sidebar from "@/components/Sidebar";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { PAP_ACTIONS, PAP_PHASES, PAP_SOURCES, contextualPapAction, createPapRun, endPapPractice, finishPap, hasPap, papBlock, papFinishBlock, papHint, papMotion, papObservation, papRubric, performPap, tickPap, type PapMode, type PapRun } from "@/src/lib/psychologicalFirstAid";
@@ -132,7 +133,7 @@ export default function PapSimulator() {
     if (!("speechSynthesis" in window)) { setNotice("Este navegador no dispone de lectura de voz. La respuesta está disponible en texto."); return; }
     window.speechSynthesis.cancel(); const spoken = message ?? papSpokenReply(latest); if (!spoken) return; const text = new SpeechSynthesisUtterance(spoken); text.lang = "es-EC"; text.rate = .92; window.speechSynthesis.speak(text);
   }
-  return <main className={styles.app}>
+  return <div className="psyke-workspace"><Sidebar/><main className={styles.app}>
     <header className={styles.header}>
       <Link href="/simulation-hub" className={styles.brand} aria-label="Psyke, volver a escenarios"><span className={styles.brandIcon}>ψ</span><strong>psyke<span> / laboratorio de simulación</span></strong></Link>
       <div className={styles.headerActions}><span className={styles.prototype}>PROTOTIPO 05</span><button onClick={() => { if (running) setRun(v => ({ ...v, status: "paused" })); setGuide(true); }}>Guía de PAP <span>↗</span></button></div>
@@ -193,5 +194,5 @@ export default function PapSimulator() {
     <footer className={styles.footer}><span>PSYKE · APRENDER A ACOMPAÑAR</span><p>Simulación educativa de un caso ficticio. Primera ayuda psicológica basada en el enfoque de la OMS.</p><button onClick={() => { if (running) setRun(v => ({ ...v, status: "paused" })); setGuide(true); }}>Bases y fuentes ↗</button></footer>
     {guide && <div className={styles.modalBackdrop}><section className={styles.guide} role="dialog" aria-modal="true" aria-labelledby="pap-guide-title"><button className={styles.modalClose} autoFocus onClick={() => setGuide(false)}>Cerrar ×</button><p className={styles.eyebrow}>CONSULTA DE APRENDIZAJE</p><h2 id="pap-guide-title">Primeros auxilios psicológicos</h2><p>Ayuda humana, respetuosa y práctica ante un evento muy angustiante. La intervención se adapta a las necesidades y decisiones de cada persona.</p>{GUIDANCE.map(([title, body]) => <article key={title}><h3>{title}</h3><p>{body}</p></article>)}<h3>Fuentes y alcance</h3>{PAP_SOURCES.map(s => <a key={s.url} href={s.url} target="_blank" rel="noreferrer">{s.label} ↗</a>)}<p>La escena y las consecuencias son una representación didáctica diseñada para este caso, no una predicción del comportamiento de personas reales. Los mensajes de Valeria aparecen separados de las observaciones de la sala. Puedes escribir libremente. Gemini propone respuestas e intenciones; el motor del caso conserva los límites y verifica las acciones. Si Gemini no está disponible se identifica el uso del guion local. Las reacciones corporales dependen de la interacción y la reparación es gradual. El personaje no dispone de captura facial ni interpretación de voz.</p><a href="https://www.innerscene.com/tools/library/3d-parts/idle-standing-maya-3d-person-animated-22b686d6" target="_blank" rel="noreferrer">Personaje: Innerscene / MakeHuman · CC0 ↗</a><button className={styles.primary} onClick={() => setGuide(false)}>Volver al prototipo →</button></section></div>}
     {resetting && <div className={styles.modalBackdrop}><section className={styles.confirm} role="dialog" aria-modal="true" aria-labelledby="pap-reset-title"><h2 id="pap-reset-title">¿Empezar de nuevo?</h2><p>Se borrarán las decisiones de esta sesión. Puedes cancelar y reanudar la atención.</p><button className={styles.primary} autoFocus onClick={() => setResetting(false)}>Conservar sesión</button><button className={styles.outline} onClick={reset}>Reiniciar el caso</button></section></div>}
-  </main>;
+  </main></div>;
 }

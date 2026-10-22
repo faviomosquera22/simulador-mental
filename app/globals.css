@@ -223,3 +223,12 @@ html {
 .animate-rise-6 { animation: riseIn 940ms cubic-bezier(0.16, 1, 0.3, 1) 350ms both; }
 .float-drift { animation: softDrift 10s ease-in-out infinite; }
 .pulse-soft { animation: softPulse 3.4s ease-in-out infinite; }
+
+/* Shared navigation geometry: module changes must not resize the workspace. */
+html{scrollbar-gutter:stable}
+.psyke-workspace{display:flex;width:100%;max-width:none;margin:0;gap:20px;padding:0;align-items:stretch;min-width:0}
+.psyke-workspace>main{flex:1;min-width:0}
+.psyke-workspace>[data-testid="desktop-navigation"]{align-self:stretch}
+@media(max-width:767px){.psyke-workspace{gap:0}.psyke-workspace>main{margin-top:48px}}
+
+@media(min-width:768px){.psyke-workspace [data-testid="desktop-navigation"]{position:sticky;top:24px;height:calc(100dvh - 48px);align-self:flex-start}}

@@ -34,7 +34,7 @@ export default function HistoryPage() {
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f6fbf9_0%,#eef5f2_48%,#e6efeb_100%)]">
-      <div className="mx-auto flex max-w-[1480px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
+      <div className="psyke-workspace">
         <Sidebar />
         <main className="flex-1 rounded-2xl border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] backdrop-blur-xl p-6 shadow-[0_24px_70px_rgba(99,126,118,0.16)]">
           <div className="flex items-start justify-between gap-3">

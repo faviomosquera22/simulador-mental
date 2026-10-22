@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useState } from "react";
 
+import { SIMULATION_CAREERS, modulesForCareer, careerCatalogHref } from "@/src/lib/simulationCatalog";
 import Sidebar from "../../components/Sidebar";
 import { getHistory, type SessionRecord } from "../../lib/history";
 import { supabase } from "@/src/lib/supabaseClient";
@@ -70,30 +71,6 @@ type CareerTrack = {
 type ProfileNotice = {
   tone: "success" | "error" | "info";
   message: string;
-};
-
-const DASHBOARD_GROUP_ORDER: DashboardModuleGroup[] = [
-  "simulacion",
-  "diagnostico",
-  "avanzado",
-  "practica",
-  "seguimiento",
-];
-
-const GROUP_DESCRIPTIONS: Record<DashboardModuleGroup, string> = {
-  simulacion: "Escenarios progresivos, priorización inicial y decisiones clínicas con continuidad.",
-  diagnostico: "Interpretación de ECG, ecografía, laboratorio y gasometría para decidir mejor.",
-  avanzado: "Entrenamiento inmersivo, soporte vital y casos clínicos de mayor complejidad.",
-  practica: "Procedimientos, medicamentos, cálculo, notas y PAE como bloque operativo.",
-  seguimiento: "Historial, evaluación y consolidación del progreso académico.",
-};
-
-const GROUP_PRIMARY_LINKS: Record<DashboardModuleGroup, string> = {
-  simulacion: "/cases",
-  diagnostico: "/ecg-simulator",
-  avanzado: "/dynamic-simulator",
-  practica: "/medications",
-  seguimiento: "/history",
 };
 
 const INTENT_OPTIONS: Array<{ id: AdvisorIntent; label: string; helper: string }> = [
@@ -956,16 +933,6 @@ export default function DashboardPage() {
     return Math.round((completedFields / 4) * 100);
   }, [profileDraft]);
 
-  const groupedModules = useMemo(
-    () =>
-      DASHBOARD_GROUP_ORDER.map((group) => ({
-        group,
-        label: DASHBOARD_GROUP_LABELS[group],
-        items: DASHBOARD_MODULES.filter((item) => item.group === group),
-      })),
-    []
-  );
-
   const primaryAction = hasActive
     ? { href: "/simulator", label: "Reanudar caso", helper: "Retoma entrevista, decisiones y evolución del escenario activo." }
     : { href: topRecommendation?.href ?? "/cases", label: "Abrir recomendación", helper: "Entra directo al módulo que mejor se ajusta a tu estado actual." };
@@ -1063,7 +1030,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f6fbf9_0%,#eef5f2_48%,#e6efeb_100%)]">
-      <div className="mx-auto flex max-w-[1520px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
+      <div className="psyke-workspace">
         <Sidebar />
 
         <main className="flex-1 overflow-hidden rounded-[30px] border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] shadow-[0_28px_80px_rgba(99,126,118,0.16)] backdrop-blur-xl">
@@ -1080,13 +1047,18 @@ export default function DashboardPage() {
               <Link href="/history" className="rounded-xl border border-slate-200 bg-white/70 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50">
                 Historial
               </Link>
-              <Link href="/cases" className="rounded-xl bg-[#183640] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#224652]">
-                + Nuevo caso
+              <Link href="/simulation-hub" className="rounded-xl bg-[#183640] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#224652]">
+                Elegir simulador
               </Link>
             </div>
           </header>
 
           <div className="overflow-y-auto px-5 py-6">
+            <section className="mb-7" aria-label="Simuladores por carrera">
+              <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 className="text-base font-semibold text-slate-900">Simuladores por carrera</h2><p className="mt-1 text-sm text-slate-500">Explora los recursos de tu carrera, organizados por tipo de práctica.</p></div><Link href="/simulation-hub" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700">Ver catálogo completo ↗</Link></div>
+              <div className="mt-4 grid gap-3 lg:grid-cols-3">{SIMULATION_CAREERS.map(career => <Link key={career.id} href={careerCatalogHref(career.id)} className="flex min-h-[210px] flex-col rounded-2xl border border-slate-200 bg-white p-5 hover:border-emerald-400"><h3 className="text-lg font-semibold text-slate-800">{career.label}</h3><p className="mt-3 flex-1 text-sm leading-6 text-slate-500">{career.description}</p><div className="mt-5 flex justify-between text-xs text-emerald-700"><span>{modulesForCareer(career.id).length} módulos</span><strong>Explorar →</strong></div></Link>)}</div>
+            </section>
+
             <section className="relative overflow-hidden rounded-[32px] border border-[#d7e6df] bg-[linear-gradient(135deg,rgba(255,255,255,0.96),rgba(244,250,247,0.94))] p-5 shadow-[0_24px_70px_rgba(130,154,146,0.16)] sm:p-6">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.12),transparent_34%),radial-gradient(circle_at_78%_18%,rgba(249,115,22,0.10),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.10),transparent_24%),linear-gradient(135deg,rgba(255,255,255,0.82),rgba(240,247,244,0.9)_55%,rgba(232,242,238,0.96))]" />
 
@@ -1477,52 +1449,6 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 </div>
-              </div>
-            </section>
-
-            <section className="mt-6">
-              <div className="flex items-end justify-between gap-3">
-                <div>
-                  <div className="text-base font-semibold text-slate-900">Explorar por dominio</div>
-                  <div className="mt-1 text-sm text-slate-500">
-                    Si no quieres usar la recomendación automática, puedes entrar por el área clínica que más te interese.
-                  </div>
-                </div>
-                <Link href="/topics" className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50">
-                  Ir a biblioteca clínica
-                </Link>
-              </div>
-
-              <div className="mt-4 grid grid-cols-1 gap-3 xl:grid-cols-2 2xl:grid-cols-4">
-                {groupedModules.map(({ group, label, items }) => (
-                  <div key={group} className="rounded-[28px] border border-slate-200/90 bg-white/80 p-5 shadow-[0_18px_50px_rgba(148,163,184,0.12)]">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] ${groupBadgeClass(group)}`}>
-                          {label}
-                        </span>
-                        <div className="mt-3 text-lg font-semibold text-slate-900">{items.length} módulos</div>
-                      </div>
-                      <Link href={GROUP_PRIMARY_LINKS[group]} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 transition hover:bg-slate-50">
-                        Abrir
-                      </Link>
-                    </div>
-
-                    <div className="mt-3 text-sm leading-6 text-slate-600">{compactText(GROUP_DESCRIPTIONS[group], 10)}</div>
-
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {items.map((item) => (
-                        <Link
-                          key={item.id}
-                          href={item.href}
-                          className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-600 transition hover:bg-white"
-                        >
-                          {item.label}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                ))}
               </div>
             </section>
 

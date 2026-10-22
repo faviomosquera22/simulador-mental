@@ -1,7 +1,6 @@
 /* Case preparation and the viewport-sized clinical workspace. */
 .critical-care-navigation{display:contents}
-.critical-care-shell:has(.immersive-critical){min-height:0;gap:0}
-.critical-care-shell:has(.immersive-critical) .critical-care-navigation{display:none}
+.critical-care-shell:has(.immersive-critical){min-height:0}
 .critical-care-shell:has(.immersive-critical) .critical-care-main{padding-top:0}
 .immersive-library,.immersive-briefing{background:#f6f8f5;border-color:#dce6e0;border-radius:20px;padding:clamp(20px,4vw,48px)}
 .immersive-library-heading{margin:12px 0 32px}

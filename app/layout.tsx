@@ -1,4 +1,5 @@
 import "./globals.css";
+import { NavigationPreferencesProvider } from "@/components/navigation/NavigationPreferences";
 import type { Metadata } from "next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -21,7 +22,7 @@ export default function RootLayout({
       <body className="min-h-screen antialiased font-sans overflow-x-hidden text-[var(--text-primary)]">
         <div id="app" className="relative z-10">
           <div className="mx-auto w-full max-w-[1680px] px-4 py-6">
-            {children}
+            <NavigationPreferencesProvider>{children}</NavigationPreferencesProvider>
           </div>
         </div>
         <SpeedInsights />

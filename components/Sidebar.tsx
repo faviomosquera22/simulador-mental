@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/src/lib/supabaseClient";
+import { useNavigationPreferences } from "@/components/navigation/NavigationPreferences";
 import PsykeLogo from "@/components/brand/PsykeLogo";
 import {
   EMPTY_PROFILE,
@@ -225,55 +226,23 @@ const navIcons = {
 };
 
 const NAV_SECTIONS: NavSection[] = [
-  {
-    title: "Inicio",
-    items: [
-      { label: "Dashboard", href: "/dashboard", icon: navIcons.dashboard },
-      { label: "Caso en curso", href: "/simulator", requiresActiveCase: true, icon: navIcons.activeCase },
-      { label: "Biblioteca clínica", href: "/topics", icon: navIcons.library },
-      { label: "PAE asistido", href: "/pae-assistant", icon: navIcons.pae },
-    ],
-  },
-  {
-    title: "Simulación",
-    items: [
-      { label: "Simulador de patologías", href: "/medical-cases", icon: navIcons.pathologies },
-      { label: "Simulador de trastornos mentales", href: "/cases", icon: navIcons.mental },
-      { label: "Sala interactiva ginecológica", href: "/clinical-room", icon: navIcons.maternal },
-      { label: "Cuidados críticos", href: "/critical-care", icon: navIcons.dynamic },
-      { label: "Escenarios y urgencias", href: "/simulation-hub", icon: navIcons.dynamic },
-    ],
-  },
-  {
-    title: "Diagnóstico",
-    items: [
-      { label: "Simulador de ECG", href: "/ecg-simulator", icon: navIcons.ecg },
-      { label: "Simulador de ecografía", href: "/ultrasound-simulator", icon: navIcons.ultrasound },
-      { label: "Laboratorio", href: "/laboratory", icon: navIcons.lab },
-      { label: "Gasometría", href: "/gasometry", icon: navIcons.gasometry },
-      { label: "Imágenes clínicas", href: "/clinical-images", icon: navIcons.images },
-    ],
-  },
-  {
-    title: "Práctica clínica",
-    items: [
-      { label: "Cálculo clínico", href: "/clinical-calculations", icon: navIcons.calculations },
-      { label: "Terminología médica", href: "/medical-terminology", icon: navIcons.terminology },
-      { label: "Medicamentos", href: "/medications", icon: navIcons.medications },
-      { label: "Procedimientos", href: "/procedures", icon: navIcons.procedures },
-      { label: "Notas clínicas", href: "/clinical-notes", icon: navIcons.notes },
-      { label: "PAE", href: "/pae", icon: navIcons.pae },
-    ],
-  },
-  {
-    title: "Seguimiento",
-    items: [
-      { label: "CACES", href: "/caces", icon: navIcons.caces },
-      { label: "Mis sesiones", href: "/history", icon: navIcons.history },
-      { label: "Reportes", href: "/reports", icon: navIcons.reports },
-      { label: "Perfil", href: "/profile", icon: navIcons.profile },
-    ],
-  },
+  { title: "Inicio", items: [
+    { label: "Dashboard", href: "/dashboard", icon: navIcons.dashboard },
+    { label: "Caso en curso", href: "/simulator", requiresActiveCase: true, icon: navIcons.activeCase },
+    { label: "Biblioteca clínica", href: "/topics", icon: navIcons.library },
+  ] },
+  { title: "Simuladores por carrera", items: [
+    { label: "Todos los simuladores", href: "/simulation-hub", icon: navIcons.dynamic },
+    { label: "Enfermería", href: "/simulation-hub/enfermeria", icon: navIcons.pae },
+    { label: "Medicina", href: "/simulation-hub/medicina", icon: navIcons.pathologies },
+    { label: "Psicología", href: "/simulation-hub/psicologia", icon: navIcons.mental },
+  ] },
+  { title: "Seguimiento", items: [
+    { label: "CACES", href: "/caces", icon: navIcons.caces },
+    { label: "Mis sesiones", href: "/history", icon: navIcons.history },
+    { label: "Reportes", href: "/reports", icon: navIcons.reports },
+    { label: "Perfil", href: "/profile", icon: navIcons.profile },
+  ] },
 ];
 
 function cn(...classes: Array<string | false | null | undefined>) {
@@ -295,7 +264,7 @@ function hasCaseInProgress(): boolean {
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
+  const { collapsed, setCollapsed } = useNavigationPreferences();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hasActiveCase, setHasActiveCase] = useState(false);
   const [isCacesRoute, setIsCacesRoute] = useState(false);
@@ -444,7 +413,7 @@ export default function Sidebar() {
                 const active = !disabledCase && (
                   isCacesItem
                     ? isCacesRoute
-                    : pathname === item.href || pathname.startsWith(item.href + "/")
+                    : pathname === item.href || item.href !== "/simulation-hub" && pathname.startsWith(item.href + "/")
                 );
 
                 return (
@@ -589,7 +558,7 @@ export default function Sidebar() {
         </div>
       </aside>
 
-      <aside className="hidden md:flex md:shrink-0">
+      <aside data-testid="desktop-navigation" className="hidden md:flex md:shrink-0">
         <div
           className={cn(
             "h-full min-h-0 rounded-3xl border border-[#1b2130]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(240,246,244,0.95))] shadow-[0_30px_120px_rgba(84,104,112,0.18)]",
@@ -630,6 +599,7 @@ export default function Sidebar() {
             <button
               type="button"
               onClick={() => setCollapsed((v) => !v)}
+              aria-label={collapsed ? "Expandir menú lateral" : "Colapsar menú lateral"}
               className={cn(
                 "flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm transition",
                 "text-[#6d808a] hover:bg-white/70 hover:text-[#17212A]"

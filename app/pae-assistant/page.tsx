@@ -561,7 +561,7 @@ export default function PaeAssistantPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.shell}>
+      <div className={`psyke-workspace ${styles.shell}`}>
         <Sidebar />
 
         <main className={styles.main}>

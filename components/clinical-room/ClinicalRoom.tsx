@@ -45,7 +45,7 @@ export default function ClinicalRoom() {
   const [finding, setFinding] = useState<Finding | null>(null);
   const [notice, setNotice] = useState("");
   const [lastDecision, setLastDecision] = useState<{ at: number; label: string; vitals: ReturnType<typeof getPhysiology>["vitals"]; monitoring: SimulationRun["monitoring"] } | null>(null);
-  const [focusMode, setFocusMode] = useState(true);
+  const [focusMode, setFocusMode] = useState(false);
   const [drawerOpen,setDrawerOpen]=useState(true);
   const [sound, setSound] = useState(false);
   const [switchCase, setSwitchCase] = useState(false);
@@ -202,7 +202,7 @@ export default function ClinicalRoom() {
     catch { setNotice("La pantalla completa no está disponible en este navegador."); }
   }
 
-  return <div className={`${styles.shell} ${focusMode ? styles.focusShell : ""}`}><div className={`${styles.navigationPane} ${focusMode ? styles.navigationHidden : ""}`}><Sidebar /></div><main ref={roomRef} data-tools={drawerOpen||finished} className={`${styles.room} ${!running ? styles.paused : ""}`}>
+  return <div className={`psyke-workspace ${styles.shell} ${focusMode ? styles.focusShell : ""}`}><div className={`${styles.navigationPane} ${focusMode ? styles.navigationHidden : ""}`}><Sidebar /></div><main ref={roomRef} data-tools={drawerOpen||finished} className={`${styles.room} ${!running ? styles.paused : ""}`}>
     <header className={styles.header}>
       <div><div className={styles.eyebrow}><span className={styles.liveDot} /> PSYKE / EXPERIENCIAS CLÍNICAS <span className={styles.newBadge}>SALA 01</span></div><h1>Sala interactiva ginecológica</h1><p>Ginecología y obstetricia · Tu guardia, tus decisiones.</p></div>
       <div className={styles.headerActions}><button className={styles.iconButton} onClick={()=>setDrawerOpen(value=>!value)}>{drawerOpen?"Ampliar paciente":"Ver herramientas"}</button><button className={styles.focusToggle} onClick={() => setFocusMode(value => !value)} aria-pressed={focusMode}>{focusMode ? "Mostrar navegación" : "Expandir sala"} ↗</button><Link href="/simulation-hub" className={styles.link}>Todos los escenarios ↗</Link><button onClick={fullscreen} className={styles.iconButton} aria-label="Alternar pantalla completa" title="Pantalla completa">⛶</button><button onClick={toggleSound} className={styles.iconButton} aria-pressed={sound}>{sound ? "Sonido activo" : "Sin sonido"}</button></div>

@@ -252,7 +252,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f6fbf9_0%,#eef5f2_48%,#e6efeb_100%)]">
-      <div className="mx-auto flex max-w-[1520px] gap-3 px-3 pb-6 pt-14 sm:gap-6 sm:px-4 md:pt-6">
+      <div className="psyke-workspace">
         <Sidebar />
 
         <main className="relative flex-1 overflow-hidden rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(243,249,246,0.98))] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.42)] backdrop-blur-xl sm:p-6 lg:p-8">
