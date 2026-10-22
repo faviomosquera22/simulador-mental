@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, type Schema } from "@google/generative-ai";
 
 export type GeminiFallbackRole = "system" | "user" | "assistant";
 
@@ -13,6 +13,7 @@ export type GeminiFallbackGenerationConfig = {
   topK?: number;
   maxOutputTokens?: number;
   responseMimeType?: string;
+  responseSchema?: Schema;
   stopSequences?: string[];
 };
 
