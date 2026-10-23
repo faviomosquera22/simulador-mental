@@ -1,419 +1,73 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import Sidebar from "@/components/Sidebar";
-import {
-  MEDICATION_LIBRARY,
-  MEDICATION_SAFETY_CHECKS,
-  evaluateMedicationCase,
-  medicationCategoryLabel,
-  medicationDifficultyLabel,
-  type MedicationCase,
-  type MedicationDecision,
-  type MedicationDifficulty,
-  type MedicationMode,
-  type MedicationSafetyCheckId,
-} from "@/src/lib/medicationAdministration";
+import OrderPractice from "@/components/medications/OrderPractice";
+import { MEDICATION_CHALLENGES, PRACTICE_DRUGS, drawMedicationChallenge, evaluateMedicationChallenge, searchPracticeDrugs, type ChallengeDifficulty, type ChallengeInput, type ChallengeResult, type MedicationChallenge } from "@/src/lib/medicationChallenges";
+import styles from "./practice.module.css";
 
-type SelectionMode = "manual" | "random";
-type DifficultyFilter = MedicationDifficulty | "all";
-
-function sampleFromPool<T>(pool: T[]) {
-  if (!pool.length) return null;
-  return pool[Math.floor(Math.random() * pool.length)] ?? null;
+const levels: { id: ChallengeDifficulty; label: string; description: string }[] = [
+  { id: "easy", label: "Fácil", description: "Una necesidad clínica clara" },
+  { id: "medium", label: "Medio", description: "Relaciona presentación y vía" },
+  { id: "hard", label: "Difícil", description: "Prioridades y riesgos del caso" },
+];
+function Pill({ small = false }: { small?: boolean }) {
+  return <svg width={small?22:64} height={small?22:64} viewBox="0 0 64 64" fill="none" aria-hidden="true"><g transform="rotate(-40 32 32)"><rect x="8" y="20" width="48" height="24" rx="12" stroke="currentColor" strokeWidth="2.5"/><path d="M32 21V43H20a11 11 0 010-22Z" fill="currentColor" opacity=".2"/><path d="M32 21V43" stroke="currentColor" strokeWidth="2"/></g></svg>;
 }
-
-function pickByDifficulty(pool: MedicationCase[], difficulty: DifficultyFilter) {
-  if (difficulty === "all") return pool;
-  const filtered = pool.filter((item) => item.difficulty === difficulty);
-  return filtered.length ? filtered : pool;
-}
-
 export default function MedicationsPage() {
-  const [mode, setMode] = useState<MedicationMode>("practice");
-  const [selectionMode, setSelectionMode] = useState<SelectionMode>("random");
-  const [difficultyFilter, setDifficultyFilter] = useState<DifficultyFilter>("all");
-  const [casePool] = useState(MEDICATION_LIBRARY);
-  const [caseSet, setCaseSet] = useState<MedicationCase>(MEDICATION_LIBRARY[0]);
-  const [manualCaseId, setManualCaseId] = useState(MEDICATION_LIBRARY[0]?.id ?? "");
-
-  const [decision, setDecision] = useState<MedicationDecision | "">("");
-  const [route, setRoute] = useState("");
-  const [volumeMl, setVolumeMl] = useState("");
-  const [selectedChecks, setSelectedChecks] = useState<MedicationSafetyCheckId[]>([]);
-  const [justification, setJustification] = useState("");
-  const [result, setResult] = useState<ReturnType<typeof evaluateMedicationCase> | null>(null);
-
-  const clearAnswers = useCallback(() => {
-    setDecision("");
-    setRoute("");
-    setVolumeMl("");
-    setSelectedChecks([]);
-    setJustification("");
-    setResult(null);
-  }, []);
-
-  const pickNextCase = useCallback(
-    (excludeId?: string) => {
-      const basePool = pickByDifficulty(casePool, difficultyFilter).filter((item) => item.id !== excludeId);
-      if (!basePool.length) return casePool[0] ?? MEDICATION_LIBRARY[0];
-
-      if (selectionMode === "manual") {
-        return casePool.find((item) => item.id === manualCaseId) ?? casePool[0] ?? MEDICATION_LIBRARY[0];
-      }
-
-      return sampleFromPool(basePool) ?? basePool[0];
-    },
-    [casePool, difficultyFilter, manualCaseId, selectionMode]
-  );
-
-  useEffect(() => {
-    const next = pickNextCase();
-    if (!next) return;
-    setCaseSet(next);
-    if (selectionMode === "manual") {
-      setManualCaseId(next.id);
-    }
-    clearAnswers();
-  }, [clearAnswers, pickNextCase, selectionMode]);
-
-  const routeOptions = useMemo(
-    () => Array.from(new Set(["IV", "IM", "SC", "VO", "No administrar", caseSet.correctRoute])),
-    [caseSet.correctRoute]
-  );
-
-  function toggleCheck(id: MedicationSafetyCheckId) {
-    setSelectedChecks((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
+  const [orders, setOrders] = useState(false);
+  const [difficulty, setDifficulty] = useState<ChallengeDifficulty>("easy");
+  const [challenge, setChallenge] = useState<MedicationChallenge|null>(null);
+  const [seen, setSeen] = useState<Record<ChallengeDifficulty,string[]>>({easy:[],medium:[],hard:[]});
+  const [query, setQuery] = useState("");
+  const [selectedId, setSelectedId] = useState("");
+  const [formId, setFormId] = useState("");
+  const [pending, setPending] = useState<ChallengeInput|null>(null);
+  const [result, setResult] = useState<ChallengeResult|null>(null);
+  const [stats, setStats] = useState({completed:0,correct:0,streak:0});
+  const dialog = useRef<HTMLDialogElement>(null);
+  const formRef = useRef<HTMLSelectElement>(null);
+  const trayRef = useRef<HTMLElement>(null);
+  const resultRef = useRef<HTMLElement>(null);
+  const selected = PRACTICE_DRUGS.find(d=>d.id===selectedId);
+  const form = selected?.forms.find(f=>f.id===formId);
+  const matches = searchPracticeDrugs(query);
+  const level = levels.find(l=>l.id===difficulty)!;
+  useEffect(()=>{
+    const element=dialog.current;if(!element)return;
+    if(pending&&!element.open)element.showModal();else if(!pending&&element.open)element.close();
+  },[pending]);
+  function start(nextLevel=difficulty) {
+    const next=drawMedicationChallenge(nextLevel,seen[nextLevel]);
+    setDifficulty(nextLevel);setChallenge(next);setSeen(previous=>({...previous,[nextLevel]:[...previous[nextLevel],next.id]}));
+    setQuery("");setSelectedId("");setFormId("");setPending(null);setResult(null);
   }
-
-  function loadNewCase() {
-    const next = pickNextCase(caseSet.id);
-    if (!next) return;
-    setCaseSet(next);
-    if (selectionMode === "manual") {
-      setManualCaseId(next.id);
-    }
-    clearAnswers();
+  function chooseLevel(next:ChallengeDifficulty) {
+    if(next===difficulty)return;
+    if(challenge)start(next);else setDifficulty(next);
   }
-
-  function evaluate() {
-    setResult(
-      evaluateMedicationCase({
-        caseSet,
-        input: {
-          decision,
-          route,
-          volumeMl,
-          selectedChecks,
-          justification,
-        },
-      })
-    );
+  function confirm() {
+    if(!challenge||!pending||result)return;
+    const evaluated=evaluateMedicationChallenge(challenge.id,pending);if(!evaluated)return;
+    setResult(evaluated);setPending(null);
+    setStats(previous=>({completed:previous.completed+1,correct:previous.correct+Number(evaluated.appropriate),streak:evaluated.appropriate?previous.streak+1:0}));
+    requestAnimationFrame(()=>{resultRef.current?.focus({preventScroll:true});resultRef.current?.scrollIntoView({behavior:"smooth",block:"nearest"});});
   }
-
-  return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#f4faf8_0%,#edf4f1_48%,#e4efeb_100%)] text-slate-900">
-      <div className="psyke-workspace">
-        <Sidebar />
-
-        <main className="flex-1 rounded-2xl border border-[#d9e7e1] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(243,249,246,0.98))] p-5 shadow-[0_24px_70px_rgba(99,126,118,0.16)] backdrop-blur-xl">
-          <header className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-semibold">Administración de medicamentos</h1>
-              <p className="mt-1 text-sm text-slate-600">
-                Practica verificación segura, decisión clínica, volumen y vía de administración.
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
-              <span className="rounded-full border border-slate-200 bg-white/80 px-3 py-1">
-                {mode === "practice" ? "Modo práctica" : "Modo evaluación"}
-              </span>
-              <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-cyan-700">
-                Dificultad: {medicationDifficultyLabel(caseSet.difficulty)}
-              </span>
-            </div>
-          </header>
-
-          <section className="mt-4 grid gap-3 rounded-2xl border border-slate-200 bg-white/82 p-4 md:grid-cols-2 xl:grid-cols-5">
-            <label className="text-xs text-slate-600">
-              Modo
-              <select
-                value={mode}
-                onChange={(event) => {
-                  setMode(event.target.value as MedicationMode);
-                  setResult(null);
-                }}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
-              >
-                <option value="practice">Práctica guiada</option>
-                <option value="evaluation">Evaluación</option>
-              </select>
-            </label>
-
-            <label className="text-xs text-slate-600">
-              Selección
-              <select
-                value={selectionMode}
-                onChange={(event) => setSelectionMode(event.target.value as SelectionMode)}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
-              >
-                <option value="random">Aleatorio</option>
-                <option value="manual">Manual</option>
-              </select>
-            </label>
-
-            <label className="text-xs text-slate-600">
-              Dificultad
-              <select
-                value={difficultyFilter}
-                onChange={(event) => setDifficultyFilter(event.target.value as DifficultyFilter)}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
-              >
-                <option value="all">Todas</option>
-                <option value="basic">Básico</option>
-                <option value="intermediate">Intermedio</option>
-                <option value="advanced">Avanzado</option>
-              </select>
-            </label>
-
-            <label className="text-xs text-slate-600 xl:col-span-2">
-              Escenario de medicación
-              <select
-                value={manualCaseId}
-                onChange={(event) => {
-                  setManualCaseId(event.target.value);
-                  setSelectionMode("manual");
-                  const manual = casePool.find((item) => item.id === event.target.value) ?? null;
-                  if (!manual) return;
-                  setCaseSet(manual);
-                  clearAnswers();
-                }}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900"
-              >
-                {casePool.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </section>
-
-          <section className="mt-4 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 xl:grid-cols-[1.3fr_1fr_auto]">
-            <div>
-              <div className="text-xs uppercase tracking-[0.14em] text-slate-400">Escenario</div>
-              <div className="mt-1 text-base font-semibold text-slate-900">{caseSet.name}</div>
-              <div className="mt-1 text-sm text-slate-600">
-                {caseSet.patient.name} · {caseSet.patient.age} años ·{" "}
-                {caseSet.patient.sex === "female" ? "Femenino" : caseSet.patient.sex === "male" ? "Masculino" : "No especificado"}
-              </div>
-              <div className="text-sm text-slate-500">{caseSet.context}</div>
-            </div>
-
-            <div className="rounded-xl border border-slate-200 bg-white/80 p-3 text-xs text-slate-600">
-              <div className="font-semibold text-slate-800">Orden médica</div>
-              <div className="mt-2">Medicamento: {caseSet.order.medication}</div>
-              <div className="mt-1">Dosis: {caseSet.order.doseLabel}</div>
-              <div className="mt-1">Vía: {caseSet.order.route}</div>
-              <div className="mt-1">Horario: {caseSet.order.schedule}</div>
-              <div className="mt-1">Presentación: {caseSet.order.presentation}</div>
-            </div>
-
-            <div className="flex items-start justify-end gap-2">
-              <button
-                type="button"
-                onClick={loadNewCase}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900/90 hover:bg-slate-50"
-              >
-                Nuevo caso
-              </button>
-            </div>
-          </section>
-
-          <section className="mt-4 grid gap-4 xl:grid-cols-[1.55fr_1fr]">
-            <div className="rounded-2xl border border-slate-200 bg-white/82 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-lg font-semibold">Paciente y seguridad</h2>
-                <div className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600">
-                  {medicationCategoryLabel(caseSet.category)}
-                </div>
-              </div>
-
-              <div className="mt-4 grid gap-3 md:grid-cols-2">
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="text-xs uppercase tracking-wide text-slate-400">Datos del paciente</div>
-                  <div className="mt-2 text-sm text-slate-800">
-                    Diagnósticos: {caseSet.patient.diagnoses.join(" · ")}
-                  </div>
-                  <div className="mt-1 text-sm text-slate-600">
-                    Alergias: {caseSet.patient.allergies.length ? caseSet.patient.allergies.join(", ") : "Ninguna conocida"}
-                  </div>
-                  {caseSet.patient.alerts?.length ? (
-                    <div className="mt-3 rounded-xl border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-xs text-amber-700">
-                      {caseSet.patient.alerts.join(" · ")}
-                    </div>
-                  ) : (
-                    <div className="mt-3 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-700">
-                      Sin alertas adicionales críticas en el escenario base.
-                    </div>
-                  )}
-                </div>
-
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="text-xs uppercase tracking-wide text-slate-400">Preparación</div>
-                  <div className="mt-2 text-sm text-slate-800">Indicación: {caseSet.order.indication}</div>
-                  {caseSet.order.dilution && <div className="mt-1 text-sm text-slate-600">Dilución: {caseSet.order.dilution}</div>}
-                  {caseSet.order.infusionRate && (
-                    <div className="mt-1 text-sm text-slate-600">Velocidad / alerta: {caseSet.order.infusionRate}</div>
-                  )}
-                  {caseSet.order.volumePrompt && (
-                    <div className="mt-3 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-xs text-cyan-700">
-                      Cálculo integrado: {caseSet.order.volumePrompt}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {mode === "practice" && (
-                <div className="mt-4 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-sm text-cyan-700">
-                  Antes de administrar, valida siempre los 5 correctos y agrega alergias/contraindicaciones si aplican.
-                </div>
-              )}
-            </div>
-
-            <aside className="space-y-3">
-              <div className="rounded-2xl border border-slate-200 bg-white/82 p-4">
-                <h3 className="text-base font-semibold">Decisión segura</h3>
-
-                <div className="mt-3 space-y-3">
-                  <label className="block text-xs text-slate-600">
-                    1) Conducta
-                    <select
-                      value={decision}
-                      onChange={(event) => setDecision(event.target.value as MedicationDecision | "")}
-                      className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
-                    >
-                      <option value="">Selecciona una opción</option>
-                      <option value="administer">Administrar</option>
-                      <option value="hold">Retener</option>
-                      <option value="clarify">Aclarar antes de administrar</option>
-                    </select>
-                  </label>
-
-                  <label className="block text-xs text-slate-600">
-                    2) Vía de administración
-                    <select
-                      value={route}
-                      onChange={(event) => setRoute(event.target.value)}
-                      className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
-                    >
-                      <option value="">Selecciona una vía</option>
-                      {routeOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  {typeof caseSet.correctVolumeMl === "number" && (
-                    <label className="block text-xs text-slate-600">
-                      3) Volumen a administrar (mL)
-                      <input
-                        value={volumeMl}
-                        onChange={(event) => setVolumeMl(event.target.value)}
-                        placeholder="Ingresa el volumen en mL"
-                        className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-900/35"
-                      />
-                    </label>
-                  )}
-
-                  <div>
-                    <div className="text-xs text-slate-600">4) Controles de seguridad realizados</div>
-                    <div className="mt-2 grid gap-2 md:grid-cols-2">
-                      {MEDICATION_SAFETY_CHECKS.map((item) => {
-                        const checked = selectedChecks.includes(item.id);
-                        return (
-                          <label
-                            key={item.id}
-                            className={`rounded-xl border px-3 py-2 text-xs ${
-                              checked ? "border-cyan-400/35 bg-cyan-400/10 text-cyan-700" : "border-slate-200 bg-white text-slate-600"
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              onChange={() => toggleCheck(item.id)}
-                              className="mr-2 h-4 w-4 align-middle"
-                            />
-                            <span className="align-middle">{item.label}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <label className="block text-xs text-slate-600">
-                    5) Justificación clínica
-                    <textarea
-                      value={justification}
-                      onChange={(event) => setJustification(event.target.value)}
-                      rows={4}
-                      placeholder="Explica por qué administrarías, retendrías o aclararías la orden."
-                      className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-900/35"
-                    />
-                  </label>
-                </div>
-
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={evaluate}
-                    className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-white/90"
-                  >
-                    Validar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={clearAnswers}
-                    className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900/90 hover:bg-slate-50"
-                  >
-                    Reiniciar
-                  </button>
-                </div>
-              </div>
-
-              {result && (
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="text-sm font-semibold text-slate-900">Feedback automático</div>
-                    <div className="rounded-full border border-cyan-400/35 bg-cyan-400/10 px-2.5 py-1 text-xs text-cyan-700">
-                      {result.totalScore}/100
-                    </div>
-                  </div>
-
-                  <div className="mt-3 space-y-2 text-sm text-slate-700">
-                    <div>{result.feedback.decision}</div>
-                    <div>{result.feedback.route}</div>
-                    <div>{result.feedback.volume}</div>
-                    <div>{result.feedback.safety}</div>
-                    <div>{result.feedback.justification}</div>
-                    <div className="rounded-xl border border-slate-200 bg-white/80 px-3 py-2 text-slate-800">
-                      {result.feedback.summary}
-                    </div>
-                  </div>
-
-                  {mode === "practice" && (
-                    <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs text-amber-700">
-                      Error frecuente a evitar: {caseSet.commonErrors[0]}
-                    </div>
-                  )}
-                </div>
-              )}
-            </aside>
-          </section>
-        </main>
+  if(orders)return <OrderPractice onBack={()=>setOrders(false)}/>;
+  return <div className={styles.page}><div className="psyke-workspace"><Sidebar/><main className={styles.main}>
+    <header className={styles.header}><div><Link href="/simulation-hub" className={styles.back}>← Escenarios</Link><div className={styles.eyebrow}>PSYKE / MEDICAMENTOS</div><h1>Tu próxima decisión.</h1><p>Un caso breve. Un botiquín. Tú eliges cómo actuar.</p></div><button className={styles.legacy} onClick={()=>setOrders(true)}>Órdenes y cálculo ↗</button></header>
+    <section className={styles.setup} aria-label="Configurar la práctica"><div><span className={styles.eyebrow}>ELIGE TU NIVEL</span><div className={styles.levels}>{levels.map(l=><button key={l.id} aria-pressed={difficulty===l.id} onClick={()=>chooseLevel(l.id)}><strong>{l.label}</strong><small>{l.description}</small></button>)}</div></div><button className={styles.primary} onClick={()=>start()}>{challenge?"Otro caso aleatorio":"Generar caso aleatorio"}<span aria-hidden="true">↗</span></button></section>
+    <div className={styles.session} aria-label="Tu sesión"><span><b>{stats.completed}</b> casos completados</span><span><b>{stats.correct}</b> decisiones adecuadas</span><span><b>{stats.streak}</b> de racha</span><small>{MEDICATION_CHALLENGES.filter(c=>c.difficulty===difficulty).length} casos en nivel {level.label.toLowerCase()}</small></div>
+    {!challenge ? <section className={styles.welcome}><div className={styles.welcomeArt}><Pill/><span>UNA DECISIÓN A LA VEZ</span></div><h2>Entra al turno.</h2><p>Lee lo necesario, busca un medicamento por su nombre y elige su presentación. Antes de usarlo, confirma tu selección. Después conocerás el razonamiento.</p><ol><li><b>01</b><strong>Conoce el caso</strong><span>Paciente, antecedentes y datos clave.</span></li><li><b>02</b><strong>Explora el botiquín</strong><span>Busca y selecciona sin pistas de respuesta.</span></li><li><b>03</b><strong>Toma la decisión</strong><span>Administrar, o retener y consultar.</span></li></ol><button className={styles.primary} onClick={()=>start()}>Empezar mi primer caso →</button></section> : <div className={styles.workspace}>
+      <div className={styles.caseColumn}><article className={styles.caseCard} aria-label="Caso clínico"><div className={styles.cardTop}><span className={styles.eyebrow}>ENTREGA DE TURNO</span><span className={styles.badge}>{level.label}</span></div><div className={styles.patient}><div className={styles.avatar}>{challenge.patient.split(" ").slice(0,2).map(n=>n[0]).join("")}</div><div><h2>{challenge.patient}</h2><p>{challenge.age} años · {challenge.title}</p></div></div><p className={styles.context}>{challenge.context}</p><div className={styles.facts}>{challenge.facts.map(f=><div key={f.label}><small>{f.label}</small><strong>{f.value}</strong></div>)}</div><div className={styles.allergy}><small>ALERGIAS REGISTRADAS</small><p>{challenge.allergies}</p></div><div className={styles.goal}><span>Tu objetivo</span><p>{challenge.goal}</p></div></article>
+        <section ref={trayRef} className={`${styles.tray} ${selected?styles.trayReady:""}`} aria-label="Preparación del medicamento"><span className={styles.eyebrow}>BANDEJA DE PREPARACIÓN</span>{selected?<><div className={styles.selectedTitle}><Pill small/><h3>{selected.name}</h3>{!result&&<button onClick={()=>{setSelectedId("");setFormId("");}} aria-label="Quitar medicamento seleccionado">×</button>}</div><label className={styles.field}>Presentación y vía<select ref={formRef} aria-label="Presentación y vía del medicamento" value={formId} onChange={e=>setFormId(e.target.value)} disabled={!!result}><option value="">Elige una presentación</option>{selected.forms.map(f=><option key={f.id} value={f.id}>{f.label} · {f.route}</option>)}</select></label>{form&&<p className={styles.route}>Vía elegida: <strong>{form.route}</strong></p>}<button className={styles.primary} disabled={!form||!!result} onClick={()=>setPending({decision:"administer",drugId:selected.id,formId})}>Preparar administración →</button></>:<div className={styles.emptyTray}><Pill small/><p>Selecciona un medicamento del botiquín para traerlo a tu bandeja.</p></div>}<p className={styles.scope}>Este reto evalúa selección y vía. La dosis, dilución y velocidad requieren la orden individual; puedes practicarlas en «Órdenes y cálculo».</p></section>
+        {!result&&<button className={styles.hold} onClick={()=>setPending({decision:"hold"})}>Retener el tratamiento y consultar</button>}
+        {result&&<section ref={resultRef} tabIndex={-1} className={`${styles.result} ${result.appropriate?styles.good:styles.review}`} aria-label="Resultado del caso"><span className={styles.eyebrow}>DECISIÓN REGISTRADA</span><div className={styles.resultHeading}><h2>{result.heading}</h2><strong>{result.score}<small>/100</small></strong></div><p className={styles.chosen}>{result.chosen}</p><h3>El razonamiento</h3><p>{result.detail}</p>{!result.appropriate&&<p className={styles.expected}><b>Respuesta compatible:</b> {result.expected}</p>}<h3>Qué sigue en la atención</h3><p>{result.followUp}</p><a href={challenge.source.url} target="_blank" rel="noreferrer">{challenge.source.title} ↗</a><button className={styles.primary} onClick={()=>start()}>Siguiente caso aleatorio →</button></section>}
       </div>
-    </div>
-  );
+      <section className={styles.cabinet} aria-label="Botiquín de medicamentos"><div className={styles.cardTop}><div><span className={styles.eyebrow}>BUSCA Y SELECCIONA</span><h2>El botiquín</h2></div><span className={styles.cabinetIcon}><Pill small/></span></div><label className={styles.search}><span aria-hidden="true">⌕</span><input type="search" aria-label="Buscar medicamento" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Nombre, sinónimo o familia…" autoComplete="off"/>{query&&<button aria-label="Limpiar búsqueda de medicamentos" onClick={()=>setQuery("")}>×</button>}</label><div className={styles.searchCount} role="status">{matches.length} medicamento{matches.length===1?"":"s"}{query?` para «${query}»`:" disponibles"}</div>{!matches.length?<div className={styles.noResults}><h3>No encontramos ese medicamento.</h3><p>Prueba con el nombre genérico, un sinónimo o una familia.</p><button className={styles.legacy} onClick={()=>setQuery("")}>Ver todo el botiquín</button></div>:<div className={styles.drugList}>{matches.map(d=><button key={d.id} disabled={!!result} aria-pressed={selectedId===d.id} onClick={()=>{setSelectedId(d.id);setFormId("");requestAnimationFrame(()=>{formRef.current?.focus({preventScroll:true});trayRef.current?.scrollIntoView({behavior:"smooth",block:"nearest"});});}}><span className={styles.drugMark}>{d.name.slice(0,2).toUpperCase()}</span><span><strong>{d.name}</strong><small>{d.family} · {[...new Set(d.forms.map(f=>f.route))].join(" / ")}</small></span><span aria-hidden="true">{selectedId===d.id?"✓":"+"}</span></button>)}</div>}<p className={styles.cabinetNote}>El botiquín incluye alternativas y opciones no indicadas para este caso. La disponibilidad no equivale a indicación.</p></section>
+    </div>}
+    <footer className={styles.footer}>Casos ficticios · selección farmacológica educativa · la respuesta se explica después de confirmar.</footer>
+    <dialog ref={dialog} className={styles.dialog} onCancel={e=>{e.preventDefault();setPending(null);}} aria-labelledby="medication-confirm-title"><span className={styles.eyebrow}>CONFIRMA TU DECISIÓN</span><h2 id="medication-confirm-title">{pending?.decision==="hold"?"¿Retener y consultar?":"¿Administrar en este caso?"}</h2><p>Paciente: <strong>{challenge?.patient}</strong></p>{pending?.decision==="administer"?<div className={styles.confirmDrug}><Pill small/><div><strong>{selected?.name}</strong><p>{form?.label} · vía {form?.route}</p></div></div>:<p>No se administrará ningún medicamento. Se registrará tu decisión de retener el tratamiento y pedir revisión.</p>}<p className={styles.scope}>Al confirmar se evalúa tu elección y se muestra el razonamiento. Preparar o cancelar no registra una administración.</p><div className={styles.dialogActions}><button className={styles.legacy} onClick={()=>setPending(null)}>Volver a revisar</button><button className={styles.primary} onClick={confirm}>{pending?.decision==="hold"?"Confirmar retención y consulta":"Administrar en la simulación"}</button></div></dialog>
+  </main></div></div>;
 }

@@ -1,7 +1,7 @@
 import { actionAvailable, hasDecision, OBSTETRIC_SOURCE, type GynecologyCase, type SimulationRun } from "@/src/lib/gynecologySimulation";
 import { tannPlacement, TANN_SEGMENTS } from "@/src/lib/tannPlacement";
 import styles from "./room.module.css";
-export function TannPlacementPanel({scenario,run,onAction}:{scenario:GynecologyCase;run:SimulationRun;onAction:(id:string)=>void}){
+export function TannPlacementPanel({scenario,run,onAction,onResume}:{scenario:GynecologyCase;run:SimulationRun;onAction:(id:string)=>void;onResume:()=>void}){
  const placement=tannPlacement(run.decisions);
  const renderAction=(id:string)=>{
   const action=scenario.actions.find(a=>a.id===id);if(!action)return null;
@@ -12,6 +12,8 @@ export function TannPlacementPanel({scenario,run,onAction}:{scenario:GynecologyC
  <h2>TANN · colocación por partes</h2><p>Desde abajo hacia arriba. Cada componente cerrado aparece sobre la paciente. Se representan los componentes de ambas piernas en el mismo paso.</p>
  <div className={styles.tannProgress} role="status">{placement.removed?"Traje retirado durante el choque: revisar la decisión":placement.verified?"6/6 · colocación verificada":`${placement.count}/6 componentes cerrados${placement.count===6?" · falta verificación final":""}`}</div>
  <progress value={placement.count} max={6} aria-label="Avance de colocación del TANN"/>
+ {run.status!=="running"&&run.status!=="finished"&&<div><p>La simulación está en pausa. Continúa la atención para colocar el traje.</p><button type="button" onClick={onResume}>Continuar atención para colocar el traje</button></div>}
+ {(!hasDecision(scenario,run,"consent")||!hasDecision(scenario,run,"key-roja"))&&<div><h3>Antes de colocar el traje</h3><p>Completa estos requisitos aquí mismo. Cada acción requiere que la selecciones.</p>{!hasDecision(scenario,run,"consent")&&renderAction("consent")}{!hasDecision(scenario,run,"key-roja")&&renderAction("key-roja")}</div>}
  {renderAction("tann-assess")}{renderAction("tann-prepare")}
  <ol>{TANN_SEGMENTS.map(segment=><li key={segment.id} data-complete={hasDecision(scenario,run,segment.id)}><span>{segment.number}</span><div>{renderAction(segment.id)}<p>{segment.instruction}</p></div></li>)}</ol>
  {renderAction("tann")}

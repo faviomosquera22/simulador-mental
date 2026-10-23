@@ -1,3 +1,5 @@
+import { withDosePresentations, prepareDose, type MedicationPresentation } from "./medicationPreparation";
+import { OXYGEN_DEVICES, validOxygen, oxygenSupport, type OxygenTherapy } from "./oxygenTherapy";
 import { expandMedications, expandScenario } from "./criticalCareChoices";
 import type { DecisionJudgment, LearningDecision, SourceId } from "./clinicalEducation";
 import { criticalCareScenarios, criticalCareMedications } from "./criticalCareCatalog";
@@ -9,11 +11,11 @@ export type Ventilator = { fio2: number; peep: number; rate: number; volume: num
 export type ClinicalAction = { category?: string; judgment?: DecisionJudgment; source?: SourceId; effects?: Partial<Vitals>; id: string; label: string; description: string; feedback: string; requires?: string[]; requiresStudy?: string };
 export type Study = { judgment?: DecisionJudgment; explanation?: string; source?: SourceId; kind?: "bedside" | "lab" | "imaging"; id: string; label: string; delay: number; result: string };
 export type Scenario = { id: ScenarioId; title: string; patient: string; subtitle: string; presentation: string; baseline: Vitals; zones: { label: string; finding: string }[]; actions: ClinicalAction[]; studies: Study[]; priorities: string[] };
-export type Medication = { category?: string; presentations?: { id: string; label: string; route: string }[]; source?: SourceId; judgment?: DecisionJudgment; explanation?: string; equivalentTo?: string; completes?: string; id: string; name: string; route: string; purpose: string; onset: number; duration: number; cooldown: number; maxDoses: number; requires?: string[]; requiresStudy?: string; continuous?: boolean; effects: Partial<Vitals>; adverse?: { threshold: number; id: string; title: string; message: string; effects: Partial<Vitals> } };
-export type MedicationDose = { id: string; at: number; presentationId?: string; effects?: Partial<Vitals>; stoppedAt?: number };
+export type Medication = { category?: string; presentations?: MedicationPresentation[]; source?: SourceId; judgment?: DecisionJudgment; explanation?: string; equivalentTo?: string; completes?: string; id: string; name: string; route: string; purpose: string; onset: number; duration: number; cooldown: number; maxDoses: number; requires?: string[]; requiresStudy?: string; continuous?: boolean; effects: Partial<Vitals>; adverse?: { threshold: number; id: string; title: string; message: string; effects: Partial<Vitals> } };
+export type MedicationDose = { id: string; at: number; presentationId?: string; route?: string; dose?: { amount: number; unit: string; total: number; totalUnit: string; label: string }; effects?: Partial<Vitals>; stoppedAt?: number };
 export type Complication = { id: string; title: string; message: string; at: number; resolvedAt?: number; acknowledged: boolean };
 export type StudyRequest = { id: string; requestedAt: number; readyAt: number; result: string; snapshot: Vitals };
-export const criticalCareCaseIds: ScenarioId[] = ["ventilation", "stroke", "asthma", "sepsis", "anaphylaxis", "hypoglycemia"];
+export const criticalCareCaseIds: ScenarioId[] = ["ventilation", "stroke", "asthma", "sepsis", "anaphylaxis", "hypoglycemia", "obstetric"];
 export const scenarios: Record<ScenarioId, Scenario> = {
   ...criticalCareScenarios,
   obstetric: {
@@ -72,13 +74,13 @@ export type SimulationState = {
   decisions: LearningDecision[];
   monitoring: Partial<Record<MonitoringKey, number>>;
   scenario: ScenarioId; status: "ready" | "running" | "paused" | "finished"; elapsed: number; vitals: Vitals;
-  assessed: number[]; actions: string[]; studies: StudyRequest[]; medications: MedicationDose[]; complications: Complication[]; reassessments: { at: number; vitals: Vitals }[]; garment: number; ventilator: Ventilator;
+  assessed: number[]; actions: string[]; studies: StudyRequest[]; medications: MedicationDose[]; complications: Complication[]; reassessments: { at: number; vitals: Vitals }[]; garment: number; ventilator: Ventilator; oxygenTherapy: OxygenTherapy | null;
   log: { at: number; text: string }[]; feedback: string; history: { at: number; hr: number; sbp: number; spo2: number }[];
 };
-export type SimulationEvent = { type: "monitor"; key: MonitoringKey; enabled: boolean } | { type: "start" | "pause" | "finish" | "tick" | "reassess" } | { type: "reset"; scenario: ScenarioId } | { type: "assess"; zone: number } | { type: "action"; id: string } | { type: "study"; id: string } | { type: "garment"; step: number } | { type: "ventilator"; settings: Ventilator } | { type: "medication"; id: string; presentationId?: string } | { type: "stop-medication"; id: string } | { type: "acknowledge"; id: string };
+export type SimulationEvent = { type: "oxygen"; settings: OxygenTherapy | null } | { type: "monitor"; key: MonitoringKey; enabled: boolean } | { type: "start" | "pause" | "finish" | "tick" | "reassess" } | { type: "reset"; scenario: ScenarioId } | { type: "assess"; zone: number } | { type: "action"; id: string } | { type: "study"; id: string } | { type: "garment"; step: number } | { type: "ventilator"; settings: Ventilator } | { type: "medication"; id: string; presentationId?: string; amount: number; unit: string } | { type: "stop-medication"; id: string } | { type: "acknowledge"; id: string };
 export function createSimulation(scenario: ScenarioId): SimulationState {
   const vitals = { ...scenarios[scenario].baseline };
-  return { decisions: [], monitoring: {}, scenario, status: "ready", elapsed: 0, vitals, assessed: [], actions: [], studies: [], medications: [], complications: [], reassessments: [], garment: 0, ventilator: { fio2: 30, peep: 3, rate: 10, volume: 350 }, log: [], feedback: "Lee la presentación e inicia la práctica para valorar al paciente.", history: [{ at: 0, hr: vitals.hr, sbp: vitals.sbp, spo2: vitals.spo2 }] };
+  return { decisions: [], monitoring: {}, scenario, status: "ready", elapsed: 0, vitals, assessed: [], actions: [], studies: [], medications: [], complications: [], reassessments: [], garment: 0, oxygenTherapy: null, ventilator: { fio2: 30, peep: 3, rate: 10, volume: 350 }, log: [], feedback: "Lee la presentación e inicia la práctica para valorar al paciente.", history: [{ at: 0, hr: vitals.hr, sbp: vitals.sbp, spo2: vitals.spo2 }] };
 }
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 function record(s: SimulationState, text: string): SimulationState { return { ...s, feedback: text, log: [...s.log, { at: s.elapsed, text }] }; }
@@ -104,7 +106,17 @@ export function simulationReducer(s: SimulationState, event: SimulationEvent): S
     if (!zone) return s;
     return record({ ...s, assessed: [...new Set([...s.assessed, event.zone])] }, assessmentFinding(s, event.zone));
   }
+  if (event.type === "oxygen") {
+    if (s.scenario === "ventilation") return record(s, "Paciente intubado: utiliza el ventilador y revisa el circuito con el equipo. Cambiar a una cánula requiere una decisión de extubación fuera de este caso.");
+    const settings = event.settings;
+    if (settings && !validOxygen(settings)) return record(s, "Revisa el flujo permitido por el dispositivo; usa incrementos de 0,5 L/min.");
+    const actions = s.actions.filter(id => id !== "oxygen");
+    if (settings) actions.push("oxygen");
+    const text = settings ? `${OXYGEN_DEVICES[settings.device].label} a ${settings.flow} L/min. Reevalúa saturación y trabajo respiratorio.` : "Oxígeno retirado. Continúa vigilando la respuesta.";
+    return record({ ...s, oxygenTherapy: settings ? { ...settings } : null, actions, decisions: [...s.decisions, { kind: "action", id: settings ? "oxygen" : "oxygen-stop", at: s.elapsed, judgment: "alternative", rationale: text, source: "msp-emergency" }] }, text);
+  }
   if (event.type === "action") {
+    if (event.id === "oxygen") return record(s, "Abre Oxígeno / ventilador para elegir dispositivo y flujo antes de conectar.");
     const action = scenario.actions.find(a => a.id === event.id);
     if (!action || s.actions.includes(action.id)) return s;
     if (action.requiresStudy && !hasStudyResult(s, action.requiresStudy)) return record(s, "Necesitas el resultado de " + scenario.studies.find(a => a.id === action.requiresStudy)?.label + ".");
@@ -121,16 +133,20 @@ export function simulationReducer(s: SimulationState, event: SimulationEvent): S
   if (event.type === "medication") {
     const medication = medicationsFor(s.scenario).find(m => m.id === event.id);
     if (!medication) return s;
-    const blocked = medicationBlock(s, medication);
+    const selectedPresentation = medication.presentations?.find(p => p.id === (event.presentationId ?? medication.presentations?.[0]?.id));
+    const blocked = medicationBlock(s, medication, selectedPresentation?.id);
     if (blocked) return record(s, blocked);
     const presentation = medication.presentations?.find(p => p.id === (event.presentationId ?? medication.presentations?.[0]?.id));
     if (medication.presentations?.length && !presentation) return s;
+    const dose = prepareDose(medication, presentation, event.amount, event.unit);
+    if (!dose) return record(s, "Indica una cantidad positiva y una unidad compatible antes de administrar.");
+    const oralUnsafe = presentation?.route === "Oral" && (s.vitals.gcs < 14 || s.scenario === "ventilation" || s.scenario === "stroke" || s.scenario === "hypoglycemia" && !s.studies.some(sample => sample.id === "swallow" && sample.readyAt <= s.elapsed && sample.result.startsWith("Cribado simulado favorable")));
     const safeOral = medication.id === "oral-glucose" && s.vitals.gcs >= 14 && s.studies.some(sample=>sample.id === "swallow" && sample.readyAt <= s.elapsed && sample.result.startsWith("Cribado simulado favorable"));
-    const judgment = safeOral ? "alternative" : medication.judgment ?? "appropriate";
-    const rationale = safeOral ? "Se ha reevaluado conciencia y deglución antes del aporte oral; se mantiene vigilancia de recurrencia." : medication.explanation ?? medication.purpose;
-    const effects = medication.id === "oral-glucose" && !safeOral ? { spo2: -8, gcs: -1 } : medication.effects;
+    const judgment = oralUnsafe ? "harmful" : safeOral ? "alternative" : medication.judgment ?? "appropriate";
+    const rationale = oralUnsafe ? "Vía oral no segura en el estado actual: riesgo de aspiración. Reevalúa conciencia y deglución." : safeOral ? "Se ha reevaluado conciencia y deglución antes del aporte oral; se mantiene vigilancia de recurrencia." : medication.explanation ?? medication.purpose;
+    const effects = oralUnsafe || medication.id === "oral-glucose" && !safeOral ? { spo2: -8, gcs: -1 } : medication.effects;
     const nextActions = [...new Set([...s.actions, "med:" + medication.id, ...(medication.completes ? [medication.completes] : [])])];
-    return record({ ...s, medications: [...s.medications, { id: medication.id, at: s.elapsed, presentationId: presentation?.id, effects }], actions: nextActions, decisions: [...s.decisions, { kind: "medication", id: medication.id, at: s.elapsed, judgment, rationale, source: medication.source ?? "msp-emergency", presentation: presentation?.label }] }, `${medication.name} · ${presentation?.label ?? medication.route}: pauta simulada registrada. ${judgment === "harmful" || judgment === "unnecessary" ? rationale : `Inicio tras ${medication.onset} s; observa la respuesta. Los tiempos están acelerados.`}`);
+    return record({ ...s, medications: [...s.medications, { id: medication.id, at: s.elapsed, presentationId: presentation?.id, route: presentation?.route ?? medication.route, dose, effects }], actions: nextActions, decisions: [...s.decisions, { kind: "medication", id: medication.id, at: s.elapsed, judgment, rationale, source: medication.source ?? "msp-emergency", presentation: `${presentation?.label ?? medication.route} · ${dose.label} · ${presentation?.route ?? medication.route}` }] }, `${medication.name} · ${presentation?.label ?? medication.route} · ${dose.label} · vía ${presentation?.route ?? medication.route}: administración registrada. La cantidad queda en el registro; la respuesta es cualitativa y no valida la dosis. ${judgment === "harmful" || judgment === "unnecessary" ? rationale : `Inicio tras ${medication.onset} s; observa la respuesta. Los tiempos están acelerados.`}`);
   }
   if (event.type === "stop-medication") {
     const medication = medicationsFor(s.scenario).find(m => m.id === event.id);
@@ -158,8 +174,7 @@ export function simulationReducer(s: SimulationState, event: SimulationEvent): S
   const has = (id: string) => s.actions.includes(id);
   let target = { ...scenario.baseline };
   if (s.scenario === "obstetric") {
-    const control = has("definitive") && has("uterotonic");
-    const rate = control ? 0.12 : Math.max(0.6, 3.5 - (has("massage") ? 0.7 : 0) - (has("uterotonic") ? 1.3 : 0) - (s.garment >= 7 ? 0.6 : 0));
+    const rate = criticalBleedingRate(s) / 60;
     const bloodLoss = s.vitals.bloodLoss + rate;
     const deficit = Math.max(0, bloodLoss - 900) / 70;
     const support = (has("fluids") ? 8 : 0) + (has("blood") ? 14 : 0) + (s.garment >= 7 ? 9 : s.garment >= 5 ? 3 : 0);
@@ -174,7 +189,7 @@ export function simulationReducer(s: SimulationState, event: SimulationEvent): S
     target.dbp = target.sbp * 0.63;
     target.hr = clamp(112 - (target.spo2 - 86) * 1.4 + Math.max(0, 90 - target.sbp) * 0.4, 75, 145);
   } else if (s.scenario === "stroke") {
-    target.spo2 = has("oxygen") ? 96 : clamp(90 - elapsed / 90, 84, 90);
+    target.spo2 = s.oxygenTherapy ? 90 + 6 * oxygenSupport(s.oxygenTherapy) : clamp(90 - elapsed / 90, 84, 90);
     target.hr = has("oxygen") ? 90 : 98 + Math.min(12, elapsed / 30);
     target.rr = has("oxygen") ? 19 : 23;
     // Observation, activation and CT do not magically resolve the neurological lesion or hypertension.
@@ -182,7 +197,7 @@ export function simulationReducer(s: SimulationState, event: SimulationEvent): S
   if (s.scenario === "asthma") {
     const bronchodilation = medicationExposure(s, "salbutamol", elapsed);
     const deterioration = Math.min(1, elapsed / 120) * (bronchodilation > 0.6 ? 0.15 : 1);
-    target.spo2 = 88 - deterioration * 4 + (has("oxygen") ? 4 : 0);
+    target.spo2 = 88 - deterioration * 4 + (4 * oxygenSupport(s.oxygenTherapy));
     target.hr = 124 + deterioration * 10;
     target.rr = 32 + deterioration * 5;
     target.etco2 = 45 + deterioration * 8;
@@ -193,7 +208,7 @@ export function simulationReducer(s: SimulationState, event: SimulationEvent): S
     target.sbp = 84 - deterioration * 12 + (has("fluids") ? 10 : 0) + (has("source") ? 4 : 0);
     target.dbp = 48 - deterioration * 7 + (has("fluids") ? 6 : 0);
     target.hr = 126 + deterioration * 10 - (has("fluids") ? 5 : 0);
-    target.spo2 = 90 - deterioration * 2 + (has("oxygen") ? 6 : 0);
+    target.spo2 = 90 - deterioration * 2 + (6 * oxygenSupport(s.oxygenTherapy));
     target.temperature = 39.2 + deterioration * 0.3;
     target.lactate = 4.8 + deterioration * 1.5 - (has("fluids") ? 0.5 : 0);
   }
@@ -202,7 +217,7 @@ export function simulationReducer(s: SimulationState, event: SimulationEvent): S
     const deterioration = Math.min(1, elapsed / 90) * (adrenaline > 0.5 ? 0.1 : 1);
     target.sbp = 78 - deterioration * 16 + (has("fluids") ? 10 : 0);
     target.dbp = 44 - deterioration * 9 + (has("fluids") ? 6 : 0);
-    target.spo2 = 89 - deterioration * 7 + (has("oxygen") ? 3 : 0);
+    target.spo2 = 89 - deterioration * 7 + (3 * oxygenSupport(s.oxygenTherapy));
     target.hr = 132 + deterioration * 12;
     target.rr = 30 + deterioration * 6;
   }
@@ -256,7 +271,7 @@ export function simulationReducer(s: SimulationState, event: SimulationEvent): S
   return next;
 }
 const medicationCache: Partial<Record<ScenarioId,Medication[]>> = {};
-export function medicationsFor(scenario: ScenarioId): Medication[] { return medicationCache[scenario] ??= expandMedications(scenario, criticalCareMedications[scenario] ?? []); }
+export function medicationsFor(scenario: ScenarioId): Medication[] { return medicationCache[scenario] ??= expandMedications(scenario, criticalCareMedications[scenario] ?? []).map(withDosePresentations); }
 export function hasStudyResult(s: SimulationState, id: string) { return s.studies.some(study => study.id === id && study.readyAt <= s.elapsed); }
 export function medicationExposure(s: SimulationState, id: string, at = s.elapsed): number {
   const medication = medicationsFor(s.scenario).find(m => m.id === id);
@@ -268,8 +283,10 @@ function doseExposure(medication: Medication, dose: MedicationDose, at: number) 
   if (age <= 0 || age >= medication.duration) return 0;
   return Math.min(1, age / 12) * Math.min(1, (medication.duration - age) / 30) * (dose.stoppedAt === undefined ? 1 : Math.max(0, 1 - (at - dose.stoppedAt) / 18));
 }
-export function medicationBlock(s: SimulationState, medication: Medication): string | null {
+export function medicationBlock(s: SimulationState, medication: Medication, presentationId?: string): string | null {
   if (s.status !== "running") return "Inicia o continúa la práctica para administrar.";
+  const presentation = medication.presentations?.find(p => p.id === (presentationId ?? medication.presentations?.[0]?.id));
+  if (presentation?.route === "IV" && !s.actions.includes("iv")) return "Antes: obtener acceso venoso para la presentación IV.";
   const group = medication.equivalentTo ?? medication.id;
   const catalog = medicationsFor(s.scenario);
   const definition = catalog.find(m=>m.id===group) ?? medication;
@@ -320,4 +337,11 @@ export function assessmentFinding(s: SimulationState, zone: number): string {
   const v = s.vitals;
   const current = zone === 0 ? `Glasgow actual ${Math.round(v.gcs)}/15; continúa la vigilancia de vía aérea.` : zone === 1 ? `FR ${Math.round(v.rr)} rpm, SpO₂ ${Math.round(v.spo2)}%, EtCO₂ ${Math.round(v.etco2)} mmHg.` : zone === 2 ? `FC ${Math.round(v.hr)} lpm, PA ${Math.round(v.sbp)}/${Math.round(v.dbp)} mmHg.` : `Temperatura ${v.temperature.toFixed(1)} °C, Glasgow ${Math.round(v.gcs)}/15${s.scenario === "hypoglycemia" && hasStudyResult(s, "glucose") ? `. Consulta la última muestra de glucemia y repite si necesitas una nueva medición` : ""}.`;
   return `Hallazgo al ingreso: ${initial} Reevaluación ${formatClinicalTime(s.elapsed)}: ${current}`;
+}
+
+/** Current external loss in mL/min; total lost blood is never erased by treatment. */
+export function criticalBleedingRate(s: SimulationState) {
+  if (s.scenario !== "obstetric") return 0;
+  const has = (id: string) => s.actions.includes(id);
+  return 60 * (has("definitive") && has("uterotonic") ? .12 : Math.max(.6, 3.5 - (has("massage") ? .7 : 0) - (has("uterotonic") ? 1.3 : 0) - (s.garment >= 7 ? .6 : 0)));
 }

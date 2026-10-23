@@ -1,9 +1,13 @@
 "use client";
+import { TannOverlay } from "@/components/patient/TannOverlay";
+import { BleedingOverlay } from "@/components/patient/BleedingOverlay";
+import { OxygenOverlay } from "@/components/patient/OxygenOverlay";
+import type { OxygenTherapy } from "@/src/lib/oxygenTherapy";
 import { PatientView as Photograph } from "./PatientView";
 import { scenarios, type ScenarioId, type Vitals } from "@/src/lib/criticalCareSimulation";
 import { patientProfiles } from "@/src/lib/criticalCareObservation";
 
-type Props = { scenario: ScenarioId; garment: number; selectedZone: number | null; assessed: number[]; running: boolean; oxygen: boolean; onAssess: (zone: number) => void; breathingRate: number; vitals?: Vitals; iv?: boolean; fluids?: boolean; view?: "animated" | "photo"; showPoints?: boolean; zoom?: boolean; monitoring?: boolean };
+type Props = { scenario: ScenarioId; garment: number; selectedZone: number | null; assessed: number[]; running: boolean; oxygen: boolean; onAssess: (zone: number) => void; breathingRate: number; vitals?: Vitals; iv?: boolean; fluids?: boolean; view?: "animated" | "photo"; showPoints?: boolean; zoom?: boolean; monitoring?: boolean; oxygenTherapy?: OxygenTherapy | null; bleedingRate?: number };
 export function PatientStage(props: Props) {
   if (props.view === "photo") return <Photograph {...props}/>;
   const { scenario, running, vitals, onAssess, selectedZone, assessed, oxygen, iv, fluids, showPoints=true, zoom=false, monitoring } = props;
@@ -49,10 +53,13 @@ export function PatientStage(props: Props) {
         <path d="M231 517Q300 541 372 515M232 575Q260 590 274 673L270 790M366 568Q340 618 337 787M208 706Q216 752 228 780M385 710Q377 755 373 784M297 534L300 792" stroke="#d5e5e7" opacity=".3" strokeWidth="4" fill="none"/>
       </g>
       {monitoring && <g stroke="#476b63" fill="#e9eeea" strokeWidth="2"><circle cx="266" cy="350" r="7"/><circle cx="338" cy="352" r="7"/><circle cx="324" cy="418" r="7"/><path d="M266 350Q165 330 78 390M338 352Q174 356 78 400M324 418Q158 401 78 409" fill="none" strokeWidth="2"/></g>}
-      {oxygen && <g fill="none" stroke="#b0e7eb" strokeWidth="4"><path d="M260 226Q301 239 340 225M289 232v-8m23 9v-9M262 228Q242 294 163 384L78 420"/></g>}
+
       {scenario==="ventilation" && <g><path d="M299 250L258 263L200 325H63" stroke="#85cbd3" strokeWidth="14" fill="none"/><path d="M299 250L258 263L200 325H63" stroke="#ddf2ed" strokeWidth="5" strokeDasharray="3 5" fill="none"/><rect x="284" y="246" width="35" height="9" rx="3" fill="#edeee0"/></g>}
       {iv && <g><rect x="173" y="505" width="43" height="24" rx="5" fill="#f6f9ed" opacity=".85"/><path d="M192 514L180 494" stroke="#80bec4" strokeWidth="5"/>{fluids && <><path d="M539 163V680" stroke="#b9cbcd" strokeWidth="6"/><rect x="514" y="176" width="52" height="99" rx="8" fill="#e8f5ed" opacity=".9"/><path d="M540 275V438Q535 595 201 518" stroke="#b7e8ea" strokeWidth="3" fill="none"/><rect x="526" y="195" width="27" height="38" rx="3" fill="#c1dbd3"/></>}</g>}
     </svg>
+    {oxygen && props.oxygenTherapy && <OxygenOverlay therapy={props.oxygenTherapy} animated/>}
+    {scenario === "obstetric" && <TannOverlay count={Math.min(6,Math.max(0,props.garment-1))} verified={props.garment>=8} active={running} illustrated/>}
+    <BleedingOverlay loss={vitals?.bloodLoss ?? 0} rate={props.bleedingRate ?? 0} active={running} animated/>
     {showPoints && points.map((point,i)=><button key={i} type="button" className={`stage-hotspot ${selectedZone===i?"selected":""} ${assessed.includes(i)?"assessed":""}`} style={{left:`${point.x}%`,top:`${point.y}%`}} disabled={!running} onClick={()=>onAssess(i)} aria-label={`Explorar zona ${i+1}: ${scenarios[scenario].zones[i].label}`} aria-pressed={selectedZone===i}>{assessed.includes(i)?"✓":String(i+1).padStart(2,"0")}</button>)}
   </div>;
 }

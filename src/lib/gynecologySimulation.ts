@@ -95,7 +95,7 @@ export const GYNECOLOGY_CASES: GynecologyCase[] = [
     source: { label: "CDC · Enfermedad inflamatoria pélvica", url: "https://www.cdc.gov/std/treatment-guidelines/pid.htm" },
   },
   {
-    id: "obs-01", obstetricKey: "roja", title: "Sangrado después del parto", specialty: "Obstetricia", difficulty: "Alta prioridad",
+    id: "obs-01", obstetricKey: "roja", title: "Hemorragia posparto · traje antichoque TANN", specialty: "Obstetricia", difficulty: "Alta prioridad",
     name: "Camila A.", age: 28, background: "G2P2 · 20 minutos después de parto vaginal", complaint: "Me siento muy débil… sigo sangrando.",
     handover: "Sangrado continuo tras parto prolongado. Pérdida cuantificada inicial de 1.200 mL. La placenta se describe completa. Requiere respuesta coordinada inmediata.",
     initial: { hr: 118, sbp: 86, dbp: 52, spo2: 92, rr: 26, temp: 36 }, bleeding: 1200, bleedingRate: 65, deterioration: 1.8,
@@ -204,7 +204,9 @@ export function getPhysiology(c: GynecologyCase, run: SimulationRun) {
     rr: Math.max(12, Math.min(36, Math.round(c.initial.rr + d * 0.5))),
     spo2: Math.max(80, Math.min(99, Math.round(c.initial.spo2 + response("oxygen") * 5 - Math.max(0, d) * 0.25))),
   };
-  return { vitals, bleeding, shockIndex: vitals.hr / vitals.sbp, escalated: !!escalation, critical: vitals.sbp >= 160 || vitals.dbp >= 110 || vitals.sbp < 90 || vitals.spo2 < 94 || vitals.hr / vitals.sbp >= 1 };
+  const bleedingSupport = c.actions.filter(a => a.judgment !== "unnecessary" && !a.harmful && (a.id === "massage" || a.id === "uterotonic" || a.fulfills === "uterotonic" || (a.id === "tann" && !used("tann-remove"))) && used(a.id)).reduce((total,a) => total + response(a.id), 0);
+  const currentBleedingRate = c.bleedingRate * (escalation ? .15 : 1) / (1 + bleedingSupport * .35);
+  return { vitals, bleeding, currentBleedingRate, shockIndex: vitals.hr / vitals.sbp, escalated: !!escalation, critical: vitals.sbp >= 160 || vitals.dbp >= 110 || vitals.sbp < 90 || vitals.spo2 < 94 || vitals.hr / vitals.sbp >= 1 };
 }
 export function evaluateRun(c: GynecologyCase, run: SimulationRun) {
   const expected = c.actions.filter(a => a.critical);

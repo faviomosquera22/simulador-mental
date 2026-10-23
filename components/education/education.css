@@ -51,3 +51,7 @@
 .question-score{border:1px solid #c5d9c0;border-radius:12px;padding:16px;background:#f0f6e9;color:#315940;margin:14px 0}
 .question-score h3{font-size:16px}.question-score>strong{display:block;font:36px var(--font-mono),monospace;margin:10px 0}.question-score small{font-size:14px}.question-score p{font-size:12px!important;line-height:1.8;color:#52724e!important;margin-top:6px}
 @media(max-width:600px){.mandatory-question-modal{padding:16px}.mandatory-question-modal .case-question{padding:12px}.mandatory-question-modal .case-question h3{font-size:16px!important}.mandatory-question-modal .case-question fieldset label{font-size:13px}}
+
+/* Equal rows prevent a longer alternative from standing out visually. Text stays complete. */
+.case-question fieldset{grid-auto-rows:1fr}
+.case-question fieldset label{height:100%;min-height:48px;box-sizing:border-box;align-items:center}

@@ -16,11 +16,11 @@ const { createSimulation, simulationReducer: reduce, medicationsFor, medicationB
 const start = id => reduce(createSimulation(id), { type: "start" });
 const ticks = (s, count) => { for(let i = 0; i < count; i++) s = reduce(s, { type: "tick" }); return s; };
 const action = (s, id) => reduce(s, { type: "action", id });
-const drug = (s, id) => reduce(s, { type: "medication", id });
+const drug = (s, id) => { const m = medicationsFor(s.scenario).find(m=>m.id===id); const p=m.presentations[0]; const unit=p.quantityUnit ?? (m.continuous || id==="dexmedetomidine" ? "mL/h" : id==="insulin" ? "UI" : ["saline","ringer"].includes(id) ? "mL" : id==="salbutamol"||id==="ipratropium" ? p.id==="inhaler"?"inhalaciones":"mg" : id==="dextrose"||id==="oral-glucose" ? "g" : "mg"); return reduce(s, { type: "medication", id, amount: 1, unit }); };
 const study = (s, id) => reduce(s, { type: "study", id });
 
-test("all six cases have valid physiology, bedside tests and medicines", () => {
-  assert.equal(criticalCareCaseIds.length, 6);
+test("all seven cases have valid physiology, bedside tests and medicines", () => {
+  assert.equal(criticalCareCaseIds.length, 7);
   for (const id of criticalCareCaseIds) {
     const s = ticks(start(id), 600);
     for (const value of Object.values(s.vitals)) assert.ok(Number.isFinite(value), id);
@@ -172,7 +172,7 @@ test("sensor connection is valid at zero, independent per channel and never trea
 });
 test("disconnected sensors do not freeze treatment effects; reconnection shows the current patient", () => {
   let hidden = reduce(createSimulation("asthma"), { type: "start" });
-  hidden = reduce(hidden, { type: "medication", id: "salbutamol" });
+  hidden = drug(hidden, "salbutamol");
   let observed = reduce(hidden, { type: "monitor", key: "spo2", enabled: true });
   for (let i = 0; i < 30; i++) { hidden = reduce(hidden, { type: "tick" }); observed = reduce(observed, { type: "tick" }); }
   assert.deepEqual(observed.vitals, hidden.vitals);

@@ -7,8 +7,9 @@ const gyn=loadTypeScript('src/lib/gynecologySimulation.ts');
 const start=id=>critical.simulationReducer(critical.createSimulation(id),{type:'start'});
 const tick=(s,n)=>{for(let i=0;i<n;i++)s=critical.simulationReducer(s,{type:'tick'});return s;};
 const action=(s,id)=>critical.simulationReducer(s,{type:'action',id});
-const drug=(s,id,presentationId)=>critical.simulationReducer(s,{type:'medication',id,presentationId});
-test('all 17 cases have two closing questions, four distinct options, and an inspectable reference',()=>{
+const preparation=loadTypeScript('src/lib/medicationPreparation.ts');
+const drug=(s,id,presentationId)=>{const m=critical.medicationsFor(s.scenario).find(m=>m.id===id);const p=m.presentations.find(p=>p.id===presentationId)??m.presentations[0];return critical.simulationReducer(s,{type:'medication',id,presentationId,amount:1,unit:preparation.doseUnits(m,p)[0]});};
+test('all registered cases have two closing questions, four distinct options, and an inspectable reference',()=>{
  for(const id of [...critical.criticalCareCaseIds,...gyn.GYNECOLOGY_CASES.map(c=>c.id)]){
   assert.equal(education.finalQuestions(id).length,2,id);
   for(const q of education.CASE_QUESTIONS.filter(q=>q.caseId===id)){
@@ -189,4 +190,61 @@ test('expanded gynecology catalogue preserves fluid aliases and indication-speci
  assert.equal(urinary.actions.find(a=>a.id==='med-ceftriaxone').fulfills,'antibiotics');
  assert.equal(c.actions.find(a=>a.id==='med-ceftriaxone').fulfills,undefined);
  assert.equal(c.actions.find(a=>a.id==='med-calcium').effect,undefined,'antidote without toxicity cannot treat the current cause');
+});
+
+test('each simulator case has two in-session questions and two distinct clinical closing questions',()=>{
+ const ids=[...critical.criticalCareCaseIds,...gyn.GYNECOLOGY_CASES.map(c=>c.id)];
+ assert.equal(education.CASE_QUESTIONS.length,ids.length*4);
+ assert.equal(new Set(education.CASE_QUESTIONS.map(q=>q.id)).size,ids.length*4);
+ for(const id of ids){
+  const during=education.CASE_QUESTIONS.filter(q=>q.caseId===id&&q.stage==='during');
+  const final=education.finalQuestions(id);
+  assert.equal(during.length,2,id);assert.equal(final.length,2,id);
+  assert.equal(new Set([...during,...final].map(q=>q.prompt)).size,4,id);
+  assert.ok(final.every(q=>!q.prompt.includes('cifras de esta práctica')),id);
+ }
+});
+test('alternatives have comparable character and word lengths and no dominant correct position',()=>{
+ const positions=[0,0,0,0];let correctLongest=0;
+ for(const q of education.CASE_QUESTIONS){
+  const labels=q.options.map(o=>o.label.trim());assert.equal(new Set(labels).size,4,q.id);
+  const chars=labels.map(s=>s.length),words=labels.map(s=>s.split(/\s+/).length);
+  assert.ok(Math.max(...chars)/Math.min(...chars)<=1.25,`${q.id}: ${chars}`);
+  assert.ok(Math.max(...words)-Math.min(...words)<=4,`${q.id}: ${words}`);
+  assert.ok(labels.every(label=>label.length>=55),q.id);
+  assert.ok(q.explanation.length>60,q.id);
+  positions[q.options.findIndex(o=>o.id===q.correct)]++;
+  const correct=q.options.find(o=>o.id===q.correct);
+  if(correct.label.length===Math.max(...chars)&&chars.filter(n=>n===correct.label.length).length===1)correctLongest++;
+ }
+ assert.ok(positions.every(n=>n>=12&&n<=24),String(positions));
+ assert.ok(correctLongest<education.CASE_QUESTIONS.length*.4,'correct answers must not systematically be the longest');
+});
+test('clinical progress reaches both critical-care questions even when students avoid their direct triggers',()=>{
+ for(const id of critical.criticalCareCaseIds){
+  assert.equal(education.criticalCareQuestionAfterDecision(id,'action:non-trigger',2,[]),null);
+  const first=education.criticalCareQuestionAfterDecision(id,'action:non-trigger',3,[]);assert.ok(first,id);
+  let answers=education.answerQuestion([],first.id,first.correct,12);
+  assert.equal(education.criticalCareQuestionAfterDecision(id,'action:non-trigger',5,answers),null);
+  const second=education.criticalCareQuestionAfterDecision(id,'action:non-trigger',6,answers);assert.ok(second,id);assert.notEqual(first.id,second.id);
+  answers=education.answerQuestion(answers,second.id,second.correct,20);
+  assert.equal(education.criticalCareQuestionAfterDecision(id,'action:non-trigger',20,answers),null);
+ }
+});
+test('both gynecology questions are available through progress and the second does not repeat the first',()=>{
+ for(const c of gyn.GYNECOLOGY_CASES){
+  const first=education.gynecologyQuestionAfterDecision(c.id,'action:consent',3,[]);
+  const answers=education.answerQuestion([],first.id,first.correct,10);
+  const second=education.gynecologyQuestionAfterDecision(c.id,'action:consent',6,answers);
+  assert.ok(second,c.id);assert.notEqual(first.id,second.id);
+  assert.equal(education.gynecologyQuestionAfterDecision(c.id,'action:consent',6,education.answerQuestion(answers,second.id,second.correct,20)),null);
+ }
+});
+test('case-specific option order preserves the answer key and remains stable across construction',()=>{
+ const {buildClinicalQuestions}=loadTypeScript('src/lib/clinicalQuestionBank.ts');
+ assert.deepEqual(buildClinicalQuestions(),education.CASE_QUESTIONS);
+ const q=education.CASE_QUESTIONS.find(q=>q.id==='ventilation:closing-priority');
+ assert.match(q.options.find(o=>o.id===q.correct).label,/6,4 L\/min/);
+ const correct=education.answerQuestion([],q.id,q.correct,10);assert.equal(correct[0].correct,true);
+ const wrong=q.options.find(o=>o.id!==q.correct);assert.equal(education.answerQuestion([],q.id,wrong.id,10)[0].correct,false);
 });
