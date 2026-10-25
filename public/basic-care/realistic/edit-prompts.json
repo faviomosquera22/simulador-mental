@@ -1,0 +1,14 @@
+{
+  "method": "Built-in image_gen",
+  "date": "2026-10-25",
+  "assets": [
+    [
+      "chest-before",
+      "Use case: precise-object-edit. Edit the referenced clinical torso photograph. Preserve the exact patient skin, clavicle anatomy, lighting, camera angle, hospital gown, drape and framing. Remove ONLY the entire central venous catheter, all tubing, connectors, hub, transparent dressing and adhesive pads. Replace the removed device region with uninterrupted realistic intact skin, with no puncture, marks, blood, shadows of absent objects or retained adhesive. This becomes the BEFORE-procedure image for a nursing simulator. No other changes. No text or labels."
+    ],
+    [
+      "installed-catheter",
+      "Use case: scientific-educational. Asset type: transparent photorealistic medical simulator sprite. One realistic short peripheral IV catheter HUB after the steel introducer has been completely withdrawn: translucent polymer hub, small PINK 20G port cap and two clear soft flexible wings, short clear flexible cannula emerging about 1 cm from the tip, no steel needle, no mandril, no syringe, no hand, no skin, no adhesive, no labels. Top-down view, hub horizontal from left to right, delicate real transparent plastic textures, neutral clinical light, isolated cutout on a truly transparent background, object fills 75 percent of image width with generous alpha margins. This is the retained flexible catheter portion, not the discarded sharp; do not show an exposed metal needle. No text, logos, marks or watermark. Photographic realism, not vector, not cartoon."
+    ]
+  ]
+}

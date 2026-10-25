@@ -9,7 +9,7 @@ export type SimulationCareer = typeof SIMULATION_CAREERS[number]["id"];
 
 /** Organization for learning, not permissions or proof of professional competence. */
 export const CAREER_MODULE_IDS: Record<SimulationCareer, readonly string[]> = {
-  enfermeria: ["critical-care", "clinical-room", "pathologies", "urgencies", "triage", "materno-infantil", "dynamic-simulator", "rcp-algorithms", "ecg", "laboratory", "gasometry", "clinical-images", "calculations", "medical-terminology", "medications", "procedures", "notes", "pae", "pae-assistant", "caces"],
+  enfermeria: ["basic-care", "critical-care", "clinical-room", "pathologies", "urgencies", "triage", "materno-infantil", "dynamic-simulator", "rcp-algorithms", "ecg", "laboratory", "gasometry", "clinical-images", "calculations", "medical-terminology", "medications", "procedures", "notes", "pae", "pae-assistant", "caces"],
   medicina: ["pathologies", "critical-care", "clinical-room", "mental-sim", "urgencies", "triage", "materno-infantil", "dynamic-simulator", "rcp-algorithms", "ecg", "ultrasound", "laboratory", "gasometry", "clinical-images", "calculations", "medical-terminology", "medications", "procedures", "caces"],
   psicologia: ["psychological-first-aid", "mental-sim", "triage", "caces"],
 };

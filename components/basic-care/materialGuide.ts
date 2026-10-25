@@ -1,0 +1,27 @@
+import type { CareTool } from "@/src/lib/basicCareSimulation";
+
+export const MATERIAL_GUIDE: Record<CareTool, { name: string; purpose: string; kind: "action" | "material" }> = {
+  cvc: { name: "Equipo de catéter central", purpose: "Entrega el equipo al operador entrenado y conserva el campo estéril; no es un catéter periférico.", kind: "material" },
+  ultrasound: { name: "Ecografía y campo estéril", purpose: "Comprueba el equipo y colabora con el operador competente en la preparación ecoguiada.", kind: "action" },
+  verifyLine: { name: "Verificación de posición", purpose: "Revisa la confirmación de posición y ausencia de complicaciones documentada por el equipo.", kind: "action" },
+  connector: { name: "Conector del CVC", purpose: "Desinfecta el acceso y permite el secado según producto y protocolo antes de su manipulación.", kind: "material" },
+  identity: { name: "Pulsera e identificación", purpose: "Comprueba los datos de la pulsera y conversa con el paciente.", kind: "action" },
+  soap: { name: "Higiene de manos", purpose: "Prepara tus manos antes del contacto y de la técnica aséptica.", kind: "action" },
+  kit: { name: "Bandeja de preparación", purpose: "Reúne el equipo y comprueba los envases antes de comenzar.", kind: "material" },
+  gloves: { name: "Guantes y campo", purpose: "Protección y preparación de una técnica sin contacto.", kind: "material" },
+  tourniquet: { name: "Torniquete", purpose: "Ayuda a valorar y seleccionar el acceso venoso del caso.", kind: "material" },
+  antiseptic: { name: "Antiséptico y aplicador", purpose: "Prepara la piel antes de la punción y deja secar el producto.", kind: "material" },
+  catheter: { name: "Catéter periférico", purpose: "Catéter flexible con mandril y cámara de retorno.", kind: "material" },
+  sharps: { name: "Contenedor de punzantes", purpose: "Retira el mandril con su seguridad y deséchalo sin reencapuchar.", kind: "action" },
+  saline: { name: "Solución salina", purpose: "Se usa según la tarea indicada y la prescripción del escenario.", kind: "material" },
+  dressing: { name: "Apósito y fijación", purpose: "Protege y fija el dispositivo o la herida según la tarea.", kind: "material" },
+  position: { name: "Posicionar al paciente", purpose: "Ajusta la postura y reevalúa la capacidad de colaborar.", kind: "action" },
+  measure: { name: "Cinta métrica y marcador", purpose: "Mide y marca la longitud individual del maniquí.", kind: "material" },
+  lubricant: { name: "Lubricante hidrosoluble", purpose: "Prepara el extremo de la sonda con un producto compatible.", kind: "material" },
+  tube: { name: "Sonda nasogástrica", purpose: "Tubo flexible con marcas para el avance y la referencia externa.", kind: "material" },
+  verifyTube: { name: "Confirmación de la sonda", purpose: "Revisa la confirmación radiológica documentada por personal competente cuando no se dispone de una comprobación válida con pH. La auscultación con estetoscopio no confirma la posición.", kind: "action" },
+  record: { name: "Registro de cuidados", purpose: "Reevalúa al paciente, cierra los cuidados y documenta.", kind: "action" },
+  remove: { name: "Retirar el apósito usado", purpose: "Levanta con suavidad, observa y desecha el material usado.", kind: "action" },
+  assess: { name: "Valorar piel y acceso", purpose: "Observa bordes, piel, exudado y dolor antes de continuar.", kind: "action" },
+  gauze: { name: "Gasa estéril nueva", purpose: "Una gasa nueva por cada pasada suave de limpieza.", kind: "material" },
+};
