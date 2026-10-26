@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import Sidebar from "@/components/Sidebar";
 import ClinicalImageViewer from "@/components/advanced/ClinicalImageViewer";
 import {
@@ -195,6 +196,7 @@ export default function ClinicalImagesPage() {
           <header className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold">Archivo de imágenes clínicas reales</h1>
+              <Link href="/tomography-simulator" className="mt-3 inline-flex rounded-xl bg-teal-800 px-4 py-2 text-sm text-white hover:bg-teal-700">Explorar tomografía de cuerpo completo · 3D →</Link>
               <p className="mt-1 text-sm text-slate-600">
                 Banco curado con estudios reales para lectura comparativa, respuesta guiada y revisión de hallazgos.
               </p>

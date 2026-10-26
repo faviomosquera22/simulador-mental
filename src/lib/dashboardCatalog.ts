@@ -80,6 +80,7 @@ export const DASHBOARD_MODULES: DashboardModuleMeta[] = [
     status: "Simulación visual clínica",
     highlight: true,
   },
+  { id: "tomography", label: "Atlas de tomografía 3D", href: "/tomography-simulator", group: "diagnostico", summary: "Tomografía real de cuerpo completo: cabeza, cuello, tórax, abdomen, pelvis y extremidades. Cortes axial, coronal y sagital, recorrido y volumen 3D.", accent: "from-cyan-500/18 via-teal-500/8 to-transparent", count: 8, countLabel: "regiones y encuadres", status: "Nuevo · Atlas volumétrico", highlight: true },
   {
     id: "ultrasound",
     label: "Simulador de ecografía",
