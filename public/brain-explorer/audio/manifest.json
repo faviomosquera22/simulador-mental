@@ -1,0 +1,56 @@
+[
+  {
+    "file": "depression-context.wav",
+    "duration": 12,
+    "rms": 0.105,
+    "peak": 0.5139
+  },
+  {
+    "file": "depression-experience.wav",
+    "duration": 12,
+    "rms": 0.105,
+    "peak": 0.5131
+  },
+  {
+    "file": "depression-support.wav",
+    "duration": 12,
+    "rms": 0.105,
+    "peak": 0.5139
+  },
+  {
+    "file": "anxiety-context.wav",
+    "duration": 12,
+    "rms": 0.105,
+    "peak": 0.7568
+  },
+  {
+    "file": "anxiety-experience.wav",
+    "duration": 12,
+    "rms": 0.105,
+    "peak": 0.736
+  },
+  {
+    "file": "anxiety-support.wav",
+    "duration": 12,
+    "rms": 0.1006,
+    "peak": 0.78
+  },
+  {
+    "file": "claustrophobia-context.wav",
+    "duration": 12,
+    "rms": 0.105,
+    "peak": 0.6677
+  },
+  {
+    "file": "claustrophobia-experience.wav",
+    "duration": 12,
+    "rms": 0.0909,
+    "peak": 0.78
+  },
+  {
+    "file": "claustrophobia-support.wav",
+    "duration": 12,
+    "rms": 0.105,
+    "peak": 0.6794
+  }
+]

@@ -1,0 +1,58 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+const assert = require('node:assert/strict');
+const base = process.env.BRAIN_BASE_URL || 'http://127.0.0.1:3130';
+const { chromium } = require(process.env.BRAIN_PLAYWRIGHT || 'playwright');
+(async () => {
+  const browser = await chromium.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true, args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 1050 } }); const errors = []; page.on('pageerror', e => errors.push(e.message));
+    page.setDefaultTimeout(45000); await page.goto(base + '/simulation-hub/psicologia', { waitUntil: 'domcontentloaded', timeout: 60000 }); await page.locator('[data-module="brain-explorer"]').click(); await page.waitForURL('**/brain-explorer');
+    await page.locator('[data-status="ready"]').waitFor({ timeout: 45000 });
+    await page.screenshot({ path: '/tmp/brain-v2-anatomy.png', fullPage: true });
+    await page.getByTestId('brain-scene').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: '/tmp/brain-v2-preview.png' });
+    assert.equal(await page.getByRole('button', { name: 'Activar sonido' }).getAttribute('aria-pressed'), 'false');
+    await page.getByRole('button', { name: /02 Ansiedad generalizada/ }).click();
+    await page.getByRole('button', { name: /Anticipación/ }).click();
+    await page.getByRole('button', { name: 'Localizar Ínsula anterior', exact: true }).click();
+    assert.match(await page.getByTestId('brain-explanation').innerText(), /latidos.*tensión/s);
+    assert.equal(await page.getByRole('button', { name: /Ver interior/ }).getAttribute('aria-pressed'), 'true');
+    await page.getByRole('button', { name: 'Separar hemisferios', exact: true }).click();
+    assert.equal(await page.getByTestId('brain-scene').getAttribute('data-separated'), 'true');
+    await page.getByRole('button', { name: 'Separar hemisferios', exact: true }).click();
+    await page.getByRole('button', { name: /Iniciar recorrido/ }).click();
+    assert.equal(await page.getByTestId('brain-scene').getAttribute('data-selected-region'), 'amygdala');
+    await page.getByRole('button', { name: /Siguiente región/ }).click();
+    assert.equal(await page.getByTestId('brain-scene').getAttribute('data-selected-region'), 'insula');
+    await page.screenshot({ path: '/tmp/brain-v2-network.png', fullPage: true });
+    await page.getByRole('heading', { name: 'Ínsula anterior', exact: true }).waitFor();
+    const marker = page.locator('[data-dot="prefrontal"]'); const sceneBox = await page.getByTestId('brain-scene').boundingBox();
+    await page.mouse.click(sceneBox.x + Number(await marker.getAttribute('cx')), sceneBox.y + Number(await marker.getAttribute('cy')));
+    await page.getByRole('heading', { name: 'Corteza prefrontal', exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Activar sonido' }).click();
+    assert.equal(await page.getByRole('button', { name: 'Desactivar sonido' }).getAttribute('aria-pressed'), 'true');
+    await page.getByRole('button', { name: 'Pausar pulsos' }).click(); await page.getByText('Audio suspendido durante la pausa.').waitFor();
+    await page.getByRole('button', { name: 'Reanudar pulsos' }).click();
+    await page.getByRole('button', { name: /03 Claustrofobia/ }).click(); await page.getByRole('button', { name: 'Activar sonido' }).waitFor();
+    await page.getByRole('button', { name: /Dentro del ascensor/ }).click();
+    await page.getByRole('button', { name: /C\. Permitir salir/ }).click(); await page.getByText(/Correcto\./).waitFor();
+    await page.getByRole('button', { name: /01 Depresión/ }).click(); assert.equal(await page.getByText(/Correcto\./).count(), 0);
+    await page.getByRole('button', { name: /Rumiación/ }).click();
+    await page.getByRole('combobox', { name: 'Vista del cerebro' }).selectOption('side');
+    await page.screenshot({ path: '/tmp/brain-desktop.png', fullPage: true });
+    await page.getByRole('button', { name: /Ver interior/ }).click();
+    await page.screenshot({ path: '/tmp/brain-solid.png', fullPage: true });
+    await page.emulateMedia({ reducedMotion: 'reduce' }); await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByRole('button', { name: /Ver interior/ }).click();
+    await page.getByRole('combobox', { name: 'Vista del cerebro' }).selectOption('oblique');
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    await page.waitForFunction(() => { const el = document.querySelector('[data-testid="brain-scene"]'); return el.dataset.renderedView === 'oblique' && el.dataset.renderedWidth === String(el.clientWidth) && el.dataset.renderedRegion === el.dataset.selectedRegion; });
+    await page.getByTestId('brain-scene').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: '/tmp/brain-v2-mobile-viewport.png' });
+    await page.screenshot({ path: '/tmp/brain-v2-mobile.png', fullPage: true });
+    assert.deepEqual(errors, []); console.log('PASS: catalog, 3D asset, cases, moments, region, audio, pause, reset, views, mobile, no runtime errors');
+    const fallback = await browser.newPage(); await fallback.addInitScript(() => { HTMLCanvasElement.prototype.getContext = () => null; });
+    await fallback.goto(base + '/brain-explorer'); await fallback.locator('[data-status="error"]').waitFor();
+    await fallback.getByRole('button', { name: /^Amígdala/ }).click(); await fallback.getByRole('heading', { name: 'Amígdala', exact: true }).waitFor(); console.log('PASS: WebGL fallback remains usable');
+  } finally { await browser.close(); }
+})().catch(e => { console.error(e); process.exitCode = 1; });

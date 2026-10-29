@@ -11,7 +11,7 @@ export type SimulationCareer = typeof SIMULATION_CAREERS[number]["id"];
 export const CAREER_MODULE_IDS: Record<SimulationCareer, readonly string[]> = {
   enfermeria: ["gastrointestinal", "basic-care", "critical-care", "clinical-room", "pathologies", "urgencies", "triage", "materno-infantil", "dynamic-simulator", "rcp-algorithms", "ecg", "laboratory", "gasometry", "clinical-images", "tomography", "calculations", "medical-terminology", "medications", "procedures", "notes", "pae", "pae-assistant", "caces"],
   medicina: ["pathologies", "critical-care", "clinical-room", "mental-sim", "urgencies", "triage", "materno-infantil", "dynamic-simulator", "rcp-algorithms", "ecg", "ultrasound", "laboratory", "gasometry", "clinical-images", "tomography", "calculations", "medical-terminology", "medications", "procedures", "caces"],
-  psicologia: ["psychological-first-aid", "mental-sim", "triage", "caces"],
+  psicologia: ["brain-explorer", "psychological-first-aid", "mental-sim", "triage", "caces"],
 };
 export const CATALOG_GROUPS: { id: DashboardModuleGroup; label: string; description: string }[] = [
   { id: "simulacion", label: "Casos y escenarios", description: "Practica la valoración, la entrevista y las decisiones del caso." },
